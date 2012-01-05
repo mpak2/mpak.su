@@ -1,0 +1,68 @@
+п»ї<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3c.org/TR/1999/REC-html401-19991224/loose.dtd">
+
+<HTML lang=en xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<HEAD><TITLE>РџСЂРёРјРµСЂ РїР»РµРµСЂР° РґР»СЏ СЃР°Р№С‚Р° РЅР° jQuery (css РїР»РµРµСЂ)</TITLE>
+<META content="text/html; charset=utf-8" http-equiv=Content-Type>
+<SCRIPT type=text/javascript src="js/jquery.js"></SCRIPT>
+<SCRIPT type=text/javascript src="js/jquery.jplayer.js"></SCRIPT>
+<SCRIPT>
+$(document).ready(function(){
+	$("#jquery_jplayer").jPlayer({
+		ready: function () {
+			$("#jquery_jplayer").change('example.mp3');
+		},
+		cssPrefix: "different_prefix_example"
+	});
+	$("#jquery_jplayer").jPlayerId("play", "player_play");
+	$("#jquery_jplayer").jPlayerId("pause", "player_pause");
+	$("#jquery_jplayer").jPlayerId("stop", "player_stop");
+});
+</SCRIPT>
+
+<STYLE>
+#player_container {
+	POSITION: relative; BACKGROUND-COLOR: #00468C; WIDTH: 90px; HEIGHT: 30px;  border: 2px solid #CCCCCC
+}
+#player_container UL#player_controls {
+	PADDING-BOTTOM: 0px; LIST-STYLE-TYPE: none; MARGIN: 0px; PADDING-LEFT: 0px; PADDING-RIGHT: 0px; PADDING-TOP: 0px
+}
+#player_container UL#player_controls LI {
+	TEXT-INDENT: -9999px; OVERFLOW: hidden
+}
+#player_play {
+	POSITION: absolute; WIDTH: 24px; DISPLAY: block; HEIGHT: 24px; TOP: 3px; CURSOR: pointer; LEFT: 15px
+}
+#player_pause {
+	POSITION: absolute; WIDTH: 24px; DISPLAY: block; HEIGHT: 24px; TOP: 3px; CURSOR: pointer; LEFT: 15px
+}
+#player_play {
+	BACKGROUND: url(images/play.png) no-repeat;
+}
+.different_prefix_example_hover#player_play {
+	BACKGROUND: url(images/play2.png) no-repeat;
+}
+#player_pause {
+	BACKGROUND: url(images/pause.png) no-repeat;
+}
+.different_prefix_example_hover#player_pause {
+	BACKGROUND: url(images/pause2.png) no-repeat;
+}
+#player_stop {
+	POSITION: absolute; WIDTH: 22px; BACKGROUND: url(images/stop.png) no-repeat; HEIGHT: 22px; TOP: 4px; CURSOR: pointer; LEFT: 52px
+}
+.different_prefix_example_hover#player_stop {
+	BACKGROUND: url(images/stop2.png) no-repeat;
+}
+</STYLE>
+</HEAD>
+
+<BODY>
+<h1>РџСЂРёРјРµСЂ РїР»РµРµСЂР° РЅР° jQuery (css РїР»РµРµСЂ)</h1>
+<DIV id=jquery_jplayer></DIV>
+<DIV id=player_container>
+<UL id=player_controls>
+  <LI id=player_play><A title=play onclick="$('#jquery_jplayer').play(); return false;" href="#"><SPAN>play</SPAN></A></LI>
+  <LI id=player_pause><A title=pause onclick="$('#jquery_jplayer').pause(); return false;" href="#"><SPAN>pause</SPAN></A></LI>
+  <LI id=player_stop><A title=stop onclick="$('#jquery_jplayer').stop(); return false;" href="#"><SPAN>stop</SPAN></A></LI>
+</UL>
+</DIV></BODY></HTML>

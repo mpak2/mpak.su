@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<title><!-- [settings:title] --></title>
+	<meta name="description" content="<!-- [settings:description] -->" />
+	<meta name="keywords" content="<!-- [settings:keywords] -->" />
+	<meta name="author" content="<!-- [settings:admin_usr] -->" />
+	<meta http-equiv="Content-Script-Type" content="text/javascript" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<!-- CSS -->
+	<link rel="stylesheet" href="/themes/null/css/style.css" type="text/css" media="screen, projection, tv" />
+	<!--[if lte IE 6]><link rel="stylesheet" type="text/css" href="css/style-ie.css" media="screen, projection, tv" /><![endif]-->
+	<link rel="stylesheet" href="css/style-print.css" type="text/css" media="print" />
+	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+	<title><!-- [settings:title] --></title>
+	<script src=/include/jquery/jquery.js></script>
+	<script src=/include/jquery/jquery.url.js></script>
+	<script type="text/javascript">
+		$(document).ready(function(){
+			$('li a[href$='+$.url.attr("path")+']').addClass('active');
+		});
+	</script>
+</head>
+
+<body>
+<div id="top">&nbsp;</div>
+<div id="wrapper">
+
+	<!-- Header -->
+	<div id="header">
+		<h1><a href="/" title="Go to homepage">ИМЯ КОМПАНИИ</a></h1>
+		<p class="title">Лидер на рынке в своей сфере</p>
+
+		<div id="header-in">
+			<p>&hellip;Лучшее решение</p>
+		</div>
+
+		<a href="#skip-menu" class="hidden">Skip menu</a>
+
+		<!-- Menu -->
+		<ul id="menu">
+			<li><a href="/">ДОМОЙ</a></li>
+			<li><a href="/pages/pid:2">ОБО МНЕ</a></li>
+			<li><a href="/pages/pid:3">СЕРВИСЫ</a></li>
+			<li><a href="/pages/pid:4">ДРУЗЬЯ</a></li>
+			<li><a href="/pages/pid:5">КОНТАКТЫ</a></li>
+		</ul> <!-- Menu end -->
+	</div> <!-- Header end -->
+
+	<div class="bar">&nbsp;</div>
+
+<hr class="noscreen" />
+
+<div id="skip-menu"></div>
+
+	<div class="content">
+
+		<!-- Left column -->
+		<div class="column-left">
+			<!-- [modules] -->
+		</div> <!-- Left column end -->
+
+<hr class="noscreen" />
+
+		<!-- Right column -->
+		<div class="column-right">
+			<div class="column-right-in">
+				<!-- [blocks:1] -->
+			</div>
+		</div> <!-- Right column end -->
+		<div class="cleaner">&nbsp;</div>
+	</div> <!-- Content end -->
+
+<hr class="noscreen" />
+
+	<!-- Footer -->
+	<div id="footer">
+		<ul>
+			<li><a href="/" class="active">Домой</a>|</li>
+			<li><a href="/pages/pid:2">Обо мне</a>|</li>
+			<li><a href="/pages/pid:3">Сервисы</a>|</li>
+			<li><a href="/pages/pid:4">Друзья</a>|</li>
+			<li><a href="/pages/pid:5">Контакты</a>|</li>
+			<li><a href="#top">Наверх</a>&uarr;</li>
+		</ul>
+
+		<p class="cop">Copyright &copy; 2008 <a href="#">Company name</a>. All Rights Reserved.</p>
+	</div> <!-- Footer end -->
+
+<hr class="noscreen" />
+
+	<p class="mantis-a"><a href="http://www.mantisatemplates.com/">Mantis-a templates</a>, 
+	visit <a id="commercial-link" href="http://www.netmeter.eu" title="Free internet speed test">Netmeter</a> | <a href="http://free-templates.ru/">free templates</a></p>
+
+</div> <!-- Wrapper end -->
+</body>
+</html>

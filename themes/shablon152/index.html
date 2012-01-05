@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+
+<head>
+	<title><!-- [settings:title] --></title>
+	<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8" />
+	<LINK REL=StyleSheet HREF="/themes/null/style.css" TYPE="text/css" MEDIA=screen>
+	<script src=/include/jquery/jquery.js></script>
+	<script src=/include/jquery/jquery.url.js></script>
+	<script>
+		$(document).ready(function(){
+			$('#menulinks a[href$='+$.url.attr('path')+']').addClass('active');
+		});
+	</script>
+</head>
+
+<body>
+<div id="body2">
+<div id="page">
+	<div id="header">
+			<h1><a href="#">ИМЯ КОМПАНИИ</a></h1>
+
+			<div class="description">СЛОГАН КОМПАНИИ</div>
+	</div>
+	
+	<div id="menulinks">
+		<a href="/"><span>Домой</span></a><div class="menuline"></div>
+		<a href="/pages/pid:2"><span>Сервисы</span></a><div class="menuline"></div>
+		<a href="/pages/pid:3"><span>Цены</span></a><div class="menuline"></div>
+		<a href="/pages/pid:4"><span>Контакты</span></a><div class="menuline"></div>
+	</div>
+	
+	
+	<div id="mainarea">
+		<div id="sidebar">
+			<!-- [blocks:1] -->
+		</div>
+
+		<div id="contentarea">
+				<!-- [modules] -->
+		</div>
+	</div>
+	
+	<div id="footer">
+		<a href="http://www.free-css-templates.com/">Designed by Free CSS Templates</a>, Thanks to <a href="http://www.legalhelpers.com/bankruptcy-information.html">Bankruptcy Information</a>
+	</div>
+
+
+</div>
+</div>
+</body>
+
+</html>

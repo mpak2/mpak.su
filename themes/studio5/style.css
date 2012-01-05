@@ -1,0 +1,38 @@
+/* 
+	project:   studio 6
+	author:   N.T.Arasu
+*/
+
+*{ margin: 0; padding: 0; }* 
+body { font: .8em Tahoma, "Trebuchet MS", Tahoma, sans-serif; line-height: 1.6em; background: #fff url(images/bg.gif) repeat-x; color: #8E8E91; }
+a {	color: #EB0000;	background: inherit; text-decoration: none; }
+a:hover { color: #808080; background: inherit; text-decoration: underline; }
+p { margin: 0 0 15px 0; }
+h1 { font: normal 2.8em Georgia, "Times New Roman", Arial; color: #444; }
+h2 { font: normal 1.7em Georgia, "Times New Roman", Arial; margin: 0 0 10px; padding: 0 0 3px; color: #333; border-bottom: 1px solid #eee; }
+img { border: 0; }
+#content { width: 930px; margin: 25px auto; }
+#logo { margin: 10px 0 20px 0; width: 340px; float: left; }
+	#logo p { margin: 0; }
+#menu { float: right; padding: 40px 0 0; margin: 0 0 38px; }
+	#menu li { font-size: 1.1em; display: inline; }
+	#menu li a { float: left; width: 87px; padding: 2px 0 7px; text-align: center; margin: 0 0 0 10px; color: #636365;  }
+	#menu li a.current { background: #fff url(images/button.gif) no-repeat; color: #fff; }
+	#menu li a:hover { text-decoration: none; color: #000; background: #fff url(images/button_grey.gif) no-repeat; }
+.clear { clear: both; }
+.caption { background: #fff url(images/title.gif) no-repeat; padding: 2px 0 0 18px; height: 35px; color: #fff;  }
+	.caption p { margin: 0; }
+#left { margin: 0 0 20px; clear: left; width: 200px; float: left; }
+.box { background: #eee; }
+#left img { padding: 6px; border-right: 1px solid #ccc; border-bottom: 1px solid #ccc; background: #fff;}
+.smallthumb { width: 109px; }
+#center { width: 500px; float: left; margin: 0 0 20px 15px; }
+#right { float: right; width: 200px;}
+	.date { font-size: .8em; border-top: 1px solid #eee; padding: 5px 0 0; }
+.box { background: #eee; padding: 10px; }
+.box li { list-style: none; border-bottom: 1px dotted #ccc; line-height: 26px; }
+.box li a { padding: 0 5px; }
+#footer { font-size: .84em; clear: both; padding: 5px; background: #eee; }
+#footer a { color: #444; }
+
+.login {width:90%;}

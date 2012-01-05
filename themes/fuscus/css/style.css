@@ -1,0 +1,28 @@
+html {background:url(../img/body_bckg.jpg) center repeat-y #1f0100;}
+body {margin:0; font-size:15px; line-height:18px; font-family:"Times New Roman", Times, serif; background:url(../img/head_bckg.jpg) repeat-x; padding-top:80px;}
+a {color:#775b30;}
+a:hover {text-decoration:none;}
+
+#container {width:1000px; margin:0 auto;}
+
+#header {margin:0 20px; background:url(../img/main_top.jpg) no-repeat #FFFFFF; height:80px;}
+#logo {float:left; height:30px; padding:50px 0 0 90px; background:url(../img/logo.gif) no-repeat 40px 40px; width:290px;}
+#logo a {color:#000000; font-size:24px; text-decoration:none; text-transform:uppercase;}
+#menu {float:left; height:30px; padding:50px 0 0 0; width:580px;}
+#menu ul {margin:0; padding:0;}
+#menu ul li {display:inline; list-style:none;}
+#menu ul a {display:block; float:left; font-size:18px; text-decoration:none; padding:0 10px 2px 10px; color:#000000;}
+#menu ul a:hover {background-color:#F7F2EE;}
+
+#main {margin:0 20px; background-color:#FFFFFF; float:left;}
+#text {float:right; width:550px; padding:10px 20px 0 20px;}
+#text ul {padding:0; margin:10px 0 10px 40px;}
+#text ul li {padding-left:20px; background:url(../img/li.gif) no-repeat; list-style:none;}
+h1 {margin:20px 0 0 0; text-transform:uppercase; font-size:20px; font-weight:normal;}
+#text p {margin:10px 0;}
+#sidebar {float:left; width:270px; background:url(../img/sidebar_image.jpg) no-repeat 0 10px; padding:420px 50px 20px 50px; color:#775b30; font-size:12px;}
+
+#footer {height:149px; clear:both; background:url(../img/footer_bckg.jpg) no-repeat; text-transform:uppercase; font-size:10px; color:#5c5c5c;}
+#left_footer {float:left; padding:40px 0 0 50px;}
+#right_footer {float:right; padding:40px 50px 0 0;}
+ 

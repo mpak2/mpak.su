@@ -1,0 +1,356 @@
+/*  This template was created by Mantis-a [http://www.mantisa.cz/]. For more templates visit Free website templates [http://www.mantisatemplates.com/]. */
+
+
+
+/* CSS Document */
+
+
+/* General */
+
+* { margin: 0; padding: 0; }
+
+html { height: 100%; font-size: 62.5% }
+
+body {
+height: 100%;
+background-color: #454545;
+text-align: center;
+font: 1.2em Verdana, Arial, Helvetica, sans-serif;
+}
+
+a:link, a:visited {
+color: #005890;
+text-decoration: underline;
+font-weight: bolder;
+}
+
+a:hover {
+text-decoration: none;
+}
+
+div.address {
+background-color: #E3F4FF;
+border: 1px solid #A8DCFF;
+margin: 40px 10px 0 20px;
+}
+
+address {
+line-height: 2;
+text-align: left;
+margin: 0.3em 1em;
+}
+
+.noscreen {
+display: none;
+}
+
+
+/* Cleaner */
+
+.cleaner {
+clear: both;
+height: 0;
+font-size: 0;
+visibility: hidden;
+}
+
+
+/* Skip menu */
+
+.hidden {
+position: absolute;
+top: -10000px;
+left: 0;
+width: 1px;
+height: 1px;
+overflow: hidden;
+}
+
+
+/* Images */
+
+
+
+/* Wrapper */
+
+#wrapper {
+width: 900px;
+margin: 70px auto 0 auto;
+padding-bottom: 90px;
+}
+
+
+/* Headings, paragraphs */
+
+h1 {
+font-size: 1.8em;
+color: #8DE0FF;
+position: relative;
+z-index: 2;
+}
+
+h1 a:link, h1 a:visited {
+text-decoration: none;
+color: #8DE0FF;
+}
+
+h2 {
+font: 1.4em Georgia, "Times New Roman", Times, serif;
+color: #1473B0;
+letter-spacing: 1px;
+margin-bottom: 5px;
+border-bottom: 1px dotted #1473B0;
+padding-bottom: 3px;
+}
+
+p {
+line-height: 1.7;
+}
+
+
+/* Header */
+
+#header {
+width: 900px;
+height: 173px;
+margin: 0 auto;
+position: relative;
+text-align: left;
+}
+
+#header p.title {
+color: white;
+line-height: 1.8;
+position: relative;
+z-index: 2;
+}
+
+#header-in {
+position: absolute;
+width: 900px;
+height: 119px;
+bottom: 0;
+left: 0;
+background: #005481 url('../img/header-bg.gif') no-repeat 0 0;
+}
+
+#header-in p {
+font: 2.1em Georgia, "Times New Roman", Times, serif;
+color: white;
+position: absolute;
+top: 34px;
+left: 175px;
+letter-spacing: 1px;
+}
+
+.bar {
+width: 900px;
+height: 12px;
+background: #2B2B2B url('../img/bar.gif') no-repeat 0 0;
+}
+
+
+/* Menu */
+
+#menu {
+position: absolute;
+top: 20px;
+right: 8px;
+z-index: 3;
+}
+
+#menu li {
+float: left;
+display: inline;
+list-style-type: none;
+}
+
+#menu li a {
+float: left;
+display: inline;
+list-style-type: none;
+text-align: center;
+color: #FFFFFF;
+font-weight: normal;
+text-decoration: none;
+background-color: #202020;
+padding: 0 0.8em;
+height: 31px;
+line-height: 30px;
+margin-left: 4px;
+border-top: 3px solid black;
+}
+
+#menu li a:hover, #menu li a.active  {
+background-color: #0D0D0D;
+color: #FFFFFF;
+border-top: 3px solid #00A7ED;
+text-decoration: none;
+}
+
+
+/* Content and columns */
+
+.content {
+width: 900px;
+background-color: white;
+}
+
+.column-left {
+margin: 10px;
+float: left;
+width: 620px;
+text-align: left;
+}
+
+.column-right {
+float: right;
+width: 260px;
+text-align: left;
+}
+
+.column-left-in {
+margin: 1.3em 1em 3em 1.5em;
+}
+
+.column-right-in {
+margin: 1.3em 2.8em 3em 2em;
+}
+
+
+/* Column right list */
+
+.column-right ul {
+margin: 10px 10px 0 20px;
+list-style-type: none;
+}
+
+.column-right ul li {
+display: block;
+}
+
+.column-right ul li a, .column-right ul li a:visited {
+color: #3A3A3A;
+font-weight: normal;
+text-decoration: none;
+display: block;
+padding: 10px 0;
+border-bottom: 1px solid #CECECE;
+}
+
+.column-right ul li a:hover, .column-right ul li a.active {
+color: black;
+font-weight: bold;
+border-bottom: 1px solid #00A7ED;
+}
+
+
+/* Column left two boxes */
+
+.box1 {
+float: left;
+background-color: #E3F4FF;
+border: 1px solid #7EC6F6;
+width: 270px;
+margin: 20px 13px 0 0;
+}
+
+.box2 {
+float: left;
+background-color: #E6FCCB;
+border: 1px solid #9ECB64;
+width: 270px;
+margin: 20px 0 0 0;
+}
+
+.box1-in, .box2-in {
+margin: 0.4em 0.8em 1.3em 0.8em;
+}
+
+.box1 p, .box2 p {
+line-height: 1.5;
+}
+
+.box1 p.more, .box2 p.more {
+position: relative;
+top: 6px;
+left: 200px; 
+}
+
+.box1 p.more a, .box1 p.more a:visited {
+color: #005083;
+}
+
+.box2 p.more a, .box2 p.more a:visited {
+color: #2F6900;
+}
+
+
+/* Footer */
+
+#footer {
+width: 900px;
+height: 92px;
+background: #2B2B2B url('../img/footer-bg.gif') no-repeat 0 0;
+border-bottom: 3px solid #101010;
+}
+
+#footer a:link, #footer a:visited {
+color: #FFFFFF;
+font-weight: normal;
+}
+
+#footer ul {
+list-style-type: none;
+color: #FFFFFF;
+padding: 13px 0 0 10px;
+text-align: left;
+font-size: 0.9em;
+float: left;
+width: 430px;
+}
+
+#footer ul li {
+float: left;
+display: inline;
+white-space: nowrap;
+}
+
+#footer ul li a, #footer ul li a:visited {
+margin: 0 6px;
+}
+
+#footer p.cop {
+font-size: 0.9em;
+color: #FFFFFF;
+float: right;
+padding: 12px 16px 0 0;
+margin: 0;
+line-height: 1.6;
+}
+
+
+/* Mantis-a templates backlink */
+
+p.mantis-a {
+color: #C0C0C0;
+font-size: 0.9em;
+margin: 7px 8px 10px 0;
+line-height: 1;
+text-align: right;
+}
+
+p.mantis-a a, p.mantis-a a:visited {
+color: #C0C0C0;
+font-weight: normal;
+}
+
+p.mantis-a a:hover {
+color: #FFFFFF;
+}
+
+
+#commercial-link, a:visited#commercial-link {
+font-weight: bold;
+color: #FCFCFC;
+}

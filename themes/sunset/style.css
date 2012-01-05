@@ -1,0 +1,151 @@
+html, body {
+margin : 0;
+padding : 0;
+}
+body {
+width : 100%;
+font : 76% Helvetica, "lucida sans", Tahoma, "Trebuchet MS",  Arial, sans-serif;
+color : #a52a2a;
+background : #191919;
+}
+			/*WRAP*/
+#container {
+width : 100%;
+margin : 0 auto;
+background : #191919 url(images/sun.jpg) no-repeat;
+color :#ccc;
+line-height : 1.8em;
+}
+			/*TOP BAR*/
+#top {
+height : 140px;
+border-bottom : 1px solid #FFD300;
+background : #FFD300 url(images/header.jpg) no-repeat;
+color : #191919;
+}
+#top h1 {
+float : right;
+padding : 0;
+margin : 0 5px 0 0;
+font-size : 150%;
+letter-spacing: 3px;
+}
+			/*TOP BAR MENU*/
+#menu {
+height : 100px;
+margin : 0;
+padding : 0;
+list-style-type : none;
+list-style-image : none;
+text-transform : lowercase;
+}
+#menu li {
+float : left;
+width :7em;
+border-right : 1px solid #eee;
+}
+#menu a {
+display : block;
+height : 100px;
+width : 7em;
+font-weight : bold;
+line-height : 50px;
+padding : 40px 0 0 0;
+text-align : center;
+color : #000;
+background : #FF7900;
+}
+#menu a:hover {
+color : #fff;
+background : #FF3B00 url(images/sun2.jpg);
+}
+			/*LEFT SIDEBAR*/
+#leftnav {
+margin-top : 30px;
+float : left;
+width : 180px;
+padding : 2em;
+}
+#leftnav p {
+margin : 0 0 1em 0;
+}
+#leftnav h2 {
+margin: 0 0 10px 0;
+font-size : 150%;
+letter-spacing: 5px;
+color : #FFD300;
+background : inherit;
+}
+			/*MAIN CONTENT*/
+#content {
+margin : 30px 0 0 240px;
+border-left : 1px solid #808080;
+padding : 2em 3em 1em 3em;
+}
+#content h2 {
+margin: 0 0 10px 0;
+font-size : 150%;
+letter-spacing: 5px;
+color : #FFD300;
+background : inherit;
+}
+			/*FOOTER*/
+#footer {
+clear : both;
+margin : 0;
+padding : .5em 0 1em 0;
+border-bottom : 0px solid #808080;
+border-top : 1px solid #808080;
+color : #eee;
+background : #191919;
+}
+#footer img {
+float : right;
+}
+/* seen by IE5mac only, by Philippe Wittenbergh www.l-c-n.com */
+*>html #footer img {
+margin : 0;
+}
+/* end */
+#footer p {
+padding-left : 5px;
+}
+			/*LINKS*/
+a:link, a:visited {
+color : #FF7900 ;
+background : inherit;
+text-decoration : none;
+}
+a:hover {
+color : #FFD300;
+background : inherit;
+text-decoration : none;
+}
+a:active {
+color : #666;
+background : inherit;
+text-decoration : none;
+}
+.navlist li {
+margin: 0 15px 5px 0;
+padding: 2px;
+font-size: 90%;
+list-style-image:url(images/arrow.gif);
+background: inherit;
+color: #D5D9B4;
+}
+img {
+border : none;
+}
+			/*CLASS*/
+.quote {
+font-weight: bold;
+border-top : 1px solid #808080;
+padding :  10px;
+}
+			/*TYPOGRAPHY*/
+blockquote {
+font-weight : bold;
+font-style : italic;
+color : #b29b35;
+}

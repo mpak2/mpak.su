@@ -1,0 +1,281 @@
+@charset "utf-8";
+* {
+   margin: 0;
+   padding: 0; }
+body {
+   color: #555555;
+   font-family: 'Trebuchet MS', Arial, Verdana, Helvetica, sans-serif;
+   font-size: 75%;
+   background: #2f6d5e url(../img/gbackground.png) repeat-x; }
+
+
+/******** Content variations ********/
+#head { 
+   background-color: #000; }
+#outerwrapper {
+   width: 960px; 
+   background-color: #fff;
+   margin: 0 auto;
+   line-height: 1.4em;
+   color: #404040; }
+#innerwrapper {
+   float: left; 
+   margin-left:5px;
+   width:760px;}
+#content {
+   float: left; 
+   width: 550px; }
+#contentmid {
+   float: right;
+   margin-right: 10px;
+   width: 550px; }
+#midsidebar { /* C-S-S Layout */
+   margin-right: 10px; 
+   width: 180px;
+   float: right; }
+#leftsidebar { /* S-C-S Layout */
+   margin-right: 10px; 
+   width: 180px;
+   float: left; }
+#rightsidebar {
+   float: right; 
+   margin-right: 5px; 
+   width: 180px; }
+
+/***** General Styles *****/
+a {
+   text-decoration: none;
+   color: #337766;
+   font-weight: bold; }
+a:hover {
+   color: #0c453f;
+   text-decoration: none; }
+a img {
+   border:0; }
+p {
+   margin-bottom: 10px; }
+code, pre {font-size: 1.2em; 
+	color:#337766; }
+blockquote:before, blockquote:after {content: "\"";
+	font-size: 16pt;
+	font-family: serif; }
+blockquote {
+	margin: 10px 0 0 0; 
+	padding: 5px;
+	background: #7cc0a8;
+	border: 1px solid #499279;
+	line-height: 1.6em;
+	color: #ffffff;
+	font-style:italic; }
+blockquote p {display: inline; }
+blockquote a {
+   color: #fff; 
+   text-decoration: underline; }
+table {
+   border-collapse: collapse; 
+   margin: 10px auto 15px auto;
+   border: 1px solid #499279; }
+th {
+   background: #7cc0a8; 
+   height: 25px; 
+   padding: 0 10px;
+   color: #ffffff; 
+   text-align: left; }
+td {
+   padding: 0 10px; 
+   height: 25px; }
+tr.odd {
+   background: #efefef; }
+tr.even {
+   background: #cfcfcf; }
+form {
+   background: #7cc0a8; 
+   margin: 10px auto; 
+   padding: 5px; 
+   border: 1px solid #499279; }
+label {
+   color: #fff;
+   display: block; 
+   font-weight: bold; 
+   margin: 5px 0 ; }
+input {
+   padding: 2px; 
+   border: 1px solid #499279; }
+textarea {
+   width: 400px; 
+   padding: 2px; 
+   border: 1px solid #499279;
+   height: 100px; 
+   display: block; }
+input.button {
+   margin: 0; 
+   padding: 2px 3px; 	
+   border: 1px solid #499279; }
+input, select, textarea {
+   font-family: Arial, Helvetica, sans-serif; 
+   font-size: 1.0em; }
+h2 {
+   font-size: 1.25em;
+   font-weight: bold;
+   color: #111;
+   line-height: 1.2;
+   margin: 0 0 5px 0; }
+h3 {
+   font-size: 1.1em; 
+   display: block; 
+   margin: 10px 0; } 
+h4 {
+   margin-bottom: 15px; 
+   font-size: 10pt; 
+   font-weight: bold; }
+ul, ol {
+   list-style-position: inside; }
+img {
+   border: 1px solid #f1f1f1;	
+   background-color: #f5f5f5; 
+   margin: 5px;
+   padding: 5px; 
+   text-align: center; }
+img.float-right {
+   margin: 5px 0px 5px 15px; 
+   float:right; }
+img.float-left {
+   margin: 0 10px 5px 0px;
+   float:left; }
+   
+/***** Identity ******/
+#topbar {
+   width: auto !important; 
+   width /**/:760px; 
+   height: 45px;
+   border: 0px; }
+#identity {
+   height: 45px;
+   width: 410px;
+   border: 0px;
+   float: left; }
+#identity h1 {
+   font-size: 1.0em;
+   padding: 5px 0 0 3px; }
+#identity h1 a, #identity h1 a:hover {
+   color: #fff;
+   text-decoration: none; }
+#identity p.head2 {
+   color: #fff;
+   font-size: 0.9em; 
+   padding-left: 3px; 
+   font-weight: normal;
+   line-height: 1.7; }
+
+/****** Top Navigation ******/
+#topnav {width: 350px; 
+   height: 45px;
+   border: 0px solid #000000;
+   font-size: 0.9em;
+   color: #fff;
+   float: right; }
+#topnav ul {margin: 0px;
+   width: auto;
+   list-style-type: none;
+   line-height: 1.0em;
+   border: 0px solid #000000;
+   float: right; }
+#topnav ul li {margin: 0px 5px 0px 10px;
+   padding: 10px 5px 0px 5px;
+   float: left; }
+#topnav ul li a {text-decoration: none;
+   color: #fff; }
+
+
+/****** Searchbox ******/
+#logo {
+   height: 145px;
+   width: 960px;
+   background: url(../img/bannergreen.jpg) no-repeat; }
+#sitesearch {
+   width: 225px;
+   height: 35px;
+   float: right;
+   margin: 10px 15px 0 0; }
+#sitesearch form {
+   background: url(../img/fgsearch.png) center center no-repeat;
+   height: 30px;
+   border: 0;
+   margin: 0;
+   width: 225px;
+   text-align: right;
+   padding: 11px 0 0 0;
+   font-size: 1.0em; }
+#sitesearch input {
+   color: #337766;
+   width: 150px; 
+   margin-right: 50px;
+   border: none;
+   padding: 4px; }
+
+
+/****** Navigation ******/
+#navigation {
+   width: 960px;
+   background: url(../img/nav_seagreen.png) top center repeat-x;
+   height: 31px;
+   border-top: #023634 solid 1px; 
+   margin-bottom: 20px;}
+#navbar_link {
+   height: 30px;
+   float: left; }
+#navigation #navbar_link ul {
+   float: left;
+   height:30px;
+   width: 100%;
+   list-style-type: none; }
+#navigation #navbar_link ul li {
+   display: inline; }
+#navigation #navbar_link ul li a {
+   padding: 6px 15px;
+   color: #fff;
+   text-decoration: none;
+   line-height: 1.6em;
+   float: left;
+   border-right: 1px solid #17514a;
+   text-decoration: none;
+   font-size: 1.0em;
+   font-weight: bold; }
+#navigation #navbar_link a:hover { 
+   text-decoration: none;	
+   border-right: 1px solid #17514a;
+   color: #fff;
+   background: #ddd url(../img/nav_seagreen.png) center -33px repeat-x; }
+   
+.currentpage a {background: #ddd url(../img/nav_seagreen.png) center -33px repeat-x; }
+
+
+
+/****** Sidebar Items ******/
+.SidebarItem {
+   margin: 0 0 15px 0; }
+.SidebarItem ul, #SidebarItem ol {
+   list-style: none; }
+.SidebarItem li {
+   line-height: 1.2; }
+
+/******** Footer ********/
+#footer {
+   clear: both;
+   width: 960px; 
+   color: #777;
+   height: 25px;
+   font-size: 0.8em;
+   font-weight: bold;
+   margin: 0px auto; }
+#footer p {
+   font-weight: bold;
+   border-top: 1px solid #aaa;
+   padding: 5px 0 5px 3px; }
+#footer p span {
+   padding-right: 3px; }
+#footer a {
+   color: #777;
+   text-decoration: underline; }
+#footer a:hover {
+   color: #444; }

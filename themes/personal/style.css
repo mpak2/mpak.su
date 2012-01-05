@@ -1,0 +1,339 @@
+
+body {
+	margin-top: 20px;
+	margin: 0;
+	padding: 0;
+	background: #C0F3FD url(images/img01.gif) repeat-x left top;
+	font-size: 12px;
+	text-align: justify;
+	color: #1F1F1F;
+}
+
+body, th, td, input, textarea, select, option {
+	font-family: "Trebuchet MS", "Times New Roman", Arial, Times, serif;
+}
+
+h1, h2, h3 {
+	font-family: Georgia, "Times New Roman", Times, serif;
+	font-weight: normal;
+	color: #000000;
+}
+
+h1 {
+	letter-spacing: -2px;
+	font-size: 3em;
+}
+
+h2 {
+	letter-spacing: -1px;
+	font-size: 2em;
+}
+
+h3 {
+	font-size: 1em;
+}
+
+p, ul, ol {
+	line-height: 200%;
+}
+
+blockquote {
+	padding-left: 1em;
+}
+
+blockquote p, blockquote ul, blockquote ol {
+	line-height: normal;
+	font-style: italic;
+}
+
+a {
+	color: #FFFFFF;
+}
+
+a:hover {
+	color: #FFFFFF;
+}
+
+hr {
+	display: none;
+}
+
+#wrapper {
+	margin: 0;
+	padding: 0;
+	background: #C0F3FD url(images/img02.jpg) repeat-x left top;
+}
+
+
+/* Header */
+
+#header {
+	width: 800px;
+	height: 200px;
+	margin: 0 auto;
+	padding: 50px 0 0 0;
+	font-family: "Trebuchet MS", "Times New Roman", Arial, Times, serif;
+	background: url(images/img04.jpg) no-repeat left 20%;
+}
+
+#header h1, #header p {
+	margin: 0;
+}
+
+#header h1 {
+	float: left;
+	color: #000000;
+	font-size: 36px;
+	padding-left: 75px;
+	height: 70px;
+}
+
+#header p {
+	float: left;
+	padding: 17px 0 0 10px;
+	font-size: 12px;
+	font-weight: bold;
+}
+
+#header a {
+	text-decoration: none;
+	color: #F79F1A;
+}
+
+#banner {
+	margin: 0 auto;
+	margin-bottom: 15px;
+	padding: 0;
+	width: 800px;
+	height: 250px;
+	background: url(images/img01.jpg) no-repeat left top;
+}
+
+/* Page */
+
+#page {
+	width: 800px;
+	margin: 0 auto;
+	margin-bottom: 15px;
+}
+
+/* Content */
+
+#content {
+	float: right;
+	width: 505px;
+	margin: 0;
+	padding: 25px 25px 15px 20px;
+}
+
+.post {
+	padding: 0px 0 0 0;
+}
+
+.title {
+	border-left: 6px solid #2E2E2E;
+	padding: 0 20px 0 10px;
+	font-size: 24px;
+}
+
+.title a {
+	text-decoration: none;
+	color: #FFFFFF;
+}
+
+.pagetitle {
+}
+
+.byline {
+	margin: -25px 20px 0 17px;
+	color: #303030;
+}
+
+.meta {
+	text-align: left;
+	color: #17A141;
+	padding: 10px 20px 10px 12px;
+	font-family: Georgia, "Times New Roman", Times, serif;
+	font-size: 12px;
+	background: #34CD65;
+	border: 3px solid #000000;
+}
+
+.meta .more {
+	padding-left: 10px;
+}
+
+.meta .comments {
+	padding-left: 10px;
+}
+
+.meta a {
+	color: #000000;
+}
+
+.navigation {
+}
+
+.alignleft {
+	float: left;
+}
+
+.alignright {
+	float: right;
+}
+
+.posts {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	line-height: normal;
+}
+
+.posts li {
+}
+
+.posts h3 {
+	margin: 0;
+	font-weight: bold;
+}
+
+.posts p {
+	margin: 0;
+	line-height: normal;
+}
+
+.posts a {
+}
+
+.entry {
+	margin: 0;
+	padding: 0 0 15px 17px;
+}
+
+.last {
+	border: none;
+}
+
+/* Sidebar */
+
+#sidebar {
+	float: left;
+	width: 245px;
+	margin-top: -130px;
+	padding: 0 0 0 0;
+	color: #17A141;
+}
+
+#sidebar .btm {
+	margin: 0;
+	padding: 0;
+	background: url(images/img07.gif) no-repeat left bottom;
+}
+
+#sidebar .top {
+	background: url(images/img05.gif) no-repeat left top;
+}
+
+#sidebar .wrap {
+	background: url(images/img06.gif) repeat-y left top;
+}
+
+#sidebar ul {
+	margin: 0;
+	padding: 40px 20px 40px 40px;
+	list-style: none;
+}
+
+#sidebar li {
+	margin: 0;
+	padding: 0;
+}
+
+#sidebar li ul {
+	margin: 0 0 0 0;
+	padding: 0 0 20px 0;
+}
+
+#sidebar li li {
+	margin: 0 0 0 10px;
+	padding: 0 0 0 10px;
+	line-height: 25px;
+}
+
+#sidebar h2 {
+	margin: 0;
+	padding-left: 40px;
+	height: 35px;
+	font-size: 18px;
+	background: url(images/img08.gif) no-repeat left top;
+}
+
+#sidebar a {
+}
+
+#sidebar a:hover {
+	text-decoration: none;
+}
+/* Search */
+
+#search input {
+	display: none;
+}
+
+#search input#s {
+	display: block;
+	width: 230px;
+	padding: 2px 5px;
+	border: 1px solid #3DD1FF;
+}
+
+#search br {
+	display: none;
+}
+
+/* Calendar */
+
+#calendar {
+}
+
+#calendar h2 {
+	margin-bottom: 15px;
+}
+
+#calendar table {
+	width: 80%;
+	margin: 0 auto;
+	text-align: center;
+}
+
+#calendar caption {
+	width: 100%;
+	text-align: center;
+}
+
+#next {
+	text-align: right;
+}
+
+#prev {
+	text-align: left;
+}
+
+/* Footer */
+
+#footer {
+	width: auto;
+	height: 118px;
+	background: url(images/img03.gif) repeat-x left top;
+	text-align: center;
+	font-size: 10px;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+#footer p {
+	padding: 50px 0;
+}
+
+#footer p a {
+}
+

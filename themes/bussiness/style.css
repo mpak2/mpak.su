@@ -1,0 +1,278 @@
+/*
+ * Title: Business Elegance v.1.0
+ * Site: http://www.chamadigital.com
+ * Author: Anselmo Ribeiro
+ * Last Modified: 28_02_2008
+*/
+
+
+
+/*global reset */
+
+
+html *{
+	padding: 0;
+	margin: 0;
+}
+a img, :link img, :visited img {
+  border: 0;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+ol, ul {
+  list-style: none;
+}
+
+p{
+	line-height: 18px;
+}
+/*  global reset */
+
+
+
+/* base html */
+
+body {
+  background: #343a3d url(images/bgd.gif);
+  color: #fff;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  text-align: center;/*this is in place to center in older browsers*/
+}
+a {
+ text-decoration: none;
+ color:#05c7c0;
+}
+a:link {/* unvisited link */
+ color:#05c7c0;
+}     
+ 
+a:hover { /* mouse over link */
+ color:#05c7c0;
+ text-decoration: underline;
+}  
+a:active {/* selected link */
+ color:#05c7c0;
+}
+
+
+
+/* end base html */
+/*  layout */
+#wrapper{
+	width: 900px;
+	
+	margin: 0 auto;
+	text-align: left;
+	background: #2d3235;
+}
+#header{
+	width: 856px;
+	padding: 20px 22px 25px 22px;
+	height: 390px;
+	background: #262b2e;
+	position: relative;
+}
+#header h1{
+	position: absolute;
+	top:20px;
+	left: 22px;
+	width: 350px;
+	height: 23px;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:30px;
+	color:#fff;
+	font-weight: bold;
+}
+#header h1 a{
+	text-decoration: none;
+	color:#fff;
+}
+
+#content{
+	float: left;
+	width: 900px;
+	background: #2d3235 url(images/main_bgd.gif) repeat-y top left;
+}
+#col_left{
+	float: left;
+	width: 571px;
+	padding: 30px 22px;
+}
+#col_right{
+	float: right;
+	width: 197px;
+	padding: 30px 58px 30px 30px;
+}
+#footer{
+	width: 900px;
+	margin: 10px auto 20px auto;
+	
+}
+#footer p{
+	text-align: center;
+}
+#welcome{
+	padding-bottom: 35px;
+	border-bottom: 1px solid #343a3d;
+}
+/*navigation*/
+#navigation{
+	
+	position: absolute;
+	top:25px;
+	
+	right: 22px;
+}
+#navigation li{
+	
+	float: left;
+	
+}
+#navigation a {
+	display: inline-block;
+	font-size: 11px;
+	text-transform: uppercase;
+	text-decoration:none;
+	padding:10px 15px 35px 15px;;
+	background-color:#000;
+	border-bottom: 3px solid #fff;
+	color:#fff;
+	margin-right: 1px;
+	font-weight: normal;
+}
+#navigation a:hover{
+	border-bottom: 3px solid #05c7c0;
+	color:#05c7c0;
+}
+#navigation li.selected a{
+	border-bottom: 3px solid #05c7c0;
+	color:#05c7c0;
+}
+#imagem{
+	position: absolute;
+	top:142px;
+}
+#search{
+	position: absolute;
+	top: 105px;
+	left: 22px;
+}
+
+h2#slogan{
+	position: absolute;
+	top: 100px;
+	right: 22px;
+	font-family: Georgia, "Times New Roman", Times, serif;
+	font-size:28px;	
+	font-weight: normal;
+}
+h2#slogan span{
+	font-style: italic;
+	color: #95ca05;
+}
+h2{
+	font-family: Georgia, "Times New Roman", Times, serif;
+	font-size: 24px;
+	font-weight: normal;
+	margin-bottom: 20px;
+}
+#search input{
+	float: left;
+	background-color: #141718;
+	border: 1px solid #393e41;
+	padding: 3px;
+	color: #fff;
+	width: 152px;
+}
+#search .btn{
+	border: 0;
+	margin: 0 0 0 7px;
+	padding: 0;
+	width: auto;
+}
+#about_us{
+	float: left;
+	width: 194px;
+	margin-right: 27px;
+	display: inline;
+}
+#services{
+	float: left;
+	width: 151px;
+	margin-right: 42px;
+	display: inline;	
+}
+#clients{
+	float: left;
+	width: 146px;
+	display: inline;
+}
+#services ul li{
+	padding:0 0 14px 18px;
+	background: url(images/bullet.jpg) no-repeat top left;
+}
+#clients ul li{
+	padding:0 0 14px 20px;
+	background: url(images/arrow.jpg) no-repeat top left;
+}
+	
+h3{
+	padding: 30px 0 20px 0;
+	font-family: Georgia, "Times New Roman", Times, serif;
+	font-size: 18px;
+	font-weight: normal;
+}
+#center{
+	float:left;
+	padding-bottom: 35px;
+	border-bottom: 1px solid #343a3d;
+}
+#quote{
+	float:left;
+	padding: 35px 0;
+	font-family: Georgia, "Times New Roman", Times, serif;
+	font-size: 17px;
+	font-style: italic;
+	letter-spacing: 2px;
+	color: #8b8b8c;
+	
+}
+#quote p{
+	line-height: 22px;
+}
+#quote p.testimonial{
+	font-size: 12px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-style: normal;
+	color: #fff;
+	
+}
+#quote .quote{
+		font-size: 26px;
+}
+#news{
+	padding-bottom: 10px;
+	border-bottom: 1px solid #343a3d; 
+}
+#news li{
+	margin-bottom: 20px;
+	}
+#news li p.date{
+	color: #95ca05;
+	font-weight: bold;
+}
+#news li p.archive{
+	padding-left: 25px;
+	background: url(images/folder.jpg) no-repeat 0 50%;;
+}
+#contacts h2{
+	margin-top: 20px;
+}
+.green{
+	color: #95ca05; 
+}

@@ -1,0 +1,158 @@
+body {
+background-color:#bdc5d4;
+font-size:10pt;
+font-family:Arial;
+margin:0;
+padding:0;
+color:#FFFFFF;
+background-image:url(images/back.png);
+background-repeat:repeat-x;
+}
+
+#body2 {
+background-image:url(images/backfooter.png);
+background-position:bottom center;
+background-repeat:repeat-x;
+width:100%;
+}
+
+#page {
+width:900px;
+background-image:url(images/page.png);
+margin:auto;
+padding:auto;
+}
+
+#header {
+clear:both;
+width:825px;
+height:95px;
+background-image:url(images/header.png);
+padding-top:75px;
+padding-left:75px;
+}
+
+#menulinks {
+clear:both;
+width:860px;
+height:39px;
+padding-left:40px;
+background-image:url(images/menulinks.png);
+}
+
+* html #menulinks a { /* Filter for IE6 to prevent li stacking */
+  float: left;
+  text-decoration: none;
+  }
+
+* html #menulinks a span { /* Filter for IE6 to prevent li stacking */
+	float: left;
+	text-decoration: none;
+}
+  
+#menulinks a {
+	padding-left:14px;
+	height:39px;
+	background-image:none;
+	display:block;
+	color:#FFFFFF;
+	text-decoration:none;
+	float:left;
+	font-size:14px;
+	font-weight:bold;
+	margin-right:3px;
+	margin-left:3px;
+  }
+
+#menulinks a span {
+	padding-left:8px;
+	padding-right:20px;
+	padding-top:6px;
+	height:35px;
+	display:block;
+	background-image:none;
+	text-decoration:none;
+	cursor:pointer;
+  }
+  
+  
+#menulinks a:hover, #menulinks a.active {
+	background-image:url(images/menuhover.png);
+	background-position:top left;
+	text-decoration:none;
+	color:#FFFFFF;
+}
+
+#menulinks a:hover span, #menulinks a.active span {
+	background: url(images/menuhoverright.png) right top no-repeat;
+	text-decoration:none;
+}
+
+.menuline {
+	background-image:url(images/menuline.png);
+	height:39px;
+	width:2px;
+	float:left;
+	display:block;
+}
+
+
+#mainarea {
+	width:850px;
+	clear:both;
+	padding-left:50px;
+}
+
+#contentarea {
+	width:535px;
+	padding-right:40px;
+	float:left;
+	line-height:14pt;
+}
+
+#sidebar {
+	float:left;
+	width:235px;
+	background-image:url(images/sidebartop.png);
+	background-repeat:no-repeat;
+	line-height:14pt;
+}
+
+#footer {
+	width:900px;
+	clear:both;
+	height:52px;
+	padding-top:30px;
+	text-align:center;
+	line-height:14pt;
+	background-image:url(images/footer.png);
+	background-repeat:no-repeat;
+	background-color:#000000;
+}
+
+h1 {
+	font-size:25pt;
+	color:#FFFFFF;
+	margin:0;
+}
+
+h2 {
+	font-size:13pt;
+	color:#FFFFFF;
+	padding-top:6px;
+}
+
+.description {
+	font-size:14pt;
+	color:#CCCCCC;
+	margin:0;
+}
+
+a {
+	color:#FFFFCC;
+	text-decoration:none;
+}
+
+a:hover {
+	text-decoration:underline;
+}

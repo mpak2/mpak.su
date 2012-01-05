@@ -1,0 +1,51 @@
+CHANGELOG FOR DAMN SMALL RICH TEXT EDITOR
+-----------------------------------------
+
+January 10th, 2009, Version 0.2.4
+    * Some IE fixes contributed by Eugene Minaev
+    * A new Attachment plugin by Tom Freeman
+    * Incorporated the Headings patch (currently only tested on Firefox)
+
+July 12th, 2008, Version 0.2.3
+	* Fixed a small bug in DSRTE initialization - calling d.execCommand instead of this.doc.execCommand (thanks to Yuri <yuri.gordeev@gmail.com>)
+	* Changed class protection level from protected to public on DSRTECommand and subclasses (thanks to Michele <michele@vivaweb.it>)
+	* Fixed XHTML compliance when more than one editor is present on the same page (some IDs were the same)
+	* Fixed multiple inclusion of Javascripts for plugins (added check in getScripts())
+	* Including initial work on Drupal 6.x module (NOT STABLE YET!)
+
+May 14th, 2008, Version 0.2.2
+    * Fixed plugin interface
+    * Added example plugins: simple BBCode and MySpan
+    * Modified getScripts() to also include dsrte.js and to do it only once per request (for multi-editors support)
+    * Moved all Panel commands into plugins
+    * Fixed panel slideup after applying color/bgcolor to selection
+    * Plugins now reside in the plugins/ directory
+    * All .js files are now minified by default. The original versions reside in the orig/ directory
+
+May 8th, 2008, Version 0.2.1
+    * Fixed a XHTML 1.0 Transitional validation issue.
+
+May 7th, 2008, Version 0.2
+    * Complete rewrite of the code to make it more readable and plugin-prepared.
+    * Incorporated all command icons into one big image for faster loading (thanks to khachtrovn@gmail.com)
+    * Added table insertion.
+
+April 10th, 2008, Version 0.1.4
+    * Bugfix: Image upload on IE did not work since clicking on the Browse button took focus out of editing iframe.
+
+April 3rd, 2008, Version 0.1.3
+    * Bugfix: modification flag was not present for command buttons, only for keypress.
+
+April 2nd, 2008, Version 0.1.2
+    * Added Image upload implementation using minified version of the AjaxFileUpload plugin from: http://www.phpletter.com/DOWNLOAD/
+    * Added View Source button.
+    * Added Minified version of dsrte.js (5k instead of 9k)
+    * Added GZip compression on HTML output of dsrte.php to decrease output to only 4k!
+    * Added more code comments, to clarify steps a little more.
+    * Added Text Modified flag. Use, for example, $('#your-editor-id')[0].modified to get/set it.
+
+March 23rd, 2008  Version 0.1.1
+    * Fixed a missing $ (dollar sign) in command-image's ALT text (thanks to richy <info@on-laing.de>)
+
+March 12th, 2008  Version 0.1
+    * Initial Release

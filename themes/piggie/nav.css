@@ -1,0 +1,88 @@
+/*Main Navbar */
+
+#nav {
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	margin: 0px;
+	padding: 0px;
+font-family: Arial;
+	background: url(img/bg-menu.gif) repeat-x left top;
+	}
+	
+#nav, #nav ul {
+	width: 940px;
+	list-style: none;
+	line-height: 40px;
+	}
+
+#nav a, #nav a:hover {
+	display: block;
+	background: url(img/bg-menu-a.gif) no-repeat right top;
+	text-decoration: none;
+	border: none;
+	}
+
+#nav li {
+	float: left;
+	list-style: none;
+font-family: Arial;
+	}
+
+#nav li:hover {
+	float: left;
+	list-style: none;
+font-family: Arial;
+background:#72170e;
+	}
+
+#nav a, #nav a:visited {
+	display: block;
+	color: #fff;
+	padding: 0 20px;
+	}
+
+#nav a:hover, #nav a:active, .current_page_item	a, #home .on {
+	text-decoration: none;
+	}	
+	
+	
+/* Dropdown Menus */		
+#nav li ul {
+	position: absolute;
+	left: -999em;
+	margin: 0px;
+	padding: 0px;
+	height: auto;
+	width: 174px;
+	border-bottom: 1px solid #505358;
+	line-height: 30px;
+font-family: Arial;
+	}
+
+#nav li li {
+	width: 172px;
+	border-top: 1px solid #4a4e53;
+	border-right: 1px solid #4a4e53;
+	border-left: 1px solid #4a4e53;
+	background: #505358;
+	}
+
+#nav li li a, #nav li li a:visited {
+	font-weight:normal;
+	font-size:0.9em;
+	color:#FFF;
+	background: #1e1f21 url(img/bg-menu.gif);
+	}
+
+#nav li li a:hover, #nav li li a:active {
+	background:#505358;
+	}	
+		
+#nav li:hover ul, #nav li li:hover ul, #nav li li li:hover ul, #nav li.sfhover ul, #nav li li.sfhover ul, #nav li li li.sfhover ul {
+	left: auto;
+	}
+
+a.main:hover
+{	background:none;
+	}

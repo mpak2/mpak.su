@@ -1,0 +1,31 @@
+body {margin:0; font-size:12px; line-height:20px; font-family:Arial, Helvetica, sans-serif; color:#FFFFFF; background:url(/themes/null/images/body.jpg) repeat-x #F7FFC4; padding-bottom:10px;}
+a {color:#deff00; text-decoration:none;}
+a:hover {text-decoration:underline;}
+
+#container {background:url(/themes/null/images/main_bckg.jpg) center top no-repeat; width:980px; margin:0 auto;}
+
+#logo {margin:0 90px 0 110px; background:url(/themes/null/images/logo_bckg.jpg) no-repeat #4A730B; padding:43px 0 69px 0; text-align:center;}
+#logo a {color:#FFFFFF; text-decoration:none; text-transform:uppercase; font-size:20px; font-weight:bold;}
+#menu {margin:0 90px 0 110px; height:28px; background:url(/themes/null/images/menu_bckg.jpg) no-repeat #102C04; padding:17px 0 0 30px;}
+#menu a {color:#FFFFFF; font-size:14px; padding:9px 10px; text-decoration:none; text-transform:lowercase;}
+#menu a:hover {background:url(/themes/null/images/menu_over.jpg) bottom center no-repeat;}
+
+#main {margin:0 90px 0 110px; background:url(/themes/null/images/content_bckg.jpg) no-repeat #8EB002; float:left; min-height:420px; display:inline; min-width: 780px;}
+#txt {margin:30px 40px 0px 240px;}
+#txt ul {padding:0; margin:10px 0 10px 40px;}
+#txt li {list-style:none; padding-left:15px; background:url(/themes/null/images/li.gif) no-repeat 0px 7px;}
+h1 {margin:20px 0 0 0; text-transform:uppercase; font-family:Arial, Helvetica, sans-serif; font-size:22px; font-weight:normal;}
+#txt p {margin:10px 0;}
+#sidebar {float:left; width:210px; padding:0 20px; margin-top:50px;}
+#sidebar h2 {font-family:Arial, Helvetica, sans-serif; text-transform:uppercase; font-size:18px; font-weight:normal;}
+#sidebar ul {margin:10px 0; padding:0;}
+#sidebar li {list-style:none; padding:3px 0 3px 10px;}
+#sidebar li:hover {background-color:#2d5004;}
+#sidebar a {text-decoration:none; color:#deff00;}
+
+#footer {margin:0 90px 0 110px; clear:both; background:url(/themes/null/images/footer_bckg.jpg) center top repeat-x; height:89px; padding:53px 40px 0 40px;}
+#menu_footer {font-size:11px;}
+#menu_footer a {color:#FFFFFF; text-transform:lowercase;}
+#left_footer {float:left; font-size:11px; margin-top:30px;}
+#left_footer a {color:#FFFFFF;}
+#right_footer {float:right; font-size:11px; margin-top:30px;}

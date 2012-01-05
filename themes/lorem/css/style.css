@@ -1,0 +1,33 @@
+html {background:url(../img/body.gif);}
+body {margin:0; font-size:12px; line-height:20px; font-family:Arial, Helvetica, sans-serif; background:url(../img/body_bckg.gif) repeat-x;}
+a {color:#EE4400; text-decoration:none;}
+a:hover {text-decoration:underline;}
+
+#container {background:url(../img/main_bckg.jpg) center top no-repeat; width:1000px; margin:0 auto;}
+
+#logo {font-size:24px; font-family:"Impact", "Tahoma", Arial, "Geneva", sans-serif; padding:40px 100px 70px 210px;}
+#logo a {color:#FFFFFF; text-decoration:none; text-transform:uppercase;}
+#menu {height:40px; text-align:center;}
+#menu a {color:#B02802; font-size:14px; font-weight:bold; text-decoration:none; margin:0 20px; text-transform:lowercase;}
+#menu a:hover {color:#000000;}
+
+#main {margin:0 110px; float:left; background-color:#FFFFFF; min-height:350px; display:inline;	}
+#text {margin:20px 220px 0 40px; width: 510px;}
+#text ul {padding:0; margin:10px 0 10px 40px;}
+#text li {list-style:none; padding-left:15px; background:url(../img/li.gif) no-repeat 0px 6px;}
+h1 {margin:20px 0 0 0; text-transform:uppercase; font-family:"Impact", "Tahoma", Arial, "Geneva", sans-serif; font-size:22px; font-weight:normal;}
+#text p {margin:10px 0;}
+#sidebar {float:right; padding:20px 30px 0 30px; width:170px;}
+#sidebar h2 {font-family:"Impact", "Tahoma", Arial, "Geneva", sans-serif; margin:0 0 20px 0; text-transform:uppercase; font-size:18px; font-weight:normal;}
+#sidebar ul {margin:0; padding:0;}
+#sidebar li {list-style:none; border-bottom:1px solid #ebebeb; padding:3px 2px;}
+#sidebar li:hover {background-color:#f3f3f3;}
+#sidebar a {text-decoration:none;}
+
+#footer {padding:0 110px; height:169px; clear:both; background:url(../img/footer_bckg.jpg) center top no-repeat;}
+#menu_footer {color:#7A2200; font-size:11px; padding:40px 0 0 30px;}
+#menu_footer a {color:#7A2200; text-transform:lowercase;}
+#left_footer {float:left; padding:60px 0 0 100px; color:#FFFFFF; font-size:12px;}
+#left_footer a {color:#FFFFFF;}
+#right_footer {float:right; padding:60px 100px 0 0; color:#FFFFFF; font-size:12px;}
+#right_footer a {color:#FFFFFF;}

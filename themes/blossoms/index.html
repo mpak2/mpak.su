@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title><!-- [settings:title] --></title>
+	<meta name="keywords" content="" />
+	<meta name="description" content="" />
+	<link href="/themes/null/style.css" rel="stylesheet" type="text/css" media="screen" />
+	<script src=/include/jquery/jquery.js></script>
+	<script src=/include/jquery/jquery.url.js></script>
+	<script type="text/javascript">
+		$(document).ready(function(){
+			$('li a[href$='+$.url.attr("path")+']').parent().addClass('current_page_item');
+		});
+	</script>
+</head>
+<body>
+<div id="menu">
+	<ul>
+		<li><a href="/">Домашняя страница</a></li>
+		<li><a href="/foto">Галлерея</a></li>
+		<li><a href="/pages/pid:2">О сайте</a></li>
+		<li><a href="/pages/pid:3">Ресурсы</a></li>
+		<li><a href="/pages/pid:4">Контакты</a></li>
+	</ul>
+</div>
+<div id="logo">
+	<h1><a href="#">Цветение</a></h1>
+	<h2>Мой сайт</h2>
+</div>
+<hr />
+<div id="page">
+	<div id="content">
+		<!-- [modules] -->
+	</div>
+	<!-- end #content -->
+	<div id="sidebar">
+		<!-- [blocks:1] -->
+	</div>
+	<!-- end #sidebar -->
+</div>
+<!-- end #page -->
+<div id="footer">
+	<p>(c) 2007 Website Name. Designed by <a href="http://www.freecsstemplates.org/">Free CSS Templates</a> | <a href="http://free-templates.ru">free-templates.ru</a></p>
+</div>
+</body>
+</html>
