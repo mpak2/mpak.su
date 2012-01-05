@@ -1,0 +1,15 @@
+<IfModule mod_rewrite.c>
+	php_value file_uploads 1
+	php_value upload_max_filesize 200M
+
+	RewriteEngine Off
+	RewriteCond %{REQUEST_FILENAME} !/crossdomain.xml
+#	RewriteCond %{REQUEST_FILENAME} !/img/*\.(gif|png|jpeg|jpg)
+	RewriteCond %{REQUEST_FILENAME} !/img/.*
+	RewriteCond %{REQUEST_FILENAME} !/include/.* 
+	RewriteCond %{REQUEST_FILENAME} !/index.php.* 
+
+	RewriteEngine On
+#	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteRule ^(.*)$ /index.php [L]
+</IfModule>
