@@ -1,14 +1,13 @@
 <? die;
 
-//echo '<p>'.$sql = "CREATE ALGORITHM=UNDEFINED DEFINER=`shop_mpak_su`@`localhost` SQL SECURITY DEFINER VIEW `{$conf['db']['prefix']}{$arg['modpath']}_index` AS select `mp_business_index`.`id` AS `id`,`mp_business_index`.`cat_id` AS `cat_id`,`mp_business_index`.`href` AS `href`,`mp_business_index`.`name` AS `name`,`mp_business_index`.`site` AS `site`,`mp_business_index`.`tel` AS `tel`,`mp_business_index`.`addr` AS `addr`,`mp_business_index`.`mail` AS `mail`,`mp_business_index`.`time` AS `time`,`mp_business_index`.`count` AS `count`,`mp_business_index`.`description` AS `description`,`mp_business_index`.`text` AS `text` from `mp_business_index`";
-//mpqw($sql);
-
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_mail` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `time` int(11) NOT NULL,
   `index_id` int(11) NOT NULL,
+  `fn` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `index_id` (`index_id`)
+  KEY `index_id` (`index_id`),
+  KEY `fn` (`fn`)
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
@@ -16,9 +15,17 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_unsubs
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `time` int(11) NOT NULL,
   `index_id` int(11) NOT NULL,
+  `fn` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `index_id` (`index_id`)
+  KEY `index_id` (`index_id`),
+  KEY `fn` (`fn`)
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+mpqw($sql);
+
+echo '<p>'.$sql = "CREATE VIEW `{$conf['db']['prefix']}{$arg['modpath']}_ya_chastny_biznes` AS select `mp_ya_index`.`id` AS `id`,`mp_ya_index`.`time` AS `time`,`mp_ya_index`.`site_id` AS `site_id`,`mp_ya_index`.`name` AS `name`,`mp_ya_index`.`count` AS `count`,`mp_ya_index`.`description` AS `description`,`mp_ya_index`.`name` AS `mail` from `mp_ya_index` where `mp_ya_index`.`site_id` in (select `st`.`id` AS `id` from ((`mp_ya_cat` `c` left join `mp_ya_search` `s` on((`s`.`cat_id` = `c`.`id`))) left join `mp_ya_site` `st` on((`s`.`id` = `st`.`search_id`))) where (`c`.`id` = 1))";
+mpqw($sql);
+
+echo '<p>'.$sql = "CREATE VIEW `{$conf['db']['prefix']}{$arg['modpath']}_ya_zarabotok` AS select `mp_ya_index`.`id` AS `id`,`mp_ya_index`.`time` AS `time`,`mp_ya_index`.`site_id` AS `site_id`,`mp_ya_index`.`name` AS `name`,`mp_ya_index`.`count` AS `count`,`mp_ya_index`.`description` AS `description`,`mp_ya_index`.`name` AS `mail` from `mp_ya_index` where `mp_ya_index`.`site_id` in (select `st`.`id` AS `id` from ((`mp_ya_cat` `c` left join `mp_ya_search` `s` on((`s`.`cat_id` = `c`.`id`))) left join `mp_ya_site` `st` on((`s`.`id` = `st`.`search_id`))) where (`c`.`id` = 2))";
 mpqw($sql);
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('subscribe', 'subscribe_send', '1', '1', 'Включение рассылки')");

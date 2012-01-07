@@ -38,10 +38,10 @@ if($_GET['unsubscribe']){
 			echo $user['id'];
 		} exit;
 	}
-	if(!$_GET['to']){
+/*	if(!$_GET['to']){
 		header("Location: ". $_SERVER['REQUEST_URI']. "/to:10000");
 		exit;
-	}
+	}*/
 /*	$mail = mpqn(mpqw("SHOW COLUMNS FROM {$conf['db']['prefix']}{$arg['modpath']}_mail"), 'Field'); 
 	$unsubscribe = mpqn(mpqw("SHOW COLUMNS FROM {$conf['db']['prefix']}{$arg['modpath']}_unsubscribe"), 'Field'); 
 	if(mpql(mpqw("SHOW COLUMNS FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']}")) && !$mail["{$arg['fn']}_id"]){
@@ -50,7 +50,9 @@ if($_GET['unsubscribe']){
 	if(mpql(mpqw("SHOW COLUMNS FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']}")) && !$unsubscribe["{$arg['fn']}_id"]){
 		mpqw("ALTER TABLE {$conf['db']['prefix']}{$arg['modpath']}_unsubscribe ADD `{$arg['fn']}_id` int(11) NOT NULL");
 	}*/
-	$conf['tpl']['subscribe'] = mpql(mpqw($sql = "SELECT SQL_CALC_FOUND_ROWS id.*, u.id AS disable, COUNT(DISTINCT m.id) AS count FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} AS id LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_mail AS m ON id.id=m.index_id AND m.fn=\"". mpquot($arg['fn']). "\" LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_unsubscribe AS u ON id.id=u.index_id AND u.fn=\"". mpquot($arg['fn']). "\" WHERE mail<>''". ($_GET['to'] ? " AND id.id<". (int)$_GET['to'] : ""). " GROUP BY id.id LIMIT ". (int)$_GET['filter']. ", 100"));// echo $sql;// mpre($conf['tpl']['subscribe']);
+	$sql = "SELECT SQL_CALC_FOUND_ROWS id.*, u.id AS disable, COUNT(DISTINCT m.id) AS count FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} AS id LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_mail AS m ON id.id=m.index_id AND m.fn=\"". mpquot($arg['fn']). "\" LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_unsubscribe AS u ON id.id=u.index_id AND u.fn=\"". mpquot($arg['fn']). "\" WHERE mail<>''". ($_GET['to'] ? " AND id.id<". (int)$_GET['to'] : ""). " GROUP BY id.id LIMIT ". (int)$_GET['filter']. ", 100";
+
+	$conf['tpl']['subscribe'] = mpql(mpqw($sql));// echo $sql;// mpre($conf['tpl']['subscribe']);
 
 	$conf['tpl']['count'] = mpql(mpqw($sql = "SELECT COUNT(*) AS cnt FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} AS id WHERE mail<>''". ($_GET['to'] ? " AND id.id<". (int)$_GET['to'] : "")), 0, 'cnt');// echo $sql;// mpre($conf['tpl']['subscribe']);
 
