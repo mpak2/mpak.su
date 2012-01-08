@@ -3,6 +3,7 @@ jQuery.fn.klesh = function(action, callbackFnk, select){
 		html = $(this).html();
 		$(this).attr("old", html).html(select[html]);
 	}
+
 	var f = function(){};
 	jQuery(this).bind("click", f = function(){
 		$(this).unbind("click", f);
@@ -18,13 +19,13 @@ jQuery.fn.klesh = function(action, callbackFnk, select){
 			$(this).find("select").focus();
 		}else{
 			text = $(this).html()
-			input = $("<input type='text'>").css("width", "100%").attr("old", text).val(text);
+			input = $("<input type='text' onkeydown='if((event||window.event).keyCode == 13) $(this).change();'>").css("width", "100%").attr("old", text).val(text);
 			$(this)
 //				.html($("<input type='button'>").addClass("fnok").val("ok").css("float", "right").css("width", "50px"))
 				.html($("<div>")/*.css("margin-right", "60px")*/.html(input));
 			$(this).find("input").select();
 		}
-		$(klesh = this).find("input[type=text],select").change(ch = function(){
+		$(klesh = this).find("input[type='text'],select").change(ch = function(){
 			val = $(this).val();
 			old = $(this).attr("old");
 			
