@@ -57,7 +57,6 @@ $select = mpql(mpqw("SELECT * FROM ". mpquot($param["Таблица"]). " ORDER 
 $cur = (int)strtr($_SERVER['REQUEST_URI'], array($param["Сылка перехода"]=>""));
 
 ?>
-<script src="/include/jquery/jquery.url.js"></script>
 <script>
 	$(function(){
 		current_id = <?=$cur?>;
