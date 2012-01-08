@@ -24,10 +24,10 @@ if ((int)$arg['confnum']){
 		$(function(){
 			<? foreach($klesh as $k=>$v): ?>
 				<? if(gettype($v) == 'array'): ?>
-					$(".klesh_<?=strtr(base64_encode($k), array("="=>''))?>").klesh("/?m[blocks]=admin&r=mp_blocks&null&conf=<?=$arg['confnum']?>", function(){
+					$(".klesh_<?=strtr(md5($k), array("="=>''))?>").klesh("/?m[blocks]=admin&r=mp_blocks&null&conf=<?=$arg['confnum']?>", function(){
 					}, <?=json_encode($v)?>);
 				<? else: ?>
-					$(".klesh_<?=strtr(base64_encode($k), array("="=>''))?>").klesh("/?m[blocks]=admin&r=mp_blocks&null&conf=<?=$arg['confnum']?>");
+					$(".klesh_<?=strtr(md5($k), array("="=>''))?>").klesh("/?m[blocks]=admin&r=mp_blocks&null&conf=<?=$arg['confnum']?>");
 				<? endif; ?>
 			<? endforeach; ?>
 		});
@@ -37,9 +37,9 @@ if ((int)$arg['confnum']){
 			<div style="overflow:hidden;">
 				<div style="width:200px; float:left; padding:5px; text-align:right; font-weight:bold;"><?=$k?> :</div>
 				<? if(gettype($v) == 'array'): ?>
-					<div class="klesh_<?=strtr(base64_encode($k), array("="=>''))?>" param="<?=$k?>"><?=$v[ $param[$k] ]?></div>
+					<div class="klesh_<?=strtr(md5($k), array("="=>''))?>" param="<?=$k?>"><?=$v[ $param[$k] ]?></div>
 				<? else: ?>
-					<div class="klesh_<?=strtr(base64_encode($k), array("="=>''))?>" param="<?=$k?>"><?=($param[$k] ?: $v)?></div>
+					<div class="klesh_<?=strtr(md5($k), array("="=>''))?>" param="<?=$k?>"><?=($param[$k] ?: $v)?></div>
 				<? endif; ?>
 			</div>
 		<? endforeach; ?>
