@@ -24,7 +24,7 @@ if($_GET['pid']){
 }elseif($arg['access'] >= 4 && isset($_GET['new'])){
 	if(max($_GET['id'], $_GET['pid'])){
 		mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_index SET id=".(int)max($_GET['id'], $_GET['pid']). ", uid=".(int)$conf['user']['uid']. ", date=". time().", title=\"Заголовок страницы\", text=\"Текст страницы\"");
-		header("Location: /?m[{$arg['modpath']}]=admin&edit=".(int)max($_GET['id'], $_GET['pid']));
+		header("Location: /?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_index&edit=".(int)max($_GET['id'], $_GET['pid']));
 	}else{
 		header("HTTP/1.1 404 Not Found");
 	}
