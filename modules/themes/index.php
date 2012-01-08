@@ -9,7 +9,6 @@ if (isset($_GET['q'])){
 		header('Last-Modified: Cache-Control: max-age=86400, must-revalidate');
 		header("Expires: " . date("r", time() + 3600));
 		header("Cache-Control: public");
-//		$type = array('jpg'=>'image', 'png'=>'image', 'tif'=>'image', 'gif'=>'image', 'bmp'=>'image', 'ico'=>'image');
 		$defaultmimes = array(
 			'aif' => 'audio/x-aiff', 'aiff' => 'audio/x-aiff', 'arc' => 'application/octet-stream', 'arj' => 'application/octet-stream', 'art' => 'image/x-jg', 'asf' => 'video/x-ms-asf', 'asx' => 'video/x-ms-asf', 'avi' => 'video/avi', 'bin' => 'application/octet-stream', 'bm' => 'image/bmp', 'bmp' => 'image/bmp', 'bz2' => 'application/x-bzip2', 'css' => 'text/css', 'doc' => 'application/msword', 'dot' => 'application/msword', 'dv' => 'video/x-dv', 'dvi' => 'application/x-dvi', 'eps' => 'application/postscript', 'exe' => 'application/octet-stream', 'gif' => 'image/gif', 'gz' => 'application/x-gzip', 'gzip' => 'application/x-gzip', 'htm' => 'text/html', 'html' => 'text/html', 'ico' => 'image/x-icon', 'jpe' => 'image/jpeg', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'js' => 'application/x-javascript', 'log' => 'text/plain', 'mid' => 'audio/x-midi', 'mov' => 'video/quicktime', 'mp2' => 'audio/mpeg', 'mp3' => 'audio/mpeg3', 'mpg' => 'audio/mpeg', 'pdf' => 'aplication/pdf', 'png' => 'image/png', 'rtf' => 'application/rtf', 'tif' => 'image/tiff', 'tiff' => 'image/tiff', 'txt' => 'text/plain', 'xml' => 'text/xml',
 		);
@@ -53,7 +52,7 @@ if (isset($_GET['q'])){
 	header('Last-Modified: Cache-Control: max-age=86400, must-revalidate');
 	echo strtr($svg, $config); die;
 }else{
-	header("Location: /{$arg['modpath']}:edit");
+	header("Location: /{$arg['modpath']}:404");
 }
 
 ?>
