@@ -10,7 +10,7 @@
 
 			<? if($_GET['drive']): ?>
 				var coords = new YMaps.GeoPoint(<?=$conf['tpl']['sity']['x']?>, <?=$conf['tpl']['sity']['y']?>);
-//				var coords = new YMaps.GeoPoint(<?=$conf['tpl']['placemark'][0]['x']?>, <?=$conf['tpl']['placemark'][0]['y']?>);
+				var coords = new YMaps.GeoPoint(<?=$conf['tpl']['placemark'][0]['x']?>, <?=$conf['tpl']['placemark'][0]['y']?>);
 				var placemark = new YMaps.Placemark(coords, {draggable: true});// Создает и добавляет метку на карту
 				placemark.setIconContent("Таскайте меня!!!");
 				placemark.name = "Определите место на карте";
@@ -47,7 +47,7 @@
 				});
 //				alert('Определите место обьявления на карте...');
 			<? else: ?>
-				<? foreach($conf['tpl']['placemark'] as $k=>$v): ?>
+				<? foreach((array)$conf['tpl']['placemark'] as $k=>$v): ?>
 					var s = new YMaps.Style();
 					<? if($v['img']): ?>
 						s.iconStyle = new YMaps.IconStyle();

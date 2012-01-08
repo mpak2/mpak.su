@@ -12,7 +12,7 @@ if($_POST['x'] && $_POST['y'] && $_GET['id']){
 	mpqw("UPDATE {$conf['db']['prefix']}settings SET value=". (int)$cnt. " WHERE name=\"ymaps_cnt\"");
 }
 
-$conf['tpl']['placemark'] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_placemark". ($_GET['drive'] ? " WHERE id=". (int)$_GET['drive'] : '')));
-$conf['tpl']['sity'] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_sity WHERE id=". (int)($conf['user']['sess']['sity_id'] ?: $conf['user']['sity_id'])), 0);
+//$conf['tpl']['placemark'] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_placemark". ($_GET['drive'] ? " WHERE id=". (int)$_GET['drive'] : '')));
+//$conf['tpl']['sity'] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_sity WHERE id=". (int)($conf['user']['sess']['sity_id'] ?: $conf['user']['sity_id'])), 0);
 
 ?>
