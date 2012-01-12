@@ -1,4 +1,22 @@
 <? if(empty($_POST)): ?>
+	<script>
+		$(function(){
+			$("select[name=country_id]").change(function(){
+				if(country_id = $(this).find("option:selected").val()){
+					$("select[name=sity_id]").find("option").each(function(key, val){
+						if($(val).attr("country_id") == country_id)
+							$(val).show(); else $(val).hide();
+					});
+				}else{
+					$("select[name=sity_id]").find("option").show();
+				} $("select[name=sity_id] option:visible:first").attr("selected", "selected");
+			}).prepend("<option>").find("option:first").attr("selected", "selected");
+			$("select[name=sity_id]").change(function(){
+				country_id = $(this).find("option:selected").attr("country_id");// alert(country_id);
+				$("select[name=country_id]").find("option[value="+country_id+"]").attr("selected", "selected");
+			});
+		});
+	</script>
 	<style>
 		.wt {
 			width:100%;
@@ -20,7 +38,9 @@
 				<? if(substr($k, -3) == '_id' && $conf['tpl'][$k]): ?>
 					<select name="<?=$k?>">
 						<? foreach($conf['tpl'][$k] as $k=>$v): ?>
-							<option value="<?=$k?>"><?=$v?></option>
+							<option <? foreach(array_diff_key($v, array_flip(array("id", "name", "description"))) as $n=>$z): ?> <?=$n?>="<?=$z?>"<? endforeach; ?> value="<?=$k?>">
+								<?=(gettype($v) == 'array' ? $v['name'] : $v)?>
+							</option>
 						<? endforeach; ?>
 					</select>
 				<? else: ?>

@@ -7,7 +7,8 @@ foreach(mpql(mpqw("DESC {$conf['db']['prefix']}{$arg['modpath']}")) as $k=>$v){
 $conf['tpl']['fields'] = array_intersect_key($f, array_flip(explode(',', $conf['settings']['user_reg_fields'])));// mpre($conf['tpl']['fields']);
 foreach($conf['tpl']['fields'] as $k=>$v){
 	if(substr($k, -3) == '_id'){
-		$conf['tpl'][$k] = spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_". substr($k, 0, strlen($k)-3). " ORDER BY name");
+		$conf['tpl'][$k] = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_". substr($k, 0, strlen($k)-3). " ORDER BY name"));
+//		mpre($conf['tpl'][$k]);
 	}
 }// mpre($conf['tpl']['fields']);
 
