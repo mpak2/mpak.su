@@ -137,7 +137,7 @@ function mpevent($name, $description = null, $own = null){
 	if($conf['settings']['users_log']){
 		$event = $conf['event'][$name];
 		if((!empty($event['log']) && ($event['log'] > 1)) || !empty($event['send'])){
-			if(is_numeric($func_get_args[2])){
+			if(!is_numeric($func_get_args[2])){
 				unset($func_get_args[2]['pass']);
 			}
 			foreach($func_get_args as $k=>$v){
@@ -158,7 +158,6 @@ function mpevent($name, $description = null, $own = null){
 
 		mpqw($sql = "INSERT INTO {$conf['db']['prefix']}users_event SET time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", name=\"". mpquot($name). "\", description=\"". mpquot($desc). "\", count=1 ON DUPLICATE KEY UPDATE time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", count=count+1, last=". (int)$func_get_args[1]. ", max=IF(". (int)$func_get_args[1]. ">max, ". (int)$func_get_args[1]. ", max), min=IF(". (int)$func_get_args[1]. "<min, ". (int)$func_get_args[1]. ", min), description=\"". mpquot($desc). "\", log_last=". (int)$event_log);
 
-//		$event = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event WHERE id=". mysql_insert_id()), 0);
 		if($event['send']){
 			if($event['send'] < 0){ # В списке рассылки один пользователь
 				mpqw("UPDATE {$conf['db']['prefix']}users_event SET cmail=cmail+1 WHERE id=". (int)$event['id']);
