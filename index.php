@@ -47,22 +47,33 @@ ini_set('display_errors', 1); error_reporting(E_ALL ^ E_NOTICE);
 
 if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(mpql(mpqw("SHOW TABLES", 'Проверка работы базы')))){ echo mpct('include/install.php'); die; }
 
-if(/*($_SERVER['REMOTE_ADDR'] == '93.92.200.151') &&*/ array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) && array_key_exists('null', $_GET)){
-//echo "<pre>"; print_r($_GET); echo "</pre>"; exit;
-//mpre(getallheaders()); exit;
+if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) && array_key_exists('null', $_GET)){
 	if(empty($_GET['theme'])){
 		$_GET['theme'] = mpql(mpqw("SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"theme\""), 0, 'value');
-	} $ex = array('css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', '.svg'=>'font/svg+xml');
+	} $ex = array('css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', '.svg'=>'font/svg+xml', '.tpl'=>'text/html');
 	$fn = "themes/{$_GET['theme']}/{$_GET['']}";
 	$ext = array_pop(explode('.', $fn));
 	header("Content-type: ". ($ex[$ext] ?: "image/$ext"));
-//	header("Content-type:". mime_content_type($fn));
 	if($ex[$ext]){
 		readfile(mpopendir($fn));
 	}else{
 		echo mprs(mpopendir($fn), $_GET['w'], $_GET['h'], $_GET['c']);
 	} die;
-}
+}/*elseif(array_key_exists('users', (array)$_GET['m']) && ($_GET['m']['users'] == 'img') && ($_GET['tn'] == 'index') && array_key_exists('null', $_GET)){
+	if(!($img = mpql(mpqw($sql = "SELECT img FROM {$conf['db']['prefix']}users WHERE id=". (int)$_GET['id']), 0, 'img')) && !($fn = mpopendir("include/$img"))){
+		$img = ($_GET['id'] ? "unknown.png" : $_GET['']);
+		$fn = "modules/users/img/". basename($img);
+	} echo $img; exit;
+	$ex = array('css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', '.svg'=>'font/svg+xml');
+	$ext = array_pop(explode('.', $fn));
+	header("Content-type: ". ($ex[$ext] ?: "image/$ext"));
+	if($ex[$ext]){
+		readfile(mpopendir($fn));
+	}else{
+		echo mprs(mpopendir($fn), $_GET['w'], $_GET['h'], $_GET['c']);
+	} die;
+}*/
+
 
 $conf['db']['info'] = 'Загрузка свойств модулей';
 $conf['settings'] = array('http_host'=>$_SERVER['HTTP_HOST'])+spisok("SELECT `name`, `value` FROM `{$conf['db']['prefix']}settings`");

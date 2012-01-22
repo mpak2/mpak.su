@@ -53,13 +53,16 @@ function data_set_operation_processed($id) {
 }
 
 function data_update_user_balance($operation_id, $sum) {
+	global $conf;
 	$operation = data_get_created_operation($operation_id);
 	if (mysql_num_rows($operation) == 1) {
 		$operation_row = mysql_fetch_assoc($operation);
 		$userid = $operation_row["uid"];
 		
 		$query = "INSERT INTO mp_onpay_balances SET uid=". (int)$userid. ", sum=". (int)$sum. ", date=NOW() ON DUPLICATE KEY UPDATE date=NOW()";
-		if(function_exists("onpay")){ onpay($operation_id, $sum); }
+
+		mpevent("Новый платеж", $operation_id, $operation_row['uid'], $operation_row);
+//		if(function_exists("onpay")){ onpay($operation_id, $sum); }
 		return mysql_query($query);
 	} else {
 		return false;

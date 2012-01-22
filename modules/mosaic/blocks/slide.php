@@ -43,12 +43,12 @@ $height = $index['h']*($index['height']+$index['margin']+4);
 		float:left;
 		margin:0 0 <?=$index['margin']?>px <?=$index['margin']?>px;
 		border-radius:5px;
-		background-image: url(/<?=$arg['modpath']?>:img/<?=$index['sid']?>/tn:slide/w:<?=$width?>/h:<?=$height?>/c:1/null/img.jpg);
+		background-image: url("/<?=$arg['modpath']?>:img/<?=$index['sid']?>/tn:slide/w:<?=$width?>/h:<?=$height?>/c:1/null/img.jpg");
 		position:relative;
 	}
 </style>
 
-<div style="width:<?=$width?>px; height:<?=$height?>">
+<div style="width:<?=$width?>px; height:<?=$height?>; overflow:hidden;">
 	<? for($h=0; $h<$index['h']; $h++): ?>
 		<? for($w=0; $w<$index['w']; $w++): ?>
 			<? if(($r = $region[$h][$w]) && $r['href']): ?>

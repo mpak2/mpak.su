@@ -20,7 +20,7 @@ if (isset($_POST['add']) && strlen($_POST['name']) && strlen($_POST['pass']) && 
 	$sql = "SELECT name FROM {$conf['db']['prefix']}users WHERE tid=1 AND name='{$_POST['name']}'";
 	if (count(mpql(mpqw($sql)))){
 		echo "<p><p><center><font color=red>Такое имя уже зарегистрировано. Выбирите другое</font>";
-		echo " <a href='{$_SERVER['REQUEST_URI']}'>Вернуться</a></center>";
+		echo " <a href='/{$arg['modname']}:{$arg['fe']}'>Вернуться</a></center>";
 	}else{
 		mpqw($sql = "INSERT INTO ". ($tn = "{$conf['db']['prefix']}users"). " SET tid=1, name=\"". mpquot($_POST['name']). "\", pass=\"". mphash($_POST['name'], $_POST['pass']). "\", reg_time=". time(). ", last_time=". time(). ", email=\"".mpquot($_POST['email'])."\", ref=\"". mpquot($conf['user']['sess']['ref']). "\"". ($conf['user']['sess']['refer'] ? ", refer=". (int)$_POST['refer'] : ''));
 		if($uid = mysql_insert_id()){
@@ -32,11 +32,13 @@ if (isset($_POST['add']) && strlen($_POST['name']) && strlen($_POST['pass']) && 
 			mpqw($sql = "INSERT INTO {$conf['db']['prefix']}users_mem SET uid=".(int)$uid.", gid=".(int)$gg);
 			if($conf['settings']['users_reg_redirect']){ # Перенаправление на страницу с настроек
 				header("Location: {$conf['settings']['users_reg_redirect']}");
-			} $conf['tpl']['reg'] = 1;
+			}else{
+				
+			}$conf['tpl']['reg'] = 1;
 		}
 	}
 }elseif($_POST['add']){
-	echo "<div style=\"margin:100px; text-align:center;\">Не указан логин доступа или не совпадают пароли <a href=\"\">Вернуться</a></div>";
+	echo "<div style=\"margin:100px; text-align:center;\">Не указан логин доступа или не совпадают пароли <a href=\"/{$arg['modname']}:{$arg['fe']}\">Вернуться</a></div>";
 }
 
 ?>

@@ -16,7 +16,7 @@
 // ----------------------------------------------------------------------
 
 $conf['settings'] += array(
-	"{$arg['modpath']}_index"=>$arg['modname'],
+	"{$arg['modpath']}_redirect"=>"Перенаправления",
 );
 
 foreach(mpql(mpqw("SHOW TABLES WHERE Tables_in_{$conf['db']['name']} LIKE \"{$conf['db']['prefix']}{$arg['modpath']}\_%\"")) as $k=>$v){
@@ -24,7 +24,7 @@ foreach(mpql(mpqw("SHOW TABLES WHERE Tables_in_{$conf['db']['name']} LIKE \"{$co
 	$m["{$conf['db']['prefix']}". $fn] = $val;
 } mpmenu($m); if(!$_GET['r']) $_GET['r'] = array_shift(array_keys($m));
 
-if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
+if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_redirect"){
 	stable(
 		array(
 //			'dbconn' => $conf['db']['conn'],
@@ -53,9 +53,10 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('orderby'=>$orderby), # Значение которое всегда будет присвоено полю. Исключает любое изменение
 			'shablon' => array(
-//				'num'=>array('*'=>'<a target=_blank href=http://stom-firms.ru/clinics.php?i={f:{f}}>http://stom-firms.ru/clinics.php?i={f:{f}}</a>'),
+				'from'=>array('*'=>'<a target=_blank href="{f:{f}}">{f:{f}}</a>'),
+				'to'=>array('*'=>'<a target=_blank href="{f:{f}}">{f:{f}}</a>'),
 //				'name'=>array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_index&where[rid]={f:id}>{f:{f}}</a>"),
-				'img'=>array('*'=>"<img src='/{$arg['modpath']}:img/{f:id}/tn:". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "/w:120/h:100/null/img.jpg'>"),
+//				'img'=>array('*'=>"<img src='/{$arg['modpath']}:img/{f:id}/tn:". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "/w:120/h:100/null/img.jpg'>"),
 //				($fn = "link"). "_id"=>array('*'=>"<a href='/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[id]={f:{f}}'>{f:{f}}</a>"),
 //				(($fn = 'cnt'). ($prx = ''))=>array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "_id]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "{$prx}_id]=', r.id, '>', COUNT(*), '_{$fn}</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$arg['modpath']}_{$fn} AS fn WHERE r.id=fn.". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "{$prx}_id GROUP BY r.id"),
 //				(($tn = "onpay"). ($fn = '_operations'). ($prx = ''))=>array('*'=>"<a href=/?m[{$tn}]=admin&r={$conf['db']['prefix']}{$tn}{$fn}&where[". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "_id]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$tn}]=admin&r={$conf['db']['prefix']}{$tn}{$fn}&where[". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "_id]=', r.id, '>', COUNT(*), '{$fn}</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$tn}{$fn} AS fn WHERE r.id=fn.". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "_id GROUP BY r.id"),
@@ -65,7 +66,6 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 			'spisok' => array( # Список для отображения и редактирования
 				'uid' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
 //				($fn = "index"). "_id" => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
-//				(($tn = "users"). $fn = "_sity") => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$tn}{$fn}")),
 //				'metro_id' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_metro")),
 //				'kuzov_type_id' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_kuzov_type")),
 //				'zagruzka_type_id' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_zagruzka_type")),

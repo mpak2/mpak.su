@@ -76,7 +76,7 @@ function stable($table){
 			$result = mpqw($sql);
 			$edit = $_GET['edit'] ? mysql_fetch_array($result, 1) : true;
 			foreach((array)$table['type'] as $k=>$v){
-				if ($v == 'timestamp') @$edit[$k] = date('Y.m.d H:i:s', $edit[$k]);
+				if ($v == 'timestamp') @$edit[$k] = ($edit[$k] ? date('Y.m.d H:i:s', $edit[$k]) : "");
 			}
 		}elseif ($table['acess']['cp']['*'] && $_GET['cp']){ # Вывод копируемых значений.
 			$sql = "SELECT * FROM {$table['name']} WHERE `id` = '".(int)$_GET['cp']."'";
@@ -94,7 +94,7 @@ function stable($table){
 			foreach($table['_fields'] as $k=>$v){
 				if ($table['type'][$k] == 'timestamp' && strlen($_POST[$k])){
 					$dt = explode(' ', $_POST[$k]); $t = explode(':', $dt[1]); $d = explode('.', $dt[0]);
-					$_POST[$k] = mktime ($t[0], $t[1], $t[2], $d[1], $d[2], $d[0]);
+					$_POST[$k] = mktime($t[0], $t[1], $t[2], $d[1], $d[2], $d[0]);
 				}
 				if (isset($_POST[$k]) && !isset($hidden[$k]) && !isset($disable[$k])  && !isset($table['set'][$k]))
 					$sql .= " `$k` = '".mpquot($_POST[$k])."',";

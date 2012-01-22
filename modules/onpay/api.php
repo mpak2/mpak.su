@@ -2,7 +2,7 @@
 
 //include mpopendir("modules/{$arg['modpath']}/post.php");
 
-function onpay($operation_id, $sum){
+/*function onpay($operation_id, $sum){
 	global $conf;
 	$operations = mpql(mpqw($sql = "SELECT * FROM mp_onpay_operations WHERE id=". ($operation_id)), 0);
 	if($operations['bid'] && ($basket = mpql(mpqw("SELECT * FROM mp_offers_basket WHERE id=". (int)$operations['bid']), 0))){
@@ -23,7 +23,7 @@ function onpay($operation_id, $sum){
 			} mpqw($sql = "UPDATE mp_offers_basket SET close=2 WHERE id=". (int)$basket['id']); echo "\n". $sql;
 		}
 	}
-}
+}*/
 
 mp_require_once("/modules/{$arg['modpath']}/onpay/onpay_functions.php");
 

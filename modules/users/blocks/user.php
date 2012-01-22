@@ -47,7 +47,7 @@ foreach($conf['user'] as $k=>$v){
 </style>
 <div style="overflow:hidden;">
 	<div style="float:left; width:200px; text-align:center;">
-		<img src="/users:img/<?=$user['id']?>/tn:index/w:200/h:200/null/img.jpg">
+		<img src="/<?=$conf['modules']['users']['modname']?>:img/<?=$user['id']?>/tn:index/w:200/h:200/null/img.jpg">
 		<h3 style="text-align:center;"><?=$user['name']?></h3>
 		<div><a href="/<?=$conf['modules']['messages']['modname']?>:письмо/uid:<?=$user['id']?>">Написать личное сообщение</a></div>
 	</div>
