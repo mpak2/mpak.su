@@ -124,10 +124,10 @@ if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аут
 	mpqw("UPDATE {$conf['db']['prefix']}sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
 	if(!empty($_SERVER['HTTP_REFERER'])){
 		header("Location: ". $_SERVER['HTTP_REFERER']); exit;
-	} if($conf['settings']['del_sess'] == 0){ # Стираем просроченные сессии
-		mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление сессий');
-		mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess_post WHERE time < ".(time() - $conf['settings']['sess_time']), 'Удаление данных сессии');
-	}
+	}// if($conf['settings']['del_sess'] == 0){ # Стираем просроченные сессии
+	mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление сессий');
+	mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess_post WHERE time < ".(time() - $conf['settings']['sess_time']), 'Удаление данных сессии');
+//	}
 }
 
 $user = mpql(mpqw("SELECT *, id AS uid, name AS uname FROM {$conf['db']['prefix']}users WHERE id={$sess['uid']}", 'Проверка пользователя'));
