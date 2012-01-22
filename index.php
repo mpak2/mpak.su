@@ -97,14 +97,13 @@ if (!$gid = mpql(mpqw("SELECT id as gid FROM {$conf['db']['prefix']}users WHERE 
 }
 
 $sess = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE `ip`='{$_SERVER['REMOTE_ADDR']}' AND last_time>=".(time()-$conf['settings']['sess_time'])." AND `agent`=\"".mpquot($_SERVER['HTTP_USER_AGENT']). "\" AND (". ($_COOKIE["{$conf['db']['prefix']}sess"] ? "sess=\"". mpquot($_COOKIE["{$conf['db']['prefix']}sess"]). "\"" : "uid=". (int)$gid).") ORDER BY id DESC", 'Получаем свойства текущей сессии'), 0);
-
 if(!$sess){
 	$sess = array('uid'=>$gid, 'sess'=>md5("{$_SERVER['REMOTE_ADDR']}:".microtime()), 'ref'=>mpidn(urldecode($_SERVER['HTTP_REFERER'])), 'ip'=>$_SERVER['REMOTE_ADDR'], 'agent'=>$_SERVER['HTTP_USER_AGENT'], 'url'=>$_SERVER['REQUEST_URI']);
 	mpqw("INSERT INTO {$conf['db']['prefix']}sess (uid, ref, sess, last_time, ip, agent, url) VALUES ($gid, '{$sess['ref']}', '{$sess['sess']}', ".time().", '{$sess['ip']}', '".mpquot($sess['agent'])."', '".mpquot($sess['url'])."')");
 	$sess['id'] = mysql_insert_id();
-	if($conf['settings']['del_sess'] == '2'){ # Стираем просроченные сессии
-		mpqw("DELETE FROM {$conf['db']['prefix']}sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление сессий');
-		mpqw("DELETE FROM {$conf['db']['prefix']}sess_post WHERE time < ".(time() - $conf['settings']['sess_time']), 'Удаление данных сессии');
+	if(!$conf['settings']['del_sess']){ # Стираем просроченные сессии
+		mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление сессий');
+		mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess_post WHERE time < ".(time() - $conf['settings']['sess_time']), 'Удаление данных сессии');
 	}
 }
 
