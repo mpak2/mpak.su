@@ -101,10 +101,6 @@ if(!$sess){
 	$sess = array('uid'=>$gid, 'sess'=>md5("{$_SERVER['REMOTE_ADDR']}:".microtime()), 'ref'=>mpidn(urldecode($_SERVER['HTTP_REFERER'])), 'ip'=>$_SERVER['REMOTE_ADDR'], 'agent'=>$_SERVER['HTTP_USER_AGENT'], 'url'=>$_SERVER['REQUEST_URI']);
 	mpqw("INSERT INTO {$conf['db']['prefix']}sess (uid, ref, sess, last_time, ip, agent, url) VALUES ($gid, '{$sess['ref']}', '{$sess['sess']}', ".time().", '{$sess['ip']}', '".mpquot($sess['agent'])."', '".mpquot($sess['url'])."')");
 	$sess['id'] = mysql_insert_id();
-	if(!$conf['settings']['del_sess']){ # Стираем просроченные сессии
-		mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление сессий');
-		mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess_post WHERE time < ".(time() - $conf['settings']['sess_time']), 'Удаление данных сессии');
-	}
 }
 
 if($_COOKIE["{$conf['db']['prefix']}sess"] != $sess['sess']){
@@ -128,6 +124,9 @@ if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аут
 	mpqw("UPDATE {$conf['db']['prefix']}sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
 	if(!empty($_SERVER['HTTP_REFERER'])){
 		header("Location: ". $_SERVER['HTTP_REFERER']); exit;
+	} if($conf['settings']['del_sess'] == 0){ # Стираем просроченные сессии
+		mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление сессий');
+		mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess_post WHERE time < ".(time() - $conf['settings']['sess_time']), 'Удаление данных сессии');
 	}
 }
 
