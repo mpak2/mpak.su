@@ -77,7 +77,7 @@ if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) 
 
 $conf['db']['info'] = 'Загрузка свойств модулей';
 $conf['settings'] = array('http_host'=>$_SERVER['HTTP_HOST'])+spisok("SELECT `name`, `value` FROM `{$conf['db']['prefix']}settings`");
-if($conf['settings']['users_log']) $conf['event'] = mpqn(mpqw("SELECT id, name, count, last, min, max, log, log_last FROM {$conf['db']['prefix']}users_event"), "name");
+if($conf['settings']['users_log']) $conf['event'] = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event"), "name");
 
 $conf['settings']['access_array'] = array('0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ');
 if ($conf['settings']['microtime']) $conf['settings']['microtime'] = microtime();
