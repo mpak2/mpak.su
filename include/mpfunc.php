@@ -652,7 +652,14 @@ function mpfile($filename, $description = null){
 		header("Cache-Control: max-age=3600");
 //		header("Cache-Control: max-age=3600, must-revalidate");
 //		header("Pragma: no-cache");
-		readfile($file_name); exit;
+//		readfile($file_name); exit;
+	$handle = fopen($file_name, 'rb');
+	while (!feof($handle)){
+		echo fread($handle, 4096);
+		ob_flush();
+		flush();
+	} fclose($handle); exit;
+
 	}else{
 		return '';
 	}
