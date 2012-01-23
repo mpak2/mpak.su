@@ -157,10 +157,9 @@ function mpevent($name, $description = null, $own = null){
 		}
 
 		mpqw($sql = "INSERT INTO {$conf['db']['prefix']}users_event SET time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", name=\"". mpquot($name). "\", description=\"". mpquot($desc). "\", count=1 ON DUPLICATE KEY UPDATE time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", count=count+1, last=". (int)$func_get_args[1]. ", max=IF(". (int)$func_get_args[1]. ">max, ". (int)$func_get_args[1]. ", max), min=IF(". (int)$func_get_args[1]. "<min, ". (int)$func_get_args[1]. ", min), description=\"". mpquot($desc). "\", log_last=". (int)$event_log);
-
-		if($event['send']){
-			$usrs = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}users_grp AS g INNER JOIN {$conf['db']['prefix']}users_mem AS m ON g.id=m.gid INNER JOIN {$conf['db']['prefix']}users AS u ON m.uid=u.id WHERE g.id=". (int)$event['send']));
-			foreach($usrs as $k=>$v){
+		}elseif($event['send']){
+			$users = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}users_grp AS g INNER JOIN {$conf['db']['prefix']}users_mem AS m ON g.id=m.gid INNER JOIN {$conf['db']['prefix']}users AS u ON m.uid=u.id WHERE g.id=". (int)$event['send']));
+			foreach($users as $k=>$v){
 				mpqw("UPDATE {$conf['db']['prefix']}users_event SET cmail=cmail+1 WHERE id=". (int)$event['id']);
 				mpmail($v['email'], strtr($event['subject'], $zam), strtr($event['text'], $zam), "events@zhiraf.info");
 			}
