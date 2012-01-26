@@ -1,8 +1,7 @@
 <? die;
 
-$_REQUEST += $_GET;
-if($_REQUEST['sum']){
-	$mpdbf = mpdbf($tn = "{$conf['db']['prefix']}{$arg['modpath']}_operations", $_REQUEST);
+if($_POST['sum']){
+	$mpdbf = mpdbf($tn = "{$conf['db']['prefix']}{$arg['modpath']}_operations", $_POST);
 	mpqw($sql = "INSERT INTO $tn SET $mpdbf, date=NOW(), type=\"". ($_GET['type'] ? $_GET['type'] : $arg['modpath'])."\", uid=".(int)$conf['user']['uid']);
 	header("Location: /{$arg['modpath']}:new/". mysql_insert_id());
 }elseif($_GET['id']){
