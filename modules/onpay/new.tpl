@@ -1,14 +1,12 @@
 <? if($conf['tpl']['operation']): ?>
 	<style>
-		.ar {
-			text-align:right;
-		}
-		.al {
-			text-align:left;
-		}
+		#operation { border-color:#eee; background-color:#eee; opacity:0.7; }
+		#operation tr td {padding:5px;}
+		.ar { text-align:right; }
+		.al { text-align:left;}
 	</style>
 	<div style="text-align:center; margin:50px;">
-		<table style="width:100%;" cellspacing="0" cellpadding="3" border="1">
+		<table id="operation" style="width:100%;" cellspacing="0" cellpadding="3" border="1">
 			<tr>
 				<td class="ar" style="width:50%;">Счет</td>
 				<td class="al">#<?=$conf['tpl']['operation']['id']?></td>
@@ -23,7 +21,7 @@
 			</tr>
 			<tr>
 				<td class="ar">Комментарий:</td>
-				<td class="al">&nbsp;<?=$conf['tpl']['operation']['comment']?></td>
+				<td class="al">&nbsp;<?=$conf['tpl']['operation']['description']?></td>
 			</tr>
 			<? if($conf['tpl']['operation']['status']): ?>
 			<tr>
