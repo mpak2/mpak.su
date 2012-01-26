@@ -329,7 +329,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_event_send"){
 //			'middle' => array('tr'=>'<tr>', 'td'=>'<td>', 'shablon'=>"<tr><td>{sql:name}</td><td>&nbsp;{sql:img}</td><td>&nbsp;{sql:description}</td><td align='right'>{config:row-edit}</td></tr>"), # Формат записей таблицы
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
-			'title' => array('time'=>'Время', 'uid'=>"Пользователь", 'name'=>'Событие', 'count'=>'Кол-во', 'send'=>'Уведом', "cmail"=>"Сообщ", 'description'=>'Описание', 'log'=>'Лог', 'event_log'=>'Логи'), # Название полей
+			'title' => array('time'=>'Время', 'uid'=>"Пользователь", 'name'=>'Событие', 'count'=>'Кол-во', 'send'=>'Уведом', "cmail"=>"Сообщ", 'log'=>'Лог', 'event_log'=>'Логи'), # Название полей
 //			'etitle'=> array(),
 			'type' => array('time'=>'timestamp', 'description'=>'textarea', 'text'=>'wysiwyg'), # Тип полей
 //			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
