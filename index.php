@@ -232,7 +232,9 @@ if (!function_exists('mcont')){
 		foreach($_GET['m'] as $k=>$v){ $k = urldecode($k);
 			$mod = $conf['modules'][ $k ];
 			ini_set("include_path" ,mpopendir("modules/{$mod['folder']}"). ":./modules/{$mod['folder']}:". ini_get("include_path"));
-			$conf['settings']['title'] = $conf['modules'][ $k ]['name']. ' : '. $conf['settings']['title'];
+			if($conf['settings']['modules_title']){
+				$conf['settings']['title'] = $conf['modules'][ $k ]['name']. ' : '. $conf['settings']['title'];
+			}
 
 			$v = $v != 'del' && $v != 'init' && $v != 'sql' && strlen($v) ? $v : 'index';
 			if ( ((strpos($v, 'admin') === 0) ? $conf['modules'][$k]['access'] >= 4 : $conf['modules'][$k]['access'] >= 1) ){
