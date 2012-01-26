@@ -14,7 +14,8 @@
 // Purpose of file:
 // ----------------------------------------------------------------------
 
-$conf['tpl']['img'] = mpql(mpqw("SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}{$arg['modpath']}_img".($_GET['cat'] ? " WHERE kid=".(int)$_GET['cat'] : ' ORDER BY id DESC'). " LIMIT ". ($_GET['p']*25). ", 25"));
+$conf['tpl']['img'] = mpql(mpqw("SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}{$arg['modpath']}_img WHERE 1". ($_GET['uid'] ? " AND uid=". (int)$_GET['uid'] : ""). ($_GET['cat'] ? " AND kid=".(int)$_GET['cat'] : ' ORDER BY id DESC'). " LIMIT ". ($_GET['p']*25). ", 25"));
+
 $conf['tpl']['mpager'] = mpager(mpql(mpqw("SELECT FOUND_ROWS()/25"), 0, 'cnt'));
 $conf['tpl']['cat'] = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_cat"));
 

@@ -1,16 +1,52 @@
 <? die; # МоиМашины
 
 if ((int)$arg['confnum']){
-/*	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0, 'param'));
-	if ($_POST) mpqw("UPDATE {$conf['db']['prefix']}blocks SET param = '".serialize($param = $_POST['param'])."' WHERE id = {$arg['confnum']}");
+	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0, 'param'));
+	if ($_POST){
+		$param = array($_POST['param']=>$_POST['val'])+(array)$param;
+		mpqw("UPDATE {$conf['db']['prefix']}blocks SET param = '".serialize($param)."' WHERE id = {$arg['confnum']}");
+	} if(array_key_exists("null", $_GET)) exit;
 
-echo <<<EOF
-	<form method="post">
-		<input type="text" name="param" value="$param"> <input type="submit" value="Сохранить">
-	</form>
-EOF;*/
-	return;
-} //$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
+	$klesh = array(
+		"Количество фото"=>0,
+/*		"Курс доллара"=>30,
+		"Список"=>array(
+			1=>"Одын",
+			2=>"Два",
+		),
+		"Город"=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users_sity ORDER BY name"),*/
+	);
+
+?>
+		<!-- Настройки блока -->
+	<script src="/include/jquery/my/jquery.klesh.select.js"></script>
+	<script>
+		$(function(){
+			<? foreach($klesh as $k=>$v): ?>
+				<? if(gettype($v) == 'array'): ?>
+					$(".klesh_<?=strtr(md5($k), array("="=>''))?>").klesh("/?m[blocks]=admin&r=mp_blocks&null&conf=<?=$arg['confnum']?>", function(){
+					}, <?=json_encode($v)?>);
+				<? else: ?>
+					$(".klesh_<?=strtr(md5($k), array("="=>''))?>").klesh("/?m[blocks]=admin&r=mp_blocks&null&conf=<?=$arg['confnum']?>");
+				<? endif; ?>
+			<? endforeach; ?>
+		});
+	</script>
+	<div style="margin-top:10px;">
+		<? foreach($klesh as $k=>$v): ?>
+			<div style="overflow:hidden;">
+				<div style="width:200px; float:left; padding:5px; text-align:right; font-weight:bold;"><?=$k?> :</div>
+				<? if(gettype($v) == 'array'): ?>
+					<div class="klesh_<?=strtr(md5($k), array("="=>''))?>" param="<?=$k?>"><?=$v[ $param[$k] ]?></div>
+				<? else: ?>
+					<div class="klesh_<?=strtr(md5($k), array("="=>''))?>" param="<?=$k?>"><?=($param[$k] ?: $v)?></div>
+				<? endif; ?>
+			</div>
+		<? endforeach; ?>
+	</div>
+<? return;
+
+} $param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 
 if($_FILES[$arg['modpath']] && ($tn = "{$conf['db']['prefix']}{$arg['modpath']}_img")){
 	$id = mpql(mpqw("SELECT max(id) AS id FROM $tn"), 0, 'id')+1;
@@ -23,7 +59,7 @@ if($_FILES[$arg['modpath']] && ($tn = "{$conf['db']['prefix']}{$arg['modpath']}_
 }elseif($_POST['del']){
 	mpqw($sql = "DELETE FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE id=". (int)$_POST['del']. " AND uid=". (int)$conf['user']['uid']);
 }else{
-	$img = mpql(mpqw("SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}{$arg['modpath']}_img WHERE uid=". (int)$arg['uid']. " ORDER BY id DESC LIMIT 8"));
+	$img = mpql(mpqw("SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}{$arg['modpath']}_img WHERE uid=". (int)$arg['uid']. " ORDER BY id DESC LIMIT ". (int)$param["Количество фото"]));
 }
 
 ?>
@@ -62,7 +98,7 @@ if($_FILES[$arg['modpath']] && ($tn = "{$conf['db']['prefix']}{$arg['modpath']}_
 			<a href="/<?=$arg['modpath']?>/uid:<?=$arg['uid']?>">Мои <?=$cnt?> фото</a>
 		</span>
 <? endif; ?>
-
+<!-- [settings:foto_lightbox] -->
 <div class="imgpl" id="gallery" style="overflow:hidden;">
 	<? if($img): ?>
 		<? foreach((array)$img as $k=>$v): ?>
