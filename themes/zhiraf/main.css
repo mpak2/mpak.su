@@ -159,8 +159,8 @@ body
 /* *** Кнопки *** */
 input[type="submit"]
 {
-	border:0;
-	color:#fff;
+/*	border:0;
+	color:#fff;*/
 }
 .button,
 .button input,
