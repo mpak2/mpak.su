@@ -123,7 +123,7 @@ if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аут
 }elseif(isset($_GET['logoff'])){ # Если пользователь покидает сайт
 	mpqw("UPDATE {$conf['db']['prefix']}sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
 	if(!empty($_SERVER['HTTP_REFERER'])){
-		header("Location: ". $_SERVER['HTTP_REFERER']); exit;
+		header("Location: ". ($conf['settings']['users_logoff_location'] ?: $_SERVER['HTTP_REFERER'])); exit;
 	}// if($conf['settings']['del_sess'] == 0){ # Стираем просроченные сессии
 	mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление сессий');
 	mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess_post WHERE time < ".(time() - $conf['settings']['sess_time']), 'Удаление данных сессии');
