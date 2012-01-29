@@ -14,7 +14,7 @@ EOF;*/
 }//$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
 
-$online = mpql(mpqw("SELECT SQL_CALC_FOUND_ROWS u.*, s.id AS sid, s.agent FROM {$conf['db']['prefix']}sess AS s LEFT JOIN {$conf['db']['prefix']}users AS u ON s.uid=u.id WHERE s.last_time > ". (time()-$conf['settings']['sess_time']). " AND CHAR_LENGTH(sess)=32 ORDER BY s.last_time DESC LIMIT 42"));
+$online = mpql(mpqw($sql = "SELECT SQL_CALC_FOUND_ROWS u.*, s.id AS sid, s.agent FROM {$conf['db']['prefix']}sess AS s LEFT JOIN {$conf['db']['prefix']}users AS u ON s.uid=u.id WHERE s.last_time > ". (time()-$conf['settings']['sess_time']). " AND CHAR_LENGTH(sess)=32 ORDER BY s.last_time DESC LIMIT 42"));
 
 $count = mpql(mpqw("SELECT FOUND_ROWS() AS count"), 0, 'count');
 
