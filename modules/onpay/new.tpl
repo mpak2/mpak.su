@@ -46,7 +46,8 @@
 	</style>
 	<form method="post" style="width:400px; text-align:center; margin:0 auto;">
 		<div style="margin: 100px 10px; text-align: center;">
-			счет на сумму <input id="sum" type="text" name="sum" value="99" style="width:50px;"> <!-- [settings:<?=$arg['modpath']?>_currency] --> <input type="submit" value="Добавить">
+			счет на сумму <input id="sum" type="text" name="sum" value="99" style="width:50px;"> <!-- [settings:<?=$arg['modpath']?>_currency] -->
+				<input type="submit" value="Добавить">
 			<div>
 				<textarea name="description" title="Ваш комментарий" style="width:100%; margin-top:5px;"></textarea>
 			</div>
