@@ -102,9 +102,9 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_region"){ // 'Мен
 //			'set' => array('orderby'=>$orderby), # Значение которое всегда будет присвоено полю. Исключает любое изменение
 			'shablon' => array(
 				'img'=>array('*'=>"<img src='/{$arg['modpath']}:img/{f:id}/w:100/h:80/null/img.jpg'>"),
-//				'name'=>array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r=1&where[rid]={$_GET['where']['rid']}&where[pid]={f:id}>{f:{f}}</a>"),
+				'pid'=>array('*'=>"<a href=/?m[menu]=admin&r=mp_menu&where[rid]={f:rid}>{spisok:{f}}</a>"),
 //				'count'=>spisok("SELECT m1.id, COUNT(*) FROM {$conf['db']['prefix']}{$arg['modpath']} AS m1, {$conf['db']['prefix']}{$arg['modpath']} AS m2 WHERE m1.id=m2.pid GROUP BY m1.id"),
-				(($fn = 'menu'). ($prx = ''))=>array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}&where[pid]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}&where[pid]=', r.id, '>', COUNT(*), '_{$fn}</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$arg['modpath']} AS fn WHERE r.id=fn.pid GROUP BY r.id"),
+				(($fn = 'menu'). ($prx = ''))=>array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}&where[pid]={f:id}&where[rid]={f:rid}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}&where[pid]=', r.id, '>', COUNT(*), '_{$fn}</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$arg['modpath']} AS fn WHERE r.id=fn.pid GROUP BY r.id"),
 			), # Шаблон вывода в замене участвуют только поля запроса имеен приоритет перед полем set
 //			'disable' => array('orderby'), # Выключенные для записи поля
 //			'hidden' => array('name', 'enabled'), # Скрытые поля
