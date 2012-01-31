@@ -33,7 +33,7 @@ if (isset($_POST['add']) && strlen($_POST['name']) && strlen($_POST['pass']) && 
 			if($conf['settings']['users_reg_redirect']){ # Перенаправление на страницу с настроек
 				header("Location: {$conf['settings']['users_reg_redirect']}");
 			}else{
-				
+				header("Location: /");
 			}$conf['tpl']['reg'] = 1;
 		}
 	}
