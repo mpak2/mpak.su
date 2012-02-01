@@ -24,7 +24,9 @@
 		<div>
 			<div class="qw"><?=$v['qw']?></div>
 			<div class="ans"><?=$v['ans']?></div>
-			<div class="href"><a href="<?=$v['href']?>">http://<?=mpidn($_SERVER['HTTP_HOST'])?><?=$v['href']?></a></div>
+			<? if($v['href']): ?>
+				<div class="href"><a href="<?=$v['href']?>">http://<?=mpidn($_SERVER['HTTP_HOST'])?><?=$v['href']?></a></div>
+			<? endif; ?>
 		</div>
 	<? endforeach; ?>
 	<div><!-- [settings:comments] --></div>
