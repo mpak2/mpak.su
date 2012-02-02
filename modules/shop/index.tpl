@@ -28,7 +28,7 @@
 	</div>
 	<div style="margin-bottom:10px;"><?=$conf['tpl']['pcount']?></div>
 	<? foreach($conf['tpl']['desc'] as $k=>$v): ?>
-		<div style="overflow:hidden; border-top: dashed 1px blue; padding:10px;">
+		<div style="overflow:hidden; border-top: dashed 1px blue; padding:10px; float:<?=($_GET['id'] ? "none" : "left")?>; width:<?=$_GET['id'] ? "100%" : "45%"?>;">
 			<div id="gallery">
 				<a title="<?=$v['name']?>" alt="<?=$v['name']?>" href="/<?=$arg['modpath']?>:img/<?=$v['id']?>/tn:1/w:600/h:500/null/img.jpg">
 					<img src="/<?=$arg['modpath']?>:img/<?=$v['id']?>/tn:1/w:200/h:150/null/img.jpg" style="float:right;">
@@ -36,14 +36,10 @@
 			</div>
 			<h2>
 				<a href="/<?=$arg['modpath']?>/<?=$v['id']?>" style="font-size:130%;"><?=$v['name']?></a>
-				<a href="/users/<?=$v['uid']?>"><?=$v['uname']?></a>
-				<?=($v['cnt'] > 1 ? "+{$v['cnt']} фото" : '')?>
 			</h2>
-			<div>город: <?=$conf['tpl']['sity'][ $v['sity_id'] ]?></div>
 			<div>категория: <a href="/<?=$arg['modpath']?>/oid:<?=$v['obj_id']?>"><?=$conf['tpl']['objs'][ $v['obj_id'] ]?></a></div>
 			<div>цена: <?=$v['price']?>&nbsp;<!-- [settings:onpay_currency] --></div>
 			<div style="margin-top:10px;"><i><?=$v['description']?></i></div>
-			<div style="margin-top:10px;"><?=$v['text']?></div>
 			<div style="text-align:left;">
 			<input type="text" id="count_<?=$v['id']?>" style="width:70px;" value="1">
 			<input type="button" id="button" id="<?=$v['id']?>" class="button" onClick="javascript: location.href='/<?=$arg['modpath']?>:order/did:<?=$v['id']?>/count:'+document.getElementById('count_<?=$v['id']?>').value;">
