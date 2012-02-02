@@ -67,5 +67,6 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_vopros
 mpqw($sql);
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('opros2', 'opros2_user_view', '', '1', 'Вывод ссылки на страницу пользователя')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('opros2', 'opros2_title', '', '1', 'Заголовок опросника')");
 
 ?>

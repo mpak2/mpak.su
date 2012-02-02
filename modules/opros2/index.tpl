@@ -24,6 +24,7 @@
 			input:disabled, textarea:disabled {background-color:#eee; color:#444;}
 		</style>
 		<div style="margin:10px 0; padding:10px; border-radius:10px; border:1px solid #ddd;">
+			<div><?=$conf['settings']["{$arg['modpath']}_title"]?></div>
 			<? if($conf['settings']["{$arg['modpath']}_user_view"]): ?>
 				<div style="overflow:hidden;">
 					<div style="float:right; width:100px; text-align:center;">

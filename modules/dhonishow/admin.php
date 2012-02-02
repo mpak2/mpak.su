@@ -52,12 +52,13 @@ if ($m[(int)$_GET['r']] == 'Вкладка'){
 			), # Шаблон вывода в замене участвуют только поля запроса имеен приоритет перед полем set
 //			'disable' => array('orderby'), # Выключенные для записи поля
 //			'hidden' => array('name', 'enabled'), # Скрытые поля
-//			'spisok' => array( # Список для отображения и редактирования
+			'spisok' => array( # Список для отображения и редактирования
+				'uid' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
 //				'field' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}")),
 //				'select'=>array('*'=>array('0'=>'Скрыто', '1'=>'Доступно')),
 //				'time' => $time,
-//			),
-//			'default' => array('time'=>date('Y.m.d H:i:s'), 'rid'=>array('*'=>max($_POST['rid'], $_GET['where']['rid']))), # Значение полей по умолчанию
+			),
+			'default' => array('uid'=>array('*'=>$conf['user']['uid'])), # Значение полей по умолчанию
 //			'maxsize' => array('bdesc'=>array('*'=>'50'),), # Максимальное количество символов в поле
 		)
 	);

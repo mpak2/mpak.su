@@ -73,7 +73,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 //				'select'=>array('*'=>array('0'=>'Скрыто', '1'=>'Доступно')),
 			),
 			'default' => array(
-				'uid'=>array('*'=>$conf['user']['id']),
+				'uid'=>array('*'=>$conf['user']['uid']),
 				'time'=>array('*'=>date('Y.m.d H:i:s')),
 //				($f = 'type_id')=>array('*'=>max($_GET['where'][$f], $_POST[$f])),
 			), # Значение полей по умолчанию
