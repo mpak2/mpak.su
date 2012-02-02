@@ -17,6 +17,7 @@
 
 $conf['settings'] += array(
 	"{$arg['modpath']}_redirect"=>"Перенаправления",
+	"{$arg['modpath']}_sitemap"=>"СайтМап",
 );
 
 foreach(mpql(mpqw("SHOW TABLES WHERE Tables_in_{$conf['db']['name']} LIKE \"{$conf['db']['prefix']}{$arg['modpath']}\_%\"")) as $k=>$v){

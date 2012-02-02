@@ -11,4 +11,14 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_redire
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_sitemap` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `loc` varchar(255) NOT NULL,
+  `priority` varchar(255) NOT NULL,
+  `lastmod` varchar(255) NOT NULL,
+  `changefreq` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+mpqw($sql);
+
 ?>
