@@ -28,7 +28,7 @@ $param = unserialize(mpql(mpqw($sql = "SELECT param FROM {$conf['db']['prefix']}
 
 $menu = mpqn(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE rid=". (int)(is_numeric($param) ? $param : $param['menu'])." ORDER BY orderby"), 'pid', 'id');
 
-//if($param['tpl']){ include mpopendir("themes/{$conf['settings']['theme']}/{$param['tpl']}"); return; }
+if($param['tpl']){ include mpopendir("themes/{$conf['settings']['theme']}/{$param['tpl']}"); return; }
 
 ?>
 <script type="text/javascript" src="/include/jquery/jquery.url.js"></script>
