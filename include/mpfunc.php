@@ -730,7 +730,8 @@ EOF;
 }
 
 function mpre($array = false, $access = 4, $line = 0){
-	global $conf, $arg; if($arg['access'] < $access) return;
+	global $conf, $arg, $argv;
+	if(empty($argv) && ($arg['access'] < $access)) return;
 	foreach(debug_backtrace() as $k=>$v){
 		if(!is_numeric($line) || $k === $line){
 			if($array){
