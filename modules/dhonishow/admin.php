@@ -15,16 +15,24 @@
 // Purpose of file:
 // ----------------------------------------------------------------------
 
-mpmenu($m = array('Вкладка'));
+//mpmenu($m = array('Вкладка'));
+$conf['settings'] += array(
+	"{$arg['modpath']}_index"=>$arg['modname'],
+);
 
-if ($m[(int)$_GET['r']] == 'Вкладка'){
+foreach(mpql(mpqw("SHOW TABLES WHERE Tables_in_{$conf['db']['name']} LIKE \"{$conf['db']['prefix']}{$arg['modpath']}\_%\"")) as $k=>$v){
+	$val = ($conf['settings'][$fn = substr($v["Tables_in_{$conf['db']['name']}"], strlen($conf['db']['prefix']))] ?: $fn);
+	$m["{$conf['db']['prefix']}". $fn] = $val;
+} mpmenu($m); if(!$_GET['r']) $_GET['r'] = array_shift(array_keys($m));
+
+if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 	stable(
 		array(
 //			'dbconn' => $conf['db']['conn'],
 			'url' => "/?m[{$arg['modpath']}]=admin&r={$_GET['r']}", # Ссылка для редактирования
-			'name' => "{$conf['db']['prefix']}{$arg['modpath']}_index", # Имя таблицы базы данных
+			'name' => $_GET['r'], # Имя таблицы базы данных
 //			'where' => '', # Условия отбора содержимого
-//			'order' => 'id DESC', # Сортировка вывода таблицы
+			'order' => 'sort', # Сортировка вывода таблицы
 //			'debug' => false, # Вывод всех SQL запросов
 			'acess' => array( # Разрешение записи на таблицу
 				'add' => array('*'=>true), # Добавление
@@ -42,7 +50,7 @@ if ($m[(int)$_GET['r']] == 'Вкладка'){
 
 //			'title' => array('name'=>'Имя', 'img'=>'Изображение', 'description'=>'Описание'), # Название полей
 //			'etitle'=> array(),
-			'type' => array('img'=>'file', 'description'=>'textarea'), # Тип полей
+			'type' => array('img'=>'file', 'sort'=>'sort', 'description'=>'textarea'), # Тип полей
 			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('orderby'=>$orderby), # Значение которое всегда будет присвоено полю. Исключает любое изменение
 			'shablon' => array(
