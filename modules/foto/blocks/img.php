@@ -8,7 +8,7 @@ if ((int)$arg['confnum']){
 	} if(array_key_exists("null", $_GET)) exit;
 
 	$klesh = array(
-		"Количество фото"=>0,
+		"Количество фото"=>10,
 /*		"Курс доллара"=>30,
 		"Список"=>array(
 			1=>"Одын",
@@ -59,7 +59,7 @@ if($_FILES[$arg['modpath']] && ($tn = "{$conf['db']['prefix']}{$arg['modpath']}_
 }elseif($_POST['del']){
 	mpqw($sql = "DELETE FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE id=". (int)$_POST['del']. " AND uid=". (int)$conf['user']['uid']);
 }else{
-	$img = mpql(mpqw("SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}{$arg['modpath']}_img WHERE uid=". (int)$arg['uid']. " ORDER BY id DESC LIMIT ". (int)$param["Количество фото"]));
+	$img = mpql(mpqw("SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}{$arg['modpath']}_img WHERE uid=". (int)$arg['uid']. " ORDER BY id DESC LIMIT ". (int)($param["Количество фото"] ?: 10)));
 }
 
 ?>
@@ -73,12 +73,8 @@ if($_FILES[$arg['modpath']] && ($tn = "{$conf['db']['prefix']}{$arg['modpath']}_
 		};
 	</script>
 	<style>
-		.my {
-			clear:both;
-		}
-		.mgimg {
-			margin:3px;
-		}
+		.my {clear:both;}
+		.mgimg {margin:3px;}
 		.divimg {
 			margin:3px;
 			text-align:center;
