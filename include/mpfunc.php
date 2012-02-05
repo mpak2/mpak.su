@@ -232,7 +232,7 @@ function mpwr($tn, $get = array()){
 			$where .= " AND `". mpquot(substr($k, 1)). "`>". (int)$v;
 		}elseif(is_numeric($v) && (substr($k, 0, 1) == '-') && ($f[substr($k, 1)] || $f[$n])){
 			$where .= " AND `". mpquot(substr($k, 1)). "`<". (int)$v;
-		}elseif($v && $f[$n]){
+		}elseif(($v !== "") && $f[$n]){
 			$where .= " AND `". mpquot($k). "`=\"". mpquot($v). "\"";
 		}
 	} return $where;
