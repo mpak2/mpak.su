@@ -461,6 +461,12 @@ function mpqw($sql, $info = null, $conn = null){
 			echo "<p>$sql<br><font color=red>".mysql_error()."</font>";
 		}
 		$check = array(
+			"Unknown column 'r.fn' in 'where clause'" => array(
+				"SELECT * FROM mp_blocks_reg AS r WHERE" => array(
+					"ALTER TABLE `mp_blocks_reg` ADD `fn` varchar(255) NOT NULL",
+					"ALTER TABLE `mp_blocks_reg` ADD INDEX (fn)",
+				),
+			),
 			"Unknown column 'log_last' in 'field list'" => array(
 				"INSERT INTO {$conf['db']['prefix']}users_event SET" => array(
 					"ALTER TABLE `{$conf['db']['prefix']}users_event` ADD `log_last` int(11) NOT NULL AFTER `log`",
