@@ -227,13 +227,13 @@ function mpwr($tn, $get = array()){
 	foreach((array)$get ?: $_GET as $k=>$v){
 		$n = array_pop(explode('.', $k));
 		if((substr($k, 0, 1) == '!') && ($f[substr($k, 1)] || $f[$n])){
-			$where .= " AND ". mpquot(substr($k, 1)). "<>\"". mpquot($v). "\"";
+			$where .= " AND `". mpquot(substr($k, 1)). "`<>\"". mpquot($v). "\"";
 		}elseif(is_numeric($v) && (substr($k, 0, 1) == '+') && ($f[substr($k, 1)] || $f[$n])){
-			$where .= " AND ". mpquot(substr($k, 1)). ">". (int)$v;
+			$where .= " AND `". mpquot(substr($k, 1)). "`>". (int)$v;
 		}elseif(is_numeric($v) && (substr($k, 0, 1) == '-') && ($f[substr($k, 1)] || $f[$n])){
-			$where .= " AND ". mpquot(substr($k, 1)). "<". (int)$v;
-		}elseif(isset($v) && $f[$n]){
-			$where .= " AND ". mpquot($k). "=\"". mpquot($v). "\"";
+			$where .= " AND `". mpquot(substr($k, 1)). "`<". (int)$v;
+		}elseif($v && $f[$n]){
+			$where .= " AND `". mpquot($k). "`=\"". mpquot($v). "\"";
 		}
 	} return $where;
 }
