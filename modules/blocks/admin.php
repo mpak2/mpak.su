@@ -18,7 +18,7 @@ $conf['settings'] += array(
 	"{$arg['modpath']}"=>'Блоки',
 	"{$arg['modpath']}_cache"=>'Кеш',
 	"{$arg['modpath']}_gaccess"=>'Группы',
-	"{$arg['modpath']}_reg"=>'Полигоны',
+	"{$arg['modpath']}_reg"=>'Регион',
 	"{$arg['modpath']}_shablon"=>'Шаблоны',
 	"{$arg['modpath']}_uaccess"=>'Пользователи',
 );
@@ -175,7 +175,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}blocks"){ #Блоки
 //			'maxsize' => array('bdesc'=>array('*'=>'50'),), # Максимальное количество символов в поле
 		)
 	);
-}elseif($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_reg"){ #Полигоны
+}elseif($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_reg"){ #Регионы
 	stable(
 		array(
 //			'dbconn' => $conf['db']['conn'],
@@ -198,7 +198,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}blocks"){ #Блоки
 //			'middle' => array('tr'=>'<tr>', 'td'=>'<td>', 'shablon'=>"<tr><td>{sql:name}</td><td>&nbsp;{sql:img}</td><td>&nbsp;{sql:description}</td><td align='right'>{config:row-edit}</td></tr>"), # Формат записей таблицы
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
-			'title' => array('mid'=>'Модуль', 'reg_id'=>"Родитель", 'reg'=>"Вложений", '.name'=>'Метка', 'description'=>'Описание', 'count'=>'Блоков'), # Название полей
+			'title' => array('mid'=>'Модуль', 'fn'=>'Файл', 'reg_id'=>"Родитель", 'reg'=>"Вложений", '.name'=>'Метка', 'description'=>'Описание', 'count'=>'Блоков'), # Название полей
 //			'type' => array('description'=>'textarea'), # Тип полей
 //			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('name'=>'kanal'), # Значение которое всегда будет присвоено полю. Исключает любое изменение
