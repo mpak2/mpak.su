@@ -59,7 +59,9 @@ $themes = mpreaddir("themes", 1);// mpre($themes);
 		$(".themes_<?=$arg['modpath']?> select").change(function(){
 			theme = $(this).find("option:selected").val();// alert(theme);
 			$.post("/blocks/<?=$arg['blocknum']?>/null", {theme:theme}, function(data){
-				if(isNaN(data){ alert(data) }
+				if(isNaN(data){ alert(data) }else{
+					document.location.href = "/";
+				}
 			});
 		});
 	});
