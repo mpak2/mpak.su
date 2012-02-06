@@ -105,7 +105,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}blocks"){ #Блоки
 					'file' => array('*' => $blocks),
 					'theme' => array('*' => $themes),
 					'shablon' => array('*'=>(array)$block+spisok("SELECT id, name FROM {$conf['db']['prefix']}blocks_shablon")),
-					'rid'=>array('*'=>array('')+spisok("SELECT id, description FROM {$conf['db']['prefix']}blocks_reg")),
+					'rid'=>array('*'=>array('')+spisok("SELECT r1.id, CONCAT(r1.description, ' (', r2.description, ')') FROM {$conf['db']['prefix']}blocks_reg AS r1 LEFT JOIN {$conf['db']['prefix']}blocks_reg AS r2 ON (r1.reg_id=r2.id)")),
 					'enabled' => array('*' => array('0'=>'Выкл', '1'=>'Вкл')),
 					'access' => array('*' => array(-1=>"")+$conf['settings']['access_array']),
 				),
@@ -198,7 +198,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}blocks"){ #Блоки
 //			'middle' => array('tr'=>'<tr>', 'td'=>'<td>', 'shablon'=>"<tr><td>{sql:name}</td><td>&nbsp;{sql:img}</td><td>&nbsp;{sql:description}</td><td align='right'>{config:row-edit}</td></tr>"), # Формат записей таблицы
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
-			'title' => array('mid'=>'Модуль', 'fn'=>'Файл', 'reg_id'=>"Родитель", 'reg'=>"Вложений", '.name'=>'Метка', 'description'=>'Описание', 'count'=>'Блоков'), # Название полей
+			'title' => array('mid'=>'Модуль', 'fn'=>'Файл', 'reg'=>"Вложений", '.name'=>'Метка', 'count'=>'Блоков', 'reg_id'=>"Родитель", 'description'=>'Описание'), # Название полей
 //			'type' => array('description'=>'textarea'), # Тип полей
 //			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('name'=>'kanal'), # Значение которое всегда будет присвоено полю. Исключает любое изменение

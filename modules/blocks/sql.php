@@ -1,6 +1,6 @@
 <? die;
 
-mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_reg` (`id`, `fn`, `description`) VALUES ('1', '', 'Лево'), ('2', '', 'Право'), ('3', '', 'Верх'), ('4', '', 'АдминШапка'), ('5', '', 'КабинетЛево'), ('6', '', 'КабинетПраво'), ('7', 'index', 'Личный кабинет'), ('8', 'index', 'Личный кабинет')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_reg` (`id`, `fn`, `description`) VALUES ('1', '', 'Общая Лево'), ('2', '', 'Общая Право'), ('3', '', 'Верх'), ('4', '', 'АдминШапка'), ('5', '', 'Лево'), ('6', '', 'Право'), ('7', 'index', 'Кабинет'), ('8', 'index', 'Кабинет')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_shablon` (`id`, `name`, `description`, `shablon`) VALUES ('1', 'Основной', 'Блок по умолчанию', '<table width=240px cellspacing=0 cellpadding=5 border=0> <tr> <td align=center bgcolor=<!-- [settings:theme_block_color] -->><b><!-- [block:title] --></b></td> </tr> <tr> <td><!-- [block:content] --></td> </tr> </table>'), ('2', 'БезТитла', 'Блок без заголовка', '<!-- [block:content] -->')");
 
 $amenu = <<<EOF
@@ -34,11 +34,11 @@ $menu = array(
 	array('id'=>'7', 'theme'=>'zhiraf', 'file'=>'admin/blocks/top.php', 'name'=>'АдминШапка', 'access'=>'0', 'rid'=>'4', 'enabled'=>'1',),
 	array('id'=>'8', 'theme'=>'zhiraf', 'file'=>'admin/blocks/modlist.php', 'name'=>'СписокМодулей', 'access'=>'0', 'rid'=>'1', 'enabled'=>'1',),
 
-	array('id'=>'9', 'theme'=>'!zhiraf', 'file'=>'users/blocks/cabinet.php', 'name'=>'Информация о пользователе', 'access'=>'1', 'rid'=>'5', 'enabled'=>'1',),
+	array('id'=>'9', 'theme'=>'!zhiraf', 'file'=>'users/blocks/cabinet.php', 'name'=>'Информация о пользователе', 'access'=>'1', 'rid'=>'7', 'enabled'=>'1',),
 
-	array('id'=>'10', 'theme'=>'!zhiraf', 'file'=>'chat/blocks/all.php', 'name'=>'Чат', 'access'=>'2', 'rid'=>'6', 'enabled'=>'1',),
-	array('id'=>'11', 'theme'=>'!zhiraf', 'file'=>'foto/blocks/img.php', 'name'=>'Мои фото', 'access'=>'1', 'rid'=>'5', 'enabled'=>'1',),
-	array('id'=>'12', 'theme'=>'!zhiraf', 'file'=>'pages/blocks/my.php', 'name'=>'Мои статьи', 'access'=>'1', 'rid'=>'5', 'enabled'=>'1',),
+	array('id'=>'10', 'theme'=>'!zhiraf', 'file'=>'chat/blocks/all.php', 'name'=>'Чат', 'access'=>'2', 'rid'=>'8', 'enabled'=>'1',),
+	array('id'=>'11', 'theme'=>'!zhiraf', 'file'=>'foto/blocks/img.php', 'name'=>'Мои фото', 'access'=>'1', 'rid'=>'7', 'enabled'=>'1',),
+	array('id'=>'12', 'theme'=>'!zhiraf', 'file'=>'pages/blocks/my.php', 'name'=>'Мои статьи', 'access'=>'1', 'rid'=>'7', 'enabled'=>'1',),
 );
 
 foreach($menu as $sort=>$line){
