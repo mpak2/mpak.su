@@ -14,7 +14,7 @@
 	var today = new Date(); // used in defaults
 	var months = 'Январь,Февраль,Март,Апрель,Май,Июнь,Июль,Август,Сентябрь,Октябрь,Ноябрь,Декабрь'.split(',');
 	var monthlengths = '31,28,31,30,31,30,31,31,30,31,30,31'.split(',');
-  	var dateRegEx = /^\d{1,2}\/\d{1,2}\/\d{2}|\d{4}$/;
+  	var dateRegEx = /^\d{2}\/\d{2}\/\d{2}|\d{4}$/;
 	var yearRegEx = /^\d{4,4}$/;
 
     // next, declare the plugin function
@@ -26,7 +26,7 @@
         // the DOM element from below
 
 		var opts = jQuery.extend({}, jQuery.fn.simpleDatepicker.defaults, options);
-		
+
 		// replaces a date string with a date object in opts.startdate and opts.enddate, if one exists
 		// populates two new properties with a ready-to-use year: opts.startyear and opts.endyear
 		
