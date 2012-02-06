@@ -1,6 +1,6 @@
 <? die;
 
-mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_reg` (`id`, `description`) VALUES ('1', 'Лево'), ('2', 'Право'), ('3', 'Верх'), ('4', 'АдминШапка'), ('5', 'КабинетЛево'), ('6', 'КабинетПраво')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_reg` (`id`, `fn`, `description`) VALUES ('1', '', 'Лево'), ('2', '', 'Право'), ('3', '', 'Верх'), ('4', '', 'АдминШапка'), ('5', '', 'КабинетЛево'), ('6', '', 'КабинетПраво'), ('7', 'index', 'Личный кабинет'), ('8', 'index', 'Личный кабинет')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_shablon` (`id`, `name`, `description`, `shablon`) VALUES ('1', 'Основной', 'Блок по умолчанию', '<table width=240px cellspacing=0 cellpadding=5 border=0> <tr> <td align=center bgcolor=<!-- [settings:theme_block_color] -->><b><!-- [block:title] --></b></td> </tr> <tr> <td><!-- [block:content] --></td> </tr> </table>'), ('2', 'БезТитла', 'Блок без заголовка', '<!-- [block:content] -->')");
 
 $amenu = <<<EOF

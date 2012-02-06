@@ -722,7 +722,6 @@ EOF;
 		echo '<div style="float:right; margin:5px;"><a target=blank href="http://mpak.su/help/modpath:'. $arg['modpath']. "/fn:". $arg['fn']. '/r:'. $_GET['r']. '">Помощь</a></div>';
 	}
 	echo '<ul class="nl tabs">';
-//  mpre($m);
 	foreach($m as $k=>$v){
 		if ($v[0] == '.') continue;
 		echo "<li class=\"$k\"><a href=\"/?m[". array_search('admin', $_GET['m']). "]=admin". ($k ? "&r=$k" : ''). "\">$v</a></li>";
@@ -730,7 +729,7 @@ EOF;
 	echo '</ul>';
 	if(!empty($m) && empty($_GET['r'])){
 		if(!is_numeric($r = array_shift(array_keys($m))) && (strpos($_SERVER['REQUEST_URI'], "?") !== false)){
-			echo "<meta http-equiv=\"Refresh\" Content=\"0; URL={$_SERVER['REQUEST_URI']}&r=". array_shift(array_keys($m)). "\">";
+			header("Location: {$_SERVER['REQUEST_URI']}&r=". array_shift(array_keys($m)));
 		}
 	}
 }
