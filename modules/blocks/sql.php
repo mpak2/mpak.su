@@ -1,6 +1,9 @@
 <? die;
 
-mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_reg` (`id`, `fn`, `description`) VALUES ('1', '', 'Общая Лево'), ('2', '', 'Общая Право'), ('3', '', 'Верх'), ('4', '', 'АдминШапка'), ('5', '', 'Лево'), ('6', '', 'Право'), ('7', 'index', 'Кабинет'), ('8', 'index', 'Кабинет')");
+$users = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE folder=\"users\""), 0);
+
+mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_reg` (`id`, `reg_id`, `mid`, `fn`, `description`) VALUES ('1', '0', '0', '', 'Общая Лево'), ('2', '0', '0', '', 'Общая Право'), ('3', '0', '0', '', 'Верх'), ('4', '0', '0', '', 'АдминШапка'), ('5', '0', '0', '', 'Лево'), ('6', '0', '0', '', 'Право'), ('7', '5', '{$users['id']}', 'index', 'Кабинет'), ('8', '6', '{$users['id']}', 'index', 'Кабинет')");
+
 mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_shablon` (`id`, `name`, `description`, `shablon`) VALUES ('1', 'Основной', 'Блок по умолчанию', '<table width=240px cellspacing=0 cellpadding=5 border=0> <tr> <td align=center bgcolor=<!-- [settings:theme_block_color] -->><b><!-- [block:title] --></b></td> </tr> <tr> <td><!-- [block:content] --></td> </tr> </table>'), ('2', 'БезТитла', 'Блок без заголовка', '<!-- [block:content] -->')");
 
 $amenu = <<<EOF
