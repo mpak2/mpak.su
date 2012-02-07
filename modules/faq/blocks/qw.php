@@ -32,7 +32,7 @@ if(($arg['access'] > 1) && array_key_exists('blocks', $_GET['m']) && array_key_e
 	<script src="/include/jquery/jquery.iframe-post-form.js"></script>
 	<script>
 		$(function(){
-			$(".dat_<?=$arg['blocknum']?> form").iframePostForm({
+/*			$(".dat_<?=$arg['blocknum']?> form").iframePostForm({
 				complete:function (data){
 					if(isNaN(data)){// alert(data); }else{
 						text = $("<div>").append(data).find(".data_<?=$arg['blocknum']?>").html();
@@ -41,7 +41,8 @@ if(($arg['access'] > 1) && array_key_exists('blocks', $_GET['m']) && array_key_e
 				}
 			})//.find("textarea").text('');
 			$(".add_<?=$arg['blocknum']?>").click(function(){
-				$(this).next(".dat_<?=$arg['blocknum']?>").slideToggle();
+				alert(123);
+//				$(this).next(".dat_<?=$arg['blocknum']?>").slideToggle();
 			});
 			$(".del_<?=$arg['blocknum']?>").live("click", function(){
 				data_id = $(this).parents("[data_id]").attr("data_id");// alert(data_id);
@@ -50,20 +51,20 @@ if(($arg['access'] > 1) && array_key_exists('blocks', $_GET['m']) && array_key_e
 						$(".data_<?=$arg['blocknum']?> > div[data_id="+data_id+"]").slideToggle().destroy();
 					}
 				});
-			});
+			});*/
 		});
 	</script>
 
 	<div class="add_<?=$arg['blocknum']?>" style="text-align:right; margin-bottom:10px;">
 		<a href="javascript:return false;">Добавить вопрос</a>
-	</div>
-	<div class="dat_<?=$arg['blocknum']?>" style="display:none;">
-		<form action="/blocks/<?=$arg['blocknum']?>/null" method="post">
-			<div><textarea name="qw"></textarea></div>
-			<div style="text-align:right;">
-				<input type="submit" value="Добавить вопрос">
-			</div>
-		</form>
+		<div class="dat_<?=$arg['blocknum']?>" style="display:none;">
+			<form action="/blocks/<?=$arg['blocknum']?>/null" method="post">
+				<div><textarea name="qw"></textarea></div>
+				<div style="text-align:right;">
+					<input type="submit" value="Добавить вопрос">
+				</div>
+			</form>
+		</div>
 	</div>
 <? endif; ?>
 <div class="data_<?=$arg['blocknum']?>">
