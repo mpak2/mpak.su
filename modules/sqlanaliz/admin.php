@@ -17,12 +17,21 @@
 mpmenu($m = array('Быстродействие', 'Структура', 'Запрос', 'Вставка', 'Статус'));
 
 if ($m[(int)$_GET['r']] == 'Вставка'){
-	echo "<select>";
+	echo "<select class=tables>";
 	foreach($tables = mpql(mpqw("SHOW TABLES")) as $k=>$v){
-		echo "<option>1</option>";
+		echo "<option>{$v["Tables_in_{$conf['db']['name']}"]}</option>";
 	}
 	echo "</select>";
-	mpre($tables);
+	echo <<<EOF
+	<script>
+		$(function(){
+			$(".tables").change(function(){
+				
+			});
+		});
+	</script>
+EOF;
+
 }elseif ($m[(int)$_GET['r']] == 'Структура'){
 	if(empty($_REQUEST['tab'])){
 		if(!empty($_GET['new'])){
