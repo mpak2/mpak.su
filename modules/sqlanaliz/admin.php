@@ -22,7 +22,7 @@ if ($m[(int)$_GET['r']] == 'Вставка'){
 	foreach($tables = mpql(mpqw("SHOW TABLES")) as $k=>$v){
 		$tn = $v["Tables_in_{$conf['db']['name']}"];
 		$fields[$tn] = array_diff_key(array_keys(mpqn(mpqw($sql = "SHOW COLUMNS FROM $tn"), 'Field')), array("id"));
-		echo "<option>$tn</option>";
+		echo "<option". ($_POST['table'] == $tn ? " selected" : ""). ">$tn</option>";
 	}
 	echo "</select></div>";
 
@@ -31,7 +31,7 @@ if ($m[(int)$_GET['r']] == 'Вставка'){
 	<div>
 		<span><select name="fields" style="margin:5px 10px 0;"></select></span>
 		<span><select name="field" style="margin:5px 10px 0;"><option></select></span>
-		<span><input name="val" type="text"></span>
+		<span><input name="val" type="text" value="{$_POST['val']}"></span>
 	</div>
 	<div>
 		<script>
