@@ -34,18 +34,28 @@ if ($m[(int)$_GET['r']] == 'Вставка'){
 
 	$json = json_encode($fields);
 	echo <<<EOF
-	<div><select name="fields" style="margin:5px 10px 0;"></select></div>
+	<div>
+		<span><select name="fields" style="margin:5px 10px 0;"></select></span>
+		<span><select name="field" style="margin:5px 10px 0;"></select></span>
+		<span><input name="val" type="text"></span>
+	</div>
 	<div>
 		<script>
 			var fields = $json;
 			$(function(){
 				$("select[name=table]").change(function(){
 					tn = $(this).find("option:selected").val();// alert(tn);
-					$("select[name=fields] option").remove();
+					$("select[name=fields] select[name=field]").find("option").remove();
+					$("select[name=field]").append("<option>");
 					$.each(fields[tn], function(key, val){
 						$("select[name=fields]").append("<option>"+val+"</option>");
+						$("select[name=field]").append("<option>"+val+"</option>");
 					});
-				});
+				}).change();
+			});
+			$("select[name=field]").change(function(){
+				val = $(this).find("option:selected").val();
+				
 			});
 		</script>
 	</div>
