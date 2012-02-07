@@ -5,9 +5,12 @@
 		$(function(){
 			$("#ocr form").iframePostForm({
 				complete:function(data){
-					if(isNaN(data)){ alert(data); }else{
-						$("#ocr img").attr("src", "/ocr:img/"+data+"/tn:index/w:600/h:500/null/img.jpg");
-					}
+//					if(isNaN(data)){ alert(data); }else{
+
+						json = jQuery.parseJSON(data);
+						$("#ocr img").attr("src", "/ocr:img/"+json.id+"/tn:index/w:600/h:500/null/img.jpg");
+						$("#ocr .text").html(json.text);
+//					}
 				}
 			});
 		});
