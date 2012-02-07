@@ -14,9 +14,16 @@
 // Purpose of file:
 // ----------------------------------------------------------------------
 
-mpmenu($m = array('Быстродействие', 'Структура', 'Запрос', 'Статус'));
+mpmenu($m = array('Быстродействие', 'Структура', 'Запрос', 'Вставка', 'Статус'));
 
-if ($m[(int)$_GET['r']] == 'Структура'){
+if ($m[(int)$_GET['r']] == 'Вставка'){
+	echo "<select>";
+	foreach($tables = mpql(mpqw("SHOW TABLES")) as $k=>$v){
+		echo "<option>1</option>";
+	}
+	echo "</select>";
+	mpre($tables);
+}elseif ($m[(int)$_GET['r']] == 'Структура'){
 	if(empty($_REQUEST['tab'])){
 		if(!empty($_GET['new'])){
 			echo $sql = "CREATE TABLE `".($_REQUEST['tab'] =  $_GET['new'])."` (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT) CHARACTER SET cp1251 COLLATE cp1251_general_ci ENGINE = InnoDB";
