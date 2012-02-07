@@ -18,26 +18,40 @@ mpmenu($m = array('Быстродействие', 'Структура', 'Зап�
 
 if ($m[(int)$_GET['r']] == 'Вставка'){
 
-	echo "<select name=table>";
+	if($_POST['fields'] && $_POST['data']){
+		foreach(explode("\n", $_POST['data']) as $dat){
+			echo "<br />". $sql = "INSERT INTO `". mpquot($_POST['table']). "` SET `". mpquot($_POST['fields']). "`=\"". mpquot($dat). "\"";
+		}
+	}
+
+	echo "<form method=\"post\"><div><select name=table style=\"margin:5px 10px 0;\">";
 	foreach($tables = mpql(mpqw("SHOW TABLES")) as $k=>$v){
 		$tn = $v["Tables_in_{$conf['db']['name']}"];
-		$fields[$tn] = array_keys(mpqn(mpqw($sql = "SHOW COLUMNS FROM $tn"), 'Field'));
+		$fields[$tn] = array_diff_key(array_keys(mpqn(mpqw($sql = "SHOW COLUMNS FROM $tn"), 'Field')), array("id"));
 		echo "<option>$tn</option>";
 	}
-	echo "</select>";
+	echo "</select></div>";
 
 	$json = json_encode($fields);
 	echo <<<EOF
-	<div><select name="field"></select></div>
-	<script>
-		var fields = $json;
-		$(function(){
-			$("select[name=table]").change(function(){
-				tn = $(this).find("option:selected").val(); alert(tn);
-				alert(fields[tn]);
+	<div><select name="fields" style="margin:5px 10px 0;"></select></div>
+	<div>
+		<script>
+			var fields = $json;
+			$(function(){
+				$("select[name=table]").change(function(){
+					tn = $(this).find("option:selected").val();// alert(tn);
+					$("select[name=fields] option").remove();
+					$.each(fields[tn], function(key, val){
+						$("select[name=fields]").append("<option>"+val+"</option>");
+					});
+				});
 			});
-		});
-	</script>
+		</script>
+	</div>
+	<div><textarea name="data" style="height:250px; width:30%; margin:5px 10px 0;"></textarea></div>
+	<div><input type="submit" value="Занести"></div>
+	</form>
 EOF;
 
 }elseif ($m[(int)$_GET['r']] == 'Структура'){
