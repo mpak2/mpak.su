@@ -18,12 +18,6 @@ mpmenu($m = array('Быстродействие', 'Структура', 'Зап�
 
 if ($m[(int)$_GET['r']] == 'Вставка'){
 
-	if($_POST['fields'] && $_POST['data']){
-		foreach(explode("\n", $_POST['data']) as $dat){
-			echo "<br />". $sql = "INSERT INTO `". mpquot($_POST['table']). "` SET `". mpquot($_POST['fields']). "`=\"". mpquot($dat). "\"";
-		}
-	}
-
 	echo "<form method=\"post\"><div><select name=table style=\"margin:5px 10px 0;\">";
 	foreach($tables = mpql(mpqw("SHOW TABLES")) as $k=>$v){
 		$tn = $v["Tables_in_{$conf['db']['name']}"];
@@ -36,7 +30,7 @@ if ($m[(int)$_GET['r']] == 'Вставка'){
 	echo <<<EOF
 	<div>
 		<span><select name="fields" style="margin:5px 10px 0;"></select></span>
-		<span><select name="field" style="margin:5px 10px 0;"></select></span>
+		<span><select name="field" style="margin:5px 10px 0;"><option></select></span>
 		<span><input name="val" type="text"></span>
 	</div>
 	<div>
@@ -45,18 +39,19 @@ if ($m[(int)$_GET['r']] == 'Вставка'){
 			$(function(){
 				$("select[name=table]").change(function(){
 					tn = $(this).find("option:selected").val();// alert(tn);
-					$("select[name=fields] select[name=field]").find("option").remove();
-					$("select[name=field]").append("<option>");
+					$("select[name=fields]").find("option").remove();
+					$("select[name=field]").find("option").not(":first").remove();
 					$.each(fields[tn], function(key, val){
 						$("select[name=fields]").append("<option>"+val+"</option>");
 						$("select[name=field]").append("<option>"+val+"</option>");
 					});
+					$("select[name=field]").change();
 				}).change();
 			});
 			$("select[name=field]").change(function(){
 				val = $(this).find("option:selected").val();
-				
-			});
+				$("input[name=val]").attr("disabled", (val ? false : true));
+			}).change();
 		</script>
 	</div>
 	<div><textarea name="data" style="height:250px; width:30%; margin:5px 10px 0;"></textarea></div>
@@ -64,6 +59,11 @@ if ($m[(int)$_GET['r']] == 'Вставка'){
 	</form>
 EOF;
 
+	if($_POST['fields'] && $_POST['data']){
+		foreach(explode("\n", $_POST['data']) as $dat){
+			echo "<br />". $sql = "INSERT INTO `". mpquot($_POST['table']). "` SET `". mpquot($_POST['fields']). "`=\"". mpquot($dat). "\"". ($_POST['field'] ? ", `{$_POST['field']}`=\"". mpquot($_POST['val']). "\"" : ""); mpqw($sql);
+		}
+	}
 }elseif ($m[(int)$_GET['r']] == 'Структура'){
 	if(empty($_REQUEST['tab'])){
 		if(!empty($_GET['new'])){
