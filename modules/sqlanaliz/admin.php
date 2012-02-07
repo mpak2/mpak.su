@@ -17,17 +17,24 @@
 mpmenu($m = array('Быстродействие', 'Структура', 'Запрос', 'Вставка', 'Статус'));
 
 if ($m[(int)$_GET['r']] == 'Вставка'){
-	echo "<select class=tables>";
+
+	echo "<select name=table>";
 	foreach($tables = mpql(mpqw("SHOW TABLES")) as $k=>$v){
-		echo "<option>{$v["Tables_in_{$conf['db']['name']}"]}</option>";
+		$tn = $v["Tables_in_{$conf['db']['name']}"];
+		$fields[$tn] = array_keys(mpqn(mpqw($sql = "SHOW COLUMNS FROM $tn"), 'Field'));
+		echo "<option>$tn</option>";
 	}
 	echo "</select>";
 
+	$json = json_encode($fields);
 	echo <<<EOF
+	<div><select name="field"></select></div>
 	<script>
+		var fields = $json;
 		$(function(){
-			$(".tables").change(function(){
-				
+			$("select[name=table]").change(function(){
+				tn = $(this).find("option:selected").val(); alert(tn);
+				alert(fields[tn]);
 			});
 		});
 	</script>
