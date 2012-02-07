@@ -22,6 +22,7 @@ if ($m[(int)$_GET['r']] == 'Вставка'){
 		echo "<option>{$v["Tables_in_{$conf['db']['name']}"]}</option>";
 	}
 	echo "</select>";
+
 	echo <<<EOF
 	<script>
 		$(function(){
