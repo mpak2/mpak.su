@@ -327,7 +327,7 @@ function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.pn
 function mpdbf($tn, $post = null, $and = false){
 	global $conf;
 	if(!isset($post)) $post = $_POST;
-	foreach(mpql(mpqw("SHOW COLUMNS FROM $tn")) as $k=>$v){
+	foreach(mpql(mpqw("SHOW COLUMNS FROM `$tn`")) as $k=>$v){
 		$fields[$v['Field']] = $v['Type'];
 	}// mpre($post);
 	foreach($post AS $k=>$v){
