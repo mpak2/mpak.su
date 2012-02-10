@@ -50,7 +50,7 @@ if ((int)$arg['confnum']){
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 //if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
 
-$fav = mpql(mpqw("SELECT id.* FROM {$conf['db']['prefix']}{$arg['modpath']}_index AS id LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_url AS u ON id.url_id=u.id WHERE id.fav>0 AND id.uid=". (int)$arg['uid']));
+$fav = mpql(mpqw("SELECT id.*, u.name FROM {$conf['db']['prefix']}{$arg['modpath']}_index AS id LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_url AS u ON id.url_id=u.id WHERE id.fav>0 AND id.uid=". (int)$arg['uid']));
 
 ?>
 <script>
