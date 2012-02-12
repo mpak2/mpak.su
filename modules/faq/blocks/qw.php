@@ -33,9 +33,9 @@ if(($arg['access'] > 1) && array_key_exists('blocks', $_GET['m']) && array_key_e
 		$(function(){
 			$(".dat_<?=$arg['blocknum']?> form").iframePostForm({
 				complete:function (data){
-					if(isNaN(data)){// alert(data); }else{
+					if(isNaN(data)){ alert(data); }else{
 						text = $("<div>").append(data).find(".data_<?=$arg['blocknum']?>").html();
-						$(".data_<?=$arg['blocknum']?>").prepend(text);
+//						$(".data_<?=$arg['blocknum']?>").prepend(text);
 					}
 				}
 			})//.find("textarea").text('');
@@ -57,7 +57,7 @@ if(($arg['access'] > 1) && array_key_exists('blocks', $_GET['m']) && array_key_e
 		<a href="javascript:return false;">Добавить вопрос</a>
 	</div>
 	<div class="dat_<?=$arg['blocknum']?>" style="display:none;">
-		<form action="/blocks/<?=$arg['blocknum']?>/null" method="post">
+		<form class="dat_<?=$arg['blocknum']?> form" action="/blocks/<?=$arg['blocknum']?>/null" method="post">
 			<div><textarea name="qw"></textarea></div>
 			<div style="text-align:right;">
 				<input type="submit" value="Добавить вопрос">
