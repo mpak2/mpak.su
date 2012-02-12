@@ -369,7 +369,7 @@ function stable($table){
 							$old_string = $string;
 							$string = strtr($string, (array)$zamena + (array)$zamena_sql);
 						}while($string != $old_string);
-						echo (!isset($table['spisok'][$k]['*'][$v]) ? "<span style=color:#a00;>" : ""). $string. ($table['spisok'][$k]['*'] ? "</span>" : "");
+						echo (!isset($table['spisok'][$k]['*'][$v]) ? "<span style=color:#a00; title=\"$v\">" : "<span title=\"$v\">"). $string. "</span>";
 					}elseif((gettype($table['spisok'][$k][$id]) == 'array')){# Задан список для поля и id
 						$string = array_key_exists($v, $table['spisok'][$k][$id]) ? "{$table['spisok'][$k][$id][$v]}" : $v;
 						do{
