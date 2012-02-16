@@ -5,7 +5,6 @@ if (isset($_GET['q'])){
 	$ext = array_pop(explode('.', $_GET['q']));
 	$tn = "themes/".basename($_GET['null'] ? $_GET['null'] : $conf['settings']['theme']);
 	$res_name = $tn ."/".strtr($_GET['q'], array('..'=>''));
-	if (!empty($_GET['q']) && file_exists($file_name = mpopendir($res_name)) && !is_dir($file_name)){
 		header('Last-Modified: Cache-Control: max-age=86400, must-revalidate');
 		header("Expires: " . date("r", time() + 3600));
 		header("Cache-Control: public");
