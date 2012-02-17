@@ -10,7 +10,7 @@ if ((int)$arg['confnum']){
 
 	if(!empty($_POST)) $param = $_POST;
 	echo "<div style=\"margin:10px;\">Текущее меню: <b>{$regions[$param]}</b>";
-	echo "<form method=\"post\"><select name=\"menu\">";
+	echo "<form method=\"post\"><select name=\"menu\"><option value=''></option>";
 	foreach(spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_region") as $k=>$v){
 		echo "<option value=\"$k\"".($k == $param['menu'] ? " selected=\"selected\"" : '').">$v</option>";
 	}

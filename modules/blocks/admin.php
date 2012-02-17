@@ -105,7 +105,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}blocks"){ #Блоки
 					'file' => array('*' => $blocks),
 					'theme' => array('*' => $themes),
 					'shablon' => array('*'=>(array)$block+spisok("SELECT id, name FROM {$conf['db']['prefix']}blocks_shablon")),
-					'rid'=>array('*'=>array('')+spisok("SELECT r1.id, CONCAT(r1.description, ' (', r2.description, ')') FROM {$conf['db']['prefix']}blocks_reg AS r1 LEFT JOIN {$conf['db']['prefix']}blocks_reg AS r2 ON (r1.reg_id=r2.id)")),
+					'rid'=>array('*'=>array('')+spisok("SELECT r1.id, CONCAT(r1.description, ' ', IF(r2.id, r2.description, '')) FROM {$conf['db']['prefix']}blocks_reg AS r1 LEFT JOIN {$conf['db']['prefix']}blocks_reg AS r2 ON (r1.reg_id=r2.id)")),
 					'enabled' => array('*' => array('0'=>'Выкл', '1'=>'Вкл')),
 					'access' => array('*' => array(-1=>"")+$conf['settings']['access_array']),
 				),
