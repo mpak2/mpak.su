@@ -41,7 +41,13 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_pay` (
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
-echo '<p>'.$sql = "CREATE VIEW `{$conf['db']['prefix']}{$arg['modpath']}_sum` AS select `b`.`id` AS `id`,`b`.`uid` AS `uid`,((`b`.`sum` + ifnull(`o`.`sum`,0)) - ifnull(sum(`p`.`sum`),0)) AS `sum` from ((`{$conf['db']['prefix']}{$arg['modpath']}_balances` `b` left join `{$conf['db']['prefix']}{$arg['modpath']}_operations` `o` on(((`b`.`uid` = `o`.`uid`) and (`o`.`status` = 1)))) left join `{$conf['db']['prefix']}{$arg['modpath']}_pay` `p` on((`b`.`uid` = `p`.`uid`))) group by `b`.`uid`";
+//echo '<p>'.$sql = "CREATE VIEW `{$conf['db']['prefix']}{$arg['modpath']}_sum` AS select `b`.`id` AS `id`,`b`.`uid` AS `uid`,((`b`.`sum` + ifnull(`o`.`sum`,0)) - ifnull(sum(`p`.`sum`),0)) AS `sum` from ((`{$conf['db']['prefix']}{$arg['modpath']}_balances` `b` left join `{$conf['db']['prefix']}{$arg['modpath']}_operations` `o` on(((`b`.`uid` = `o`.`uid`) and (`o`.`status` = 1)))) left join `{$conf['db']['prefix']}{$arg['modpath']}_pay` `p` on((`b`.`uid` = `p`.`uid`))) group by `b`.`uid`";
+
+echo '<p>'.$sql = "CREATE VIEW `{$conf['db']['prefix']}{$arg['modpath']}_sum` AS SELECT
+	b.id AS id, b.uid AS uid, (b.sum + SUM(DISTINCT o.sum) + SUM(DISTINCT p.sum)) AS sum
+	from (({$conf['db']['prefix']}{$arg['modpath']}_balances b
+	left join {$conf['db']['prefix']}{$arg['modpath']}_operations AS o ON (((b.uid = o.uid) and (o.status = 1))))
+	left join {$conf['db']['prefix']}{$arg['modpath']}_pay AS p ON ((b.uid = p.uid))) group by b.uid";
 mpqw($sql);
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('onpay', 'onpay_private_code', '', '0', 'Секретный код платежа')");
