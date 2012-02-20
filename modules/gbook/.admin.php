@@ -19,26 +19,16 @@
 //	echo " | <a href='?m[foto]=admin&r=$k'>".($k == $_GET['r'] ? "<font color='blue'>" : '')."$v".($k == $_GET['r'] ? "</font>" : '')."</a>";
 //}
 
-$conf['settings'] += array(
-	"{$arg['modpath']}"=>"Сообщения",
-	"{$arg['modpath']}_count"=>"Счетчик",
-);
+	mpmenu();
 
-foreach(mpql(mpqw("SHOW TABLES WHERE Tables_in_{$conf['db']['name']} LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\"")) as $k=>$v){
-	$val = ($conf['settings'][$fn = substr($v["Tables_in_{$conf['db']['name']}"], strlen($conf['db']['prefix']))] ?: $fn);
-	$m["{$conf['db']['prefix']}". $fn] = $val;
-} mpmenu($m); if(!$_GET['r']) $_GET['r'] = array_shift(array_keys($m));
-
-
-//	if (!isset($_GET['order'])) $_GET['order'] = 'id DESC';
-if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}"){
+	if (!isset($_GET['order'])) $_GET['order'] = 'id DESC';
 	stable(
 		array(
 			'dbconn' => $conf['db']['conn'],
 			'url' => "/?m[{$arg['modpath']}]=admin&r={$_GET['r']}", # Ссылка для редактирования
-			'name' => $_GET['r'], # Имя таблицы базы данных
+			'name' => "{$conf['db']['prefix']}gbook", # Имя таблицы базы данных
 //			'where' => '', # Условия отбора содержимого
-			'order' => 'id DESC', # Сортировка вывода таблицы
+//			'order' => 'id', # Сортировка вывода таблицы
 //			'debug' => false, # Вывод всех SQL запросов
 			'acess' => array( # Разрешение записи на таблицу
 				'add' => array('*'=>true), # Добавление
@@ -55,17 +45,14 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}"){
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
 			'edit' => 'list',
-			'title' => array('otime'=>'Время', 'uid'=>'Пользователь', 'img'=>'Изображение', 'name'=>'Подпись', 'vid'=>'Вид', 'text'=>'Вопрос', 'otvet'=>'Ответ'), # Название полей
+			'title' => array('otime'=>'Время', 'uid'=>'Пользователь', 'name'=>'Подпись', 'vid'=>'Вид', 'text'=>'Вопрос', 'otvet'=>'Ответ'), # Название полей
 //			'etitle'=>array('uid'=>'Пользователь', 'name'=>'Имя', 'parent'=>'Родитель', 'vid'=>'Видимость', 'time'=>'Время', 'otime'=>'Время ответа', 'text'=>'Вопрос', 'otvet'=>'Ответ'),
-			'type' =>array('otime'=>'timestamp', 'img'=>'file', 'time'=>'timestamp', 'text'=>'textarea', 'otvet'=>'textarea'), # Тип полей
+			'type' =>array('otime'=>'timestamp', 'time'=>'timestamp', 'text'=>'textarea', 'otvet'=>'textarea'), # Тип полей
 
 //			'bottom' => array('shablon'=>bottom(array('title'=>$title, 'type'=>array('vid'=>'spisok', 'uid'=>'spisok')+$type, 'colspan'=>array('vid'=>4)), array('text'=>"</tr><tr bgcolor='#eeeeee'><td colspan=".(count($title)+1).">".mpwysiwyg('text', $_GET['edit'] ? mpql(mpqw("SELECT text FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE id=".$_GET['edit']), 0, 'text') : '')."</td></tr><tr bgcolor='#eeeeee'><td colspan=".(count($title)+1).">&nbsp;</td>", 'otvet'=>"</tr><tr bgcolor='#eeeeee'><td colspan=".(count($title)+1).">".mpwysiwyg('otvet', $_GET['edit'] ? mpql(mpqw("SELECT otvet FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE id=".$_GET['edit']), 0, 'otvet') : '')."</td></tr><tr bgcolor='#eeeeee'><td colspan=".count($title).">&nbsp;</td>"))),
-			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
+//			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('uid'=>$conf['user']['uid'], 'otime'=>time()), # Значение которое всегда будет присвоено полю. Исключает любое изменение
-			'shablon' => array(
-				'img'=>array('*'=>"<img src='/{$arg['modpath']}:img/{f:id}/w:120/h:100/null/img.jpg'>"),
-//				'otime'=>array('*'=>'Вопрос:<br>{f:time}<p>Ответ:<br>{f:{f}}')
-			), # Шаблон вывода в замене участвуют только поля запроса имеен приоритет перед полем set
+//			'shablon' => array('otime'=>array('*'=>'Вопрос:<br>{f:time}<p>Ответ:<br>{f:{f}}')), # Шаблон вывода в замене участвуют только поля запроса имеен приоритет перед полем set
 //			'disable' => array('uid'), # Выключенные для записи поля
 //			'hidden' => array(), # Скрытые поля
 			'spisok' => array( # Список для отображения и редактирования
@@ -82,20 +69,5 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}"){
 			'maxsize' => array('text'=>'250', 'otvet'=>'250'), # Максимальное количество символов в поле
 		)
 	);
-}else{ echo "{$_GET['r']}:". __LINE__;
-	stable(
-		array(
-			'url' => "/?m[{$arg['modpath']}]=admin&r={$_GET['r']}", # Ссылка для редактирования
-			'name' => $_GET['r'], # Имя таблицы базы данных
-			'order' => 'id DESC', # Сортировка вывода таблицы
-			'acess' => array( # Разрешение записи на таблицу
-				'add' => array('*'=>true), # Добавление
-				'edit' => array('*'=>true), # Редактирование
-				'del' => array('*'=>true), # Удаление
-				'cp' => array('*'=>true), # Копирование
-			),
-		)
-	);
-}
 
 ?>
