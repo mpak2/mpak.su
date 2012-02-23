@@ -129,7 +129,7 @@ function mpevent($name, $description = null, $own = null){
 	}else{
 		$desc = array_pop(explode("/", (!empty($debug_backtrace[1]['file']) ? $debug_backtrace[1]['file'] : "")));
 	}
-	if(is_numeric($func_get_args[2])){
+	if(is_numeric($own)){
 		$func_get_args[2] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE id=". (int)$own), 0);
 	}
 	if(!empty($func_get_args[0]) && function_exists("event")){ $return = event($func_get_args); }
@@ -152,7 +152,7 @@ function mpevent($name, $description = null, $own = null){
 		}
 
 		if($event['log']){
-			mpqw("INSERT INTO {$conf['db']['prefix']}users_event_log SET time=". time(). ", event_id=". (int)$event['id']. ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", description=\"". mpquot($description). "\", own=\"". mpquot(is_array($own) ? var_export($own, true) : $own). "\", `return`=\"". mpquot($return). "\", zam=\"". mpquot(!empty($zam) ? var_export($zam, true) : ""). "\"");
+			mpqw("INSERT INTO {$conf['db']['prefix']}users_event_log SET time=". time(). ", event_id=". (int)$event['id']. ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", description=\"". mpquot($description). "\", own=\"". /*mpquot(is_array($own) ? var_export($own, true) : $own)*/ (int)$func_get_args[2]['id']. "\", `return`=\"". mpquot($return). "\", zam=\"". mpquot(!empty($zam) ? var_export($zam, true) : ""). "\"");
 			$event_log = mysql_insert_id();
 		}
 
@@ -160,7 +160,7 @@ function mpevent($name, $description = null, $own = null){
 
 		if($event['send']){
 			
-			$users = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}users_grp AS g INNER JOIN {$conf['db']['prefix']}users_mem AS m ON g.id=m.gid INNER JOIN {$conf['db']['prefix']}users AS u ON m.uid=u.id WHERE 1 AND ". ($event['send'] > 0 ? " g.id=". (int)$event['send'] : " u.id=". (int)$event['uid']. " GROUP BY u.id")));
+			$users = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}users_grp AS g INNER JOIN {$conf['db']['prefix']}users_mem AS m ON g.id=m.gid INNER JOIN {$conf['db']['prefix']}users AS u ON m.uid=u.id WHERE 1 AND ". ($event['send'] > 0 ? " g.id=". (int)$event['send'] : " u.id=". (int)$func_get_args[2]['id']. " GROUP BY u.id")));
 			foreach($users as $k=>$v){
 				mpqw("UPDATE {$conf['db']['prefix']}users_event SET cmail=cmail+1 WHERE id=". (int)$event['id']);
 				mpmail($v['email'], strtr($event['subject'], $zam), strtr($event['text'], $zam), "events@zhiraf.info");
