@@ -163,8 +163,7 @@ function mpevent($name, $description = null, $own = null){
 			$users = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}users_grp AS g INNER JOIN {$conf['db']['prefix']}users_mem AS m ON g.id=m.gid INNER JOIN {$conf['db']['prefix']}users AS u ON m.uid=u.id WHERE 1 AND ". ($event['send'] > 0 ? " g.id=". (int)$event['send'] : " u.id=". (int)$event['uid']. " GROUP BY u.id")));
 			foreach($users as $k=>$v){
 				mpqw("UPDATE {$conf['db']['prefix']}users_event SET cmail=cmail+1 WHERE id=". (int)$event['id']);
-//				mpmail($v['email'], strtr($event['subject'], $zam), strtr($event['text'], $zam), "events@zhiraf.info");
-				mpevent("Отправка сообщения", strtr($event['subject'], $zam), $v['id'], array('email'=>$v['email'], 'subject'=>strtr($event['subject'], $zam), 'text'=>strtr($event['text'], $zam)));
+				mpmail($v['email'], strtr($event['subject'], $zam), strtr($event['text'], $zam), "events@zhiraf.info");
 			}
 		}
 	} if(isset($return)) return $return;
@@ -261,6 +260,7 @@ function mpwr($tn, $get = array()){
 
 function mpmail($to = '', $subj='Проверка', $text = 'Проверка', $from = ''){
 	global $conf;
+	mpevent("Отправка сообщения", $to, $conf['user']['uid'], debug_backtrace());
 	if($conf['settings']['smtp']){
 		return mpsmtp($to, $subj, $text);
 	}
