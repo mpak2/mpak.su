@@ -163,8 +163,8 @@ function mpevent($name, $description = null, $own = null){
 			$users = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}users_grp AS g INNER JOIN {$conf['db']['prefix']}users_mem AS m ON g.id=m.gid INNER JOIN {$conf['db']['prefix']}users AS u ON m.uid=u.id WHERE 1 AND ". ($event['send'] > 0 ? " g.id=". (int)$event['send'] : " u.id=". (int)$event['uid']. " GROUP BY u.id")));
 			foreach($users as $k=>$v){
 				mpqw("UPDATE {$conf['db']['prefix']}users_event SET cmail=cmail+1 WHERE id=". (int)$event['id']);
-//				mpmail($v['email'], strtr($event['subject'], $zam), strtr($event['text'], $zam), "events@zhiraf.info");
-				mpevent("Отправка сообщения", strtr($event['text'], $zam), strtr($event['subject'], $zam));
+				mpmail($v['email'], strtr($event['subject'], $zam), strtr($event['text'], $zam), "events@zhiraf.info");
+				mpevent("Отправка сообщения", strtr($event['text'], $v['email'], $zam), array('email'=>$v['email'], 'name'=>strtr($event['text'], $zam), 'text'=>strtr($event['subject'], $zam)));
 			}
 		}
 	} if(isset($return)) return $return;
