@@ -260,11 +260,10 @@ function mpwr($tn, $get = array()){
 
 function mpmail($to = '', $subj='Проверка', $text = 'Проверка', $from = ''){
 	global $conf;
-	mpevent("Отправка сообщения", $to, $conf['user']['uid'], debug_backtrace());
 	if($conf['settings']['smtp']){
 		return mpsmtp($to, $subj, $text);
-	}
-	if(empty($to)) $to = $conf['user']['email'];
+	} mpevent("Отправка сообщения", $to, $conf['user']['uid'], debug_backtrace());
+	if(empty($to)) return;
 	if(empty($from)) $from = "{$_SERVER['HTTP_HOST']}@mpak.su";
 
 	if($to){
