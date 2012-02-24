@@ -36,6 +36,7 @@ if (!isset($index) && file_exists($index = array_shift(explode(':', $conf['fs'][
 if(array_search('admin', (array)$_GET['m']))
 	mp_require_once("include/func.php"); # Функции таблиц
 
+if(!function_exists('mysql_connect')){ echo "no function mysql"; die; }
 $conf['db']['conn'] = @mysql_connect($conf['db']['host'], $conf['db']['login'], $conf['db']['pass']); # Соединение с базой данных
 if (strlen($conf['db']['error'] = mysql_error())){
 #	echo "Ошибка соединения с базой данных<p>";

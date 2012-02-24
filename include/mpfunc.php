@@ -46,6 +46,7 @@ function mpue($name){
 
 function mpmc($key, $data = null, $compress = 0, $limit = 86400, $event = true){
 	global $conf;
+	if(!function_exists('memcache_connect')) return false;
 	$memcache = memcache_connect("localhost", 11211);
 	if($data){
 		memcache_set($memcache, $key, $data, $compress, $limit);
