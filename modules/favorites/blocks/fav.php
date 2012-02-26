@@ -52,6 +52,17 @@ if ((int)$arg['confnum']){
 
 $fav = mpql(mpqw("SELECT id.*, u.name FROM {$conf['db']['prefix']}{$arg['modpath']}_index AS id LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_url AS u ON id.url_id=u.id WHERE id.fav>0 AND id.uid=". (int)$arg['uid']));
 
+/*foreach($fav as $k=>$v){
+	$get = mpgt($v['name']);// mpre($get);
+	$res[ $modpath = $conf['modules'][ array_shift(array_keys($get['m'])) ]['modname'] ][ $get['id'] ] = array(
+		"fav_id"=>$v['fav_id'],
+		"id"=>$get['id'],
+		"modpath" => $modpath,
+		"name"=>array_pop(array_keys($get)),
+	);
+}// mpre($res);*/
+
+
 ?>
 <script>
 	$(function(){
