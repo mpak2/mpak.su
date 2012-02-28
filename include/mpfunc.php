@@ -30,7 +30,7 @@ function mpsmtp($to, $obj, $text){
 				'From' => $auth[0],
 				'To' => $to,
 				'Subject' => '=?UTF-8?B?'.base64_encode($obj).'?=',
-				'Content-Type' =>'text/html; charset=UTF-8',
+				'Content-Type' =>'text/html;charset=utf-8',
 			)), $text);
 	if (PEAR::isError($m)){
 		$return = $m->getMessage();
@@ -147,10 +147,10 @@ function mpevent($name, $description = null, $own = null){
 					if(gettype($a) == 'array'){
 						ob_start(); print_r($a);
 						$a = ob_get_contents();
-						ob_end_clean(); mpre($a);
+						ob_end_clean();// mpre($a);
 					} $zam["{". $k. ":". $n. "}"] = (string)$a;
 				}// mpre($zam);
-			} mpre($zam);
+			}// mpre($zam);
 		}
 
 		if($event['log']){
