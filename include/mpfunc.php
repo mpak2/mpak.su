@@ -123,7 +123,7 @@ function mpevent($name, $description = null, $own = null){
 			mpevent("Неизвестное событие", $src, $conf['user']['uid'], $debug_backtrace);
 		} return false;
 	}
-	$func_get_args = func_get_args(); mpre($func_get_args);
+	$func_get_args = func_get_args();// mpre($func_get_args);
 	$debug_backtrace = debug_backtrace();
 	if(!empty($debug_backtrace[1]['args'][0]) && ($param = $debug_backtrace[1]['args'][0]) && $param['modpath']){
 		$desc = "{$param['modpath']}:{$param['fn']}";
