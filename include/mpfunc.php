@@ -123,7 +123,7 @@ function mpevent($name, $description = null, $own = null){
 			mpevent("Неизвестное событие", $src, $conf['user']['uid'], $debug_backtrace);
 		} return false;
 	}
-	$func_get_args = func_get_args();
+	$func_get_args = func_get_args(); mpre($func_get_args);
 	$debug_backtrace = debug_backtrace();
 	if(!empty($debug_backtrace[1]['args'][0]) && ($param = $debug_backtrace[1]['args'][0]) && $param['modpath']){
 		$desc = "{$param['modpath']}:{$param['fn']}";
@@ -146,10 +146,11 @@ function mpevent($name, $description = null, $own = null){
 				foreach(is_array($v) ? $v : array() as $n=>$a){
 					if(gettype($a) == 'array'){
 						ob_start(); print_r($a);
-						$a = ob_get_contents(); ob_end_clean();
+						$a = ob_get_contents();
+						ob_end_clean(); mpre($a);
 					} $zam["{". $k. ":". $n. "}"] = (string)$a;
-				}
-			}
+				}// mpre($zam);
+			} mpre($zam);
 		}
 
 		if($event['log']){
