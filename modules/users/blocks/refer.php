@@ -23,7 +23,7 @@ $IDN = new idna_convert();
 
 $cnt = (int)mpql(mpqw("SELECT COUNT(*) AS cnt FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE refer=". (int)$conf['user']['uid']), 0, 'cnt');
 $ref = !$_GET['refer'] ? ($_SERVER['REQUEST_URI'] == '/' ? "users:reg/" : ''). (strpos($_SERVER['REQUEST_URI'], '?') ? "&refer=" : (substr($_SERVER['REQUEST_URI'], -1) == '/' ? '' : '/'). "refer:"). $arg['uid'] : '';
-$lnk = "http://". $IDN->decode($_SERVER['HTTP_HOST']). $_SERVER['REQUEST_URI']. $ref;
+$lnk = "http://". $IDN->decode($_SERVER['HTTP_HOST']). urldecode($_SERVER['REQUEST_URI']). $ref;
 
 ?>
 <div style="margin:10px 0; text-align:justify;"><!-- [settings:users_refer] --></div>
