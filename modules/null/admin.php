@@ -49,7 +49,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 
 //			'title' => array('name'=>'Имя', 'cnt'=>'Клиник', 'description'=>'Описание'), # Название полей
 //			'etitle'=> array(),
-			'type' => array('time'=>'timestamp', 'img'=>'file', 'description'=>'textarea', 'text'=>'wysiwyg'), # Тип полей
+			'type' => array('time'=>'timestamp', 'sort'=>'sort', 'img'=>'file', 'description'=>'textarea', 'text'=>'wysiwyg'), # Тип полей
 			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('orderby'=>$orderby), # Значение которое всегда будет присвоено полю. Исключает любое изменение
 			'shablon' => array(
