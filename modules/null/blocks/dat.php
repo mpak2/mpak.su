@@ -15,8 +15,8 @@ EOF;*/
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 if(($arg['access'] > 1) && array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
 	if($_POST['del'] && $arg['access'] > 2){
-		mpqw("DELETE FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE uid=". (int)$conf['user']['uid']. " AND id=". (int)$_POST['del']); exit;
-	}else if($mpdbf = mpdbf($tn = "{$conf['db']['prefix']}{$arg['modpath']}_index", $post = (array('time'=>time(), 'uid'=>$conf['user']['uid'])+$_POST))){
+		mpqw("DELETE FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} WHERE uid=". (int)$conf['user']['uid']. " AND id=". (int)$_POST['del']); exit;
+	}else if($mpdbf = mpdbf($tn = "{$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']}", $post = (array('time'=>time(), 'uid'=>$conf['user']['uid'])+$_POST))){
 		mpqw("INSERT INTO $tn SET $mpdbf");
 		$data = array(array('id'=>mysql_insert_id())+$post);
 	}
@@ -47,7 +47,7 @@ if(($arg['access'] > 1) && array_key_exists('blocks', $_GET['m']) && array_key_e
 				data_id = $(this).parents("[data_id]").attr("data_id");// alert(data_id);
 				$.post("/blocks/<?=$arg['blocknum']?>/null", {del:data_id}, function(data){
 					if(isNaN(data)){ alert(data) }else{
-						$(".data_<?=$arg['blocknum']?> > div[data_id="+data_id+"]").slideToggle().destroy();
+						$(".data_<?=$arg['blocknum']?> > div[data_id="+data_id+"]").slideToggle().remove();
 					}
 				});
 			});
@@ -68,7 +68,7 @@ if(($arg['access'] > 1) && array_key_exists('blocks', $_GET['m']) && array_key_e
 <? endif; ?>
 <div class="data_<?=$arg['blocknum']?>">
 	<? foreach($data as $k=>$v): ?>
-		<div data_id="<?=$v['id']?>">
+		<div data_id="<?=$v['id']?>" style="overflow:hidden;">
 			<span style="float:right;">
 				<span><?=date('d.m.Y', $v['time'])?></span>
 				<? if($arg['access'] > 2): ?>
