@@ -13,7 +13,7 @@
 
 if(!function_exists('mp_require_once')){
 	function mp_require_once($link){
-		global $conf, $arg;
+		global $conf, $arg, $tpl;
 		foreach(explode(':', $conf['fs']['path'], 2) as $k=>$v){
 			if (!file_exists($file_name = "$v/$link")) continue;
 			include_once($file_name); return;
@@ -36,6 +36,7 @@ if (!isset($index) && file_exists($index = array_shift(explode(':', $conf['fs'][
 if(array_search('admin', (array)$_GET['m']))
 	mp_require_once("include/func.php"); # Функции таблиц
 
+if(!function_exists('mysql_connect')){ echo "no function mysql"; die; }
 $conf['db']['conn'] = @mysql_connect($conf['db']['host'], $conf['db']['login'], $conf['db']['pass']); # Соединение с базой данных
 if (strlen($conf['db']['error'] = mysql_error())){
 #	echo "Ошибка соединения с базой данных<p>";
@@ -178,15 +179,17 @@ if (!function_exists('bcont')){
 		$conf['db']['info'] = "Выборка шаблонов блоков";
 		$shablon = spisok("SELECT id, shablon FROM {$conf['db']['prefix']}blocks_shablon");
 
-		foreach(array_keys($_GET['m']) as $k=>$v){
-			if($conf['modules'][ $v ]['id']){
-				$mid[ $conf['modules'][ $v ]['id'] ] = $v;
+		foreach($_GET['m'] as $k=>$v){
+			if($conf['modules'][ $k ]['id']){
+				$mid[ $conf['modules'][ $k ]['id'] ] = $v;
+				$sid[] = "r.mid=". (int)$conf['modules'][ $k ]['id']. " AND (r.fn=\"". mpquot($v ?: "index"). "\" OR r.fn=\"\")";
 			}
-		} $mid[ $conf['modules']['blocks']['id'] ] = 'blocks';
+		} $sid[] = "r.mid=0";
+		$sid[] = "r.mid=". (int)$conf['modules']['blocks']['id']. " AND r.fn=\"index\"";
+		
+		$regions = mpqn(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}blocks_reg AS r WHERE r.reg_id=0 AND (". implode(') OR (', $sid). ")"));
 
-		$regions = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}blocks_reg WHERE reg_id=0 AND mid IN (". implode(', ', array_keys($mid)). ", 0)"));
-
-		$blocks = mpql(mpqw($sql = "SELECT b.*, r.reg_id FROM {$conf['db']['prefix']}blocks_reg AS r INNER JOIN {$conf['db']['prefix']}blocks AS b ON r.id=b.rid WHERE b.enabled=1 AND (b.theme = '{$conf['settings']['theme']}' OR b.theme='*' OR b.theme='' OR (SUBSTR(b.theme, 1, 1)='!' AND b.theme<>'!{$conf['settings']['theme']}')) ". ($bid ? " AND b.id=". (int)$bid : " AND (r.id IN (". implode(',', array_keys($regions)). ") OR r.reg_id IN(". implode(',', array_keys($regions)). ")) AND r.mid IN (". implode(', ', array_keys($mid)). ", 0)"). " ORDER BY b.`orderby`", 'Информация о блоках'));
+		$blocks = mpql(mpqw($sql = "SELECT b.*, r.reg_id FROM {$conf['db']['prefix']}blocks_reg AS r INNER JOIN {$conf['db']['prefix']}blocks AS b ON r.id=b.rid WHERE b.enabled=1 AND (b.theme = \"". mpquot($conf['settings']['theme']). "\" OR b.theme='*' OR b.theme='' OR (SUBSTR(b.theme, 1, 1)='!' AND b.theme<>\"!". mpquot($conf['settings']['theme']). "\")) ". ($bid ? " AND b.id=". (int)$bid : " AND ((r.id IN (". implode(',', array_keys($regions)). ") OR r.reg_id IN (". implode(',', array_keys($regions)). ")) AND (". implode(') OR (', $sid). "))"). " ORDER BY b.`orderby`", 'Информация о блоках'));// mpre($sql);
 
 		$gt = mpgt(urldecode(array_pop(explode("/{$_SERVER['HTTP_HOST']}", $_SERVER['HTTP_REFERER']))));
 		$uid = array_key_exists('blocks', $_GET['m']) ? $gt['id'] : $_GET['id'];

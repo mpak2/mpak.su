@@ -374,11 +374,11 @@ function mpget($name, $value = null){
 }
 
 function mpct($file_name, $arg = array(), $vr = 1){
-	global $conf;
+	global $conf, $tpl;
 	foreach(explode(':', $conf['fs']['path'], 2) as $k=>$v)
 		if (file_exists($file = "$v/$file_name")) break;
 	if (!file_exists($file = "$v/$file_name")) return false;
-	$func_name = create_function('$arg', "global \$conf;\n". strtr(file_get_contents($file), $vr ? array('<? die;'=>'', '?>'=>'') : array()));
+	$func_name = create_function('$arg', "global \$conf, \$tpl;\n". strtr(file_get_contents($file), $vr ? array('<? die;'=>'', '?>'=>'') : array()));
 	ob_start(); $func_name($arg);
 	$content = ob_get_contents(); ob_end_clean();
 	return $content;

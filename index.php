@@ -13,7 +13,7 @@
 
 if(!function_exists('mp_require_once')){
 	function mp_require_once($link){
-		global $conf, $arg;
+		global $conf, $arg, $tpl;
 		foreach(explode(':', $conf['fs']['path'], 2) as $k=>$v){
 			if (!file_exists($file_name = "$v/$link")) continue;
 			include_once($file_name); return;
@@ -231,7 +231,7 @@ if (!function_exists('bcont')){
 
 if (!function_exists('mcont')){
 	function mcont($content){ # Загрузка содержимого модуля
-		global $conf, $arg;
+		global $conf, $arg, $tpl;
 		foreach($_GET['m'] as $k=>$v){ $k = urldecode($k);
 			$mod = $conf['modules'][ $k ];
 			ini_set("include_path" ,mpopendir("modules/{$mod['folder']}"). ":./modules/{$mod['folder']}:". ini_get("include_path"));
@@ -259,7 +259,7 @@ if (!function_exists('mcont')){
 					$content .= mpct("modules/{$mod['folder']}/". ($fn = "default"). ".php", $arg);
 				}else{
 					$content .= $tmp;
-				}
+				}// mpre($tpl);
 
 				if (mpopendir("modules/{$mod['folder']}/$v.tpl")){# Проверяем модуль на файл шаблона
 					ob_start();
@@ -271,7 +271,7 @@ if (!function_exists('mcont')){
 					mp_require_once("modules/{$mod['folder']}/$fn.tpl");
 					$content .= ob_get_contents();
 					ob_end_clean();
-				}
+				}// mpre($tpl);
 
 			}else{
 				if (file_exists(mpopendir("modules/{$mod['folder']}/deny.php"))){
@@ -310,7 +310,7 @@ if (is_numeric($conf['settings']['theme'])){
 	$tc = $theme['theme'];
 }else{
 	$tc = file_get_contents(mpopendir("themes/{$conf['settings']['theme']}/index.html"));
-}
+}// $tpl = array(1);
 
 if (!array_key_exists('null', $_GET) || !empty($_GET['m']['users'])){
 	if (isset($_GET['m']['sqlanaliz'])) $zblocks = bcont();
