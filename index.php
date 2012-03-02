@@ -259,7 +259,7 @@ if (!function_exists('mcont')){
 					$content .= mpct("modules/{$mod['folder']}/". ($fn = "default"). ".php", $arg);
 				}else{
 					$content .= $tmp;
-				}// mpre($tpl);
+				} $tpl = array_merge((array)$tpl, (array)$conf['tpl']); $conf['tpl'] = $tpl;
 
 				if (mpopendir("modules/{$mod['folder']}/$v.tpl")){# Проверяем модуль на файл шаблона
 					ob_start();
