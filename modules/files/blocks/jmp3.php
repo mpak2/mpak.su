@@ -52,32 +52,12 @@ if ((int)$arg['confnum']){
 
 //$dat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} LIMIT 10"));
 
-?>123
+?>
+<script src="http://malsup.com/jquery/jquery.metadata.js"></script>
+<script src="http://github.com/malsup/media/raw/master/jquery.media.js?v0.92"></script>
 <script>
-	(function ($) {
-		$.fn.iWish = function (options) {
-			var audioSource = options.audioSource, myAudio = document.createElement("audio"), fileExt, i = true;
-//			if (myAudio.canPlayType) {
-//				fileExt = (!!myAudio.canPlayType && "" != myAudio.canPlayType('audio/mpeg') ? "mp3" : (!!myAudio.canPlayType && "" != myAudio.canPlayType('audio/wav') ? "wav" : (!!myAudio.canPlayType && "" != myAudio.canPlayType('audio/ogg; codecs="vorbis"') ? "ogg" : false)));
-//				$(this).each(function () {
-					if (typeof $(this).attr("src") === "undefined" && $(this).children("source").size() < 1) {
-						$(this).append('<source src="' + audioSource + '.' + fileExt + '">');
-						if (options.autoPlay && i) { // If we set autoplay to true when calling the function...
-							$(this).attr("autoplay", true); // ...add autoplay="true" to the first of all <audio>-tags
-							i = false;
-						}
-					}
-//				});
-//			} else { // If the browser doesnt support the <audio>-tag we let the user know that and remove the element
-//				$(this).each(function () {
-//					$(this).after('<p class="no-support">Your browser does not support the audio-tag.</p>');
-//					$(this).hide();
-//				});
-//			}
-		}
-	})(jQuery);
-	$(document).ready(function () {
-		// Call the function with the filename skee-lo_i-wish and autoPlay to either true or false
-		$("audio").iWish({audioSource: "/files/53/null/images/mp_files_files_name_53.mp3", autoPlay: true});
+	$(function(){
+		$('a.media').media( { width: 300, height: 20 } );
 	});
 </script>
+<a class="media" href="http://golden-hall.mpak.su/files/53/null/images/mp_files_files_name_53.mp3">MP3 File</a>
