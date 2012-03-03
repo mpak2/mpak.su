@@ -20,7 +20,10 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 		$name = implode('.', array_slice(explode(".", $_FILES['document']['name']), 0, -1));
 		mpqw("INSERT INTO $tn SET cat_id=". (int)$_POST['cat_id']. ", uid=". (int)$conf['user']['uid']. ", name=\"". mpquot($name). "\", description=\"". mpquot($_POST['description']). "\"");
 		if($fn = mpfn($tn, "document", $id = mysql_insert_id())){
+			echo $fn;
 			mpqw("UPDATE $tn SET document=\"". mpquot($fn). "\" WHERE id=". (int)$id);
+		}else{
+			"Не возможно загрузить прайс";
 		}
 		$documents = array($_POST+array("id"=>$id, "document"=>$fn, "name"=>$name));
 	}elseif($_POST['del']){
@@ -71,22 +74,23 @@ $index = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index
 			<span><input name="document" type="file"></span>
 		</div>
 	</form>
+<? endif; if($documents): ?>
+	<div id="data_<?=$arg['blocknum']?>">
+		<? foreach($documents as $k=>$v): ?>
+			<div index_id="<?=$v['id']?>" style="overflow:hidden;">
+				<? if($arg['uid'] = $conf['user']['uid']): ?>
+					<div style="float:right;">
+						<a href="javascript: return false;">
+							<img class="del_<?=$arg['blocknum']?>" src="/img/del.png">
+						</a>
+					</div>
+				<? endif; ?>
+				<div style="float:left; width:150px;"><?=$cat[ $v['cat_id'] ]['name']?></div>
+				<a href="/<?=$arg['modname']?>/<?=$v['id']?>/null/<?=$v['name']?>.<?=array_pop(explode(".", $v['document']))?>">
+					<?=$v['name']?>
+				</a>
+			</div>
+			<div style="margin-left:10px; font-style:italic;"><?=$v['description']?></div>
+		<? endforeach; ?>
+	</div>
 <? endif; ?>
-<div id="data_<?=$arg['blocknum']?>">
-	<? foreach($documents as $k=>$v): ?>
-		<div index_id="<?=$v['id']?>" style="overflow:hidden;">
-			<? if($arg['uid'] = $conf['user']['uid']): ?>
-				<div style="float:right;">
-					<a href="javascript: return false;">
-						<img class="del_<?=$arg['blocknum']?>" src="/img/del.png">
-					</a>
-				</div>
-			<? endif; ?>
-			<div style="float:left; width:150px;"><?=$cat[ $v['cat_id'] ]['name']?></div>
-			<a href="/<?=$arg['modname']?>/<?=$v['id']?>/null/<?=$v['name']?>.<?=array_pop(explode(".", $v['document']))?>">
-				<?=$v['name']?>
-			</a>
-		</div>
-		<div style="margin-left:10px; font-style:italic;"><?=$v['description']?></div>
-	<? endforeach; ?>
-</div>
