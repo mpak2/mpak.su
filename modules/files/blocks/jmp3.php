@@ -53,11 +53,5 @@ if ((int)$arg['confnum']){
 //$dat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} LIMIT 10"));
 
 ?>
-<script src="http://malsup.com/jquery/jquery.metadata.js"></script>
-<script src="http://github.com/malsup/media/raw/master/jquery.media.js?v0.92"></script>
-<script>
-	$(function(){
-		$('a.media').media( { width: 300, height: 20 } );
-	});
-</script>
+<script src="http://jplayer.org/2.0.0/js/jquery.jplayer.min.js"></script>
 <a class="media" href="http://golden-hall.mpak.su/files/53/null/images/mp_files_files_name_53.mp3">MP3 File</a>
