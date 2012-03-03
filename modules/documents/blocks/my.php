@@ -23,7 +23,7 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 			echo $fn;
 			mpqw("UPDATE $tn SET document=\"". mpquot($fn). "\" WHERE id=". (int)$id);
 		}else{
-			"Не возможно загрузить прайс";
+			"Не возможно загрузить";
 		}
 		$documents = array($_POST+array("id"=>$id, "document"=>$fn, "name"=>$name));
 	}elseif($_POST['del']){
