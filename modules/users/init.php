@@ -52,7 +52,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_event_
   PRIMARY KEY (`id`),
   KEY `event_id` (`event_id`),
   KEY `uid` (`uid`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_grp` (
