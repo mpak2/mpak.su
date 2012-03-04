@@ -156,7 +156,7 @@ function mpevent($name, $description = null, $own = null){
 		if($event['log']){
 			mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event_log SET time=". time(). ", event_id=". (int)$event['id']. ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", description=\"". mpquot($description). "\", own=". /*mpquot(is_array($own) ? var_export($own, true) : $own)*/ (int)$func_get_args[2]['id']. ", `return`=\"". mpquot($return). "\", zam=\"". mpquot(!empty($zam) ? var_export($zam, true) : ""). "\"");
 			$event_log = mysql_insert_id();
-		} mpqw($sql = "INSERT INTO {$conf['db']['prefix']}users_event SET time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", name=\"". mpquot($name). "\", description=\"". mpquot($desc). "\", count=1 ON DUPLICATE KEY UPDATE time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", count=count+1, last=". (int)$func_get_args[1]. ", max=IF(". (int)$func_get_args[1]. ">max, ". (int)$func_get_args[1]. ", max), min=IF(". (int)$func_get_args[1]. "<min, ". (int)$func_get_args[1]. ", min), description=\"". mpquot($desc). "\", log_last=". (int)(!empty($event_log) ? $event_log : 0));
+		} mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event SET time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", name=\"". mpquot($name). "\", description=\"". mpquot($desc). "\", count=1 ON DUPLICATE KEY UPDATE time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", count=count+1, last=". (int)$func_get_args[1]. ", max=IF(". (int)$func_get_args[1]. ">max, ". (int)$func_get_args[1]. ", max), min=IF(". (int)$func_get_args[1]. "<min, ". (int)$func_get_args[1]. ", min), description=\"". mpquot($desc). "\", log_last=". (int)(!empty($event_log) ? $event_log : 0));
 
 		if($event['send']){
 			
@@ -463,6 +463,11 @@ function mpqw($sql, $info = null, $conn = null){
 			echo "<p>$sql<br><font color=red>".mysql_error()."</font>";
 		}
 		$check = array(
+			"DELAYED option not supported for table" => array(
+				"INSERT DELAYED INTO mp_users_event_log SET" => array(
+					"ALTER TABLE mp_users_event_log ENGINE=MyISAM"
+				),
+			),
 			"Unknown column 'r.fn' in 'where clause'" => array(
 				"SELECT * FROM mp_blocks_reg AS r WHERE" => array(
 					"ALTER TABLE `mp_blocks_reg` ADD `fn` varchar(255) NOT NULL",
