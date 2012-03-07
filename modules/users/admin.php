@@ -164,7 +164,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_event_send"){
 //			'set' => array('name'=>'kanal'), # Значение которое всегда будет присвоено полю. Исключает любое изменение
 			'shablon' =>array(
 				'count'=>array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r=mp_users_mem&where[gid]={f:id}>Нет</a>")+spisok("SELECT g.id, CONCAT('<a href=/?m[{$arg['modpath']}]=admin&r=mp_users_mem&where[gid]=', g.id, '>', COUNT(*), ' участник', '</a>') FROM {$conf['db']['prefix']}{$arg['modpath']}_grp AS g, {$conf['db']['prefix']}{$arg['modpath']}_mem AS m WHERE g.id=m.gid GROUP BY g.id"),
-				'modules'=>array('*'=>"<a href=/?m[modules]=admin&r=2&where[gid]={f:id}>Нет</a>")+spisok("SELECT g.id, CONCAT('<a href=/?m[modules]=admin&r=2&where[gid]=', g.id, '>прав: ', COUNT(*), '</a>') FROM {$conf['db']['prefix']}{$arg['modpath']}_grp AS g, {$conf['db']['prefix']}modules_gaccess AS a WHERE g.id=a.gid GROUP BY g.id"),
+				'modules'=>array('*'=>"<a href=/?m[modules]=admin&r=1&where[gid]={f:id}>Нет</a>")+spisok("SELECT g.id, CONCAT('<a href=/?m[modules]=admin&r=1&where[gid]=', g.id, '>прав: ', COUNT(*), '</a>') FROM {$conf['db']['prefix']}{$arg['modpath']}_grp AS g, {$conf['db']['prefix']}modules_gaccess AS a WHERE g.id=a.gid GROUP BY g.id"),
 				'blocks'=>array('*'=>"<a href=/?m[blocks]=admin&r={$arg['modpath']}blocks_gaccess&where[gid]={f:id}>Нет</a>")+spisok("SELECT g.id, CONCAT('<a href=/?m[blocks]=admin&r=3&where[gid]=', g.id, '>прав: ', COUNT(*), '</a>') FROM {$conf['db']['prefix']}{$arg['modpath']}_grp AS g, {$conf['db']['prefix']}blocks_gaccess AS a WHERE g.id=a.gid GROUP BY g.id"),
 			), # Шаблон вывода в замене участвуют только поля запроса имеен приоритет перед полем set
 //			'disable' => array('img'), # Выключенные для записи поля
