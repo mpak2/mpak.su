@@ -1,5 +1,13 @@
 <?
 
+function mc($key, $function, $force = false){
+	if($force !== false) mpre($key);
+	if(!($tmp = mpmc($key)) || $force){
+		mpmc($key, $tmp = $function($key));
+		if($force !== false) mpre($tmp);
+	} return $tmp;
+}
+
 function mpsmtp($to, $obj, $text){
 	global $conf;
 	ini_set("include_path", ini_get("include_path"). ":". "./include/mail/");
