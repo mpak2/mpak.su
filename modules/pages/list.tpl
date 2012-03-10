@@ -8,8 +8,8 @@
 				<li style="border:0;">
 					<? if($arg['access'] > 3 || $v['uid'] == $conf['user']['uid']): ?>
 						<span style="float:right;">
-							<a href="/<?=$arg['modname']?>:правка/<?=$v['id']?>"><img src="/img/del.png"></a>
-							<a href="/<?=$arg['modname']?>:правка/del:<?=$v['id']?>">Удалить</a>
+							<a href="/<?=$arg['modname']?>:правка/<?=$v['id']?>"><img src="/img/edit.png"></a>
+							<a href="/<?=$arg['modname']?>:правка/del:<?=$v['id']?>"><img src="/img/del.png"></a>
 						</span>
 					<? endif; ?>
 					<a href="/<?=$arg['modname']?>/<?=$v['id']?>/<?=mpue($v['name'])?>"><?=$v['name']?></a>
