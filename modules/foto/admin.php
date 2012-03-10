@@ -98,7 +98,7 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_img"){ #Изобра
 //			'middle' => array('tr'=>'<tr>', 'td'=>'<td>', 'shablon'=>"<tr><td>{sql:name}</td><td>&nbsp;{sql:img}</td><td>&nbsp;{sql:description}</td><td align='right'>{config:row-edit}</td></tr>"), # Формат записей таблицы
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
-			'title' => array('parent'=>'Владелец', 'name'=>'Категория', 'cnt'=>'Количество', 'description'=>'Описание'), # Название полей
+			'title' => array('parent'=>'Владелец', 'name'=>'Категория', 'cnt'=>'Количество', 'href'=>'Ссылка', 'description'=>'Описание'), # Название полей
 			'type' => array('description'=>'textarea'), # Тип полей
 //			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('name'=>'kanal'), # Значение которое всегда будет присвоено полю. Исключает любое изменение
