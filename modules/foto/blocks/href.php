@@ -60,7 +60,7 @@ $img = mpql(mpqw("SELECT i.* FROM {$conf['db']['prefix']}{$arg['modpath']}_cat A
 		<? foreach($img as $k=>$v): ?>
 			<li style="background:none;">
 				<a href="/<?=$arg['modpath']?>:img/<?=$v['id']?>/w:600/h:500/null/img.jpg">
-					<img src="/<?=$arg['modpath']?>:img/<?=$v['id']?>/w:250/h:1000/null/img.jpg">
+					<img src="/<?=$arg['modpath']?>:img/<?=$v['id']?>/w:<?=($param["Ширина фоток"] ?: 250)?>/h:<?=($param["Высота"] ?: 1000)?>/null/img.jpg">
 				</a>
 			</li>
 		<? endforeach; ?>
