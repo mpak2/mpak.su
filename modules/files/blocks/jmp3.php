@@ -13,8 +13,8 @@ if ((int)$arg['confnum']){
 		"Список"=>array(
 			1=>"Одын",
 			2=>"Два",
-		),
-		"Город"=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users_sity ORDER BY name"),*/
+		),*/
+		"Файл"=>spisok("SELECT CONCAT(id+'.mp3'), name FROM {$conf['db']['prefix']}{$arg['modpath']}_files ORDER BY name"),
 	);
 
 ?>
@@ -46,25 +46,24 @@ if ((int)$arg['confnum']){
 	</div>
 <? return;
 
-}//$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
+} $param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 //if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
 
 //$dat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} LIMIT 10"));
 
 ?>
-<script type="text/javascript" src="http://www.sean-o.com/jquery/jmp3/jquery.jmp3.js"></script>
+<script type="text/javascript" src="/include/jquery/jquery.jmp3.js"></script>
 <script type="text/javascript">
 	$(document).ready(function(){
-		// default options
-		// custom options
 		$(".mp3").jmp3({
 			filepath: "http://golden-hall.mpak.su/files/53/null/images/",	
-			backcolor: "000000",
-			forecolor: "00ff00",
-			width: 200,
+			backcolor: "cccccc",
+			forecolor: "0000ff",
+			width: 250,
+			autoplay: "true",
 			showdownload: "true"
 		});
 	});
 </script>
-<span id="sound" class="mp3">53.mp3</span>
+<span id="sound" class="mp3" mp3="53.mp3" style="margin-top:10px;"></span>
