@@ -14,7 +14,9 @@ if ((int)$arg['confnum']){
 			1=>"Одын",
 			2=>"Два",
 		),*/
-		"Файл"=>spisok("SELECT CONCAT(id+'.mp3'), name FROM {$conf['db']['prefix']}{$arg['modpath']}_files ORDER BY name"),
+		"Цвет фона"=>"000000",
+		"Цвет элементов"=>"0000ff",
+		"Файл"=>spisok("SELECT name, name FROM {$conf['db']['prefix']}{$arg['modpath']}_files WHERE name LIKE '%.mp3' ORDER BY name"),
 	);
 
 ?>
@@ -58,12 +60,12 @@ if ((int)$arg['confnum']){
 	$(document).ready(function(){
 		$(".mp3").jmp3({
 			filepath: "http://golden-hall.mpak.su/files/53/null/images/",	
-			backcolor: "cccccc",
-			forecolor: "0000ff",
+			backcolor: "<?=($param["Цвет фона"] ?: "000000")?>",
+			forecolor: "<?=($param["Цвет элементов"] ?: "0000ff")?>",
 			width: 250,
 			autoplay: "true",
 			showdownload: "true"
 		});
 	});
 </script>
-<span id="sound" class="mp3" mp3="53.mp3" style="margin-top:10px;"></span>
+<span id="sound" class="mp3" mp3="<?=$param["Файл"]?>" style="margin-top:10px;"></span>
