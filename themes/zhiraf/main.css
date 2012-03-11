@@ -134,6 +134,7 @@ body
 	}
 		#authorization .button input
 		{
+			border:0;
 			padding:0 45px 0 0;
 			font-size:24px;
 			height:37px;
