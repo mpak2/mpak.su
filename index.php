@@ -278,7 +278,7 @@ if (!function_exists('mcont')){
 					$content = mpct("modules/{$mod['folder']}/deny.php", $conf['arg'] = array('modpath'=>$mod['folder']));
 				}else{
 					header('HTTP/1.0 404 Unauthorized');
-					header("Location: /themes:404");
+					header("Location: /themes:404". $_SERVER['REQUEST_URI']);
 //					$content = "<div style=\"text-align:center; margin: 100px 10px;\">Недостаточно прав доступа</div>";
 				}
 			}

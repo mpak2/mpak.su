@@ -53,5 +53,18 @@ if ((int)$arg['confnum']){
 //$dat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} LIMIT 10"));
 
 ?>
-<script src="http://jplayer.org/2.0.0/js/jquery.jplayer.min.js"></script>
-<a class="media" href="http://golden-hall.mpak.su/files/53/null/images/mp_files_files_name_53.mp3">MP3 File</a>
+<script type="text/javascript" src="http://www.sean-o.com/jquery/jmp3/jquery.jmp3.js"></script>
+<script type="text/javascript">
+	$(document).ready(function(){
+		// default options
+		// custom options
+		$(".mp3").jmp3({
+			filepath: "http://golden-hall.mpak.su/files/53/null/images/",	
+			backcolor: "000000",
+			forecolor: "00ff00",
+			width: 200,
+			showdownload: "true"
+		});
+	});
+</script>
+<span id="sound" class="mp3">53.mp3</span>
