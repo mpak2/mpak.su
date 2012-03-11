@@ -47,7 +47,7 @@ if ((int)$arg['confnum']){
 	</div>
 <? return;
 
-}//$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
+}$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 //if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
 
@@ -56,6 +56,12 @@ $dat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['
 ?>
 <? if($param["Изображение"]): ?>
 	<div>
-		<img src="">
+		<? if($param["Ссылка"]): ?>
+			<a href="<?=$param["Ссылка"]?>">
+		<? endif; ?>
+			<img src="/<?=$arg['modname']?>/<?=$param["Изображение"]?>/null/img.png">
+		<? if($param["Ссылка"]): ?>
+			</a>
+		<? endif; ?>
 	</div>
 <? endif; ?>
