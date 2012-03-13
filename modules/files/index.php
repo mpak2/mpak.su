@@ -14,8 +14,9 @@
 // Purpose of file:
 // ----------------------------------------------------------------------
 
-if($_FILES || array_key_exists("debug", $_GET)){
+if($_FILES && ($arg['access'] > 1)){
 //	mpre(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_files"), 0));
+	mpre($_FILES);
 }elseif($_GET['id'] || $_GET['cat_id']){
 	$img = array('jpg', 'jpeg', 'gif', 'png');
 	$defaultmimes = array(
@@ -77,7 +78,7 @@ if($_FILES || array_key_exists("debug", $_GET)){
 
 
 $tpl['cat'] = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_cat"));
-$tpl['files'] = mpqn(mpqw("SELECT * FROM ". ($tn = "{$conf['db']['prefix']}{$arg['modpath']}_files"). mpwr($tn). " AND uid=". (int)$conf['users']['uid']), 'cat_id', 'id');
+$tpl['files'] = mpqn(mpqw("SELECT * FROM ". ($tn = "{$conf['db']['prefix']}{$arg['modpath']}_files"). mpwr($tn). " AND ". ($arg['access'] <= 3 ? "uid=". (int)$conf['users']['uid'] : "1")), 'cat_id', 'id');
 
 //mpre($tpl['files']);
 
