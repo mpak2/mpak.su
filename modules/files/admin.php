@@ -103,8 +103,8 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_cat"){//'Катег�
 //			'middle' => array('tr'=>'<tr>', 'td'=>'<td>', 'shablon'=>"<tr><td>{sql:name}</td><td>&nbsp;{sql:img}</td><td>&nbsp;{sql:description}</td><td align='right'>{config:row-edit}</td></tr>"), # Формат записей таблицы
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
-			'title' => array('cat_id'=>'Категория', 'activ'=>'Доступ', 'count'=>'Счет', 'w'=>'Шир', 'h'=>'Выс', 'c'=>'Кроп', 'name'=>'Файл', 'description'=>'Описание'), # Название полей
-			'type' => array('name'=>'file', 'description'=>'textarea'), # Тип полей
+			'title' => array('time'=>'Время', 'cat_id'=>'Категория', 'activ'=>'Доступ', 'count'=>'Счет', 'w'=>'Шир', 'h'=>'Выс', 'c'=>'Кроп', 'name'=>'Файл', 'description'=>'Описание'), # Название полей
+			'type' => array('name'=>'file', 'time'=>'timestamp', 'description'=>'textarea'), # Тип полей
 //			'ext' => array('name'=>(array)spisok("SELECT name, ext FROM {$conf['db']['prefix']}{$arg['modpath']}_ext")),
 			'ext' => array('name'=>array("*"=>"*")),
 //			'set' => $adm ? null : array('uid'=>$conf['user']['uid']), # Значение которое всегда будет присвоено полю.
@@ -122,7 +122,7 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_cat"){//'Катег�
 				'activ' => array('*' => array('0'=>'Выкл', '1'=>'Включ')),
 				'c'=>array('*'=>array(0=>'', 1=>'Обрез')),
 			),
-			'default' => array('uid'=>array('*'=>0), 'activ'=>'1'), # Значение полей по умолчанию
+			'default' => array('uid'=>array('*'=>0), 'time'=>date("Y.m.d H:i:s"), 'activ'=>'1'), # Значение полей по умолчанию
 //			'maxsize' => array('bdesc'=>'50', 'sdesc'=>'50'), # Максимальное количество символов в поле
 		)
 	);

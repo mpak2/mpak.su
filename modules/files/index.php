@@ -75,7 +75,9 @@ if($_FILES || array_key_exists("debug", $_GET)){
 	} exit;
 }
 
-$tpl['files'] = mpqn(mpqw("SELECT * FROM ". ($tn = "{$conf['db']['prefix']}{$arg['modpath']}_files"). mpwr($tn). " AND uid=". (int)$conf['users']['uid']));
+
+$tpl['cat'] = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_cat"));
+$tpl['files'] = mpqn(mpqw("SELECT * FROM ". ($tn = "{$conf['db']['prefix']}{$arg['modpath']}_files"). mpwr($tn). " AND uid=". (int)$conf['users']['uid']), 'cat_id', 'id');
 
 //mpre($tpl['files']);
 
