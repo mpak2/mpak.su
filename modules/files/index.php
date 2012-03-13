@@ -14,8 +14,9 @@
 // Purpose of file:
 // ----------------------------------------------------------------------
 
-
-if ($_GET['id'] || $_GET['cat_id']){
+if($_FILES || array_key_exists("debug", $_GET)){
+//	mpre(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_files"), 0));
+}elseif($_GET['id'] || $_GET['cat_id']){
 	$img = array('jpg', 'jpeg', 'gif', 'png');
 	$defaultmimes = array(
 		'aif' => 'audio/x-aiff',
@@ -74,6 +75,8 @@ if ($_GET['id'] || $_GET['cat_id']){
 	} exit;
 }
 
+$tpl['files'] = mpqn(mpqw("SELECT * FROM ". ($tn = "{$conf['db']['prefix']}{$arg['modpath']}_files"). mpwr($tn). " AND uid=". (int)$conf['users']['uid']));
 
+//mpre($tpl['files']);
 
 ?>
