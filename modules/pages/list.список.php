@@ -2,7 +2,7 @@
 
 $conf['tpl']['cat'] = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_cat"));
 
-$conf['tpl']['index'] = mpqn(mpqw("SELECT id, kid, name FROM {$conf['db']['prefix']}{$arg['modpath']}_index". ($_GET['uid'] ? " WHERE uid=". (int)$_GET['uid'] : "")), 'kid', 'id');
+$conf['tpl']['index'] = mpqn(mpqw("SELECT id, kid, name FROM {$conf['db']['prefix']}{$arg['modpath']}_index". ($_GET['uid'] ? " WHERE uid=". (int)$_GET['uid'] : ""). " ORDER BY id DESC"), 'kid', 'id');
 
 $conf['tpl']['cat'] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_cat WHERE id=".(int)$_GET['cid']), 0);
 $conf['tpl']['res'] = mpql(mpqw("SELECT SQL_CALC_FOUND_ROWS * FROM  {$conf['db']['prefix']}{$arg['modpath']}_index WHERE kid=".(int)$_GET['cid']." ORDER BY id DESC LIMIT ".((int)$_GET['p']*50). ", 50"));
