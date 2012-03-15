@@ -101,10 +101,9 @@ $sess = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE `ip`='
 if(!$sess){
 	$sess = array('uid'=>$gid, 'sess'=>md5("{$_SERVER['REMOTE_ADDR']}:".microtime()), 'ref'=>mpidn(urldecode($_SERVER['HTTP_REFERER'])), 'ip'=>$_SERVER['REMOTE_ADDR'], 'agent'=>$_SERVER['HTTP_USER_AGENT'], 'url'=>$_SERVER['REQUEST_URI']);
 	mpqw($sql = "INSERT INTO {$conf['db']['prefix']}sess (uid, ref, sess, last_time, ip, agent, url) VALUES ($gid, '{$sess['ref']}', '{$sess['sess']}', ".time().", '{$sess['ip']}', '".mpquot($sess['agent'])."', '".mpquot($sess['url'])."')");
-	echo $sql;
+//	echo $sql;
 	$sess['id'] = mysql_insert_id();
-	echo mysql_error();
-	echo $sess['id'];
+//	echo mysql_error(). $sess['id'];
 }
 
 if($_COOKIE["{$conf['db']['prefix']}sess"] != $sess['sess']){
