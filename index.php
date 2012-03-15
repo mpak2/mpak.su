@@ -100,8 +100,11 @@ if (!$gid = mpql(mpqw("SELECT id as gid FROM {$conf['db']['prefix']}users WHERE 
 $sess = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE `ip`='{$_SERVER['REMOTE_ADDR']}' AND last_time>=".(time()-$conf['settings']['sess_time'])." AND `agent`=\"".mpquot($_SERVER['HTTP_USER_AGENT']). "\" AND (". ($_COOKIE["{$conf['db']['prefix']}sess"] ? "sess=\"". mpquot($_COOKIE["{$conf['db']['prefix']}sess"]). "\"" : "uid=". (int)$gid).") ORDER BY id DESC", 'Получаем свойства текущей сессии'), 0);
 if(!$sess){
 	$sess = array('uid'=>$gid, 'sess'=>md5("{$_SERVER['REMOTE_ADDR']}:".microtime()), 'ref'=>mpidn(urldecode($_SERVER['HTTP_REFERER'])), 'ip'=>$_SERVER['REMOTE_ADDR'], 'agent'=>$_SERVER['HTTP_USER_AGENT'], 'url'=>$_SERVER['REQUEST_URI']);
-	mpqw("INSERT INTO {$conf['db']['prefix']}sess (uid, ref, sess, last_time, ip, agent, url) VALUES ($gid, '{$sess['ref']}', '{$sess['sess']}', ".time().", '{$sess['ip']}', '".mpquot($sess['agent'])."', '".mpquot($sess['url'])."')");
+	mpqw($sql = "INSERT INTO {$conf['db']['prefix']}sess (uid, ref, sess, last_time, ip, agent, url) VALUES ($gid, '{$sess['ref']}', '{$sess['sess']}', ".time().", '{$sess['ip']}', '".mpquot($sess['agent'])."', '".mpquot($sess['url'])."')");
+	echo $sql;
 	$sess['id'] = mysql_insert_id();
+	echo mysql_error();
+	echo $sess['id'];
 }
 
 if($_COOKIE["{$conf['db']['prefix']}sess"] != $sess['sess']){
@@ -118,8 +121,8 @@ if ($conf['settings']['del_sess'] && ($conf['settings']['del_sess'] != 3 || $_SE
 //}
 
 if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аутентификация' && $uid = mpql(mpqw("SELECT id FROM {$conf['db']['prefix']}users WHERE tid=1 AND name = \"".mpquot($_POST['name'])."\" AND pass='".mphash($_POST['name'], $_POST['pass'])."'", 'Проверка существования пользователя'), 0, 'id')){# Авторизация пользователя
-	print_r($sess);
-	print_r($_POST); exit;
+//	echo "<pre>"; print_r($sess); echo "</pre>";
+//	print_r($_POST); exit;
 	mpqw($sql = "UPDATE {$conf['db']['prefix']}sess SET uid=".($sess['uid'] = $uid)." WHERE id=". (int)$sess['id']);// echo $sql;
 	mpqw("UPDATE {$conf['db']['prefix']}users SET last_time=". time(). " WHERE id=".(int)$uid);
 	header("Location: ". $_SERVER['REQUEST_URI']); exit;
