@@ -68,7 +68,7 @@ p
 }
 html
 {
-#	background:url("i/border.gif") repeat-y 100% 0;
+	background:url("i/border.gif") repeat-y 100% 0;
 }
 html, body
 {
@@ -215,36 +215,38 @@ input[type="submit"]
 		}
 /* *** /Кнопки *** */
 /* *** Основной лэйаут *** */
-#header
-{
-	height:57px;
-	background:url("i/gradients.gif") repeat-x 0 0;
-	border-bottom:4px solid #fe8e23;
-	position:relative;
-}
-#wrapper
-{
-	float:left;
-	width:100%;
-}
-#content
-{
-	margin:0 0 0 222px;
-	padding:0 1px;
-	content:'1';
-}
-	#content .cont
-	{
-		padding:15px 0 0 0;
-	}
-	#content .tabs
-	{
-		background:url("i/gradients.gif") repeat-x 0 -57px;
-		height:37px;
-		border-top:1px solid #dbdbdd;
-		border-bottom:1px solid #dbdbdd;
-		padding:0 100px 0 17px;
-	}
+
+			#header
+			{
+				height:57px;
+				background:url("i/gradients.gif") repeat-x 0 0;
+				border-bottom:4px solid #fe8e23;
+				position:relative;
+			}
+			#wrapper
+			{
+				float:left;
+				width:100%;
+			}
+			#content
+			{
+				margin:0 0 0 222px;
+				padding:0 1px;
+				/*content:'&nbsp;';*/
+			}
+				#content .cont
+				{
+					padding:15px 0 0 0;
+				}
+				#content .tabs
+				{
+					background:url("i/gradients.gif") repeat-x 0 -57px;
+					height:37px;
+					border-top:1px solid #dbdbdd;
+					border-bottom:1px solid #dbdbdd;
+					padding:0 100px 0 17px;
+			}
+
 		#content .tabs li
 		{
 			float:left;

@@ -80,7 +80,7 @@ html, body
 #main
 {
 	padding:0 0 58px 0;
-	overflow:hidden;
+/*	overflow:hidden;*/
 	min-width:999px;
 }
 body
@@ -92,6 +92,10 @@ body
 	background:url("i/border.gif") repeat-y 222px 0;
 }
 /* *** Блок авторизации *** */
+
+.fmparam div { margin:3px;}
+.fmparam input[type="submit"] { border:1px solid #888; border-radius:3px; color:black;}
+
 #authorization
 {
 	background:url("i/auth_bg.png");
@@ -130,6 +134,7 @@ body
 	}
 		#authorization .button input
 		{
+			border:0;
 			padding:0 45px 0 0;
 			font-size:24px;
 			height:37px;
@@ -155,8 +160,8 @@ body
 /* *** Кнопки *** */
 input[type="submit"]
 {
-	border:0;
-	color:#fff;
+/*	border:0;
+	color:#fff;*/
 }
 .button,
 .button input,
@@ -226,6 +231,7 @@ input[type="submit"]
 {
 	margin:0 0 0 222px;
 	padding:0 1px;
+	content:'1';
 }
 	#content .cont
 	{
@@ -237,7 +243,7 @@ input[type="submit"]
 		height:37px;
 		border-top:1px solid #dbdbdd;
 		border-bottom:1px solid #dbdbdd;
-		padding:0 0 0 17px;
+		padding:0 100px 0 17px;
 	}
 		#content .tabs li
 		{
@@ -552,41 +558,42 @@ h2
 		height:14px;
 		margin:0 5px;
 		width:16px;
-		background:url("i/gif.gif");
+		background:url("i/mgif.gif");
 	}
-	.MainTable div
+	.MainTable nobr
 	{
 		display:block;
-		min-width:50px;
+		width:100%;
 	}
-		.MainTable div span,
-		.MainTable div a
+		.MainTable nobr td {padding:0}
+		.MainTable nobr span,
+		.MainTable nobr a
 		{
 			display:block;
 			float:left;
 		}
-		.MainTable div span
+		.MainTable nobr span
 		{
 			padding:0 5px;
 		}
-		.MainTable div a
+		.MainTable nobr a
 		{
 			height:14px;
 			width:10px;
-			background:url("i/gif.gif");
+			background:url("i/mgif.gif");
 		}
-			.MainTable div a.up,
-			.MainTable div a.up:hover
+			.MainTable nobr a.up,
+			.MainTable nobr a.up:hover
 			{
 				background-position:-18px -90px;
 			}
-			.MainTable a.down,
-			.MainTable a.down:hover
+			.MainTable nobr a.down,
+			.MainTable nobr a.down:hover
 			{
 				background-position:0 -90px;
 			}
 	.MainTable .tools a:hover,
-	.MainTable div a:hover
+	.MainTable nobr a:hover
 	{
 		background:url("i/gif_act.gif");
 	}

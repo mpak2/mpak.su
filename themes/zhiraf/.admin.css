@@ -1,0 +1,94 @@
+.EditTbl
+{
+	width:100%;
+}
+	.EditTbl th
+	{
+		background: url('img/gif.gif') repeat-x 0 -464px #009bff;
+		font-weight:normal;
+		text-align:left;
+	}
+		.EditTbl th a,
+		.EditTbl th
+		{
+			color:#fff;
+			font-size:14px;
+		}
+	.EditTbl td,
+	.EditTbl th
+	{
+		padding:10px;
+		border-bottom:1px solid #fff;
+		vertical-align:top;
+		position:relative;
+	}
+	.EditTbl .gr
+	{
+		background:#eae9e9;
+	}
+	.EditTbl .down,
+	.EditTbl .up
+	{
+		display:block;
+		width:10px;
+		height:14px;
+		float:left;
+	}
+	.EditTbl span
+	{
+		display:block;
+		float:left;
+		padding:0 3px;
+	}
+		.EditTbl .down img,
+		.EditTbl .up img
+		{
+			display:block;
+			width:10px;
+			height:14px;
+			background: url('img/gif.gif') no-repeat 0 -90px;
+		}
+		.EditTbl .up img
+		{
+			background: url('img/gif.gif') no-repeat -18px -90px;
+		}
+	.EditTbl .tools a
+	{
+		display:block;
+		width:16px;
+		height:14px;
+		margin:0 5px;
+		float:left;
+	}
+		.EditTbl .tools a.ed
+		{
+			background: url('img/gif.gif') no-repeat 0 0;
+		}
+		.EditTbl .tools a.copy
+		{
+			background: url('img/gif.gif') no-repeat 0 -29px;
+		}
+		.EditTbl .tools a.del
+		{
+			background: url('img/gif.gif') no-repeat 0 -56px;
+		}
+.EditTbl input,
+.EditTbl select,
+.EditTbl textarea
+{
+	border-top:1px solid #000;
+	border-left:1px solid #000;
+	border-bottom:1px solid #f8f8f8;
+	border-right:1px solid #f8f8f8;
+	line-height:15px;
+	width:100%;
+	padding:1px;
+}
+.EditTbl textarea
+{
+	height:111px;
+}
+.EditTbl select
+{
+	height:20px;
+}
