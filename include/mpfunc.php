@@ -54,15 +54,15 @@ function mpue($name){
 
 function mpmc($key, $data = null, $compress = 0, $limit = 10000, $event = true){
 	global $conf;
-	if(!function_exists('memcache_connect')) return false;
-	$memcache = memcache_connect("localhost", 11211);
-	if($data){
-		memcache_set($memcache, $key, $data, $compress, $limit);
-//		if($event) mpevent($conf['settings']['users_event_memcache_set'], $key, $conf['user']['uid']);
-	}else{
-		$mc = memcache_get($memcache, $key);
-//		if($event) mpevent($conf['settings']['users_event_memcache_get'], $key, $conf['user']['uid']);
-	} return $mc;
+	if($memcache = @memcache_connect("localhost", 11211)){
+		if($data){
+			memcache_set($memcache, $key, $data, $compress, $limit);
+	//		if($event) mpevent($conf['settings']['users_event_memcache_set'], $key, $conf['user']['uid']);
+		}else{
+			$mc = memcache_get($memcache, $key);
+	//		if($event) mpevent($conf['settings']['users_event_memcache_get'], $key, $conf['user']['uid']);
+		} return $mc;
+	} return false;
 }
 
 function mprb($arr, $key = 'id'){
@@ -867,7 +867,7 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 
 	if (!array_key_exists('nologo', $_GET) && file_exists("$cache_name/$host_name/$prx/$fl_name") && (filectime("$cache_name/$host_name/$prx/$fl_name") > ($filectime = filectime($file_name)))){ // 
 		if(!($mc = mpmc($key = "{$_SERVER['HTTP_HOST']}/{$fl_name}/filectime:{$filectime}/{$conf['event']['Формирование изображения']['count']}", null, false, 0, false))){
-			echo $mc = file_get_contents("$cache_name/$host_name/$prx/$fl_name");
+			return $mc = file_get_contents("$cache_name/$host_name/$prx/$fl_name");
 			mpmc($key, $mc, false, 86400, false);
 		} /*echo $key;*/ return $mc;
 	}elseif ($src = @imagecreatefromstring(file_get_contents($file_name))){
@@ -933,6 +933,7 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 				symlink("$cache_name/$host_name", "$cache_name/". $IDN->decode($host_name));
 			}
 		} file_put_contents("$cache_name/$host_name/$prx/$fl_name", $content);
+
 		mpevent("Формирование изображения", $fl_name, $conf['user']['uid']);
 		return $content;
 	}else{

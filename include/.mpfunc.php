@@ -1,5 +1,13 @@
 <?
 
+function mc($key, $function, $force = false){
+	if($force !== false) mpre($key);
+	if(!($tmp = mpmc($key)) || $force){
+		mpmc($key, $tmp = $function($key));
+		if($force !== false) mpre($tmp);
+	} return $tmp;
+}
+
 function mpsmtp($to, $obj, $text){
 	global $conf;
 	ini_set("include_path", ini_get("include_path"). ":". "./include/mail/");
@@ -44,7 +52,7 @@ function mpue($name){
 	return str_replace('%', '%25', $name);
 }
 
-function mpmc($key, $data = null, $compress = 0, $limit = 86400, $event = true){
+function mpmc($key, $data = null, $compress = 0, $limit = 10000, $event = true){
 	global $conf;
 	if(!function_exists('memcache_connect')) return false;
 	$memcache = memcache_connect("localhost", 11211);
@@ -154,9 +162,9 @@ function mpevent($name, $description = null, $own = null){
 		}
 
 		if($event['log']){
-			mpqw($sql = "INSERT INTO {$conf['db']['prefix']}users_event_log SET time=". time(). ", event_id=". (int)$event['id']. ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", description=\"". mpquot($description). "\", own=". /*mpquot(is_array($own) ? var_export($own, true) : $own)*/ (int)$func_get_args[2]['id']. ", `return`=\"". mpquot($return). "\", zam=\"". mpquot(!empty($zam) ? var_export($zam, true) : ""). "\"");
-			$event_log = mysql_insert_id();
-		} mpqw($sql = "INSERT INTO {$conf['db']['prefix']}users_event SET time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", name=\"". mpquot($name). "\", description=\"". mpquot($desc). "\", count=1 ON DUPLICATE KEY UPDATE time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", count=count+1, last=". (int)$func_get_args[1]. ", max=IF(". (int)$func_get_args[1]. ">max, ". (int)$func_get_args[1]. ", max), min=IF(". (int)$func_get_args[1]. "<min, ". (int)$func_get_args[1]. ", min), description=\"". mpquot($desc). "\", log_last=". (int)(!empty($event_log) ? $event_log : 0));
+			mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event_log SET time=". time(). ", event_id=". (int)$event['id']. ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", description=\"". mpquot($description). "\", own=". /*mpquot(is_array($own) ? var_export($own, true) : $own)*/ (int)$func_get_args[2]['id']. ", `return`=\"". mpquot($return). "\", zam=\"". mpquot(!empty($zam) ? var_export($zam, true) : ""). "\"");
+//			$event_log = mpql(mpqw("SELECT id AS max FROM {$conf['db']['prefix']}users_event_log WHERE event_id=". (int)$event['id']. " ORDER BY id DESC limit 1"), 0, 'max'); //$event_log = mysql_insert_id();
+		} mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event SET time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", name=\"". mpquot($name). "\", description=\"". mpquot($desc). "\", count=1 ON DUPLICATE KEY UPDATE time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", count=count+1, last=". (int)$func_get_args[1]. ", max=IF(". (int)$func_get_args[1]. ">max, ". (int)$func_get_args[1]. ", max), min=IF(". (int)$func_get_args[1]. "<min, ". (int)$func_get_args[1]. ", min), description=\"". mpquot($desc). "\", log_last=". ($event['log'] ? "(SELECT id FROM {$conf['db']['prefix']}users_event_log WHERE event_id=". (int)$event['id']. " ORDER BY id DESC limit 1)" : 0));
 
 		if($event['send']){
 			
@@ -374,11 +382,11 @@ function mpget($name, $value = null){
 }
 
 function mpct($file_name, $arg = array(), $vr = 1){
-	global $conf;
+	global $conf, $tpl;
 	foreach(explode(':', $conf['fs']['path'], 2) as $k=>$v)
 		if (file_exists($file = "$v/$file_name")) break;
 	if (!file_exists($file = "$v/$file_name")) return false;
-	$func_name = create_function('$arg', "global \$conf;\n". strtr(file_get_contents($file), $vr ? array('<? die;'=>'', '?>'=>'') : array()));
+	$func_name = create_function('$arg', "global \$conf, \$tpl;\n". strtr(file_get_contents($file), $vr ? array('<? die;'=>'', '?>'=>'') : array()));
 	ob_start(); $func_name($arg);
 	$content = ob_get_contents(); ob_end_clean();
 	return $content;
@@ -463,6 +471,11 @@ function mpqw($sql, $info = null, $conn = null){
 			echo "<p>$sql<br><font color=red>".mysql_error()."</font>";
 		}
 		$check = array(
+			"DELAYED option not supported for table" => array(
+				"INSERT DELAYED INTO mp_users_event_log SET" => array(
+					"ALTER TABLE mp_users_event_log ENGINE=MyISAM"
+				),
+			),
 			"Unknown column 'r.fn' in 'where clause'" => array(
 				"SELECT * FROM mp_blocks_reg AS r WHERE" => array(
 					"ALTER TABLE `mp_blocks_reg` ADD `fn` varchar(255) NOT NULL",
