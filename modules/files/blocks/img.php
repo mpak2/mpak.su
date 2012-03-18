@@ -55,12 +55,12 @@ if ((int)$arg['confnum']){
 //$dat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} LIMIT 10"));
 
 ?>
-<? if($param["Изображение"]): ?>
-	<div>
+<? if($param["Изображение"] || $param["Категория"]): ?>
+	<div style="margin-bottom:10px;">
 		<? if($param["Ссылка"]): ?>
 			<a href="<?=$param["Ссылка"]?>">
 		<? endif; ?>
-			<img src="/<?=$arg['modname']?><?=($param["Изображение"] ? "/".(int)$param["Изображение"] : "")?>/null/img.png">
+			<img src="/<?=$arg['modname']?><?=($param["Изображение"] ? "/".(int)$param["Изображение"] : "")?><?=($param["Категория"] ? "/cat_id:". (int)$param["Категория"] : "")?>/null/img.png">
 		<? if($param["Ссылка"]): ?>
 			</a>
 		<? endif; ?>
