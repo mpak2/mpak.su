@@ -14,8 +14,8 @@ if ((int)$arg['confnum']){
 			1=>"Одын",
 			2=>"Два",
 		),*/
-		"Изображение"=>array(0=>array(0=>"")) + spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_files"),
-		"Категория"=>array(0=>array(0=>"")) + spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_cat"),
+		"Категория"=>array(0=>array(0=>""))+spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_cat"),
+		"Изображение"=>array(0=>array(0=>""))+spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_files"),
 		"Ссылка"=>"",
 	);
 
@@ -38,10 +38,10 @@ if ((int)$arg['confnum']){
 		<? foreach($klesh as $k=>$v): ?>
 			<div style="overflow:hidden;">
 				<div style="width:200px; float:left; padding:5px; text-align:right; font-weight:bold;"><?=$k?> :</div>
-				<? if(gettype($v) == 'array' && !empty($v[ $param[$k] ])): ?>
+				<? if(gettype($v) == 'array'): ?>
 					<div class="klesh_<?=strtr(md5($k), array("="=>''))?>" param="<?=$k?>"><?=$v[ $param[$k] ]?></div>
 				<? else: ?>
-					<div class="klesh_<?=strtr(md5($k), array("="=>''))?>" param="<?=$k?>"><?=($param[$k][$v] ?: $v)?></div>
+					<div class="klesh_<?=strtr(md5($k), array("="=>''))?>" param="<?=$k?>"><?=($param[$k] ?: $v)?></div>
 				<? endif; ?>
 			</div>
 		<? endforeach; ?>
@@ -55,12 +55,12 @@ if ((int)$arg['confnum']){
 //$dat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} LIMIT 10"));
 
 ?>
-<? if($param["Изображение"]): ?>
+<? if($param["Категория"]): ?>
 	<div>
 		<? if($param["Ссылка"]): ?>
 			<a href="<?=$param["Ссылка"]?>">
 		<? endif; ?>
-			<img src="/<?=$arg['modname']?><?=($param["Изображение"] ? "/".(int)$param["Изображение"] : "")?>/null/img.png">
+			<img src="/<?=$arg['modname']?>/cat_id:<?=$param["Категория"]?>/null/images/cat.jpg">
 		<? if($param["Ссылка"]): ?>
 			</a>
 		<? endif; ?>
