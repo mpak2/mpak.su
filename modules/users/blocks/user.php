@@ -17,8 +17,12 @@ EOF;*/
 $diff = array('id', 'name', 'pass', 'param', 'flush', 'refer', 'tid', 'img', 'ref', 'reg_time', 'last_time', 'uid', 'sess', 'gid', 'email', 'uname');
 
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && ($conf['user']['uid'] == $arg['uid']) && $_POST){
-	mpqw("UPDATE {$conf['db']['prefix']}users SET ". mpquot($_POST['f']). "=\"". mpquot($_POST['val']). "\" WHERE id=". (int)$conf['user']['uid']);
-	exit;
+	if($_FILES){
+		
+	}else{
+		mpqw("UPDATE {$conf['db']['prefix']}users SET ". mpquot($_POST['f']). "=\"". mpquot($_POST['val']). "\" WHERE id=". (int)$conf['user']['uid']);
+		
+	} exit();
 };
 
 foreach($conf['user'] as $k=>$v){
@@ -50,6 +54,23 @@ foreach($conf['user'] as $k=>$v){
 		<img src="/<?=$conf['modules']['users']['modname']?>:img/<?=$user['id']?>/tn:index/w:200/h:200/null/img.jpg">
 		<h3 style="text-align:center;"><?=$user['name']?></h3>
 		<div><a href="/<?=$conf['modules']['messages']['modname']?>:письмо/uid:<?=$user['id']?>">Написать личное сообщение</a></div>
+		<? if($arg['uid'] == $conf['user']['uid']): ?>
+			<script src="/include/jquery/jquery.iframe-post-form.js"></script>
+			<script>
+				$(function(){
+					$("#load_img_<?=$arg['blocknum']?>").iframePostForm({
+						complete:function(data){
+							alert(data);
+							$("#load_img_<?=$arg['blocknum']?>").find("input[type=file]").val('');
+						}
+					});
+				});
+			</script>
+			<form id="load_img_<?=$arg['blocknum']?>" style="text-align:right;" method="post" action="/blocks/<?=$arg['modpath']?>/null">
+				<input type="file" name="img" style="margin-bottom:5px;">
+				<input type="submit">
+			</form>
+		<? endif; ?>
 	</div>
 	<? if($user['name'] != $conf['settings']['default_usr']): ?>
 		<div id="f_<?=$arg['blocknum']?>" style="margin-left:210px;">
