@@ -18,12 +18,14 @@ $diff = array('id', 'name', 'pass', 'param', 'flush', 'refer', 'tid', 'img', 're
 
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && ($conf['user']['uid'] == $arg['uid']) && $_POST){
 	if($_FILES){
-		
+		if($fn = mpfn("{$conf['db']['prefix']}{$arg['modpath']}", "img", $conf['user']['uid'])){
+			mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']} SET img=\"". mpquot($fn). "\" WHERE id=". (int)$conf['user']['uid']);
+			exit($conf['user']['uid']);
+		}
 	}else{
 		mpqw("UPDATE {$conf['db']['prefix']}users SET ". mpquot($_POST['f']). "=\"". mpquot($_POST['val']). "\" WHERE id=". (int)$conf['user']['uid']);
-		
 	} exit();
-};
+}
 
 foreach($conf['user'] as $k=>$v){
 	if(substr($k, -3) == '_id'){
@@ -49,9 +51,9 @@ foreach($conf['user'] as $k=>$v){
 	#f_<?=$arg['blocknum']?> > div > div {white-space:nowrap;}
 	#f_<?=$arg['blocknum']?> > div > div:first-child {float:left; width:150px;}
 </style>
-<div style="overflow:hidden;">
+<div id="user_info_<?=$arg['blocknum']?>" style="overflow:hidden;">
 	<div style="float:left; width:200px; text-align:center;">
-		<img src="/<?=$conf['modules']['users']['modname']?>:img/<?=$user['id']?>/tn:index/w:200/h:200/null/img.jpg">
+		<img class="user_img" src="/<?=$conf['modules']['users']['modname']?>:img/<?=$user['id']?>/tn:index/w:200/h:200/null/img.jpg">
 		<h3 style="text-align:center;"><?=$user['name']?></h3>
 		<div><a href="/<?=$conf['modules']['messages']['modname']?>:письмо/uid:<?=$user['id']?>">Написать личное сообщение</a></div>
 		<? if($arg['uid'] == $conf['user']['uid']): ?>
@@ -60,13 +62,15 @@ foreach($conf['user'] as $k=>$v){
 				$(function(){
 					$("#load_img_<?=$arg['blocknum']?>").iframePostForm({
 						complete:function(data){
-							alert(data);
 							$("#load_img_<?=$arg['blocknum']?>").find("input[type=file]").val('');
+							src = "/users:img/2/tn:index/w:200/h:200/rand:"+parseInt(Math.random()*1000)+"/null/img.jpg";
+							$("#user_info_<?=$arg['blocknum']?> img.user_img").attr("src", src);
 						}
 					});
 				});
 			</script>
-			<form id="load_img_<?=$arg['blocknum']?>" style="text-align:right;" method="post" action="/blocks/<?=$arg['modpath']?>/null">
+			<form id="load_img_<?=$arg['blocknum']?>" style="text-align:right;" method="post" action="/blocks/<?=$arg['blocknum']?>/null" enctype="multipart/form-data">
+				<input type="hidden" name="uid" value="<?=$conf['user']['uid']?>">
 				<input type="file" name="img" style="margin-bottom:5px;">
 				<input type="submit">
 			</form>
