@@ -60,21 +60,7 @@ if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) 
 	}else{
 		echo mprs(mpopendir($fn), $_GET['w'], $_GET['h'], $_GET['c']);
 	} die;
-}/*elseif(array_key_exists('users', (array)$_GET['m']) && ($_GET['m']['users'] == 'img') && ($_GET['tn'] == 'index') && array_key_exists('null', $_GET)){
-	if(!($img = mpql(mpqw($sql = "SELECT img FROM {$conf['db']['prefix']}users WHERE id=". (int)$_GET['id']), 0, 'img')) && !($fn = mpopendir("include/$img"))){
-		$img = ($_GET['id'] ? "unknown.png" : $_GET['']);
-		$fn = "modules/users/img/". basename($img);
-	} echo $img; exit;
-	$ex = array('css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', '.svg'=>'font/svg+xml');
-	$ext = array_pop(explode('.', $fn));
-	header("Content-type: ". ($ex[$ext] ?: "image/$ext"));
-	if($ex[$ext]){
-		readfile(mpopendir($fn));
-	}else{
-		echo mprs(mpopendir($fn), $_GET['w'], $_GET['h'], $_GET['c']);
-	} die;
-}*/
-
+}
 
 $conf['db']['info'] = 'Загрузка свойств модулей';
 $conf['settings'] = array('http_host'=>$_SERVER['HTTP_HOST'])+spisok("SELECT `name`, `value` FROM `{$conf['db']['prefix']}settings`");
@@ -101,9 +87,7 @@ $sess = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE `ip`='
 if(!$sess){
 	$sess = array('uid'=>$gid, 'sess'=>md5("{$_SERVER['REMOTE_ADDR']}:".microtime()), 'ref'=>mpidn(urldecode($_SERVER['HTTP_REFERER'])), 'ip'=>$_SERVER['REMOTE_ADDR'], 'agent'=>$_SERVER['HTTP_USER_AGENT'], 'url'=>$_SERVER['REQUEST_URI']);
 	mpqw($sql = "INSERT INTO {$conf['db']['prefix']}sess (uid, ref, sess, last_time, ip, agent, url) VALUES ($gid, '{$sess['ref']}', '{$sess['sess']}', ".time().", '{$sess['ip']}', '".mpquot($sess['agent'])."', '".mpquot($sess['url'])."')");
-//	echo $sql;
 	$sess['id'] = mysql_insert_id();
-//	echo mysql_error(). $sess['id'];
 }
 
 if($_COOKIE["{$conf['db']['prefix']}sess"] != $sess['sess']){
