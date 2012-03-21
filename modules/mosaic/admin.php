@@ -49,7 +49,7 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 //			'middle' => array('tr'=>'<tr>', 'td'=>'<td>', 'shablon'=>"<tr><td>{sql:name}</td><td>&nbsp;{sql:img}</td><td>&nbsp;{sql:description}</td><td align='right'>{config:row-edit}</td></tr>"), # Формат записей таблицы
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
-			'title' => array('name'=>'Имя', 'width'=>"Ширина", 'height'=>"Высота", 'w'=>'Гор', 'h'=>"Верт", 'margin'=>'Отступ', 'slide'=>"Слайдов"), # Название полей
+			'title' => array('name'=>'Имя', 'width'=>"ШирПикс", 'height'=>"ВысПикс", 'w'=>'ГорШтук', 'h'=>"ВертШтук", 'margin'=>'Отступ', 'slide'=>"Слайдов"), # Название полей
 //			'etitle'=> array(),
 			'type' => array('img'=>'file', 'description'=>'textarea', 'text'=>'wysiwyg'), # Тип полей
 			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
