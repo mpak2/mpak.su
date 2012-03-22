@@ -16,13 +16,13 @@
 			</b>
 		</div>
 		<div class="news_img" style="padding: 5px;">
-			<? if(!empty($news['img']) && !$_GET['id']):?>
+			<?// if(!empty($news['img']) && !$_GET['id']):?>
 				<div id="gallery" style="float:right;">
 					<a title="<?=$news['tema']?>" alt="<?=$news['tema']?>" href="/<?=$arg['modname']?>:img/<?=$news['id']?>/w:600/h:500/null/img.jpg">
 						<img src="/<?=$arg['modname']?>:img/<?=$news['id']?>/w:150/h:150/null/img.jpg" />
 					</a>
 				</div>
-			<? endif; ?>
+			<?// endif; ?>
 			<?=((int)$_GET['id'] ? $news['text'] : strip_tags($news['txt']))?>
 			<? if(!$_GET['id']): ?>
 				<a href="/news/<?=$news['id']?><?=($_GET['p'] ? "/p:{$_GET['p']}" : '')?>" class="news_more">Подробно</a>
