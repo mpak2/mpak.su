@@ -7,8 +7,6 @@ if(basename(dirname(dirname(__FILE__))) == "mpak.cms"){
 }else{
 	$conf['fs']['path'] = dirname(dirname(__FILE__));
 }
-//$conf['fs']['path'] = dirname(dirname(__FILE__));
-$conf['fs']['path'] = "../".(substr($_SERVER['SERVER_NAME'], 0, 4) != 'www.' ? 'www.' : '')."{$_SERVER['SERVER_NAME']}:../mpak.cms";
 $conf['db']['conn'] = null;
 $conf['db']['type'] = 'mysql';
 $conf['db']['prefix'] = 'mp_';
