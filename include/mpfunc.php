@@ -211,14 +211,14 @@ function mpgt($REQUEST_URI, $get = array()){
 	$part = explode('/', $part[0], 3);
 	$mod = explode(':', $part[1]);
 	if(!empty($mod[0])){
-		$get['m'] = array(urldecode($mod[0])=>urldecode($mod[1]));
+		$get['m'] = array(@urldecode($mod[0])=>@urldecode($mod[1]));
 		if($mod[0] == 'include' || urldecode($mod[0]) == 'img') $get['null'] = '';
 	}
 	if(!empty($part[2]) && $part[2] != ''){
 		foreach(explode('/', $part[2]) as $k=>$v){
 			if($param = explode(':', $v, 2)){
 				if(!empty($param[0]) && !is_numeric($param[0])){
-					$get += array(urldecode($param[0])=>urldecode($param[1]));
+					$get += array(@urldecode($param[0])=>@urldecode($param[1]));
 				}elseif(is_numeric($param[0])){
 					$get += array('id'=>$param[0]);
 				}
