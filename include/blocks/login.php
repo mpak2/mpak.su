@@ -56,10 +56,10 @@ if ($conf['user']['uname'] != $conf['settings']['default_usr']){
 
 <? if($conf['user']['uname'] != $conf['settings']['default_usr']): ?>
 	<div class="user_links">
-		<a href='/?logoff'>Выход</a> <a href=/users:edit>Настройки</a>
+		<a href='/?logoff'>Выход</a> <a href=/users>Кабинет</a>
 		<?// if($conf['modules'][ $conf['modules']['admin']['id'] ]['access']	|| ($conf['user']['uname'] == $conf['settings']['admin_usr'] )): ?>
 		<? if(array_search($conf['settings']['admin_grp'], $conf['user']['gid'])): ?>
-			<a href='/admin'>Управление</a>
+			<a href='/admin'>Админ</a>
 		<? endif; ?>
 		<div class="user_hello">Добро пожаловать: <?=$conf['user']['uname']?></div>
 		<div class="user_grp">Группа:

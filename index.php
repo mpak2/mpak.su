@@ -287,7 +287,6 @@ if ((strpos($f, "admin") === 0) && $conf['settings']["theme/*:admin"])
 
 if(isset($_GET['theme']) && $_GET['theme'] != $conf['user']['sess']['theme']){
 	$conf['user']['sess']['theme'] = $conf['settings']['theme'] = basename($_GET['theme']);
-//	mpqw($sql = "UPDATE {$conf['db']['prefix']}sess SET theme='". mpquot($conf['user']['sess']['theme'] = $conf['settings']['theme'] = basename($_GET['theme'])). "' WHERE id=". (int)$conf['user']['sess']['id']);
 }elseif($conf['user']['sess']['theme']){
 	$conf['settings']['theme'] = $conf['user']['sess']['theme'];
 }
