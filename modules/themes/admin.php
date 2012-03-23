@@ -44,7 +44,7 @@ if ($menu[(int)$_GET['r']] == 'Темы'){
 			'title'=>$title=array('modpath'=>'Модуль', 'type'=>'Тип', 'name'=>'Название', 'theme'=>'Шаблон'), # Название полей
 			'type'=>$type=array('img'=>'file', 'orderby'=>'sort'), # Тип полей
 			'bottom'=>array(
-				'shablon'=>bottom(array('title'=>$title, 'type'=>array('modpath'=>'spisok', 'type'=>'spisok')+$type, 'colspan'=>array('name'=>3)), array('theme'=>"</tr><tr bgcolor='#eeeeee'><td colspan=".(count($title)+1)."><textarea style='width:100%;height:300px;' name='theme'>".htmlspecialchars(mpql(mpqw("SELECT theme FROM {$GLOBALS['conf']['db']['prefix']}{$arg['modpath']} WHERE id=".(int)$_GET['edit']), 0, 'theme'))."</textarea></td></tr><tr bgcolor='#eeeeee'><td colspan=".count($title).">&nbsp;</td>"))
+				'shablon'=>bottom(array('title'=>$title, 'type'=>array('modpath'=>'spisok', 'type'=>'spisok')+$type, 'colspan'=>array('name'=>3)), array('theme'=>"</tr><tr bgcolor='#eeeeee'><td colspan=".(count($title)+1)."><textarea style='width:100%;height:300px;' name='theme'>".@htmlspecialchars(mpql(mpqw("SELECT theme FROM {$GLOBALS['conf']['db']['prefix']}{$arg['modpath']} WHERE id=".(int)$_GET['edit']), 0, 'theme'))."</textarea></td></tr><tr bgcolor='#eeeeee'><td colspan=".count($title).">&nbsp;</td>"))
 			),
 //			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('orderby'=>$orderby), # Значение которое всегда будет присвоено полю. Исключает любое изменение

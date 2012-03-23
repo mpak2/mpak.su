@@ -56,8 +56,13 @@ $mod = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}modules ORDER BY id DESC"
 $modpath = array_search('admin', $_GET['m']);
 
 ?>
-<script>
-</script>
+<? if(array_search('admin', $_GET['m']) === false): ?>
+	<script>
+		$(function(){
+			href = $("#admin_menu a").eq(0).attr("href"); alert(href);
+		});
+	</script>
+<? endif; ?>
 <div id="admin_menu">
 	<? foreach($cat as $n=>$c): ?>
 		<? foreach($mod[ $c['id'] ] as $k=>$v): if($conf['modules'][ $v['id'] ]['access'] < 4) continue; ?>

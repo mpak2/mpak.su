@@ -338,7 +338,7 @@ function stable($table){
 		if (isset($table['acess']['cp'][ $line['id'] ]) ? $table['acess']['cp'][ $line['id'] ] : $table['acess']['cp']['*'])
 			$table_edit .= " <a href='{$table['url']}&cp={$line[id]}".((int)$_GET['p'] ? "&p={$_GET['p']}" : '').$table['_url'].(strlen($_GET['order']) ? "&order={$_GET['order']}" : '')."' class=\"copy\"></a>";
 		if (isset($table['acess']['del'][ $line['id'] ]) ? $table['acess']['del'][ $line['id'] ] : $table['acess']['del']['*'])
-			$table_edit .=  "<a href='{$table['url']}&del={$line['id']}".((int)$_GET['p'] ? "&p={$_GET['p']}" : '').$table['_url'].(strlen($_GET['order']) ? "&order={$_GET['order']}" : '')."' onclick=\"javascript: if (confirm('Вы уверенны?')){return obj.href;}else{return false;}\" class=\"del\"></a>";
+			$table_edit .=  "<a href='{$table['url']}&del={$line['id']}".((int)$_GET['p'] ? "&p={$_GET['p']}" : '').$table['_url'].(strlen($_GET['order']) ? "&order={$_GET['order']}" : '')."' onclick=\"javascript: if (confirm('Вы уверены?')){return obj.href;}else{return false;}\" class=\"del\"></a>";
 
 		# Подготовка данных для замены шаблона значениями из списка
 		if (isset($table['middle']['shablon'])){
