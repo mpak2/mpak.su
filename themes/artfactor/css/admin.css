@@ -8,6 +8,7 @@ body, table {
 	font-size: 14px;
 	color: #332211;
 }
+td {padding:3px;}
 a img {border:none;}
 
 h1 {
@@ -184,7 +185,7 @@ a.expandable:hover {
 
 ul {
 	list-style-type: none;
-	padding-left: 15px;
+	padding-left: 10px;
 
 }
 li {
@@ -308,7 +309,7 @@ table#stat_info tr:hover {
 	background: lightgrey;
 }
 
-/* Монитор цен */
+/* пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ */
 #content h2 {
    margin-top: 0px;
    padding-top: 10px;
@@ -336,7 +337,7 @@ table#sitesOffers td.red {
 table#sitesOffers td.green {
    background: #4e912f;
 }
-/* Редактирование связок, последние цены */
+/* пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ */
 table#pricesSitesOffers thead {
    background: #d7eaf3;
 }
@@ -368,7 +369,7 @@ fieldset.field_dop_values, fieldset.field_order_by_sites {
    width: 180px;
 }
 
-/* Вывод статистики */
+/* пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ */
 table.table_stat thead {
    background: #d7eaf3;
 }
@@ -459,3 +460,37 @@ div.search_selector li:hover {
 input#contact_field {
 	width:250px;
 }
+
+.tools a {
+	background:url("../i/mgif.gif") repeat scroll 0 0 transparent;
+	display: inline-block;
+	height: 20px;
+	width: 20px;
+	margin:0 5px;
+}
+
+.tools {min-width:100px;}
+.tools a.ed {background-position: 0 0px;}
+.tools a.copy {background-position: 0 -29px;}
+.tools a.del {background-position: 0 -56px;}
+
+.tabs li {
+	float:left; margin-left:5px; background: url("../img/topmenu_bgg.gif") repeat-x scroll 0 0 #E64A4B; padding:5 10px;
+}
+
+.tabs li a {
+	color:white;
+}
+
+.MainTable {width:100%;}
+.button {
+    background-position: 0 -111px;
+    float: left;
+    height: 25px;
+    margin: 0 10px 0 0;
+/*    padding: 0 0 0 15px;*/
+}
+.button a {background:url("../i/buttons.gif") repeat scroll 0 0 transparent; color:white; padding:5px 10px;}
+
+.MainTable th {background-color:#DFB5B5; border:1px solid #DFB5B5; color:gray;}
+.MainTable th a {color:white;}
