@@ -48,42 +48,33 @@ if ((int)$arg['confnum']){
 
 }//$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
+//if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
 
-$admin = array("zhiraf", "artfactor");
+$cat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}admin"));
+$mod = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}modules ORDER BY id DESC"), 'admin', 'id');
 
-if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && array_search($_POST['theme'], $admin) !== null){
-	$adm = $conf['settings']['theme/*:admin'];
-	mpqw("UPDATE {$conf['db']['prefix']}blocks SET theme=\"". mpquot("!{$_POST['theme']}"). "\" WHERE theme LIKE \"". mpquot("!{$adm}"). "\"");
-	mpqw("UPDATE {$conf['db']['prefix']}blocks SET theme=\"". mpquot("{$_POST['theme']}"). "\" WHERE theme LIKE \"". mpquot("{$adm}"). "\"");
-	mpsettings('theme/*:admin', $_POST['theme']);
-	mpsettings('theme/admin:*', $_POST['theme']);
-	if($_POST['theme'] == 'artfactor'){
-		mpqw("UPDATE mp_blocks SET file='admin/blocks/artfactor.php' WHERE file='admin/blocks/top.php'");
-		mpqw("UPDATE mp_blocks SET enabled=0 WHERE file='admin/blocks/modlist.php'");
-	}else{
-		mpqw("UPDATE mp_blocks SET file='admin/blocks/top.php' WHERE file='admin/blocks/artfactor.php'");
-		mpqw("UPDATE mp_blocks SET enabled=1 WHERE file='admin/blocks/modlist.php'");
-	}
-	exit("Установлен {$_POST['theme']} админраздел");
-};
+$modpath = array_search('admin', $_GET['m']);
+
+if(array_search('admin', $_GET['m']) === false){
+	$v = array_shift(array_shift($mod));
+	header("Location: /?m[{$v['folder']}]=admin");
+}
 
 ?>
-<script>
-	$(function(){
-		$("#admin_edit_<?=$arg['blocknum']?> input[type=button]").click(function(){
-			theme = $("#admin_edit_<?=$arg['blocknum']?> select option:selected").val();// alert(theme);
-			$("#admin_edit_<?=$arg['blocknum']?> select option:first").attr("selected", "selected");
-			$.post("/blocks/<?=$arg['blocknum']?>/null", {theme:theme}, function(data){
-				alert(data);
-			});
-		});
-	});
-</script>
-<div id="admin_edit_<?=$arg['blocknum']?>">
-	<select>
-		<option></option>
-		<? foreach($admin as $adm): ?>
-			<option><?=$adm?></option>
+<? if(array_search('admin', $_GET['m']) === false): ?>
+	
+	<script>
+/*		$(function(){
+			href = $("#admin_menu a").eq(0).attr("href");// alert(href);
+			document.location.href = href;
+		});*/
+	</script>
+<? endif; ?>
+<div id="admin_menu">
+	<? foreach($cat as $n=>$c): ?>
+		<? foreach($mod[ $c['id'] ] as $k=>$v): if($conf['modules'][ $v['id'] ]['access'] < 4) continue; ?>
+			&nbsp;<a href="/?m[<?=$v['folder']?>]=admin" <?=($_GET['m'][ $v['folder'] ] == 'admin' ? " class='active'" : "")?>><?=$v['name']?></a>
 		<? endforeach; ?>
-	</select> <input type="button" value="Применить">
+	<? endforeach; ?>
+	<a class="out" href="/">На сайт →</a>
 </div>
