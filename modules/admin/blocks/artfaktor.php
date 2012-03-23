@@ -56,12 +56,15 @@ $mod = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}modules ORDER BY id DESC"
 $modpath = array_search('admin', $_GET['m']);
 
 ?>
-<div id="admin_menu">
-	<? foreach($cat as $n=>$c): ?>
-		<h2 style="display:none;"><?=$c['name']?></h2>
-		<? foreach($mod[ $c['id'] ] as $k=>$v): if($conf['modules'][ $v['id'] ]['access'] < 4) continue; ?>
-			&nbsp;<a href="/?m[<?=$v['folder']?>]=admin" class="active"><?=$v['name']?></a>
-		<? endforeach; ?>
-	<? endforeach; ?>
-	<a class="out" href="/">На сайт →</a>
-</div>
+      <div id='admin_menu'>
+			&nbsp;<a href="catalog.php" target="fm" id="link_catalog">Каталог</a>
+			&nbsp;<a href="importer.php" target="fm" id="link_importer">Импорт</a>
+			&nbsp;<a href="chars.php" target="fm" id="link_chars">Характеристики</a>
+			&nbsp;<a href="pages.php" target="fm" id="link_pages">Страницы</a>
+			&nbsp;<a href="dopmenu.php" target="fm" id="link_dopmenu">Доп. меню</a>
+			&nbsp;<a href="orders.php" target="fm" id="link_orders">Заказы</a>
+			&nbsp;<a href="search.php" target="fm" id="link_search">Поиск</a>
+			&nbsp;<a href="options.php" target="fm" id="link_options">Настройки</a>
+			&nbsp;<a href="help.php" target="fm" id="link_help">Помощь</a>
+            <a href="/" class="out">На сайт →</a>
+      </div>
