@@ -22,7 +22,7 @@ h2 {
 	margin-bottom:10px;
 }
 #admin_menu {
-	background: url('../img/topmenu_bgg.gif') repeat-x #E64A4B;
+	background: url('../img/topmenu_bgg.gif') repeat #E64A4B;
 	color: #000000;
 	overflow:hidden;
 	zoom:1;
@@ -474,15 +474,18 @@ input#contact_field {
 .tools a.copy {background-position: 0 -29px;}
 .tools a.del {background-position: 0 -56px;}
 
+
+.tabs {overflow:hide;}
 .tabs li {
 	float:left; margin-left:5px; background: url("../img/topmenu_bgg.gif") repeat-x scroll 0 0 #E64A4B; padding:5 10px;
+	background-position: 0 -20px;
 }
 
 .tabs li a {
 	color:white;
 }
 
-.tabs li.act { background-position:0 -20px; }
+.tabs li.act { background-position:0; }
 
 .MainTable {width:100%;}
 .button {
@@ -494,7 +497,7 @@ input#contact_field {
 }
 .button a {background:url("../i/buttons.gif") repeat scroll 0 0 transparent; color:white; padding:5px 10px;}
 
-.MainTable th {background-color:#DFB5B5; border:1px solid #DFB5B5; color:gray;}
-.MainTable tr:hover {background-color:#eeeecc;}
+.MainTable th {background-color:#c62f2f; border:1px solid #DFB5B5; color:#bbb;}
+.MainTable tr:hover {background-color:#eeeeff;}
 .MainTable th a {color:white;}
 .MainTable td a {color:#886666;}
