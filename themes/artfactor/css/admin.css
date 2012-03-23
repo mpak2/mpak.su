@@ -482,6 +482,8 @@ input#contact_field {
 	color:white;
 }
 
+.tabs li.act { background-position:0 -20px; }
+
 .MainTable {width:100%;}
 .button {
     background-position: 0 -111px;
@@ -493,6 +495,6 @@ input#contact_field {
 .button a {background:url("../i/buttons.gif") repeat scroll 0 0 transparent; color:white; padding:5px 10px;}
 
 .MainTable th {background-color:#DFB5B5; border:1px solid #DFB5B5; color:gray;}
+.MainTable tr:hover {background-color:#eeeecc;}
 .MainTable th a {color:white;}
 .MainTable td a {color:#886666;}
-
