@@ -214,7 +214,7 @@ function mpgt($REQUEST_URI, $get = array()){
 		$get['m'] = array(urldecode($mod[0])=>urldecode($mod[1]));
 		if($mod[0] == 'include' || urldecode($mod[0]) == 'img') $get['null'] = '';
 	}
-	if($part[2] != ''){
+	if(!empty($part[2]) && $part[2] != ''){
 		foreach(explode('/', $part[2]) as $k=>$v){
 			if($param = explode(':', $v, 2)){
 				if(!empty($param[0]) && !is_numeric($param[0])){
@@ -224,7 +224,7 @@ function mpgt($REQUEST_URI, $get = array()){
 				}
 			}
 		}
-	} if($get['стр']) $get['p'] = $get['стр'];
+	} if(!empty($get['стр'])) $get['p'] = $get['стр'];
 //	$_SERVER['HTTP_REFERER'] = mpidn(urldecode($_SERVER['HTTP_REFERER']));
 //	$_SERVER['HTTP_HOST'] = mpidn(urldecode($_SERVER['HTTP_HOST']));
 	return $get;

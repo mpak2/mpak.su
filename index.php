@@ -33,7 +33,7 @@ if (!isset($index) && file_exists($index = array_shift(explode(':', $conf['fs'][
 	if($content) die;
 }
 
-if(array_search('admin', (array)$_GET['m']))
+if(!empty($_GET['m']) && array_search('admin', (array)$_GET['m']))
 	mp_require_once("include/func.php"); # Функции таблиц
 
 if(!function_exists('mysql_connect')){ echo "no function mysql"; die; }
