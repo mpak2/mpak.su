@@ -48,17 +48,30 @@ if ((int)$arg['confnum']){
 
 }//$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
-//if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
-
-//$dat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} LIMIT 10"));
 
 $admin = array("zhiraf", "artfactor");
 
+if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && array_search($_POST['theme'], $admin) !== null){
+	echo "UPDATE {$conf['db']['prefix']}blocks"
+	exit($_POST['theme']);
+};
+
 ?>
-<div>
+<script>
+	$(function(){
+		$("#admin_edit_<?=$arg['blocknum']?> input[type=button]").click(function(){
+			theme = $("#admin_edit_<?=$arg['blocknum']?> select option:selected").val();// alert(theme);
+			$.post("/blocks/<?=$arg['blocknum']?>/null", {theme:theme}, function(data){
+				alert(data);
+			});
+		});
+	});
+</script>
+<div id="admin_edit_<?=$arg['blocknum']?>">
 	<select>
+		<option></option>
 		<? foreach($admin as $adm): ?>
 			<option><?=$adm?></option>
 		<? endforeach; ?>
-	</select> <input type="submit" value="Применить">
+	</select> <input type="button" value="Применить">
 </div>
