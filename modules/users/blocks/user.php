@@ -72,7 +72,7 @@ foreach($conf['user'] as $k=>$v){
 			<form id="load_img_<?=$arg['blocknum']?>" style="text-align:right;" method="post" action="/blocks/<?=$arg['blocknum']?>/null" enctype="multipart/form-data">
 				<input type="hidden" name="uid" value="<?=$conf['user']['uid']?>">
 				<input type="file" name="img" style="margin-bottom:5px;">
-				<input type="submit">
+				<input type="submit" value="Загрузить фото">
 			</form>
 		<? endif; ?>
 	</div>
