@@ -22,7 +22,9 @@ $conf['tpl']['index'] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['m
 
 <link rel="stylesheet" href="/include/dhonishow/dhonishow.css" type="text/css" media="screen" />
 <script src="/include/dhonishow/jquery.dhonishow.js" type="text/javascript"></script>
-
+<style>
+	.dhonishow {border:0;}
+</style>
 <div class="dhonishow true hide-buttons_true hide-alt_true autoplay_7 duration_1" style="height:<?=($param['h'] ?: "")?>;">
 	<? foreach($conf['tpl']['index'] as $k=>$v): ?>
 		<img src="/<?=$arg['modpath']?>:img/<?=$v['id']?>/tn:index/w:<?=($param['w'] ?: "")?>/h:<?=($param['h'] ?: "")?>/c:1/null/img.jpg" style="<?=($param['r'] ? "border-radius:{$param['r']};" : "")?>">
