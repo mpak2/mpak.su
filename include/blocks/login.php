@@ -73,8 +73,8 @@ if ($conf['user']['uname'] != $conf['settings']['default_usr']){
 		<table border=0>
 			<input type='hidden' name='reg' value='Аутентификация'>
 			<!-- <tr><td>OpenID: </td><td><img src="http://wiki.openid.net/f/openid-16x16.gif"> <a href="/users:openid">Представиться</a></td></tr> -->
-			<tr><td>Логин: </td><td><input class='login' type='text' name='name'></td></tr>
-			<tr><td>Пароль: </td><td><input class='login' type='password' name='pass'></td></tr>
+			<tr><td>Логин: </td><td><input type='text' name='name' style="width:100%;"></td></tr>
+			<tr><td>Пароль: </td><td><input type='password' name='pass' style="width:100%;"></td></tr>
 			<tr><td>&nbsp;</td><td><a href='/users:reg'>Регистрация</a> <br /><a href="/users:resque">Восстановление</a> | <input type='submit' value='Войти'></td></tr>
 		</table>
 	</form>
