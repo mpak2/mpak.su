@@ -61,20 +61,12 @@ if(array_search('admin', $_GET['m']) === false){
 }
 
 ?>
-<? if(array_search('admin', $_GET['m']) === false): ?>
-	
-	<script>
-/*		$(function(){
-			href = $("#admin_menu a").eq(0).attr("href");// alert(href);
-			document.location.href = href;
-		});*/
-	</script>
-<? endif; ?>
 <div id="admin_menu">
 	<? foreach($cat as $n=>$c): ?>
 		<? foreach($mod[ $c['id'] ] as $k=>$v): if($conf['modules'][ $v['id'] ]['access'] < 4) continue; ?>
 			&nbsp;<a href="/?m[<?=$v['folder']?>]=admin" <?=($_GET['m'][ $v['folder'] ] == 'admin' ? " class='active'" : "")?>><?=$v['name']?></a>
 		<? endforeach; ?>
 	<? endforeach; ?>
+	<a class="out" href="/?logoff">Выход</a>
 	<a class="out" href="/">На сайт →</a>
 </div>
