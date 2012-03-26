@@ -259,17 +259,14 @@ if (!function_exists('mcont')){
 					mp_require_once("modules/{$mod['folder']}/$fn.tpl");
 					$content .= ob_get_contents();
 					ob_end_clean();
-				}// mpre($tpl);
+				}
 
 			}else{
 				if (file_exists(mpopendir("modules/{$mod['folder']}/deny.php"))){
 					$content = mpct("modules/{$mod['folder']}/deny.php", $conf['arg'] = array('modpath'=>$mod['folder']));
-				}else{
-
-						echo "<pre>"; print_r($_GET); echo "</pre>"; exit;
-						header('HTTP/1.0 404 Unauthorized');
-						header("Location: /themes:404". $_SERVER['REQUEST_URI']);
-//					$content = "<div style=\"text-align:center; margin: 100px 10px;\">Недостаточно прав доступа</div>";
+				}else if(!array_key_exists("themes", $_GET)){
+					header('HTTP/1.0 404 Unauthorized');
+					header("Location: /themes:404". $_SERVER['REQUEST_URI']);
 				}
 			}
 		}
