@@ -36,7 +36,7 @@ function stable($table){
 	if ($table['debug']) mpre($sql);
 	$result = mpqw($sql);
 	while($line = mysql_fetch_array($result, 1)){
-		$table['_fields'][$line['Field']] = $line['Type'];
+		$table['_fields'][$line['Field']] = $line['Field'];
 	} //mpre($table['_fields']);
 
 	$url = $where = '';
@@ -271,7 +271,7 @@ function stable($table){
 					if (isset($table['top']['result'])){ # Подстановка значений в результат
 						echo str_replace("{result}", $table['title'][$k], $table['top']['result']);
 					}else{ # Вывод содержимого в случае отсутствия результата заголовка
-						echo "<a href='{$table['url']}".((int)$_GET['p'] ? "&p={$_GET['p']}" : '')."{$table['_url']}&order=$k".($_GET['order'] == $k ? '%20DESC' : '')."'>".(isset($table['title'][$k]) ? $table['title'][$k] : $k)."</a>";
+						echo "<a href='{$table['url']}".((int)$_GET['p'] ? "&p={$_GET['p']}" : '')."{$table['_url']}&order=$k".($_GET['order'] == $k ? '%20DESC' : '')."'>{$v}</a>";
 					}
 					echo "</td>";
 				}

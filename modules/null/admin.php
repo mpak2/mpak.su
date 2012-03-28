@@ -93,6 +93,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 				'del' => array('*'=>true), # Удаление
 				'cp' => array('*'=>true), # Копирование
 			),
+			'etitle'=> array('time'=>'Время', 'uid'=>'Пользователь', 'count'=>'Количество', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'description'=>'Описание', 'text'=>'Текст'),
 		)
 	);
 }

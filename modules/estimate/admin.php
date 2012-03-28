@@ -49,7 +49,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
 //			'title' => array('name'=>'Имя', 'cnt'=>'Клиник', 'description'=>'Описание'), # Название полей
-//			'etitle'=> array(),
+			'etitle'=> array('time'=>'Время', 'sort'=>'Сорт', 'uid'=>'Пользователь', 'name'=>'Название', 'count'=>'Количество', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'estimate'=>'Оценка', 'description'=>'Описание', 'text'=>'Текст'),
 			'type' => array('img'=>'file', 'time'=>'timestamp', 'description'=>'textarea', 'text'=>'wysiwyg'), # Тип полей
 			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('orderby'=>$orderby), # Значение которое всегда будет присвоено полю. Исключает любое изменение
