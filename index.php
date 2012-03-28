@@ -20,7 +20,6 @@ if(!function_exists('mp_require_once')){
 		}
 	}
 }
-
 require_once("config/config.php"); # Конфигурация
 
 mp_require_once("config/config.php"); # Конфигурация
