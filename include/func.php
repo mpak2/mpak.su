@@ -186,10 +186,9 @@ function stable($table){
 		if($table['title']){
 			$table['title'] += array_combine(array_keys($table['shablon']), array_keys($table['shablon']));
 		}
-	}else if($table['etitle']){
-//		mpre(array_combine(array_keys($table['_fields']), array_keys($table['_fields'])));
-		mpre($table['etitle'] + array_combine(array_keys($table['_fields']), array_keys($table['_fields'])));
-		$table['etitle'] += array_combine(array_keys($table['_fields']), array_keys($table['_fields']));
+	} if($table['etitle']){
+		$table['etitle'] = array_intersect_key($table['etitle'] + array_combine(array_keys($table['_fields']), array_keys($table['_fields'])), $table['_fields']);
+		$table['_fields'] = array_intersect_key($table['etitle'] + $table['_fields'], $table['_fields']);
 	}
 
 	# Делаем выборку из таблицы

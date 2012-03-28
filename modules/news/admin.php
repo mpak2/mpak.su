@@ -103,7 +103,7 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_kat"){
 //			<table border=1 width=100%><tr align='right' bgcolor='#eeeeee'><td colspan='5'>&nbsp;"), # Формат записей таблицы <table width='100%' border=1><tr><td><textarea name='text' style='width:100%; height:400px'>{edit:text}</textarea></td></tr></table>
 
 			'title' => array('kid'=>'Категория', 'time'=>'Время', 'img'=>'Изображение', 'tema'=>'Тема', 'text'=>'Текст'), # Название полей
-			'etitle' => array('kid'=>'Категория', 'uid'=>'Пользователь', 'count'=>'Просмотров', 'time'=>'Время', 'img'=>'Изображение', 'tema'=>'Тема', 'text'=>'Текст'), # Название полей
+			'etitle' => array('kid'=>'Категория', 'sort'=>'Сорт', 'uid'=>'Пользователь', 'count'=>'Просмотров', 'time'=>'Время', 'img'=>'Изображение', 'tema'=>'Тема', 'text'=>'Текст'), # Название полей
 			'type' => array('text'=>'wysiwyg', 'time'=>'timestamp', 'img'=>'file'), # Тип полей
 
 //			'bottom' => array('shablon'=>bottom(array('title'=>$title, 'type'=>array('kid'=>'spisok')+$type, 'colspan'=>array('text'=>0, 'tema'=>3)), array('text'=>"</tr><tr bgcolor='#eeeeee'><td colspan=".(count($title)+1).">".mpwysiwyg('text', $_GET['edit'] ? mpql(mpqw("SELECT text FROM {$conf['db']['prefix']}{$arg['modpath']}_post WHERE id=".$_GET['edit']), 0, 'text') : '')."</td></tr><tr bgcolor='#eeeeee'><td colspan=".count($title).">&nbsp;</td>"))),
