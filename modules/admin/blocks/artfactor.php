@@ -55,10 +55,12 @@ $mod = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}modules ORDER BY id DESC"
 
 $modpath = array_search('admin', $_GET['m']);
 
-if(array_search('admin', $_GET['m']) === false){
+mpre(empty(array_shift($_GET['m'])));
+
+/*if(empty(array_shift($get = $_GET['m']))){
 	$v = array_shift(array_shift($mod));
 	header("Location: /?m[{$v['folder']}]=admin");
-}
+}*/
 
 ?>
 <div id="admin_menu">
