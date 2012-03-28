@@ -187,6 +187,8 @@ function stable($table){
 			$table['title'] += array_combine(array_keys($table['shablon']), array_keys($table['shablon']));
 		}
 	}else if($table['etitle']){
+//		mpre(array_combine(array_keys($table['_fields']), array_keys($table['_fields'])));
+		mpre($table['etitle'] + array_combine(array_keys($table['_fields']), array_keys($table['_fields'])));
 		$table['etitle'] += array_combine(array_keys($table['_fields']), array_keys($table['_fields']));
 	}
 
