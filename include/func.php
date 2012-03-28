@@ -186,10 +186,9 @@ function stable($table){
 		if($table['title']){
 			$table['title'] += array_combine(array_keys($table['shablon']), array_keys($table['shablon']));
 		}
-		if($table['etitle']){
-			$table['etitle'] += array_combine(array_keys($table['shablon']), array_keys($table['shablon']));
-		}
-	} mpre($table['shablon']);
+	}else if($table['etitle']){
+		$table['etitle'] += array_combine(array_keys($table['_fields']), array_keys($table['_fields']));
+	}
 
 	# Делаем выборку из таблицы
 	$sql = "SELECT * FROM {$table['name']}";
