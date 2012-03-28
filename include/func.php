@@ -186,7 +186,10 @@ function stable($table){
 		if($table['title']){
 			$table['title'] += array_combine(array_keys($table['shablon']), array_keys($table['shablon']));
 		}
-	}
+		if($table['etitle']){
+			$table['etitle'] += array_combine(array_keys($table['shablon']), array_keys($table['shablon']));
+		}
+	} mpre($table['shablon']);
 
 	# Делаем выборку из таблицы
 	$sql = "SELECT * FROM {$table['name']}";
@@ -206,7 +209,7 @@ function stable($table){
 
 //	echo $table['_count']." ".$table['count_rows']." <br>";
 	$tmp_row = 15;
-	# Ссылка на первую страницу и предидущий список страниц
+	# Ссылка на первую страницу и предыдущий список страниц
 	echo "<div style=\"clear:both;\"></div><div class=\"adpager\" style=\"margin:10px 30px;\">";
 	if ($_GET['p'] > $tmp_row){
 		echo "<a href='{$table['url']}{$table['_url']}".(strlen($_GET['order']) ? "&order={$_GET['order']}" : '')."'><<</a> .. ";
@@ -249,32 +252,6 @@ function stable($table){
 		}
 		$table_data[] = $line;
 	}
-
-	# Сортировка по шаблону и списку
-/*	if (is_array($shablon) &&  isset($table['shablon'][ strtr($_GET['order'], array(' DESC'=>'')) ])){
-//echo "<pre>"; print_r($shablon); echo "</pre>";
-		isset($table['shablon'][ $_GET['order'] ]) ? asort($shablon) : arsort($shablon);
-		$table_sort = array();
-		foreach($shablon as $k=>$v){
-			$table_sort[] = $table_data[ $k ];
-			unset($table_data[ $k ]);
-		}
-		$table_data = array_merge($table_sort, $table_data);
-	}elseif(isset($table['spisok'][ strtr($_GET['order'], array(' DESC'=>'')) ])){
-		$table_sort = array();
-		$tmp = $table['spisok'][ strtr($_GET['order'], array(' DESC'=>'')) ]['*'];*/
-/*		foreach($tmp as $k=>$v)
-			$tmp[$k] = preg_replace("'<b[^>]*?>'si", "", $v);*/
-/*		isset($table['spisok'][ $_GET['order'] ]) ? @asort($tmp) : @arsort($tmp);
-		foreach((array)$tmp as $k=>$v){
-			foreach((array)$spisok[$k] as $i=>$n){
-				$table_sort[] = $table_data[$n];
-				unset($table_data[$n]);
-			}
-		}
-//		$table_data = isset($table['spisok'][ $_GET['order'] ]) ? array_merge($table_data, $table_sort) : array_merge($table_sort, $table_data);
-		$table_data = array_merge($table_sort, $table_data);
-	}*/
 
 	# Вывод заголовков таблицы
 	if($table['acess']['add'] && $table['edit'] == 'list') echo "<div style=\"margin:10px;\" class=\"button\"><a href={$table['url']}&edit>Добавить</a></div>";
@@ -432,7 +409,7 @@ function stable($table){
 	}
 
 	# Форма для редактирования и добавления данных
-	if (((int)$_GET['cp'] && $table['acess']['cp']) || ((int)$_GET['edit'] && $table['acess']['edit']) || ($table['acess']['add']['*'] && ($edit || $table['edit'] != 'list'))){ //
+	if (((int)$_GET['cp'] && $table['acess']['cp']) || ((int)$_GET['edit'] && $table['acess']['edit']) || ($table['acess']['add']['*'] && ($edit || $table['edit'] != 'list'))){
 //		 echo "<form class='StarsiteWysiwygEditor'>";
 		echo $_GET['edit'] ? "<input type='hidden' name='id' value='{$_GET['edit']}'>" : ''; // class='StarsiteWysiwygEditor'
 		echo  strlen($table['bottom']['tr']) ? $table['top']['tr'] : "<tr>";
@@ -453,10 +430,10 @@ function stable($table){
 			foreach($table['_fields'] as $k=>$v)
 				$string = str_replace("{edit:$k}", strlen($edit[$k]) ? $edit[$k] : $table['default'][$k], $string);
 			echo $string;
-		}else{
+		}else{ # Вывод таблицы с данными
 //			foreach($table['_fields'] as $k=>$v){
 			$title = ($table['edit'] == 'list' && $edit ? $table['etitle'] : $table['title']);
-			foreach($title ? $title : $table['_fields'] as $k=>$v){
+			foreach($title ?: $table['_fields'] as $k=>$v){
 				if ($k == 'id') $sid = $v['id'];
 				if (!isset($hidden[$k])){
 					echo  strlen($table['bottom']['td']) ? $table['bottom']['td'] : ($table['edit'] == 'list' && $edit ? "<tr><td style=\"width: 15%; text-align:right;\">".($title[$k] ? $title[$k] : $k)."</td>" : '')."<td>";
