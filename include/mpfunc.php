@@ -210,7 +210,7 @@ function mpgt($REQUEST_URI, $get = array()){
 	}
 	$part = explode('/', $part[0], 3);
 	$mod = explode(':', $part[1]);
-	if(!empty($mod[0])){
+	if(!empty(@$mod[0])){
 		$get['m'] = array(@urldecode($mod[0])=>@urldecode($mod[1]));
 		if($mod[0] == 'include' || urldecode($mod[0]) == 'img') $get['null'] = '';
 	}
