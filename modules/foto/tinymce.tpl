@@ -1,16 +1,14 @@
 <script>
 	$(function(){
+		function ins(){
+			text = $("iframe#elm1_ifr").html(); alert(text);
+//			var container = document.createElement('p'); //создаём там то что нам надо
+//			container.innerHTML= '<p>tr</p>';
+//			b.appendChild(container.firstChild);
+		} 
+
 		$("#foto_list a").click(function(){
-			var ta = $('#qwerty'),
-				p = ta[0].selectionStart,
-				text = ta.val();
-			if(p != undefined)
-				ta.val(text.slice(0, p) + $(this).val() + text.slice(p));
-			else{
-				ta.trigger('focus');
-				range = document.selection.createRange();
-				range.text = $(this).val();
-			}
+			ins();
 		});
 	});
 </script>
