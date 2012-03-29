@@ -1,19 +1,24 @@
 tinyMCEPopup.requireLangPack();
-
-var ExampleDialog = {
-	init : function() {
-		var f = document.forms[0];
-
-		// Get the selected contents as text and place it in the input
-		f.someval.value = tinyMCEPopup.editor.selection.getContent({format : 'text'});
-		f.somearg.value = tinyMCEPopup.getWindowArg('some_custom_arg');
-	},
-
-	insert : function() {
-		// Insert the contents from the input into the document
-		tinyMCEPopup.editor.execCommand('mceInsertContent', false, document.forms[0].someval.value);
-		tinyMCEPopup.close();
-	}
+ 
+var MicsDialog = {
+init : function() {
+ var f = document.forms[0];
+ f.mtext.value = tinyMCEPopup.editor.selection.getContent({
+ format : 'text'
+ });
+ f.mhref.value = '';
+ },
+ 
+ insert : function() {
+  if(document.forms[0].targ.value==1){
+  tr='target=_self';  }
+  else  {
+  tr='target=_blank';
+  }
+  mlink= "<a "+tr+" href="+document.forms[0].mhref.value+">";
+  mlink+=  document.forms[0].mtext.value+"</a>";
+  tinyMCEPopup.editor.execCommand('mceInsertContent', false, mlink);
+  tinyMCEPopup.close();
+ }
 };
-
-tinyMCEPopup.onInit.add(ExampleDialog.init, ExampleDialog);
+tinyMCEPopup.onInit.add(MicsDialog.init, MicsDialog);
