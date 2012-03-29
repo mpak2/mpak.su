@@ -39,7 +39,7 @@
 			ed.addButton('example', {
 				title : 'example.desc',
 				cmd : 'mceExample',
-				image : url + '/img/gallery.png'
+				image : url + '/img/example.gif'
 			});
 
 			// Add a node change handler, selects the button in the UI when a image is selected
@@ -72,7 +72,7 @@
 			return {
 				longname : 'Example plugin',
 				author : 'Some author',
-				authorurl : 'http://mpak.su',
+				authorurl : 'http://tinymce.moxiecode.com',
 				infourl : 'http://wiki.moxiecode.com/index.php/TinyMCE:Plugins/example',
 				version : "1.0"
 			};
