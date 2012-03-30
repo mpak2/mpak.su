@@ -60,6 +60,7 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 	if($_POST['theme'] == 'artfactor'){
 		mpqw("UPDATE mp_blocks SET file='admin/blocks/artfactor.php' WHERE file='admin/blocks/top.php'");
 		mpqw("UPDATE mp_blocks SET enabled=0 WHERE file='admin/blocks/modlist.php'");
+//		mpsettings('theme/admin:*', "");
 	}else{
 		mpqw("UPDATE mp_blocks SET file='admin/blocks/top.php' WHERE file='admin/blocks/artfactor.php'");
 		mpqw("UPDATE mp_blocks SET enabled=1 WHERE file='admin/blocks/modlist.php'");
