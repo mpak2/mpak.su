@@ -34,7 +34,7 @@ $no_spaces = true;
 
 # show credits
 $show_credits = true; # set to false to remove credits line. Credits adds 12 pixels to image height
-//$credits = 'www.captcha.ru'; # if empty, HTTP_HOST will be shown
+//$credits = mpidn($_SERVER['HTTP_HOST']); # if empty, HTTP_HOST will be shown
 
 # CAPTCHA image colors (RGB, 0-255)
 //$foreground_color = array(0, 0, 0);
