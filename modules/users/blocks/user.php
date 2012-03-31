@@ -88,6 +88,10 @@ foreach($conf['user'] as $k=>$v){
 					<? endif; ?>
 				</div>
 			<? endforeach; ?>
+			<div>
+				<div>Последний вход:</div>
+				<div><?=date("d.m.Y H:i", $user['last_time'])?></div>
+			</div>
 		</div>
 	<? endif; ?>
 </div>
