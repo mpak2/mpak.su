@@ -1,8 +1,26 @@
 <?
 
 function ql($sql, $ln = null, $fd = null){
-	
-	return mpql(mpqw($sql), $ln, $fd);
+	$microtime = microtime(true);
+	if(!($r = mpmc($key = md5($sql)))){
+		$r = mpql(mpqw($sql), $ln, $fd);
+		if(($mt = microtime(true) - $microtime) > .3){
+			mpmc($key, $r, 3600);
+		}
+	} return $r;
+}
+
+function qn($sql){
+	$microtime = microtime(true);
+	if(!($r = mpmc($key = md5($sql)))){
+		$func_get_args = func_get_args();
+		$func_get_args[0] = mpqw($sql);
+		$r = call_user_func('mpqn', $func_get_args);
+mpre($r);
+		if(($mt = microtime(true) - $microtime) > .3){
+			mpmc($key, $r, 3600);
+		}
+	} return $r;
 }
 
 function mc($key, $function, $force = false){
