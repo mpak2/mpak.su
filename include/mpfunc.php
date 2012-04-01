@@ -1,5 +1,10 @@
 <?
 
+function ql($sql, $ln = null, $fd = null){
+	
+	return mpql(mpqw($sql), $ln, $fd);
+}
+
 function mc($key, $function, $force = false){
 	if($force !== false) mpre($key);
 	if(!($tmp = mpmc($key)) || $force){
