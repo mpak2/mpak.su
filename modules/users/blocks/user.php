@@ -63,7 +63,7 @@ foreach($conf['user'] as $k=>$v){
 					$("#load_img_<?=$arg['blocknum']?>").iframePostForm({
 						complete:function(data){
 							$("#load_img_<?=$arg['blocknum']?>").find("input[type=file]").val('');
-							src = "/users:img/2/tn:index/w:200/h:200/rand:"+parseInt(Math.random()*1000)+"/null/img.jpg";
+							src = "/users:img/"+data+"/tn:index/w:200/h:200/rand:"+parseInt(Math.random()*1000)+"/null/img.jpg";
 							$("#user_info_<?=$arg['blocknum']?> img.user_img").attr("src", src);
 						}
 					});
