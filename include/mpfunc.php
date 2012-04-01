@@ -1,8 +1,8 @@
 <?
 
-function ql($sql, $ln = null, $fd = null){
+function ql($sql, $ln = null, $fd = null){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата
 	$microtime = microtime(true);
-	if(!($r = mpmc($key = md5($sql)))){
+	if(!($r = mpmc("qn:".$key = md5($sql)))){
 		$r = mpql(mpqw($sql), $ln, $fd);
 		if(($mt = microtime(true) - $microtime) > .3){
 			mpmc($key, $r, 3600);
@@ -10,13 +10,12 @@ function ql($sql, $ln = null, $fd = null){
 	} return $r;
 }
 
-function qn($sql){
+function qn($sql){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата
 	$microtime = microtime(true);
-	if(!($r = mpmc($key = md5($sql)))){
+	if(!($r = mpmc("qn:".$key = md5($sql)))){
 		$func_get_args = func_get_args();
 		$func_get_args[0] = mpqw($sql);
-		$r = call_user_func('mpqn', $func_get_args);
-mpre($r);
+		$r = call_user_func_array('mpqn', $func_get_args);
 		if(($mt = microtime(true) - $microtime) > .3){
 			mpmc($key, $r, 3600);
 		}
