@@ -128,6 +128,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_event_send"){
 	//		'disable' => array('reg_time', 'last_time'), # Выключенные для записи поля
 			'hidden' => array('param'), # Скрытые поля
 			'spisok' => array( # Список для отображения и редактирования
+				($fn = "sex"). "_id" => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
 				'refer'=>array('*'=>array(0=>'')+spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
 				'tid'=>array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_type")),
 			),
