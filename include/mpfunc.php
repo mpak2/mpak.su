@@ -330,7 +330,7 @@ function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.pn
 			'error'=>$_FILES[$prefix]['error'][$fn],
 			'size'=>$_FILES[$prefix]['size'][$fn],
 		);
-	}// mpre($_FILES); mpre($file);
+	}// mpre($_FILES[$prefix]); mpre($file);
 	if($file['error'] === 0){
 		if ($exts[ $file['type'] ] || isset($exts['*'])){
 			if(!($ext = $exts[ $file['type'] ])){
