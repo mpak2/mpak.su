@@ -2,13 +2,10 @@
 	$(function(){
 		function ins(){
 			text = $("iframe#elm1_ifr").html(); alert(text);
-//			var container = document.createElement('p'); //создаём там то что нам надо
-//			container.innerHTML= '<p>tr</p>';
-//			b.appendChild(container.firstChild);
 		} 
 
 		$("#foto_list a").click(function(){
-			alert(tinymce)
+			alert(tinymce);
 		});
 	});
 </script>
