@@ -8,7 +8,7 @@
 		} 
 
 		$("#foto_list a").click(function(){
-			ins();
+			alert(tinymce)
 		});
 	});
 </script>
