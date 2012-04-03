@@ -383,7 +383,7 @@ function mpager($count, $cur=null, $url=null){
 	if(2 > $count = ceil($count)) return;
 	$return .=  "<div class=\"pager\">". ($cur <= 0 ? "<span>&#8592; назад</span>" : "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>");
 	for($i = max(0, min($cur-10, $count-20)); $i < min($count, max($cur+10, 20)); $i++)
-		$return .=  '&nbsp;'. ($i == $cur ? "<span>".($i+1)."</span>" : "<a href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : "/{$p}:$i") : '')."\">".($i+1)."</a>");
+		$return .=  '&nbsp;'. ($i == $cur ? "<span>".($i+1)."</span>" : "<a href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : "/{$p}:$i") : '')."\" page='{$i}'>".($i+1)."</a>");
 	$return .=  '&nbsp;';
 	$return .=  $cur+1 >= $count ? "<span>вперед &#8594;</span>" : "<a rel=\"next\" href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : "/{$p}:".($cur+1)) : '')."\">вперед &#8594;</a>";
 	$return .= "</div>";
