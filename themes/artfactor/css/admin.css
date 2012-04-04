@@ -186,7 +186,7 @@ a.expandable:hover {
 ul {
 	list-style-type: none;
 	padding-left: 10px;
-
+	overflow:hidden;
 }
 li {
 	padding-top: 5px;
