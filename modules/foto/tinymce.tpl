@@ -9,13 +9,13 @@
 			if($(text).find("div#gallery").length > 0){
 				alert(true);
 			}else{
-				gallery = $("<div>").attr("id", "gallery");
+				gallery = $("<div>");
 				$.each(cat[cat_id], function(key, val){
 					img = $("<img>").attr("src", "/foto:img/"+val.id+"/w:50/h:50/null/img.jpg");
-					a = $("<a src='/foto:img/"+val.id+"/w:600/h:500/null/img.jpg'>").css("padding", "3px").html(img);
+					a = $("<a>").attr("href", "/foto:img/"+val.id+"/w:600/h:500/null/img.jpg").css("padding", "3px").html(img);
 					$(gallery).append(a);
 				});
-				tinyMCEPopup.editor.selection.setContent($(gallery).html());
+				tinyMCEPopup.editor.selection.setContent($(gallery).appendTo("<div>").attr("id", "gallery").parent().html());
 			}
 		});
 	});
