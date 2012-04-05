@@ -377,17 +377,40 @@ function mpdbf($tn, $post = null, $and = false){
 }
 
 function mpager($count, $cur=null, $url=null){
+	global $conf;
 	$p = (strpos($_SERVER['HTTP_HOST'], "xn--") === 0) ? "стр" : "p";
 	if ($cur === null) $cur = $_GET[$p];
 	if ($url === null) $url = strtr(urldecode($_SERVER['REQUEST_URI']), array("/{$p}:{$_GET[$p]}"=>'', "&{$p}={$_GET[$p]}"=>''));
 	if(2 > $count = ceil($count)) return;
-	$return .=  "<div page=\"". ($cur-1). "\" class=\"pager\">". ($cur <= 0 ? "<span>&#8592; назад</span>" : "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>");
-	for($i = max(0, min($cur-10, $count-20)); $i < min($count, max($cur+10, 20)); $i++)
-		$return .=  '&nbsp;'. ($i == $cur ? "<span>".($i+1)."</span>" : "<a href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : "/{$p}:$i") : '')."\" page='{$i}'>".($i+1)."</a>");
+	$return .=  "<div class=\"pager\">";
+	if($cur <= 0){
+		$return .= "<span>&#8592; назад</span>";
+	}else{
+		$return .= "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>";
+	};
+	for($i = max(0, min($cur-10, $count-20)); $i < min($count, max($cur+10, 20)); $i++){
+		if($i == $cur){
+			$mpager[ ($i+1) ] = '';
+			$return .= "&nbsp;<span>".($i+1)."</span>";
+		}else{
+			$mpager[ $i+1 ] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : "/{$p}:$i") : '');
+			$return .=  '&nbsp;'. ("<a href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : "/{$p}:$i") : '')."\">".($i+1)."</a>");
+		}
+	}
 	$return .=  '&nbsp;';
-	$return .=  $cur+1 >= $count ? "<span>вперед &#8594;</span>" : "<a rel=\"next\" href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : "/{$p}:".($cur+1)) : '')."\" page=\"". ($cur+1). "\">вперед &#8594;</a>";
+	if($cur+1 >= $count){
+		$return .=  "<span>вперед &#8594;</span>";
+	}else{
+		$return .=  "<a rel=\"next\" href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : "/{$p}:".($cur+1)) : '')."\">вперед &#8594;</a>";
+	}// mpre($mpager);
 	$return .= "</div>";
-	return $return;
+	if($fn = mpopendir("themes/{$conf['settings']['theme']}/mpager.tpl")){
+		ob_start();
+//		mp_require_once($fn);
+		include($fn);
+		$return = ob_get_contents();
+		ob_end_clean();
+	} return $return;
 }
 
 function mphash($user, $pass){
