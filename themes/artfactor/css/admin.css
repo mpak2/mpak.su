@@ -501,6 +501,9 @@ input#contact_field {
 .MainTable tr:hover {background-color:#eeeeff;}
 .MainTable th a {color:white;}
 .MainTable td a {color:#886666;}
+.MainTable a.up, .MainTable a.down {width:15px; height:15px; display:inline-block; background-repeat:no-repeat;}
+.MainTable a.up {background-image: url(../img/arrow.png); background-position: -15px 0;}
+.MainTable a.down {background-image: url(../img/arrow.png);}
 
 #authorization {
     background: url("../i/auth_bg.png") repeat scroll 0 0 transparent;
