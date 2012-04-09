@@ -768,6 +768,7 @@ function mpwysiwyg($name, $content = null, $tpl = ""){
 
 function mpmenu($m = array()){
 	global $conf, $arg;
+	if($arg['access'] < 5) return;
 	if(array_key_exists("null", $_GET)) return false;
 
 	$tab = (int)$_GET['r'];
