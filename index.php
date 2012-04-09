@@ -265,9 +265,9 @@ if (!function_exists('mcont')){
 					$content = mpct("modules/{$mod['folder']}/deny.php", $conf['arg'] = array('modpath'=>$mod['folder']));
 				}else if(!array_key_exists("themes", $_GET)){
 					if($_SERVER['REQUEST_URI'] != "/admin"){
-						header('HTTP/1.0 404 Unauthorized');
+//						header('HTTP/1.0 404 Unauthorized');
 //					echo "<div style='margin:100px 0;text-align:center'>Доступ запрещен</div>";
-						header("Location: /admin");
+//						header("Location: /admin");
 					}
 				}
 			}
