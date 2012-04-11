@@ -13,9 +13,9 @@ if (isset($_GET['q'])){
 	);
 	header("Content-type: ".($defaultmimes[$ext] ? $defaultmimes[$ext] : "text/$ext"));
 	if(($_GET['w'] || $_GET['h']) && array_search($ext, array(1=>'jpg', 'png', 'gif'))){
-		echo mprs($file_name, $_GET['w'], $_GET['h'], $_GET['c']);
+		echo mprs($res_name, $_GET['w'], $_GET['h'], $_GET['c']);
 	}else{
-		$f = fopen($file_name, "rb");
+		$f = fopen($res_name, "rb");
 		while (!feof($f)) {
 			echo fread($f, 256);
 		}
