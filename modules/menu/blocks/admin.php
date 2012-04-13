@@ -35,6 +35,11 @@ if($_SERVER['REQUEST_URI'] == '/admin/3'){
 }
 
 ?>
+<script>
+	$(function(){
+		$("#admin_menu a[href='<?=$_SERVER['REQUEST_URI']?>']").addClass("active");
+	});
+</script>
 <div id="admin_menu">
 	<? foreach($menu[0] as $v): ?>
 		&nbsp;<a href="<?=$v['link']?>"><?=$v['name']?></a>
