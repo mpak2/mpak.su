@@ -264,10 +264,10 @@ if (!function_exists('mcont')){
 				if (file_exists(mpopendir("modules/{$mod['folder']}/deny.php"))){
 					$content = mpct("modules/{$mod['folder']}/deny.php", $conf['arg'] = array('modpath'=>$mod['folder']));
 				}else if(!array_key_exists("themes", $_GET)){
-					if($_SERVER['REQUEST_URI'] != "/admin"){
-//						header('HTTP/1.0 404 Unauthorized');
-//					echo "<div style='margin:100px 0;text-align:center'>Доступ запрещен</div>";
-//						header("Location: /admin");
+					if(!array_key_exists('null', $_GET) && ($_SERVER['REQUEST_URI'] != "/admin")){
+						header('HTTP/1.0 404 Unauthorized');
+//						echo "<div style='margin:100px 0;text-align:center'>Доступ запрещен</div>";
+						header("Location: /admin");
 					}
 				}
 			}
