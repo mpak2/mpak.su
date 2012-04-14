@@ -16,7 +16,7 @@ EOF;*/
 
 if($_GET['refer'] && !$conf['user']['sess']['refer'] && ($_GET['refer'] != $conf['user']['uid'])){
 	mpqw("UPDATE {$conf['db']['prefix']}sess SET refer=". ($conf['user']['sess']['refer'] = (int)$_GET['refer']). " WHERE id=".(int)$arg['uid']);
-}// mpre($conf['user']['sess']);
+}
 
 require_once(mpopendir('include/idna_convert.class.inc'));
 $IDN = new idna_convert();

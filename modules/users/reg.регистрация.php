@@ -22,7 +22,7 @@ if (isset($_POST['add']) && strlen($_POST['name']) && strlen($_POST['pass']) && 
 		echo "<p><p><center><font color=red>Такое имя уже зарегистрировано. Выбирите другое</font>";
 		echo " <a href='/{$arg['modname']}:{$arg['fe']}'>Вернуться</a></center>";
 	}else{
-		mpqw($sql = "INSERT INTO ". ($tn = "{$conf['db']['prefix']}users"). " SET tid=1, name=\"". mpquot($_POST['name']). "\", pass=\"". mphash($_POST['name'], $_POST['pass']). "\", reg_time=". time(). ", last_time=". time(). ", email=\"".mpquot($_POST['email'])."\", ref=\"". mpquot($conf['user']['sess']['ref']). "\"". ($conf['user']['sess']['refer'] ? ", refer=". (int)$_POST['refer'] : ''));
+		mpqw($sql = "INSERT INTO ". ($tn = "{$conf['db']['prefix']}users"). " SET tid=1, name=\"". mpquot($_POST['name']). "\", pass=\"". mphash($_POST['name'], $_POST['pass']). "\", reg_time=". time(). ", last_time=". time(). ", email=\"".mpquot($_POST['email'])."\", ref=\"". mpquot($conf['user']['sess']['ref']). "\"". ($conf['user']['sess']['refer'] ? ", refer=". (int)$conf['user']['sess']['refer'] : ''));
 		if($uid = mysql_insert_id()){
 			if($mpdbf = mpdbf($tn, array_intersect_key($_POST, $conf['tpl']['fields']))){
 				mpqw($sql = "UPDATE $tn SET $mpdbf WHERE id=".(int)$uid);
