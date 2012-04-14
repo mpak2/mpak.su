@@ -22,6 +22,15 @@ function qn($sql){ # Выполнение запроса к базе данны�
 	} return $r;
 }
 
+function mpfm($n, $form1, $form2, $form5){ # единственные двойственные и множественные числительные. Пример использования mpfm($n, 'письмо', 'письма', 'писем');
+    $n = abs($n) % 100;
+    $n1 = $n % 10;
+    if ($n > 10 && $n < 20) return $form5;
+    if ($n1 > 1 && $n1 < 5) return $form2;
+    if ($n1 == 1) return $form1;
+    return $form5;
+}
+
 function mc($key, $function, $force = false){
 	if($force !== false) mpre($key);
 	if(!($tmp = mpmc($key)) || $force){
