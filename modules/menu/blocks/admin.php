@@ -30,8 +30,9 @@ $menu = mpqn(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}
 
 if($param['tpl']){ include mpopendir("themes/{$conf['settings']['theme']}/{$param['tpl']}"); return; }
 
-if($_SERVER['REQUEST_URI'] == '/admin/3'){
-	header("Location: /?m[sights]=admin&r=mp_sights_index"); 
+if(strpos($_SERVER['REQUEST_URI'], '/admin') === 0){
+	$line = array_shift($m = $menu[0]);
+	header("Location: ". $line['link']); 
 }
 
 ?>
