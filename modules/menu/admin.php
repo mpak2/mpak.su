@@ -101,15 +101,16 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_region"){ // 'Мен
 			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('orderby'=>$orderby), # Значение которое всегда будет присвоено полю. Исключает любое изменение
 			'shablon' => array(
-				'img'=>array('*'=>"<img src='/{$arg['modpath']}:img/{f:id}/w:100/h:80/null/img.jpg'>"),
 				'pid'=>array('*'=>"<a href=/?m[menu]=admin&r=mp_menu&where[rid]={f:rid}&where[pid]=0>{spisok:{f}}</a>"),
+				'img'=>array('*'=>"<img src='/{$arg['modpath']}:img/{f:id}/w:100/h:80/null/img.jpg'>"),
 //				'count'=>spisok("SELECT m1.id, COUNT(*) FROM {$conf['db']['prefix']}{$arg['modpath']} AS m1, {$conf['db']['prefix']}{$arg['modpath']} AS m2 WHERE m1.id=m2.pid GROUP BY m1.id"),
 				(($fn = 'menu'). ($prx = ''))=>array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}&where[pid]={f:id}&where[rid]={f:rid}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}&where[pid]=', r.id, '&where[rid]=', r.rid, '>', COUNT(*), '_{$fn}</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$arg['modpath']} AS fn WHERE r.id=fn.pid GROUP BY r.id"),
 			), # Шаблон вывода в замене участвуют только поля запроса имеен приоритет перед полем set
 //			'disable' => array('orderby'), # Выключенные для записи поля
 //			'hidden' => array('name', 'enabled'), # Скрытые поля
 			'spisok' => array( # Список для отображения и редактирования
-				'pid'=>array('*'=>array('0'=>'')+spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}".($_GET['rid'] ? " WHERE rid=".(int)$_GET['rid'] : ''))),
+//				'pid'=>array('*'=>array('0'=>'')+spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}".($_GET['rid'] ? " WHERE rid=".(int)$_GET['rid'] : ''))),
+				'pid'=>array('*'=>array('0'=>'')+spisok($sql = "SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE 1".($_GET['where']['rid'] ? " AND rid=".(int)$_GET['where']['rid'] : ''). ($_GET['where']['pid'] ? " AND pid=". (int)$_GET['where']['pid'] : ''))),
 				'rid' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_region")),
 //				'select'=>array('*'=>array('0'=>'Скрыто', '1'=>'Доступно')),
 //				'time' => $time,
