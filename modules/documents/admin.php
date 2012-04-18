@@ -73,7 +73,7 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
 			'title' => array('name'=>'Имя', 'index'=>'Изображение', 'description'=>'Описание'), # Название полей
-//			'etitle'=> array(),
+			'etitle'=> array("cat_id"=>'Категория', 'uid'=>'Добавил', 'document'=>'Документ', 'name'=>'Название', 'description'=>'Описание'),
 //			'type' => array('document'=>'file', 'description'=>'textarea', 'text'=>'wysiwyg'), # Тип полей
 //			'ext' => array('document'=>array('*'=>'*')),
 //			'set' => array('orderby'=>$orderby), # Значение которое всегда будет присвоено полю. Исключает любое изменение
