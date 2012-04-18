@@ -115,7 +115,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_event_send"){
 
 			'edit'=>'list',
 			'title' => array('tid'=>'Авторез', 'name'=>'Имя', 'img'=>'Фото', 'pass'=>'md5("Пароль")', 'last_time'=>'Вход', 'email'=>'E-mail', 'groups'=>'Группы'), # Название полей
-//			'etitle' => array('tid'=>'Авторез', 'name'=>'Имя', 'pass'=>'md5("Пароль")', 'reg_time'=>'Регистрация', 'last_time'=>'Вход', 'email'=>'E-mail', 'icq'=>'Ася', 'jabber'=>'Джаббер', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отчество', 'site'=>'Сайт', 'url'=>'Адрес'), # Название полей
+			'etitle' => array('tid'=>'Авторез', 'name'=>'Имя', 'img'=>'Фото', 'pass'=>'md5("Пароль")', 'last_time'=>'Вход', 'email'=>'E-mail', 'refer'=>'Пригласивший', 'ref'=>'Источник', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отчество', 'tel'=>'Телефон', 'reg_time'=>'Регистрация', 'icq'=>'Ася', 'skype'=>'Скайп'), # Название полей
 			'type' => array('reg_time'=>'timestamp', 'img'=>'file', 'last_time'=>'timestamp'), # Тип полей
 			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 	//		'set' => array('name'=>'kanal'), # Значение которое всегда будет присвоено полю. Исключает любое изменение
