@@ -96,21 +96,26 @@ $fn = array_pop($m);
 	.items_<?=$arg['blocknum']?> li span:first-child {width:100px;}
 	.items_<?=$arg['blocknum']?> li span:last-child {width:80%;}
 </style>
-<ul class="items_<?=$arg['blocknum']?>">
-	<li>
-		<? foreach($item as $k=>$v): ?>
-			<div>
-				<span><?=(($n = $param[ $k ]["name"]) ? "<span title='$k'>$n</span>" : "<span style=color:gray>$k</span>")?></span>
-				<span>
-					<? if($param[ $k ]["type"] == "textarea"): ?>
-						<textarea name="<?=$k?>" style="width:100%;"><?=$v?></textarea>
-					<? elseif($param[ $k ]["type"] == "wysiwyg"): ?>
-						<?=mpwysiwyg($k, $v)?>
-					<? else: ?>
-						<input type="text" value="<?=$v?>" style="width:100%;">
-					<? endif; ?>
-				</span>
-			</div>
-		<? endforeach; ?>
-	</li>
-</ul>
+<form method="post">
+	<ul class="items_<?=$arg['blocknum']?>">
+		<li>
+			<? foreach($item as $k=>$v): if($param[ $k ]["type"] == "hide") continue; ?>
+				<div>
+					<span><?=(($n = $param[ $k ]["name"]) ? "<span title='$k'>$n</span>" : "<span style=color:gray>$k</span>")?></span>
+					<span>
+						<? if($param[ $k ]["type"] == "textarea"): ?>
+							<textarea name="<?=$k?>" style="width:100%;"><?=$v?></textarea>
+						<? elseif($param[ $k ]["type"] == "img"): ?>
+							<div><img src="/<?=$modpath?>"></div>
+						<? elseif($param[ $k ]["type"] == "wysiwyg"): ?>
+							<?=mpwysiwyg($k, $v)?>
+						<? else: ?>
+							<input type="text" value="<?=$v?>" style="width:100%;">
+						<? endif; ?>
+					</span>
+				</div>
+			<? endforeach; ?>
+		</li>
+	</ul>
+	<div style="text-align:right; padding:0 50px;"><input type="submit"></div>
+</form>
