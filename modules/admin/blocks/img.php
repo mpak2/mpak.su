@@ -48,10 +48,12 @@ if ((int)$arg['confnum']){
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
-	$img_id = ($param["Таблица"],
+	$img_id = mpfdk($param["Таблица"],
 		null, $w = array("time"=>time(), "uid"=>$conf['user']['uid']), $w
 	);
-	mpre($_POST); exit;
+	if($img_id && ($fn = mpfdk($param["Таблица"], "img", $img_id))){
+		echo "UPDATE ". mpquot($param["Таблица"]). " SET img=\"". mpquot($fn). "\" WHERE id=". (int)$img_id;
+	} mpre($_POST); exit;
 };
 
 $img = mpqn(mpqw($sql = "SELECT * FROM ". mpquot($param["Таблица"]). ($_GET["id"] ? " WHERE {$param["Вторичный ключ"]}=". (int)$_GET["id"] : "")));
