@@ -3,7 +3,11 @@
 if ((int)$arg['confnum']){
 	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0, 'param'));
 	if ($_POST){
-		$param = array($_POST['param']=>$_POST['val'])+(array)$param;
+		if($_POST['type']){
+			$param = array($_POST['fn']=>array($_POST['type']=>$_POST['val']))+(array)$param;
+		}else{
+			$param = array($_POST['param']=>$_POST['val'])+(array)$param;
+		}
 		mpqw("UPDATE {$conf['db']['prefix']}blocks SET param = '".serialize($param)."' WHERE id = {$arg['confnum']}");
 	} if(array_key_exists("null", $_GET)) exit;
 
@@ -21,7 +25,7 @@ if ((int)$arg['confnum']){
 	);
 	if($param["Таблица"]){
 		$fn = mpqn(mpqw("SHOW COLUMNS FROM ". mpquot($param["Таблица"])), "Field");
-	}
+	} $type = array(""=>"", "hide"=>"Скрыто","text"=>"Текст","textarea"=>"Поле","img"=>"Изображение","file"=>"Файл");
 ?>
 		<!-- Настройки блока -->
 	<script src="/include/jquery/my/jquery.klesh.select.js"></script>
@@ -56,14 +60,16 @@ if ((int)$arg['confnum']){
 	<div class="param">
 		<script>
 			$(function(){
-				
+				$(".klesh[type=type]").klesh("/?m[blocks]=admin&r=mp_blocks&null&conf=<?=$arg['confnum']?>", function(){
+				}, <?=json_encode($type)?>)
+				$(".klesh[type=name]").klesh("/?m[blocks]=admin&r=mp_blocks&null&conf=<?=$arg['confnum']?>");
 			});
 		</script>
 		<? foreach($fn as $k=>$v): ?>
 			<div>
 				<span><?=$k?></span>
-				<span><div style="klesh" type="name">fn</div></span>
-				<span><div style="klesh" type="type">type</div></span>
+				<span><div class="klesh" fn="<?=$k?>" type="name"><?=$param[ $k ]["name"]?></div></span>
+				<span><div class="klesh" fn="<?=$k?>" type="type"><?=$param[ $k ]["type"]?></div></span>
 			</div>
 		<? endforeach; ?>
 	</div>
@@ -71,7 +77,9 @@ if ((int)$arg['confnum']){
 
 } $param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
-//if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
+/*if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
+	mpre($_POST); exit();
+};*/
 
 $item = mpql(mpqw("SELECT * FROM ". mpquot($param["Таблица"]). " WHERE id=". (int)$_GET['id']), 0);
 
