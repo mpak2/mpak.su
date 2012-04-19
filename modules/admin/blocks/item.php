@@ -4,7 +4,7 @@ if ((int)$arg['confnum']){
 	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0, 'param'));
 	if ($_POST){
 		if($_POST['type']){
-			$param = array($_POST['fn']=>array($_POST['type']=>$_POST['val']))+(array)$param;
+			$param = array($_POST['fn']=>array($_POST['type']=>$_POST['val'])+(array)$param[$_POST['fn']])+(array)$param;
 		}else{
 			$param = array($_POST['param']=>$_POST['val'])+(array)$param;
 		}
@@ -25,7 +25,7 @@ if ((int)$arg['confnum']){
 	);
 	if($param["Таблица"]){
 		$fn = mpqn(mpqw("SHOW COLUMNS FROM ". mpquot($param["Таблица"])), "Field");
-	} $type = array(""=>"", "hide"=>"Скрыто","text"=>"Текст","textarea"=>"Поле","img"=>"Изображение","file"=>"Файл");
+	} $type = array(""=>"", "hide"=>"Скрыто","text"=>"Текст","textarea"=>"Поле", "wysiwyg"=>"Редактор","sort"=>"Сортировка","img"=>"Изображение","file"=>"Файл");
 ?>
 		<!-- Настройки блока -->
 	<script src="/include/jquery/my/jquery.klesh.select.js"></script>
@@ -69,7 +69,7 @@ if ((int)$arg['confnum']){
 			<div>
 				<span><?=$k?></span>
 				<span><div class="klesh" fn="<?=$k?>" type="name"><?=$param[ $k ]["name"]?></div></span>
-				<span><div class="klesh" fn="<?=$k?>" type="type"><?=$param[ $k ]["type"]?></div></span>
+				<span><div class="klesh" fn="<?=$k?>" type="type"><?=$type[ $param[ $k ]["type"] ]?></div></span>
 			</div>
 		<? endforeach; ?>
 	</div>
@@ -97,12 +97,19 @@ $fn = array_pop($m);
 	.items_<?=$arg['blocknum']?> li span:last-child {width:80%;}
 </style>
 <ul class="items_<?=$arg['blocknum']?>">
-	<h1><?=$v['name']?></h1>
 	<li>
 		<? foreach($item as $k=>$v): ?>
 			<div>
-				<span><?=$k?></span>
-				<span><input type="text" value="<?=$v?>" style="width:100%;"></span>
+				<span><?=(($n = $param[ $k ]["name"]) ? "<span title='$k'>$n</span>" : "<span style=color:gray>$k</span>")?></span>
+				<span>
+					<? if($param[ $k ]["type"] == "textarea"): ?>
+						<textarea name="<?=$k?>" style="width:100%;"><?=$v?></textarea>
+					<? elseif($param[ $k ]["type"] == "wysiwyg"): ?>
+						<?=mpwysiwyg($k, $v)?>
+					<? else: ?>
+						<input type="text" value="<?=$v?>" style="width:100%;">
+					<? endif; ?>
+				</span>
 			</div>
 		<? endforeach; ?>
 	</li>
