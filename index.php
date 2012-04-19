@@ -28,15 +28,17 @@ mp_require_once("include/mpfunc.php"); # Функции системы
 $_GET += mpgt($_SERVER['REQUEST_URI'], $_GET);
 
 if (!isset($index) && file_exists($index = array_shift(explode(':', $conf['fs']['path'], 2)). '/index.php')){
-	include($index);
-	if($content) die;
+	include($index); if($content) die;
 }
 
 if(!empty($_GET['m']) && array_search('admin', (array)$_GET['m']))
 	mp_require_once("include/func.php"); # Функции таблиц
 
-if(!function_exists('mysql_connect')){ echo "no function mysql"; die; }
-$conf['db']['conn'] = @mysql_connect($conf['db']['host'], $conf['db']['login'], $conf['db']['pass']); # Соединение с базой данных
+if(!function_exists('mysql_connect')){
+	echo "no function mysql"; die;
+}else if(empty($conf['db']['conn'])){ # При подключении копии файла повторное подключение базы даных не требуется
+	$conf['db']['conn'] = mysql_connect($conf['db']['host'], $conf['db']['login'], $conf['db']['pass']); # Соединение с базой данных
+}
 if (strlen($conf['db']['error'] = mysql_error())){
 #	echo "Ошибка соединения с базой данных<p>";
 }else{

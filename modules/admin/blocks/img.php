@@ -48,6 +48,9 @@ if ((int)$arg['confnum']){
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
+	$img_id = ($param["Таблица"],
+		null, $w = array("time"=>time(), "uid"=>$conf['user']['uid']), $w
+	);
 	mpre($_POST); exit;
 };
 
@@ -77,8 +80,8 @@ $fn = array_pop($m);
 	<? endforeach; ?>
 </ul>
 <div>
-	<form id="img_<?=$arg['blocknum']?>" action="/blocks/<?=$arg['blocknum']?>/<?=$param["Вторичный ключ"]?>:<?=(int)$_GET["id"]?>/null" method="post" enctype="multipart/form-data">
-		<input type="hidden" <?=$param["Вторичный ключ"]?>="<?=$_GET['id']?>">
+	<form id="img_<?=$arg['blocknum']?>" method="post" action="/blocks/<?=$arg['blocknum']?>/theme:<?=$conf['settings']['theme']?>/<?=$param["Вторичный ключ"]?>:<?=(int)$_GET["id"]?>/null" enctype="multipart/form-data">
+		<input type="hidden" name="<?=$param["Вторичный ключ"]?>" value="<?=$_GET['id']?>">
 		<input type="file" name="img">
 		<input type="submit" value="Добавить">
 	</form>
