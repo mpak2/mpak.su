@@ -12,7 +12,7 @@ if ((int)$arg['confnum']){
 /*		"Количество символов"=>0,
 		"Курс доллара"=>30,*/
 		"Таблица"=>array(""=>"")+array_combine($tab, $tab),
-		"Первичная таблица"=>array(""=>"")+array_combine($tab, $tab),
+		"Вторичный ключ"=>"",
 	);
 
 ?>
@@ -44,13 +44,29 @@ if ((int)$arg['confnum']){
 	</div>
 <? return;
 
-}//$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
+} $param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 //if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
 
+$img = mpqn(mpqw($sql = "SELECT * FROM ". mpquot($param["Таблица"]). ($_GET["id"] ? " WHERE {$param["Вторичный ключ"]}=". (int)$_GET["id"] : "")));
+//$mpager = mpager(mpql(mpqw("SELECT FOUND_ROWS()/15 AS cnt"), 0, 'cnt'));
+
+$get = mpgt($_SERVER['REQUEST_URI']);
+$m = $get['m'];
+
+$modpath = array_pop(array_flip($m));
+$fn = array_pop($m);
+
 ?>
+<script src="/include/jquery/jquery.iframe-post-form.js"></script>
 <ul>
-	<? foreach($dat as $k=>$v): ?>
-		<li><?=$v['name']?></li>
+	<? foreach($img as $k=>$v): ?>
+		<li><img src="/<?=$modpath?>:img/<?=$v['id']?>/tn:items_img/fn:img/w:120/h:100/null/img.jpg"></li>
 	<? endforeach; ?>
 </ul>
+<div>
+	<form action="/<?=$arg['modpath']?>:<?=$arg['fn']?>/null" method="post" enctype="multipart/form-data">
+		<input type="file" name="img">
+		<input type="submit" value="Добавить">
+	</form>
+</div>
