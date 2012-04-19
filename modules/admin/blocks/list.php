@@ -56,12 +56,18 @@ if ((int)$arg['confnum']){
 $list = mpqn(mpqw($sql = "SELECT SQL_CALC_FOUND_ROWS * FROM ". mpquot($param["Таблица"]. ($_GET["id"] ? " WHERE {$param["Вторичный ключ"]}=". (int)$_GET["id"] : ""). " LIMIT ". ($_GET['p']*15). ",15")));
 $mpager = mpager(mpql(mpqw("SELECT FOUND_ROWS()/15 AS cnt"), 0, 'cnt'));
 
+$get = mpgt($_SERVER['REQUEST_URI']);
+$m = $get['m'];
+
+$modpath = array_pop(array_flip($m));
+$fn = array_pop($m);
+
 ?>
 <div><?=$mpager?></div>
 <ul>
 	<? foreach($list as $k=>$v): ?>
 		<li>
-			<a href="/"><?=$v['name']?></a>
+			<a href="/<?=$modpath?>:admin_item/<?=$v['id']?>"><?=$v['name']?></a>
 		</li>
 	<? endforeach; ?>
 </ul>

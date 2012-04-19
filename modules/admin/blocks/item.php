@@ -19,7 +19,9 @@ if ((int)$arg['confnum']){
 		"Таблица"=>array(""=>"")+array_combine($tab, $tab),
 //		"Город"=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users_sity ORDER BY name"),*/
 	);
-
+	if($param["Таблица"]){
+		$fn = mpqn(mpqw("SHOW COLUMNS FROM ". mpquot($param["Таблица"])), "Field");
+	}
 ?>
 		<!-- Настройки блока -->
 	<script src="/include/jquery/my/jquery.klesh.select.js"></script>
@@ -44,6 +46,24 @@ if ((int)$arg['confnum']){
 				<? else: ?>
 					<div class="klesh_<?=strtr(md5($k), array("="=>''))?>" param="<?=$k?>"><?=($param[$k] ?: $v)?></div>
 				<? endif; ?>
+			</div>
+		<? endforeach; ?>
+	</div>
+	<style>
+		.param > div > span {display:inline-block; width:200px;}
+		.param > div > span:first-child {text-align:right; padding-right:10px;}
+	</style>
+	<div class="param">
+		<script>
+			$(function(){
+				
+			});
+		</script>
+		<? foreach($fn as $k=>$v): ?>
+			<div>
+				<span><?=$k?></span>
+				<span><div style="klesh" type="name">fn</div></span>
+				<span><div style="klesh" type="type">type</div></span>
 			</div>
 		<? endforeach; ?>
 	</div>
