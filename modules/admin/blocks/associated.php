@@ -47,9 +47,12 @@ if ((int)$arg['confnum']){
 
 } $param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
-//if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
-
-$associated = mpqn(mpqw($sql = "SELECT * FROM ". mpquot($param["Таблица"]). " WHERE {$param["Вторичный ключ"]}=". (int)$_GET["id"]));
+if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
+	mpqw("INSERT INTO `". mpquot($param["Таблица"]). "` SET {$param["Вторичный ключ"]}=". (int)$_GET[ $param["Вторичный ключ"] ]. ", name=\"". $_POST['name']. "\"");
+	$associated = array(($id = mysql_insert_id())=>array("id"=>$id, "name"=>$_POST['name']));
+}else{
+	$associated = mpqn(mpqw($sql = "SELECT * FROM ". mpquot($param["Таблица"]). " WHERE {$param["Вторичный ключ"]}=". (int)$_GET["id"]));
+}
 
 $get = mpgt($_SERVER['REQUEST_URI']);
 $m = $get['m'];
@@ -63,27 +66,30 @@ $fn = array_pop($m);
 	$(function(){
 		$("#associated_<?=$arg['blocknum']?> form").iframePostForm({
 			complete:function(data){
-				alert(data);
+				html = $("<div />").html(data).find("#associated_<?=$arg['blocknum']?> li[index_id]").wrap("<div>").parent().html();
+				$("#associated_<?=$arg['blocknum']?> ul").append(html);
 			}
 		});
 		$("#associated_<?=$arg['blocknum']?> ul a.del").click(function(){
-			alert(123);
+			index_id = $(this).parents("[index_id]").attr("index_id");
 		});
 	});
 </script>
 <div id="associated_<?=$arg['blocknum']?>">
 	<ul class="">
 		<? foreach($associated as $k=>$v): ?>
-			<li>
+			<li index_id="<?=$v['id']?>">
 				<span><?=$v['name']?></span>
 				<span style="float:right;">
-					<a class="del" href="javascript: return false;"><img src="img/delete.png"></a>
+					<a class="del" href="javascript: return false;">
+						<img src="img/delete.png">
+					</a>
 				</span>
 			</li>
 		<? endforeach; ?>
 	</ul>
 	<form action="/blocks/<?=$arg['blocknum']?>/theme:<?=$conf['settings']['theme']?>/<?=$param["Вторичный ключ"]?>:<?=$_GET['id']?>/null" method="post">
 		<input type="text" name="name">
-		<input type="button" value="Добавить">
+		<input type="submit" value="Добавить">
 	</form>
 </div>
