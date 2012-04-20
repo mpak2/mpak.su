@@ -123,13 +123,16 @@ function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
 	if($find && ($fnd = mpdbf($tn, $find, 1)) &&
 		($sel = mpqn(mpqw($sql = "SELECT id FROM `". mpquot($tn). "` WHERE ". $fnd)))
 	){
+		if($log) mpre($sql);
 		if((count($sel) == 1) && ($s = array_shift($sel))){
 			if($update && ($upd = mpdbf($tn, $update)))
 				mpqw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE id=". (int)$s['id']);
+			if($log) mpre($sql);
 			return $s['id'];
 		}else{
 			if($update && ($upd = mpdbf($tn, $update)))
 				mpqw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE id IN (". implode(",", array_keys($sel)). ")");
+				if($log) mpre($sql);
 			return array_keys($sel);
 		}
 	}elseif($insert){
