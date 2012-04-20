@@ -1,4 +1,4 @@
-<? die; # Нуль
+<? die;
 
 if ((int)$arg['confnum']){
 	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0, 'param'));
@@ -49,7 +49,8 @@ if ((int)$arg['confnum']){
 
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
 	if($_POST['text']){
-		mpre($_POST); exit;
+		mpqw("UPDATE ". mpquot($param["Таблица"]). " SET description=\"". mpquot($_POST['description']). "\" WHERE id=". (int)$_POST['img_id']);
+		exit("{$_POST['img_id']}");
 	}elseif($_POST['del']){
 		mpqw("DELETE FROM ". mpquot($param["Таблица"]). " WHERE id=". (int)$_POST['del']. " AND {$param["Вторичный ключ"]}=". (int)$_GET[ $param["Вторичный ключ"] ]);
 		exit($_POST['del']);
@@ -91,15 +92,17 @@ $modpath = $m[1];
 			});
 		});
 		$("#img_<?=$arg['blocknum']?> input[type=text]").change(function(){
+			var main = this;
 			text = $(this).val();// alert(text);
 			img_id = $(this).parents("[img_id]").attr("img_id");
 			$.post("/blocks/<?=$arg['blocknum']?>/theme:<?=$conf['settings']['theme']?>/<?=$param["Вторичный ключ"]?>:<?=(int)$_GET["id"]?>/null", {img_id:img_id, text:text}, function(data){
-				alert(data);
+				if(isNaN(data)){ alert(data) }else{
+					setTimeout(function(){
+						$(main).css("background-color", "green");
+						$(main).css("background-color", "");
+					}, 300)
+				}
 			});
-			setTimeout(function(){
-				$(this).css("background-color", "green");
-				$(this).css("background-color", "");
-			}, 300)
 		});
 	});
 </script>
