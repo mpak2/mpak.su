@@ -87,6 +87,9 @@ $modpath = $m[1];
 				}
 			});
 		});
+		$("#img_<?=$arg['blocknum']?> a.del").change(function(){
+			
+		});
 	});
 </script>
 <style>
@@ -101,7 +104,7 @@ $modpath = $m[1];
 					<a class="del" href="javascript:return false;"><img src="img/delete.png"></a>
 					<img src="/<?=$modpath?>:img/<?=$v['id']?>/tn:items_img/fn:img/w:70/h:70/null/img.jpg">
 				</div>
-				<div style="margin-left:30px;">
+				<div style="margin-left:90px;">
 					<input type="text">
 				</div>
 			</li>
