@@ -48,12 +48,17 @@ if ((int)$arg['confnum']){
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
-	$img_id = mpfdk($param["Таблица"],
-		null, $w = array("time"=>time(), "uid"=>$conf['user']['uid'], $param["Вторичный ключ"]=>$_GET[ $param["Вторичный ключ"] ])
-	);
-	if($img_id && ($fn = mpfn($param["Таблица"], "img", $img_id))){
-		mpqw("UPDATE ". mpquot($param["Таблица"]). " SET img=\"". mpquot($fn). "\" WHERE id=". (int)$img_id. " AND {$param["Вторичный ключ"]}=". (int)$_GET[ $param["Вторичный ключ"] ]);
-	} $img = array($img_id=>array("id"=>$img_id));
+	if($_POST['del']){
+		mpqw("DELETE FROM ". mpquot($param["Таблица"]). " WHERE id=". (int)$_POST['del']. " AND {$param["Вторичный ключ"]}=". (int)$_GET[ $param["Вторичный ключ"] ]);
+		exit($_POST['del']);
+	}else{
+		$img_id = mpfdk($param["Таблица"],
+			null, $w = array("time"=>time(), "uid"=>$conf['user']['uid'], $param["Вторичный ключ"]=>$_GET[ $param["Вторичный ключ"] ])
+		);
+		if($img_id && ($fn = mpfn($param["Таблица"], "img", $img_id))){
+			mpqw("UPDATE ". mpquot($param["Таблица"]). " SET img=\"". mpquot($fn). "\" WHERE id=". (int)$img_id. " AND {$param["Вторичный ключ"]}=". (int)$_GET[ $param["Вторичный ключ"] ]);
+		} $img = array($img_id=>array("id"=>$img_id));
+	}
 }else{
 	$img = mpqn(mpqw($sql = "SELECT * FROM ". mpquot($param["Таблица"]). " WHERE {$param["Вторичный ключ"]}=". (int)$_GET["id"]));
 }
@@ -74,6 +79,14 @@ $modpath = $m[1];
 				}
 			}
 		});
+		$("#img_<?=$arg['blocknum']?> a.del").live("click", function(){
+			img_id = $(this).parents("[img_id]").attr("img_id");
+			$.post("/blocks/<?=$arg['blocknum']?>/theme:<?=$conf['settings']['theme']?>/<?=$param["Вторичный ключ"]?>:<?=(int)$_GET["id"]?>/null", {del:img_id}, function(data){
+				if(isNaN(data)){ alert(data) }else{
+					$("#img_<?=$arg['blocknum']?> li[img_id="+img_id+"]").remove();
+				}
+			});
+		});
 	});
 </script>
 <style>
@@ -83,7 +96,7 @@ $modpath = $m[1];
 	<ul>
 		<? if($img) foreach($img as $k=>$v): ?>
 			<li img_id="<?=$v['id']?>">
-				<a href="javascript:return false;" style="position:absolute;"><img src="img/delete.png"></a>
+				<a class="del" href="javascript:return false;" style="position:absolute;"><img src="img/delete.png"></a>
 				<img src="/<?=$modpath?>:img/<?=$v['id']?>/tn:items_img/fn:img/w:70/h:70/null/img.jpg">
 			</li>
 		<? endforeach; ?>
