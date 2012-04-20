@@ -51,9 +51,9 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 	$img_id = mpfdk($param["Таблица"],
 		null, $w = array("time"=>time(), "uid"=>$conf['user']['uid'], $param["Вторичный ключ"]=>$_GET[ $param["Вторичный ключ"] ])
 	);
-	if($img_id && ($fn = mpfdk($param["Таблица"], "img", $img_id))){
-		echo "UPDATE ". mpquot($param["Таблица"]). " SET img=\"". mpquot($fn). "\" WHERE id=". (int)$_GET[ $param["Вторичный ключ"] ];
-	}
+	if($img_id && ($fn = mpfn($param["Таблица"], "img", $img_id))){
+		mpqw("UPDATE ". mpquot($param["Таблица"]). " SET img=\"". mpquot($fn). "\" WHERE id=". (int)$img_id. " AND {$param["Вторичный ключ"]}=". (int)$_GET[ $param["Вторичный ключ"] ]);
+	}// exit("$img_id");
 };
 
 $img = mpqn(mpqw($sql = "SELECT * FROM ". mpquot($param["Таблица"]). ($_GET["id"] ? " WHERE {$param["Вторичный ключ"]}=". (int)$_GET["id"] : "")));
@@ -70,14 +70,20 @@ $fn = array_pop($m);
 	$(function(){
 		$("#img_<?=$arg['blocknum']?>").iframePostForm({
 			complete:function(data){
-				alert(data);
+//				if(html = $("<div />").html(data).find("li[img_id]").clone().wrap("<div>").parent().html()){
+//					alert(html);
+//				}else{
+					alert(data);
+//				}
 			}
 		});
 	});
 </script>
 <ul>
-	<? foreach($img as $k=>$v): ?>
-		<li><img src="/<?=$modpath?>:img/<?=$v['id']?>/tn:items_img/fn:img/w:120/h:100/null/img.jpg"></li>
+	<? if($img) foreach($img as $k=>$v): ?>
+		<li img_id="<?=$v['id']?>">
+			<img src="/<?=$modpath?>:img/<?=$v['id']?>/tn:items_img/fn:img/w:120/h:100/null/img.jpg">
+		</li>
 	<? endforeach; ?>
 </ul>
 <div>
