@@ -52,12 +52,9 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 		mpqw("DELETE FROM `". mpquot($param["Таблица"]). "` WHERE {$param["Вторичный ключ"]}=". (int)$_GET[ $param["Вторичный ключ"] ]. " AND id=". (int)$_POST['del']); exit($_POST['del']);
 		exit($_POST['del']);
 	}else{
-//		mpre($_POST); exit;
-		if($mpdbf = mpdbf($param["Таблица"])){
+		if($mpdbf = mpdbf($param["Таблица"], $_POST+array($param["Вторичный ключ"]=>$_GET[ $param["Вторичный ключ"] ]))){
 			mpqw($sql = "INSERT INTO `". mpquot($param["Таблица"]). "` SET {$mpdbf}");
-			echo $sql; exit;
-		}
-		$associated = array(($id = mysql_insert_id())=>array("id"=>$id, "name"=>$_POST['name']));
+		} $associated = array(($id = mysql_insert_id())=>array("id"=>$id)+$_POST);
 	}
 }else{
 	$associated = mpqn(mpqw($sql = "SELECT * FROM ". mpquot($param["Таблица"]). " WHERE {$param["Вторичный ключ"]}=". (int)$_GET["id"]));
