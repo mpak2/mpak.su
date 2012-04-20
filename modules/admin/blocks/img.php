@@ -51,13 +51,12 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 	$img_id = mpfdk($param["Таблица"],
 		null, $w = array("time"=>time(), "uid"=>$conf['user']['uid'], $param["Вторичный ключ"]=>$_GET[ $param["Вторичный ключ"] ])
 	);
-	if($img_id && ($fn = mpfdk($param["Таблица"], $img_id, "img"))){
-		echo "UPDATE ". mpquot($param["Таблица"]). " SET img=\"". mpquot($fn). "\" WHERE id=". (int)$img_id;
+	if($img_id && ($fn = mpfdk($param["Таблица"], "img", $img_id))){
+		echo "UPDATE ". mpquot($param["Таблица"]). " SET img=\"". mpquot($fn). "\" WHERE id=". (int)$_GET[ $param["Вторичный ключ"] ];
 	}
 };
 
 $img = mpqn(mpqw($sql = "SELECT * FROM ". mpquot($param["Таблица"]). ($_GET["id"] ? " WHERE {$param["Вторичный ключ"]}=". (int)$_GET["id"] : "")));
-//$mpager = mpager(mpql(mpqw("SELECT FOUND_ROWS()/15 AS cnt"), 0, 'cnt'));
 
 $get = mpgt($_SERVER['REQUEST_URI']);
 $m = $get['m'];
