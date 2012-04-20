@@ -97,8 +97,13 @@ $modpath = $m[1];
 	<ul>
 		<? if($img) foreach($img as $k=>$v): ?>
 			<li img_id="<?=$v['id']?>">
-				<a class="del" href="javascript:return false;"><img src="img/delete.png"></a>
-				<img src="/<?=$modpath?>:img/<?=$v['id']?>/tn:items_img/fn:img/w:70/h:70/null/img.jpg">
+				<div style="float:left;">
+					<a class="del" href="javascript:return false;"><img src="img/delete.png"></a>
+					<img src="/<?=$modpath?>:img/<?=$v['id']?>/tn:items_img/fn:img/w:70/h:70/null/img.jpg">
+				</div>
+				<div style="margin-left:30px;">
+					<input type="text">
+				</div>
 			</li>
 		<? endforeach; ?>
 	</ul>
