@@ -53,43 +53,46 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 	);
 	if($img_id && ($fn = mpfn($param["Таблица"], "img", $img_id))){
 		mpqw("UPDATE ". mpquot($param["Таблица"]). " SET img=\"". mpquot($fn). "\" WHERE id=". (int)$img_id. " AND {$param["Вторичный ключ"]}=". (int)$_GET[ $param["Вторичный ключ"] ]);
-	}// exit("$img_id");
-};
+	} $img = array($img_id=>array("id"=>$img_id));
+}else{
+	$img = mpqn(mpqw($sql = "SELECT * FROM ". mpquot($param["Таблица"]). " WHERE {$param["Вторичный ключ"]}=". (int)$_GET["id"]));
+}
 
-$img = mpqn(mpqw($sql = "SELECT * FROM ". mpquot($param["Таблица"]). ($_GET["id"] ? " WHERE {$param["Вторичный ключ"]}=". (int)$_GET["id"] : "")));
-
-$get = mpgt($_SERVER['REQUEST_URI']);
-$m = $get['m'];
-
-$modpath = array_pop(array_flip($m));
-$fn = array_pop($m);
+$m = explode("_", $param["Таблица"]);
+$modpath = $m[1];
 
 ?>
 <script src="/include/jquery/jquery.iframe-post-form.js"></script>
 <script>
 	$(function(){
-		$("#img_<?=$arg['blocknum']?>").iframePostForm({
+		$("#img_<?=$arg['blocknum']?> form").iframePostForm({
 			complete:function(data){
-//				if(html = $("<div />").html(data).find("li[img_id]").clone().wrap("<div>").parent().html()){
-//					alert(html);
-//				}else{
+				if(html = $("<div />").html(data).find("li[img_id]").clone().wrap("<div>").parent().html()){
+					$("#img_<?=$arg['blocknum']?> ul").append(html);
+				}else{
 					alert(data);
-//				}
+				}
 			}
 		});
 	});
 </script>
-<ul>
-	<? if($img) foreach($img as $k=>$v): ?>
-		<li img_id="<?=$v['id']?>">
-			<img src="/<?=$modpath?>:img/<?=$v['id']?>/tn:items_img/fn:img/w:120/h:100/null/img.jpg">
-		</li>
-	<? endforeach; ?>
-</ul>
-<div>
-	<form id="img_<?=$arg['blocknum']?>" method="post" action="/blocks/<?=$arg['blocknum']?>/theme:<?=$conf['settings']['theme']?>/<?=$param["Вторичный ключ"]?>:<?=(int)$_GET["id"]?>/null" enctype="multipart/form-data">
-		<input type="hidden" name="<?=$param["Вторичный ключ"]?>" value="<?=$_GET['id']?>">
-		<input type="file" name="img">
-		<input type="submit" value="Добавить">
-	</form>
+<style>
+	#img_<?=$arg['blocknum']?> ul li {float:left; height:80px; width:80px; position:relative;}
+</style>
+<div id="img_<?=$arg['blocknum']?>">
+	<ul>
+		<? if($img) foreach($img as $k=>$v): ?>
+			<li img_id="<?=$v['id']?>">
+				<a href="javascript:return false;" style="position:absolute;"><img src="img/delete.png"></a>
+				<img src="/<?=$modpath?>:img/<?=$v['id']?>/tn:items_img/fn:img/w:70/h:70/null/img.jpg">
+			</li>
+		<? endforeach; ?>
+	</ul>
+	<div>
+		<form method="post" action="/blocks/<?=$arg['blocknum']?>/theme:<?=$conf['settings']['theme']?>/<?=$param["Вторичный ключ"]?>:<?=(int)$_GET["id"]?>/null" enctype="multipart/form-data">
+			<input type="hidden" name="<?=$param["Вторичный ключ"]?>" value="<?=$_GET['id']?>">
+			<input type="file" name="img">
+			<input type="submit" value="Добавить">
+		</form>
+	</div>
 </div>
