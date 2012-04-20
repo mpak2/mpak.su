@@ -50,10 +50,15 @@ if ((int)$arg['confnum']){
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
 	if($_POST['del']){
 		mpqw("DELETE FROM `". mpquot($param["Таблица"]). "` WHERE {$param["Вторичный ключ"]}=". (int)$_GET[ $param["Вторичный ключ"] ]. " AND id=". (int)$_POST['del']); exit($_POST['del']);
+		exit($_POST['del']);
 	}else{
-		mpqw("INSERT INTO `". mpquot($param["Таблица"]). "` SET {$param["Вторичный ключ"]}=". (int)$_GET[ $param["Вторичный ключ"] ]. ", name=\"". $_POST['name']. "\"");
+//		mpre($_POST); exit;
+		if($mpdbf = mpdbf($param["Таблица"])){
+			mpqw($sql = "INSERT INTO `". mpquot($param["Таблица"]). "` SET {$mpdbf}");
+			echo $sql; exit;
+		}
+		$associated = array(($id = mysql_insert_id())=>array("id"=>$id, "name"=>$_POST['name']));
 	}
-	$associated = array(($id = mysql_insert_id())=>array("id"=>$id, "name"=>$_POST['name']));
 }else{
 	$associated = mpqn(mpqw($sql = "SELECT * FROM ". mpquot($param["Таблица"]). " WHERE {$param["Вторичный ключ"]}=". (int)$_GET["id"]));
 }
@@ -79,7 +84,11 @@ foreach(array_keys($f) as $v){
 		$("#associated_<?=$arg['blocknum']?> form").iframePostForm({
 			complete:function(data){
 				html = $("<div />").html(data).find("#associated_<?=$arg['blocknum']?> li[index_id]").wrap("<div>").parent().html();
-				$("#associated_<?=$arg['blocknum']?> ul").append(html);
+				if(html){
+					$("#associated_<?=$arg['blocknum']?> ul").append(html);
+				}else{
+					alert(data);
+				}
 			}
 		});
 		$("#associated_<?=$arg['blocknum']?> ul a.del").live("click", function(){
@@ -96,11 +105,11 @@ foreach(array_keys($f) as $v){
 	<ul class="">
 		<? foreach($associated as $v): ?>
 			<li index_id="<?=$v['id']?>">
-				<? foreach($v as $k=>$f): ?>
-					<? if((substr($f, -3, 3) == "_id") && ($f != $param["Вторичный ключ"])): ?>
-						<?=($tpl[$k][$f] ? "<span title='{$f}'>{$tpl[$k][$f]}</span>" : $f)?>
+				<? foreach($v as $k=>$val): if(($k == $param["Вторичный ключ"]) || ($k == 'id')) continue; ?>
+					<? if((substr($k, -3, 3) == "_id")): ?>
+						<?=($tpl[$k][$val] ? "<span title='{$val}'>{$tpl[$k][$val]['name']}</span>" : $k)?>
 					<? else: ?>
-						<span><?=$f?></span>
+						<span><?=$val?></span>
 					<? endif; ?>
 				<? endforeach; ?>
 				<span style="float:right;">
@@ -112,7 +121,17 @@ foreach(array_keys($f) as $v){
 		<? endforeach; ?>
 	</ul>
 	<form action="/blocks/<?=$arg['blocknum']?>/theme:<?=$conf['settings']['theme']?>/<?=$param["Вторичный ключ"]?>:<?=$_GET['id']?>/null" method="post">
-		<input type="text" name="name">
+		<? foreach($f as $k=>$v): if(($k == $param["Вторичный ключ"]) || ($k == 'id')) continue; ?>
+			<? if((substr($k, -3, 3) == "_id") && $tpl[$k]): ?>
+				<select name="<?=$k?>">
+					<? foreach($tpl[$k] as $s): ?>
+						<option value="<?=$s['id']?>"><?=$s['name']?></option>
+					<? endforeach; ?>
+				</select>
+			<? else: ?>
+				<span><input type="text" name="<?=$k?>"></span>
+			<? endif; ?>
+		<? endforeach; ?>
 		<input type="submit" value="Добавить">
 	</form>
 </div>
