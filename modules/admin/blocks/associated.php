@@ -58,11 +58,32 @@ $modpath = array_pop(array_flip($m));
 $fn = array_pop($m);
 
 ?>
-<ul>
-	<? foreach($associated as $k=>$v): ?>
-		<li><?=$v['name']?></li>
-	<? endforeach; ?>
-</ul>
-<div>
-	<input type="text" name="name">
+<script src="/include/jquery/jquery.iframe-post-form.js"></script>
+<script>
+	$(function(){
+		$("#associated_<?=$arg['blocknum']?> form").iframePostForm({
+			complete:function(data){
+				alert(data);
+			}
+		});
+		$("#associated_<?=$arg['blocknum']?> ul a.del").click(function(){
+			alert(123);
+		});
+	});
+</script>
+<div id="associated_<?=$arg['blocknum']?>">
+	<ul class="">
+		<? foreach($associated as $k=>$v): ?>
+			<li>
+				<span><?=$v['name']?></span>
+				<span style="float:right;">
+					<a class="del" href="javascript: return false;"><img src="img/delete.png"></a>
+				</span>
+			</li>
+		<? endforeach; ?>
+	</ul>
+	<form action="/blocks/<?=$arg['blocknum']?>/theme:<?=$conf['settings']['theme']?>/<?=$param["Вторичный ключ"]?>:<?=$_GET['id']?>/null" method="post">
+		<input type="text" name="name">
+		<input type="button" value="Добавить">
+	</form>
 </div>
