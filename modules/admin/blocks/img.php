@@ -90,13 +90,14 @@ $modpath = $m[1];
 	});
 </script>
 <style>
-	#img_<?=$arg['blocknum']?> ul li {float:left; height:80px; width:80px; position:relative;}
+	#img_<?=$arg['blocknum']?> ul li {height:80px; width:80px; position:relative;}
+	#img_<?=$arg['blocknum']?> ul li a.del {top:7px; left:3px; position:absolute;}
 </style>
 <div id="img_<?=$arg['blocknum']?>">
 	<ul>
 		<? if($img) foreach($img as $k=>$v): ?>
 			<li img_id="<?=$v['id']?>">
-				<a class="del" href="javascript:return false;" style="position:absolute;"><img src="img/delete.png"></a>
+				<a class="del" href="javascript:return false;"><img src="img/delete.png"></a>
 				<img src="/<?=$modpath?>:img/<?=$v['id']?>/tn:items_img/fn:img/w:70/h:70/null/img.jpg">
 			</li>
 		<? endforeach; ?>
