@@ -12,6 +12,7 @@ if ((int)$arg['confnum']){
 /*		"Количество символов"=>0,
 		"Курс доллара"=>30,*/
 		"Таблица"=>array(""=>"")+array_combine($tab, $tab),
+		"Связанная таблица"=>array(""=>"")+array_combine($tab, $tab),
 		"Вторичный ключ"=>"",
 //		"Город"=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users_sity ORDER BY name"),
 	);
