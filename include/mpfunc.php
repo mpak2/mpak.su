@@ -118,7 +118,7 @@ function mpde($string) {
 	} return null;
 }
 
-function mpfdk($tn, $find, $insert = array(), $update = array()){
+function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
 	global $conf, $arg;
 	if($find && ($fnd = mpdbf($tn, $find, 1)) &&
 		($sel = mpqn(mpqw($sql = "SELECT id FROM `". mpquot($tn). "` WHERE ". $fnd)))
