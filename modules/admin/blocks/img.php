@@ -48,7 +48,9 @@ if ((int)$arg['confnum']){
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
-	if($_POST['del']){
+	if($_POST['text']){
+		mpre($_POST); exit;
+	}elseif($_POST['del']){
 		mpqw("DELETE FROM ". mpquot($param["Таблица"]). " WHERE id=". (int)$_POST['del']. " AND {$param["Вторичный ключ"]}=". (int)$_GET[ $param["Вторичный ключ"] ]);
 		exit($_POST['del']);
 	}else{
@@ -72,6 +74,7 @@ $modpath = $m[1];
 	$(function(){
 		$("#img_<?=$arg['blocknum']?> form").iframePostForm({
 			complete:function(data){
+				$("#img_<?=$arg['blocknum']?> form input[type=file]").val("");
 				if(html = $("<div />").html(data).find("li[img_id]").clone().wrap("<div>").parent().html()){
 					$("#img_<?=$arg['blocknum']?> ul").append(html);
 				}else{
@@ -87,8 +90,16 @@ $modpath = $m[1];
 				}
 			});
 		});
-		$("#img_<?=$arg['blocknum']?> a.del").change(function(){
-			
+		$("#img_<?=$arg['blocknum']?> input[type=text]").change(function(){
+			text = $(this).val();// alert(text);
+			img_id = $(this).parents("[img_id]").attr("img_id");
+			$.post("/blocks/<?=$arg['blocknum']?>/theme:<?=$conf['settings']['theme']?>/<?=$param["Вторичный ключ"]?>:<?=(int)$_GET["id"]?>/null", {img_id:img_id, text:text}, function(data){
+				alert(data);
+			});
+			setTimeout(function(){
+				$(this).css("background-color", "green");
+				$(this).css("background-color", "");
+			}, 300)
 		});
 	});
 </script>
