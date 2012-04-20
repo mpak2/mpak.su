@@ -11,11 +11,9 @@ if ((int)$arg['confnum']){
 	$klesh = array(
 /*		"Количество символов"=>0,
 		"Курс доллара"=>30,*/
-		"Структура"=>array(
-			""=>"Список",
-			1=>"Дерево",
-		),
 		"Таблица"=>array(""=>"")+array_combine($tab, $tab),
+		"Вторичный ключ"=>"",
+//		"Город"=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users_sity ORDER BY name"),
 	);
 
 ?>
@@ -51,7 +49,7 @@ if ((int)$arg['confnum']){
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 //if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
 
-$list = mpqn(mpqw("SELECT * FROM ". mpquot($param["Таблица"])), 'catalog_id', 'id');
+$associated = mpqn(mpqw($sql = "SELECT * FROM ". mpquot($param["Таблица"]). " WHERE {$param["Вторичный ключ"]}=". (int)$_GET["id"]));
 
 $get = mpgt($_SERVER['REQUEST_URI']);
 $m = $get['m'];
@@ -60,42 +58,11 @@ $modpath = array_pop(array_flip($m));
 $fn = array_pop($m);
 
 ?>
-	<script src="/include/jquery/treeview/jquery.treeview.js" type="text/javascript"></script>
-	<link rel="stylesheet" href="/include/jquery/treeview/jquery.treeview.css" />
-	<script>
-		$(function(){
-			$(".treeview-gray").treeview({
-			});
-		});
-	</script>
-	<ul class="treeview-gray treeview">
-		<? $tree = function($catalog, $tree) use($tpl, $arg, $list, $modpath, $fn){ ?>
-			<li index_id="<?=$catalog['id']?>">
-				<div style="overflow:hidden;">
-					<span style="float:right;">
-						<span class="arrow" style="opacity:0">
-							<a class="down" href="javascript:" style="display:inline-block; width:15px; height:15px; background-image:url(img/arrow.png);"></a>
-							<a class="up" href="javascript:" style="background-repeat:no-repeat; background-position:-15px 0; display:inline-block; width:15px; height:15px; background-image:url(img/arrow.png);"></a>
-						</span>
-						<a style="display:none;" href="/<?=$arg['modname']?>:<?=$arg['fn']?>/catalog_id:<?=$catalog['id']?>/0" title="Добавить категорию"><img src="img/add.png"></a>
-						<a style="display:none;" href="/<?=$arg['modname']?>:<?=$arg['fn']?>/catalog_id:<?=$catalog['id']?>/0" title="Добавить товар"><img src="img/round_add_green.png"></a>
-						<a class="del" href="javascript:return false;" title="Удалить"><img src="img/delete.png"></a>
-						<a href="/<?=$modpath?>:admin_catalog/<?=$catalog['id']?>" title="Редактировать"><img src="img/edit.png"></a>
-						<input type="checkbox">
-					</span>
-					<span>
-						<a index_id="<?=$catalog['id']?>" href="/<?=$modpath?>:<?=$fn?>/<?=$catalog['id']?>">
-							<img src="img/folder_yell.png">&nbsp;<?=$catalog['name']?>
-						</a>
-					</span>
-				</div>
-				<? if($list[ $catalog['id'] ]): ?>
-					<ul>
-						<? foreach($list[ $catalog['id'] ] as $k=>$v): ?>
-							<?=$tree($v, $tree)?>
-						<? endforeach; ?>
-					</ul>
-				<? endif; ?>
-			</li>
-		<? }; $tree($list[0][1], $tree); ?>
-	</ul>
+<ul>
+	<? foreach($associated as $k=>$v): ?>
+		<li><?=$v['name']?></li>
+	<? endforeach; ?>
+</ul>
+<div>
+	<input type="text" name="name">
+</div>
