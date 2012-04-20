@@ -12,7 +12,6 @@ if ((int)$arg['confnum']){
 /*		"Количество символов"=>0,
 		"Курс доллара"=>30,*/
 		"Таблица"=>array(""=>"")+array_combine($tab, $tab),
-		"Связанная таблица"=>array(""=>"")+array_combine($tab, $tab),
 		"Вторичный ключ"=>"",
 //		"Город"=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users_sity ORDER BY name"),
 	);
@@ -59,11 +58,19 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 	$associated = mpqn(mpqw($sql = "SELECT * FROM ". mpquot($param["Таблица"]). " WHERE {$param["Вторичный ключ"]}=". (int)$_GET["id"]));
 }
 
+$f = mpqn(mpqw("SHOW COLUMNS FROM ". mpquot($param["Таблица"])), "Field");
+
 $get = mpgt($_SERVER['REQUEST_URI']);
 $m = $get['m'];
 
 $modpath = array_pop(array_flip($m));
 $fn = array_pop($m);
+
+foreach(array_keys($f) as $v){
+	if((substr($v, -3, 3) == "_id") && ($v != $param["Вторичный ключ"])){
+		$tpl[$v] = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$modpath}_". substr($v, 0, strlen($v)-3)));
+	}
+}// mpre($tpl);
 
 ?>
 <script src="/include/jquery/jquery.iframe-post-form.js"></script>
@@ -87,9 +94,15 @@ $fn = array_pop($m);
 </script>
 <div id="associated_<?=$arg['blocknum']?>">
 	<ul class="">
-		<? foreach($associated as $k=>$v): ?>
+		<? foreach($associated as $v): ?>
 			<li index_id="<?=$v['id']?>">
-				<span><?=$v['name']?></span>
+				<? foreach($v as $k=>$f): ?>
+					<? if((substr($f, -3, 3) == "_id") && ($f != $param["Вторичный ключ"])): ?>
+						<?=($tpl[$k][$f] ? "<span title='{$f}'>{$tpl[$k][$f]}</span>" : $f)?>
+					<? else: ?>
+						<span><?=$f?></span>
+					<? endif; ?>
+				<? endforeach; ?>
 				<span style="float:right;">
 					<a class="del" href="javascript: return false;">
 						<img src="img/delete.png">
