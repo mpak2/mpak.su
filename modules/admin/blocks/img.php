@@ -48,9 +48,9 @@ if ((int)$arg['confnum']){
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
-	if($_POST['text']){
+	if($_POST['description']){
 		mpqw("UPDATE ". mpquot($param["Таблица"]). " SET description=\"". mpquot($_POST['description']). "\" WHERE id=". (int)$_POST['img_id']);
-		exit("{$_POST['img_id']}");
+exit();	//		exit("{$_POST['img_id']}");
 	}elseif($_POST['del']){
 		mpqw("DELETE FROM ". mpquot($param["Таблица"]). " WHERE id=". (int)$_POST['del']. " AND {$param["Вторичный ключ"]}=". (int)$_GET[ $param["Вторичный ключ"] ]);
 		exit($_POST['del']);
@@ -91,18 +91,21 @@ $modpath = $m[1];
 				}
 			});
 		});
-		$("#img_<?=$arg['blocknum']?> input[type=text]").change(function(){
-			var main = this;
+		$("#img_<?=$arg['blocknum']?> input[type=text]").live("change", function(){
 			text = $(this).val();// alert(text);
 			img_id = $(this).parents("[img_id]").attr("img_id");
-			$.post("/blocks/<?=$arg['blocknum']?>/theme:<?=$conf['settings']['theme']?>/<?=$param["Вторичный ключ"]?>:<?=(int)$_GET["id"]?>/null", {img_id:img_id, text:text}, function(data){
+			$(main = this).css("background-color", "#6f6");
+			setTimeout(function(){
+				$(main).css("background-color", "");
+			}, 300);
+			$.post("/blocks/<?=$arg['blocknum']?>/theme:<?=$conf['settings']['theme']?>/<?=$param["Вторичный ключ"]?>:<?=(int)$_GET["id"]?>/null", {img_id:img_id, description:text}, function(data){
 				if(isNaN(data)){ alert(data) }else{
-					setTimeout(function(){
-						$(main).css("background-color", "green");
-						$(main).css("background-color", "");
-					}, 300)
+					
 				}
 			});
+		});
+		$("#img_<?=$arg['blocknum']?> input[type=button]").click(function(){
+			$(this).parents("[img_id]").find("input[type=text]").change();
 		});
 	});
 </script>
@@ -119,7 +122,8 @@ $modpath = $m[1];
 					<img src="/<?=$modpath?>:img/<?=$v['id']?>/tn:items_img/fn:img/w:70/h:70/null/img.jpg">
 				</div>
 				<div style="margin-left:90px;">
-					<input type="text">
+					<div><input type="text"></div>
+					<div style="margin:5px 0; text-align:right; width:100%;"><input type="button" value="Сохранить"></div>
 				</div>
 			</li>
 		<? endforeach; ?>
