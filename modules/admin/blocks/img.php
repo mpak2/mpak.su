@@ -94,7 +94,7 @@ $modpath = $m[1];
 		$("#img_<?=$arg['blocknum']?> input[type=text]").live("change", function(){
 			text = $(this).val();// alert(text);
 			img_id = $(this).parents("[img_id]").attr("img_id");
-			$(main = this).css("background-color", "#6f6");
+			$(main = this).css("background-color", "#4f4");
 			setTimeout(function(){
 				$(main).css("background-color", "");
 			}, 300);
@@ -122,7 +122,7 @@ $modpath = $m[1];
 					<img src="/<?=$modpath?>:img/<?=$v['id']?>/tn:items_img/fn:img/w:70/h:70/null/img.jpg">
 				</div>
 				<div style="margin-left:90px;">
-					<div><input type="text"></div>
+					<div><input type="text" value="<?=$v['description']?>"></div>
 					<div style="margin:5px 0; text-align:right; width:100%;"><input type="button" value="Сохранить"></div>
 				</div>
 			</li>
