@@ -83,6 +83,14 @@ if ((int)$arg['confnum']){
 
 $item = mpql(mpqw("SELECT * FROM ". mpquot($param["Таблица"]). " WHERE id=". (int)$_GET['id']), 0);
 
+$f = mpqn(mpqw("SHOW COLUMNS FROM ". mpquot($param["Таблица"])), 'Field');
+
+foreach($f as $k=>$v){
+	if(substr($k, -3, 3) == "_id"){
+		
+	}
+}
+
 $get = mpgt($_SERVER['REQUEST_URI']);
 $m = $get['m'];
 
