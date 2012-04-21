@@ -85,9 +85,11 @@ $item = mpql(mpqw("SELECT * FROM ". mpquot($param["Таблица"]). " WHERE id
 
 $f = mpqn(mpqw("SHOW COLUMNS FROM ". mpquot($param["Таблица"])), 'Field');
 
+$pr = implode("_", array_slice(explode("_", $param["Таблица"]), 0, 2));
+
 foreach($f as $k=>$v){
 	if(substr($k, -3, 3) == "_id"){
-		
+		$tpl[$k] = mpqn(mpqw($sql = "SELECT * FROM {$pr}_". substr($k, 0, strlen($k)-3)));
 	}
 }
 
@@ -117,6 +119,12 @@ $fn = array_pop($m);
 							<div><img src="/<?=$modpath?>"></div>
 						<? elseif($param[ $k ]["type"] == "wysiwyg"): ?>
 							<?=mpwysiwyg($k, $v)?>
+						<? elseif($tpl[$k]): ?>
+							<select name="<?=$k?>">
+								<? foreach($tpl[$k] as $v): ?>
+									<option><?=$v['name']?></option>
+								<? endforeach; ?>
+							</select>
 						<? else: ?>
 							<input type="text" value="<?=$v?>" style="width:100%;">
 						<? endif; ?>
