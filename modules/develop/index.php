@@ -25,9 +25,9 @@ if(array_key_exists("null", $_GET)){
 		header("Location: ". $_SERVER['REQUEST_URI']);
 	}elseif($_POST['golos']){
 		mpevent("Голосование за задачу", $_POST['golos']);
-		mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_golos SET time=". time(). ", pid=". (int)$_POST['golos']. ", sid=". (int)$conf['user']['sess']['id']);
+		mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_golos SET time=". time(). ", pid=". (int)$_POST['golos']. ", sid=". (int)$conf['user']['sess']['id']. " ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)");
 		mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']}_plan SET time=". time(). " WHERE id=". (int)$_POST['golos']);
-		echo $_POST['golos']; exit;
+		exit($_POST['golos']);
 	}
 }
 
