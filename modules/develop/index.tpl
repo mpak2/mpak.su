@@ -65,7 +65,7 @@
 <script src="/include/jquery/my/jquery.klesh.select.js"></script>
 <script>
 	$(function(){
-		$(".klesh").klesh("/<?=$arg['modpath']?>", function(){
+		$(".klesh").klesh("/<?=$arg['modpath']?>/null", function(){
 		}, <?=json_encode($conf['tpl']['cat'])?>)
 		$('.golos a').click(function (){
 			id = $(this).attr('name');
