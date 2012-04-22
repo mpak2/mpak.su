@@ -55,18 +55,18 @@
 	border-top-left-radius: 5px;
 	border-top-right-radius: 5px;
 }
-
+.jedit {
+/*	border: 1px solid red;*/
+	float: left;
+}
 .conmment input[type='text'],textarea {width:100%;}
 .com {margin-top:10px;}
 .com > div {overflow:hidden; margin-top:10px;}
 .com > div > div:first-child {float:right; margin:0 0 0 10px; /*font-style:italic; */font-weight:bold;}
 .com > div > div:nth-child(2) {float:left; margin:0 10px 0 0; color:blue;}
 </style>
-<script src="/include/jquery/my/jquery.klesh.select.js"></script>
 <script>
 	$(function(){
-		$(".klesh").klesh("/<?=$arg['modpath']?>", function(){
-		}, <?=json_encode($conf['tpl']['cat'])?>)
 		$('.golos a').click(function (){
 			id = $(this).attr('name');
 			$("a[name="+id+"]").html("Принят");
@@ -78,6 +78,22 @@
 				}
 			});
 		});
+		$('.jedit').editable(
+			"/<?=$arg['modpath']?>:<?=$arg['fn']?>/kid:<?=(int)$_GET['kid']?>/null",
+			{
+				data   : '<?=json_encode($conf['tpl']['cat'])?>',
+				type   : 'select',
+				width : '100%',
+	//			height: 'none',
+	//			style : 'display: inline;',
+				submit : 'ОК',
+				indicator : "<img src='data:image/jpeg;base64,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'>",
+				submitdata : function(value, settings) {
+//					alert(value);
+//					return value;
+				},
+			}
+		);
 		$(".com_open").click(function(){
 			$(this).parents(".comment").find("> div:eq(1)").slideToggle();
 		});
@@ -106,7 +122,7 @@
 <div style="border-bottom:1px solid black; overflow:hidden; margin:0 15px;">
 	<? foreach($conf['tpl']['cat'] as $k=>$v): ?>
 		<div class="mn"<?=(isset($_GET['kid']) && $_GET['kid'] == $k ? " style='background-color:#eee;'" : '')?>>
-			<a href="/<?=$arg['modname']?>/kid:<?=(int)$k?>"><?=$v?></a> [<? $summ+=$conf['tpl']['cc'][ $k ]; echo (int)$conf['tpl']['cc'][ $k ] ?>]
+			<a href="/<?=$arg['modname']?>/kid:<?=$k?>"><?=$v?></a> [<? $summ+=$conf['tpl']['cc'][ $k ]; echo (int)$conf['tpl']['cc'][ $k ] ?>]
 		</div>
 	<? endforeach; ?>
 	<div class="mn"<?=(!isset($_GET['kid']) ? " style='background-color:#eee;'" : '')?>>
@@ -115,15 +131,15 @@
 </div>
 
 <? if(empty($_GET['id'])): ?>
-	<div style="padding:5px; overflow:hidden;">
-		<form method="post" action="/<?=$arg['modname']?>/kid:0">
-			<div id="new" style="margin-top:3px; text-align:right;">
-				<textarea name="plan" style="width:100%;" title="Ваше предложение"></textarea>
-				<input type="submit" name="submit" value="Добавить">
-			</div>
-		</form>
-		<? echo mpager($conf['tpl']['pcount']); ?>
-	</div>
+<div style="padding:5px; overflow:hidden;">
+	<form method="post" action="/<?=$arg['modname']?>/kid:0">
+		<div id="new" style="margin-top:3px; text-align:right;">
+			<textarea name="plan" style="width:100%;" title="Ваше предложение"></textarea>
+			<input type="submit" name="submit" value="Добавить">
+		</div>
+	</form>
+	<? echo mpager($conf['tpl']['pcount']); ?>
+</div>
 <? endif; ?>
 
 <? foreach($conf['tpl']['dev'] as $k=>$v): ?>
@@ -139,11 +155,12 @@
 			</div>
 		</div>
 		<div class="my_right">
+			<div style="float:right; padding:5px 10px;"><?$conf['tpl']['cat'][ $v['kid'] ]?></div>
 			<div style="float:right;">
 				<?=date('Y.m.d H:i:s', $v['time'])?>
 			</div>
 			<div style="float:left;">
-				<div plan_id="<?=$v['id']?>" class="klesh"><?=$conf['tpl']['cat'][ $v['kid'] ]?></div>
+				<div class="jedit" id="<?=$v['id']?>"><?=$conf['tpl']['cat'][ $v['kid'] ]?></div>
 			</div>
 			<div style="margin-top:30px; font-weight:bold;">
 				<? if($arg['access'] > 3): ?>

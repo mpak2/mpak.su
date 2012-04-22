@@ -1,6 +1,6 @@
 <? die;
 
-$conf['tpl']['cat'] = spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_kat ORDER BY sort DESC")+array(0=>"Новые");
+$conf['tpl']['cat'] = spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_kat ORDER BY sort DESC")+array('0'=>'Новое');
 
 if($_POST['text'] && array_key_exists('null', $_GET)){
 	$_POST['text'] = preg_replace( '/(?<!S)((http(s?):\/\/)|(www\.[A-Za-zА-Яа-яЁё0-9-_]+\.))+([A-Za-zА-Яа-яЁё0-9\/*+-_?&;:%=.,#]+)/u', '<a href="http$3://$4$5" target="_blank" rel="nofollow">http$3://$4$5</a>', htmlspecialchars($_POST['text']));
