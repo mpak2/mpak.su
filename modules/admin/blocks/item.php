@@ -78,6 +78,12 @@ if ((int)$arg['confnum']){
 } $param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
+	if($mpdbf = mpdbf(mpquot($param["Таблица"]), $_POST)){
+		mpqw("INSERT INTO `". mpquot($param["Таблица"]). "` SET {$mpdbf} ON DUPLICATE KEY UPDATE {$mpdbf}, id=LAST_INSERT_ID(id)");
+	} if($id = mysql_insert_id()){
+		header("Location: ". $_SERVER['HTTP_REFERER']); exit();
+	}
+
 	mpre($_POST); exit();
 };
 
@@ -107,7 +113,7 @@ $fn = array_pop($m);
 <form method="post" action="/blocks/<?=$arg['blocknum']?>/theme:<?=$conf['settings']['theme']?>/null">
 	<ul class="items_<?=$arg['blocknum']?>">
 		<li>
-			<? foreach($item as $k=>$v): if($param[ $k ]["type"] == "hide") continue; ?>
+			<? foreach(array_diff_key($item, array_flip(array("id"))) as $k=>$v): if($param[ $k ]["type"] == "hide") continue; ?>
 				<div>
 					<span><?=(($n = $param[ $k ]["name"]) ? "<span title='$k'>$n</span>" : "<span style=color:gray>$k</span>")?></span>
 					<span>

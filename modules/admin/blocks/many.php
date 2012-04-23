@@ -54,7 +54,8 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 	}else{
 		if($mpdbf = mpdbf($param["Таблица"], $_POST+array($param["Вторичный ключ"]=>$_GET[ $param["Вторичный ключ"] ]))){
 			mpqw($sql = "INSERT INTO `". mpquot($param["Таблица"]). "` SET {$mpdbf}");
-		} $associated = array(($id = mysql_insert_id())=>array("id"=>$id)+$_POST);
+		} $associated = array(($id = mysql_insert_id())=>array("id"=>$id, $param["Вторичный ключ"]=>$_GET[ $param["Вторичный ключ"] ])+$_POST);
+		mpre($associated); exit;
 	}
 }else{
 	$associated = mpqn(mpqw($sql = "SELECT * FROM ". mpquot($param["Таблица"]). " WHERE {$param["Вторичный ключ"]}=". (int)$_GET["id"]));
