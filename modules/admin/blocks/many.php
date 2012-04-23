@@ -55,7 +55,7 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 		if($mpdbf = mpdbf($param["Таблица"], $_POST+array($param["Вторичный ключ"]=>$_GET[ $param["Вторичный ключ"] ]))){
 			mpqw($sql = "INSERT INTO `". mpquot($param["Таблица"]). "` SET {$mpdbf}");
 		} $associated = array(($id = mysql_insert_id())=>array("id"=>$id, $param["Вторичный ключ"]=>$_GET[ $param["Вторичный ключ"] ])+$_POST);
-		mpre($associated); exit;
+//		mpre($associated); exit;
 	}
 }else{
 	$associated = mpqn(mpqw($sql = "SELECT * FROM ". mpquot($param["Таблица"]). " WHERE {$param["Вторичный ключ"]}=". (int)$_GET["id"]));
@@ -71,9 +71,9 @@ $fn = array_pop($m);
 
 foreach(array_keys($f) as $v){
 	if((substr($v, -3, 3) == "_id") && ($v != $param["Вторичный ключ"])){
-		$tpl[$v] = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$modpath}_". substr($v, 0, strlen($v)-3)));
+		$tpl[$v] = mpqn(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}catalog_". substr($v, 0, strlen($v)-3)));
 	}
-}// mpre($tpl);
+}// mpre($tpl); exit;
 
 ?>
 <script src="/include/jquery/jquery.iframe-post-form.js"></script>
@@ -100,7 +100,7 @@ foreach(array_keys($f) as $v){
 	});
 </script>
 <div id="associated_<?=$arg['blocknum']?>">
-	<ul class="">
+	<ul>
 		<? foreach($associated as $v): ?>
 			<li index_id="<?=$v['id']?>">
 				<? foreach($v as $k=>$val): if(($k == $param["Вторичный ключ"]) || ($k == 'id')) continue; ?>
