@@ -77,14 +77,12 @@ if ((int)$arg['confnum']){
 
 } $param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
-/*if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
+if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
 	mpre($_POST); exit();
-};*/
+};
 
 $item = mpql(mpqw("SELECT * FROM ". mpquot($param["Таблица"]). " WHERE id=". (int)$_GET['id']), 0);
-
 $f = mpqn(mpqw("SHOW COLUMNS FROM ". mpquot($param["Таблица"])), 'Field');
-
 $pr = implode("_", array_slice(explode("_", $param["Таблица"]), 0, 2));
 
 foreach($f as $k=>$v){
@@ -106,7 +104,7 @@ $fn = array_pop($m);
 	.items_<?=$arg['blocknum']?> li span:first-child {width:100px;}
 	.items_<?=$arg['blocknum']?> li span:last-child {width:80%;}
 </style>
-<form method="post">
+<form method="post" action="/blocks/<?=$arg['blocknum']?>/theme:<?=$conf['settings']['theme']?>/null">
 	<ul class="items_<?=$arg['blocknum']?>">
 		<li>
 			<? foreach($item as $k=>$v): if($param[ $k ]["type"] == "hide") continue; ?>
@@ -126,7 +124,7 @@ $fn = array_pop($m);
 								<? endforeach; ?>
 							</select>
 						<? else: ?>
-							<input type="text" value="<?=$v?>" style="width:100%;">
+							<input type="text" name="<?=$k?>" value="<?=$v?>" style="width:100%;">
 						<? endif; ?>
 					</span>
 				</div>
