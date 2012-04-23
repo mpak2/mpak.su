@@ -35,9 +35,9 @@ jQuery.fn.klesh = function(action, callbackFnk, select){
 			}
 			if(val != old){
 				$.post(action, attr, function(data){
-					if(isNaN(data)/* && (typeof callbackFnk != 'function')*/){
+//					if(isNaN(data)/* && (typeof callbackFnk != 'function')*/){
 						alert(data);
-					};
+//					};
 				});
 			};
 			$(this).parent().parent().attr("old", select ? select[val] : val).html(select ? select[val] : val).bind("click", f);
