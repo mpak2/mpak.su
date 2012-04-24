@@ -81,12 +81,10 @@ if ((int)$arg['confnum']){
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
 	if($mpdbf = mpdbf(mpquot($param["Таблица"]), $_POST)){
-		mpqw("INSERT INTO `". mpquot($param["Таблица"]). "` SET {$mpdbf} ON DUPLICATE KEY UPDATE {$mpdbf}, id=LAST_INSERT_ID(id)"); exit;
+		mpqw("INSERT INTO `". mpquot($param["Таблица"]). "` SET id=". (int)$_GET['id']. ",{$mpdbf} ON DUPLICATE KEY UPDATE {$mpdbf}");// exit;
 	} if($id = mysql_insert_id()){
 		header("Location: ". $_SERVER['HTTP_REFERER']); exit();
 	}
-
-	mpre($_POST); exit();
 };
 
 $item = mpql(mpqw("SELECT * FROM ". mpquot($param["Таблица"]). " WHERE id=". (int)$_GET['id']), 0);
