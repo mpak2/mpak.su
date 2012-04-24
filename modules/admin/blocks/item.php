@@ -4,9 +4,10 @@ if ((int)$arg['confnum']){
 	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0, 'param'));
 	if ($_POST){
 		if($_POST['type']){
-			$param = array($_POST['fn']=>array($_POST['type']=>$_POST['val'])+(array)$param[$_POST['fn']])+(array)$param;
+			$param[ $_POST['fn'] ][ $_POST['type'] ] = $_POST['val'];
+//			$param = array($_POST['fn']=>array($_POST['type']=>$_POST['val'])+(array)$param[$_POST['fn']])
 		}else{
-			$param = array($_POST['param']=>$_POST['val'])+(array)$param;
+			$param = $param[ $_POST['param'] ] = $_POST['val'];
 		}
 		mpqw("UPDATE {$conf['db']['prefix']}blocks SET param = '".serialize($param)."' WHERE id = {$arg['confnum']}");
 	} if(array_key_exists("null", $_GET)) exit;
@@ -65,11 +66,12 @@ if ((int)$arg['confnum']){
 				$(".klesh[type=name]").klesh("/?m[blocks]=admin&r=mp_blocks&null&conf=<?=$arg['confnum']?>");
 			});
 		</script>
+<? mpre($param); ?>
 		<? foreach($fn as $k=>$v): ?>
 			<div>
 				<span><?=$k?></span>
 				<span><div class="klesh" fn="<?=$k?>" type="name"><?=$param[ $k ]["name"]?></div></span>
-				<span><div class="klesh" fn="<?=$k?>" type="type"><?=$type[ $param[ $k ]["type"] ]?></div></span>
+				<span><div class="klesh" fn="<?=$k?>" type="type"><?=$param[ $k ]["type"]?></div></span>
 			</div>
 		<? endforeach; ?>
 	</div>
