@@ -12,7 +12,7 @@ if ((int)$arg['confnum']){
 		mpqw("UPDATE {$conf['db']['prefix']}blocks SET param = '".serialize($param)."' WHERE id = {$arg['confnum']}");
 	} if(array_key_exists("null", $_GET)) exit;
 
-	$tab = array_keys(mpqn(mpqw("SHOW TABLES"), 'Tables_in_c0e1bd4510d1ed2'));
+	$tab = array_keys(mpqn(mpqw("SHOW TABLES"), "Tables_in_c0e1bd4510d1ed2"));
 	$klesh = array(
 /*		"Количество символов"=>0,
 		"Курс доллара"=>30,
