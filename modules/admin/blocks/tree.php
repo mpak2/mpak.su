@@ -65,7 +65,7 @@ $fn = array_pop($m);
 	<script>
 		$(function(){
 			$(".treeview-gray").treeview();
-			$(".treeview a[index_id=<?=(int)$_GET['id']?>]").parents("div").css("background-color", "#eee");
+			$(".treeview a[index_id=<?=(int)$_GET['id']?>]").parents("div").eq(0).css("background-color", "#eee");
 		});
 	</script>
 	<ul class="treeview-gray treeview">

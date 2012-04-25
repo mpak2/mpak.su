@@ -96,7 +96,7 @@ $fn = array_pop($m);
 	});
 </script>
 <div id="associated_<?=$arg['blocknum']?>">
-	<ul class="">
+	<ul>
 		<? foreach($associated as $k=>$e): ?>
 			<li index_id="<?=$v['id']?>">
 				<? foreach($fields as $f=>$v): ?>
