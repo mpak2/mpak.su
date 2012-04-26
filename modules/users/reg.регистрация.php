@@ -26,7 +26,7 @@ if (isset($_POST['add']) && strlen($_POST['name']) && strlen($_POST['pass']) && 
 		if($uid = mysql_insert_id()){
 			if($mpdbf = mpdbf($tn, array_intersect_key($_POST, $conf['tpl']['fields']))){
 				mpqw($sql = "UPDATE $tn SET $mpdbf WHERE id=".(int)$uid);
-			} mpevent("Регистрация нового пользователя", $_POST['name']);
+			} mpevent("Регистрация нового пользователя", $_POST['name'], $uid, $_POST);
 			mpqw("UPDATE {$conf['db']['prefix']}sess SET uid=$uid WHERE id={$conf['user']['sess']['id']}");
 			$gg = mpql(mpqw($sql = "SELECT id FROM {$conf['db']['prefix']}users_grp WHERE name = '{$conf['settings']['user_grp']}'"), 0, 'id');// echo $sql;
 			mpqw($sql = "INSERT INTO {$conf['db']['prefix']}users_mem SET uid=".(int)$uid.", gid=".(int)$gg);
