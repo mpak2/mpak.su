@@ -54,6 +54,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_event_send"){
 
 //			'title' => array('name'=>'Имя', 'cnt'=>'Клиник', 'description'=>'Описание'), # Название полей
 //			'etitle'=> array(),
+			'etitle'=> array('time'=>'Время', 'uid'=>'Пользователь', 'count'=>'Количество', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'text'=>'Текст', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'description'=>'Описание'),
 			'type' => array('time'=>'timestamp', 'img'=>'file', 'description'=>'textarea', 'text'=>'wysiwyg'), # Тип полей
 			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('orderby'=>$orderby), # Значение которое всегда будет присвоено полю. Исключает любое изменение
@@ -380,9 +381,9 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_event_send"){
 //			'middle' => array('tr'=>'<tr>', 'td'=>'<td>', 'shablon'=>"<tr><td>{sql:name}</td><td>&nbsp;{sql:img}</td><td>&nbsp;{sql:description}</td><td align='right'>{config:row-edit}</td></tr>"), # Формат записей таблицы
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
-			'title' => array('time'=>'Время', 'event_id'=>"Событие", 'uid'=>"Пользователь", "own"=>"Владелец", 'return'=>'Функция', 'description'=>'Описание'), # Название полей
-//			'etitle'=> array(),
-			'type' => array('time'=>'timestamp', 'description'=>"textarea", 'zam'=>'textarea', 'text'=>'wysiwyg'), # Тип полей
+			'title' => array('time'=>'Время', 'event_id'=>"Событие", 'uid'=>"Пользователь", "own"=>"Владелец", 'return'=>'Функция', 'description'=>'Описание'),
+			'etitle'=> array('time'=>'Время', 'uid'=>'Пользователь', 'count'=>'Количество', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'text'=>'Текст', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'description'=>'Описание'),
+			'type' => array('time'=>'timestamp', 'description'=>"textarea", 'zam'=>'textarea', 'text'=>'wysiwyg'),
 //			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('orderby'=>$orderby), # Значение которое всегда будет присвоено полю. Исключает любое изменение
 //			'shablon' => array(
