@@ -16,7 +16,7 @@
 // ----------------------------------------------------------------------
 
 $conf['settings'] += array(
-	"{$arg['modpath']}_index"=>$arg['modname'],
+	"{$arg['modpath']}_index"=>$conf['modules'][ $arg['modname'] ]['name'],
 );
 
 foreach(mpql(mpqw("SHOW TABLES WHERE Tables_in_{$conf['db']['name']} LIKE \"{$conf['db']['prefix']}{$arg['modpath']}\_%\"")) as $k=>$v){
