@@ -13,9 +13,9 @@ $menu = array(
 	array('rid'=>1, 'name'=>'Чат', 'link'=>'/chat','description'=>'Место для общения',),
 
 	array('rid'=>2, 'name'=> 'Обо мне', 'link'=>'/users/0', 'description'=> 'Рассказ о себе',),
-	array('rid'=>2, 'name'=> 'Услуги', 'link'=>'/pages/pid:3', 'description'=> 'Список услуг',),
-	array('rid'=>2, 'name'=> 'Цены', 'link'=>'/pages/pid:4', 'description'=> 'Прайс лист',),
-	array('rid'=>2, 'name'=> 'Котакты', 'link'=>'/pages/pid:5', 'description'=> 'Контактные данные',),
+	array('rid'=>2, 'name'=> 'Услуги', 'link'=>'/pages/3', 'description'=> 'Список услуг',),
+	array('rid'=>2, 'name'=> 'Цены', 'link'=>'/pages/4', 'description'=> 'Прайс лист',),
+	array('rid'=>2, 'name'=> 'Котакты', 'link'=>'/pages/5', 'description'=> 'Контактные данные',),
 );
 
 foreach($menu as $n=>$line){

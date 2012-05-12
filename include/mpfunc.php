@@ -90,14 +90,15 @@ function mpue($name){
 function mpmc($key, $data = null, $compress = 0, $limit = 10000, $event = true){
 	global $conf;
 	if(!function_exists('memcache_connect')) return false;
-	$memcache = memcache_connect("localhost", 11211);
-	if($data){
-		memcache_set($memcache, $key, $data, $compress, $limit);
-//		if($event) mpevent($conf['settings']['users_event_memcache_set'], $key, $conf['user']['uid']);
-	}else{
-		$mc = memcache_get($memcache, $key);
-//		if($event) mpevent($conf['settings']['users_event_memcache_get'], $key, $conf['user']['uid']);
-	} return $mc;
+	if($memcache = @memcache_connect("localhost", 11211)){
+		if($data){
+			memcache_set($memcache, $key, $data, $compress, $limit);
+	//		if($event) mpevent($conf['settings']['users_event_memcache_set'], $key, $conf['user']['uid']);
+		}else{
+			$mc = memcache_get($memcache, $key);
+	//		if($event) mpevent($conf['settings']['users_event_memcache_get'], $key, $conf['user']['uid']);
+		} return $mc;
+	}
 }
 
 function mprb($arr, $key = 'id'){
@@ -250,20 +251,20 @@ function mpgt($REQUEST_URI, $get = array()){
 	$part = explode('/', $part[0], 3);
 	$mod = explode(':', $part[1]);
 	if(!empty($mod[0])){
-		$get['m'] = array(urldecode($mod[0])=>urldecode($mod[1]));
+		$get['m'] = array(urldecode(@$mod[0])=>urldecode(@$mod[1]));
 		if($mod[0] == 'include' || urldecode($mod[0]) == 'img') $get['null'] = '';
 	}
-	if($part[2] != ''){
+	if(!empty($part[2]) && $part[2] != ''){
 		foreach(explode('/', $part[2]) as $k=>$v){
 			if($param = explode(':', $v, 2)){
 				if(!empty($param[0]) && !is_numeric($param[0])){
-					$get += array(urldecode($param[0])=>urldecode($param[1]));
+					$get += array(@urldecode($param[0])=>@urldecode($param[1]));
 				}elseif(is_numeric($param[0])){
 					$get += array('id'=>$param[0]);
 				}
 			}
 		}
-	} if($get['стр']) $get['p'] = $get['стр'];
+	} if(!empty($get['стр']) && $get['стр']) $get['p'] = $get['стр'];
 //	$_SERVER['HTTP_REFERER'] = mpidn(urldecode($_SERVER['HTTP_REFERER']));
 //	$_SERVER['HTTP_HOST'] = mpidn(urldecode($_SERVER['HTTP_HOST']));
 	return $get;
@@ -337,17 +338,17 @@ function spisok($sql, $str_len = null, $left_pos = 0){
 
 function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf;
-	if(!$prefix){
+	if($prefix === null){
 		$file = $_FILES[$fn];
 	}else{
 		$file = array(
-			'name'=>$_FILES[$prefix]['name'][$fn],
-			'type'=>$_FILES[$prefix]['type'][$fn],
-			'tmp_name'=>$_FILES[$prefix]['tmp_name'][$fn],
-			'error'=>$_FILES[$prefix]['error'][$fn],
-			'size'=>$_FILES[$prefix]['size'][$fn],
+			'name'=>$_FILES[$fn]['name'][$prefix],
+			'type'=>$_FILES[$fn]['type'][$prefix],
+			'tmp_name'=>$_FILES[$fn]['tmp_name'][$prefix],
+			'error'=>$_FILES[$fn]['error'][$prefix],
+			'size'=>$_FILES[$fn]['size'][$prefix],
 		);
-	}// mpre($_FILES[$prefix]); mpre($file);
+	} /*mpre($_FILES[$fn]); mpre($file);*/
 	if($file['error'] === 0){
 		if ($exts[ $file['type'] ] || isset($exts['*'])){
 			if(!($ext = $exts[ $file['type'] ])){
@@ -757,8 +758,15 @@ function mpgc($value, $param = null){
 
 function mpwysiwyg($name, $content = null, $tpl = ""){
 	global $conf;
-//	if(mpopendir('include/spaw2')){
-	if(!empty($conf['modules']['tinymce']['access'])){
+	if(!empty($conf['modules']['redactor']['access'])){
+		$conf['settings']['redactor_name'] = $name;
+		$conf['settings']['redactor_text'] = $content;
+		if($tpl && $fn = mpopendir("modules/redactor/". basename($tpl))){
+			include $fn;
+		}else{
+			include mpopendir("modules/redactor/wysiwyg.tpl");
+		}
+	}elseif(!empty($conf['modules']['tinymce']['access'])){
 		$conf['settings']['tinymce_name'] = $name;
 		$conf['settings']['tinymce_text'] = $content;
 		if($tpl && $fn = mpopendir("modules/tinymce/". basename($tpl))){
@@ -789,13 +797,13 @@ function mpmenu($m = array()){
 	if(array_key_exists("null", $_GET)) return false;
 
 	$tab = (int)$_GET['r'];
-	echo <<<EOF
+/*	echo <<<EOF
 		<script>
 			$(document).ready(function(){
 				$('.tabs li.{$tab}').add('.tabs li.{$_GET['r']}').addClass('act');
 			});
 		</script>
-EOF;
+EOF;*/
 	if(empty($conf['settings']['admin_help_hide'])){
 		echo '<div style="float:right; margin:5px;"><a target=blank href="http://mpak.su/help/modpath:'. $arg['modpath']. "/fn:". $arg['fn']. '/r:'. $_GET['r']. '">Помощь</a></div>';
 	}
@@ -919,7 +927,7 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 		'gif' => 'imagegif',
 	);
 	$ext = array_pop(explode('.', $file_name));
-	$cache_name = ini_get('upload_tmp_dir'). "/images";
+	$cache_name = (ini_get('upload_tmp_dir') ?: "/tmp"). "/images";
 	$host_name = strpos('www.', $_SERVER['SERVER_NAME']) === 0 ? substr($_SERVER['SERVER_NAME'], 4) : $_SERVER['SERVER_NAME'];
 	$fl_name = (int)$max_width. "x". (int)$max_height. "x". (int)$crop. "_" .basename($file_name);
 	$prx = basename(dirname($file_name));

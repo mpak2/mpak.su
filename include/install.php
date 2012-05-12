@@ -165,7 +165,7 @@ EOF;
 
 	mpqw("UPDATE {$conf['db']['prefix']}settings SET `value`='{$_POST['title']}' WHERE `name`='title'");
 	mpqw("UPDATE {$conf['db']['prefix']}settings SET `value`='{$_POST['user']}' WHERE `name`='admin_usr'");
-	mpqw("UPDATE {$conf['db']['prefix']}settings SET `value`='/pages/pid:1' WHERE `name`='start_mod'");
+	mpqw("UPDATE {$conf['db']['prefix']}settings SET `value`='/pages/1' WHERE `name`='start_mod'");
 
 	# Добавляем доступ группы Администратор к модулю админстраница
 	mpqw("INSERT INTO {$conf['db']['prefix']}modules_gaccess (`mid`, `gid`, `access`, `description`) VALUE ((SELECT id FROM {$conf['db']['prefix']}modules WHERE folder='admin'), (SELECT id FROM {$conf['db']['prefix']}users_grp WHERE name = 'Администратор'), 1, 'Доступ на чтение модуля админменю группе администраторов')");

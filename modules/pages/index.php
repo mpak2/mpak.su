@@ -15,11 +15,7 @@
 // Purpose of file:
 // ----------------------------------------------------------------------
 
-if($_GET['pid']){
-	header("HTTP/1.1 301 Moved Permanently");
-	header("Location: /{$arg['modpath']}/". (int)$_GET['pid']);
-	exit;
-}elseif($arg['access'] >= 4 && is_numeric($_GET['del'])){
+if($arg['access'] >= 4 && is_numeric($_GET['del'])){
 	mpqw("DELETE FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE id=".(int)$_GET['del']." LIMIT 1");
 }elseif($arg['access'] >= 4 && isset($_GET['new'])){
 	if($max = max($_GET['id'], $_GET['pid'])){

@@ -4,8 +4,9 @@ if($_GET['tn']){
 	$tn = array(
 		($f = 'index')=>"_{$f}",
 	);
-	$sql = "SELECT img FROM {$conf['db']['prefix']}{$arg['modpath']}{$tn[$_GET['tn']]} WHERE id=".(int)$_GET['id'];
-	$file_name = mpopendir("include")."/".mpql(mpqw($sql), 0, 'img');
+	$sql = "SELECT `". mpquot($_GET['fn'] ?: "img"). "` FROM {$conf['db']['prefix']}{$arg['modpath']}{$tn[$_GET['tn']]} WHERE id=".(int)$_GET['id'];
+	$file_name = mpopendir("include")."/".($fn = mpql(mpqw($sql), 0, ($_GET['fn'] ?: "img")));
+//	if(empty($fn)){ $file_name = mpopendir("modules/{$arg['modpath']}/img/no.png"); }
 }else{
 //	$file_name = mpopendir("modules/{$arg['modpath']}/img/". basename($_GET['']));
 }

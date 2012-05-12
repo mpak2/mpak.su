@@ -110,7 +110,7 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_region"){ // 'Мен
 //			'hidden' => array('name', 'enabled'), # Скрытые поля
 			'spisok' => array( # Список для отображения и редактирования
 //				'pid'=>array('*'=>array('0'=>'')+spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}".($_GET['rid'] ? " WHERE rid=".(int)$_GET['rid'] : ''))),
-				'pid'=>array('*'=>array('0'=>'')+spisok($sql = "SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE 1".($_GET['where']['rid'] ? " AND rid=".(int)$_GET['where']['rid'] : ''). ($_GET['where']['pid'] ? " AND pid=". (int)$_GET['where']['pid'] : ''))),
+				'pid'=>array('*'=>array('0'=>'')+spisok($sql = "SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE 1".($_GET['where']['rid'] ? " AND rid=".(int)$_GET['where']['rid'] : ''). ($_GET['where']['pid'] ? " OR pid=". (int)$_GET['where']['pid'] : ''))),
 				'rid' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_region")),
 //				'select'=>array('*'=>array('0'=>'Скрыто', '1'=>'Доступно')),
 //				'time' => $time,
