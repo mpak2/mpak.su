@@ -85,6 +85,27 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_type` 
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_lang` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `description` varchar(255) NOT NULL,
+  `sort` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+mpqw($sql);
+
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_lang_translation` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` int(11) NOT NULL,
+  `uid` int(11) NOT NULL,
+  `lang_id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `text` text NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`,`lang_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+mpqw($sql);
+
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'user_grp', 'Зарегистрированные', '4', 'Группа зарегистрированных пользователей')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'admin_grp', 'Администратор', '5', 'Группа администратров')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'admin_usr', 'mpak', '5', 'Бог')");

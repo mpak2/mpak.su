@@ -1,6 +1,7 @@
 <? die;
 
 if($_POST['text']){
+	mpevent("Сообщение в чате", $_POST['text'], $conf['user']['uid']);
 	mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_index SET time=". time(). ", uid=". (int)$conf['user']['uid']. ", text=\"". mpquot($_POST['text']). "\"");
 }
 

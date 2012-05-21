@@ -60,7 +60,7 @@ foreach($online as $k=>$v){
 
 ?>
 <div style="overflow:hidden;">
-	<div style="clear:both;">на сайте <?=$count?> посетителей</div>
+	<div style="clear:both;">на сайте <b><?=$count?></b> <?=mpfm($count, 'посетитель', 'посетителя', 'посетителей')?></div>
 	<? foreach($online as $k=>$v): ?>
 		<div style="float:left; margin:1px; border:1px solid #ddd; position:relative;">
 			<a href="/<?=$arg['modname']?>/<?=($v['name'] != $conf['settings']['default_usr'] ? $v['id'] : "-{$v['sid']}")?>">

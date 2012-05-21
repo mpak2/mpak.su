@@ -127,16 +127,19 @@
 			<? endif; ?>
 			<? foreach(array_intersect_key($conf['tpl']['user'], $conf['tpl']['fields']) as $k=>$v): ?>
 			<tr>
-				<td class="nm"><?=($conf['settings']["users_field_$k"] ? $conf['settings']["users_field_$k"] : "users_field_$k")?></td>
+				<td class="nm">
+					<span title="<?=($f = "users_field_$k")?>">
+						<?=($conf['settings'][$f] ? $conf['settings'][$f] : $f)?>
+					</span>
+				</td>
 				<td>
 					<div id="<?=$k?>" class="<?=($conf['tpl'][$k] ? 'jarea jarea_'. $k : 'jedit')?>"><?=($conf['tpl'][$k] ? $conf['tpl'][$k][$v] : $v)?></div>
 				</td>
-				<!-- <td><input type='text' name="<?=$k?>" value="<?=$v?>" class="wt"></td> -->
 			</tr>
 			<? endforeach; ?>
 			<tr>
 				<td class="nm">Пароль</td>
-				<td><a href="#" class="basic" style="margin-left:20px;">Изменить</a></td>
+				<td><a href="#" class="basic" style="margin-left:20px; color:yellow;">Изменить</a></td>
 			</tr>
 		</table>
 	</div>

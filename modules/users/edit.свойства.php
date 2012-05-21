@@ -11,7 +11,7 @@ foreach(mpql(mpqw("DESC {$conf['db']['prefix']}{$arg['modpath']}")) as $k=>$v){
 }// mpre($f);
 
 $conf['tpl']['user'] = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE id=". (int)$conf['user']['uid']), 0);
-$conf['tpl']['fields'] = array_diff_key($conf['tpl']['user'], array_flip(array('id', 'tid', 'img', 'login', 'name', 'pass', 'reg_time', 'last_time', 'param', 'refer', 'flush', 'ref')));
+$conf['tpl']['fields'] = array_diff_key($conf['tpl']['user'], array_flip(array('id', 'tid', 'img', 'login', 'name', 'pass', 'reg_time', 'last_time', 'param', 'refer', 'flush', 'ref', 'refer_tel', 'http_host')));
 
 foreach($conf['tpl']['fields'] as $k=>$v){
 	if(substr($k, -3) == '_id'){
@@ -27,8 +27,9 @@ if($_FILES || $_POST){
 		}
 	}elseif($_POST['id'] && array_key_exists('value', $_POST) && array_search('Зарегистрированные', $conf['user']['gid'])){
 		if((($conf['user']['uid'] == $conf['tpl']['uid']) || ($arg['access'] >= 5)) && array_key_exists($_POST['id'], $conf['tpl']['fields'])){
-			mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']} SET ". mpquot($_POST['id'])."=\"". mpquot($_POST['value']). "\" WHERE id=".(int)$conf['tpl']['uid']);
-			if(mysql_affected_rows() == 1){
+			mpqw($sql = "UPDATE {$conf['db']['prefix']}{$arg['modpath']} SET ". mpquot($_POST['id'])."=\"". mpquot($_POST['value']). "\" WHERE id=".(int)$conf['tpl']['uid']);
+
+			if(mysql_affected_rows()){
 				if(substr($_POST['id'], -3) == '_id'){
 					echo mpql(mpqw("SELECT name FROM {$conf['db']['prefix']}{$arg['modpath']}_". substr($_POST['id'], 0, strlen($_POST['id'])-3). " WHERE id=". (int)$_POST['value']), 0, 'name');
 				}else{
