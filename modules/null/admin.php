@@ -48,7 +48,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
 //			'title' => array('name'=>'Имя', 'sort'=>'Сортировка', 'description'=>'Описание', 'text'=>'Текст'), # Название полей
-			'etitle'=> array('time'=>'Время', 'uid'=>'Пользователь', 'count'=>'Количество', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'text'=>'Текст', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', 'price'=>'Цена', 'keywords'=>'Ключевики', 'description'=>'Описание'),
+			'etitle'=> array('time'=>'Время', 'uid'=>'Пользователь', 'count'=>'Количество', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'text'=>'Текст', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', 'description'=>'Описание'),
 			'type' => array('time'=>'timestamp', 'sort'=>'sort', 'img'=>'file', 'description'=>'textarea', 'text'=>'wysiwyg'), # Тип полей
 			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('orderby'=>$orderby), # Значение которое всегда будет присвоено полю. Исключает любое изменение
@@ -93,8 +93,19 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 				'del' => array('*'=>true), # Удаление
 				'cp' => array('*'=>true), # Копирование
 			),
-			'etitle'=> array('time'=>'Время', 'uid'=>'Пользователь', 'count'=>'Количество', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'description'=>'Описание', 'text'=>'Текст'),
+			'etitle'=> array('time'=>'Время', 'uid'=>'Пользователь', 'count'=>'Количество', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'text'=>'Текст', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', 'description'=>'Описание'),
 			'type' => array('time'=>'timestamp', 'sort'=>'sort', 'img'=>'file', 'description'=>'textarea', 'text'=>'wysiwyg'), # Тип полей
+			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
+			'shablon' => array(
+				($fn = 'img')=>array('*'=>"<img src='/{$arg['modpath']}:img/{f:id}/tn:". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "/fn:{$fn}/w:120/h:100/null/img.jpg'>"),
+			), # Шаблон вывода в замене участвуют только поля запроса имеен приоритет перед полем set
+			'spisok' => array( # Список для отображения и редактирования
+				'uid' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
+			),
+			'default' => array(
+				'uid'=>array('*'=>$conf['user']['uid']),
+				'time'=>array('*'=>date('Y.m.d H:i:s')),
+			), # Значение полей по умолчанию
 		)
 	);
 }

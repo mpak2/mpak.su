@@ -184,7 +184,7 @@ function mpevent($name, $description = null, $own = null){
 	if(!empty($func_get_args[0]) && function_exists("event")){ $return = event($func_get_args); }
 
 	if($conf['settings']['users_log']){
-		$event = $conf['event'][$name];
+		if(!empty($conf['event'][$name])) $event = $conf['event'][$name];
 		if((!empty($event['log']) && ($event['log'] > 1)) || !empty($event['send'])){
 			if(!is_numeric($func_get_args[2])){
 				unset($func_get_args[2]['pass']);
@@ -201,17 +201,21 @@ function mpevent($name, $description = null, $own = null){
 			}// mpre($zam);
 		}
 
-		if($event['log']){
+		if(!empty($event['log']) && $event['log']){
 			mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event_log SET time=". time(). ", event_id=". (int)$event['id']. ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", description=\"". mpquot($description). "\", own=". /*mpquot(is_array($own) ? var_export($own, true) : $own)*/ (int)$func_get_args[2]['id']. ", `return`=\"". mpquot($return). "\", zam=\"". mpquot(!empty($zam) ? var_export($zam, true) : ""). "\"");
 //			$event_log = mpql(mpqw("SELECT id AS max FROM {$conf['db']['prefix']}users_event_log WHERE event_id=". (int)$event['id']. " ORDER BY id DESC limit 1"), 0, 'max'); //$event_log = mysql_insert_id();
-		} mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event SET time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", name=\"". mpquot($name). "\", description=\"". mpquot($desc). "\", count=1 ON DUPLICATE KEY UPDATE time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", count=count+1, last=". (int)$func_get_args[1]. ", max=IF(". (int)$func_get_args[1]. ">max, ". (int)$func_get_args[1]. ", max), min=IF(". (int)$func_get_args[1]. "<min, ". (int)$func_get_args[1]. ", min), description=\"". mpquot($desc). "\", log_last=". ($event['log'] ? "(SELECT id FROM {$conf['db']['prefix']}users_event_log WHERE event_id=". (int)$event['id']. " ORDER BY id DESC limit 1)" : 0));
+		} mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event SET time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", name=\"". mpquot($name). "\", description=\"". mpquot($desc). "\", count=1 ON DUPLICATE KEY UPDATE time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", count=count+1, last=". (int)$func_get_args[1]. ", max=IF(". (int)$func_get_args[1]. ">max, ". (int)$func_get_args[1]. ", max), min=IF(". (int)$func_get_args[1]. "<min, ". (int)$func_get_args[1]. ", min), description=\"". mpquot($desc). "\", log_last=". (!empty($event['log']) && $event['log'] ? "(SELECT id FROM {$conf['db']['prefix']}users_event_log WHERE event_id=". (int)$event['id']. " ORDER BY id DESC limit 1)" : 0));
 
-		if($event['send']){
-			
-			$users = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}users_grp AS g INNER JOIN {$conf['db']['prefix']}users_mem AS m ON g.id=m.gid INNER JOIN {$conf['db']['prefix']}users AS u ON m.uid=u.id WHERE 1 AND ". ($event['send'] > 0 ? " g.id=". (int)$event['send'] : " u.id=". (int)$func_get_args[2]['id']. " GROUP BY u.id")));
-			foreach($users as $k=>$v){
+		if(!empty($event['send']) && $event['send']){
+			if(($event['send'] < 0) && preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $func_get_args[2])){
 				mpqw("UPDATE {$conf['db']['prefix']}users_event SET cmail=cmail+1 WHERE id=". (int)$event['id']);
-				mpmail($v['email'], strtr($event['subject'], $zam), strtr($event['text'], $zam), "events@zhiraf.info");
+				mpmail($func_get_args[2], strtr($event['subject'], $zam), strtr($event['text'], $zam), $conf['settings']['mail']);
+			}else{
+				$users = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}users_grp AS g INNER JOIN {$conf['db']['prefix']}users_mem AS m ON g.id=m.gid INNER JOIN {$conf['db']['prefix']}users AS u ON m.uid=u.id WHERE 1 AND ". ($event['send'] > 0 ? " g.id=". (int)$event['send'] : " u.id=". (int)$func_get_args[2]['id']. " GROUP BY u.id")));
+				foreach($users as $k=>$v){
+					mpqw("UPDATE {$conf['db']['prefix']}users_event SET cmail=cmail+1 WHERE id=". (int)$event['id']);
+					mpmail($v['email'], strtr($event['subject'], $zam), strtr($event['text'], $zam), $conf['settings']['mail']);
+				}
 			}
 		}
 	} if(isset($return)) return $return;
@@ -348,7 +352,7 @@ function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.pn
 			'error'=>$_FILES[$fn]['error'][$prefix],
 			'size'=>$_FILES[$fn]['size'][$prefix],
 		);
-	} /*mpre($_FILES[$fn]); mpre($file);*/
+	}/* mpre($_FILES[$fn]); mpre($file);*/
 	if($file['error'] === 0){
 		if ($exts[ $file['type'] ] || isset($exts['*'])){
 			if(!($ext = $exts[ $file['type'] ])){
@@ -534,6 +538,18 @@ function mpqw($sql, $info = null, $conn = null){
 			echo "<p>$sql<br><font color=red>".mysql_error()."</font>";
 		}
 		$check = array(
+			"" => array(
+				"" => array(
+					"",
+					"",
+				),
+			),
+			"Unknown column 'hide' in 'where clause'" => array(
+				"SELECT * FROM {$conf['db']['prefix']}gbook" => array(
+					"ALTER TABLE `{$conf['db']['prefix']}gbook` CHANGE `vid` `hide` INT(11) NOT NULL",
+					"ALTER TABLE `{$conf['db']['prefix']}gbook` ADD INDEX (hide)",
+				),
+			),
 			"DELAYED option not supported for table" => array(
 				"INSERT DELAYED INTO mp_users_event_log SET" => array(
 					"ALTER TABLE mp_users_event_log ENGINE=MyISAM"

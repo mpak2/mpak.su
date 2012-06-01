@@ -101,7 +101,7 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_cat"){
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
 //			'title' => array('cat_id'=>'Категория', 'hide'=>'Видимость', 'sort'=>'Сортировка', 'qw'=>'Вопрос'), # Название полей
-//			'etitle' => array('cid'=>'Категория', 'hide'=>'Видимость', 'sort'=>'Сортировка', 'qw'=>'Вопрос', 'ans'=>'Ответ'), # Название полей
+			'etitle' => array('time'=>'Время', 'uid'=>'Пользователь', 'cat_id'=>'Категория', 'cid'=>'Категория', 'hide'=>'Видимость', 'sort'=>'Сортировка', 'qw'=>'Вопрос', 'ans'=>'Ответ'), # Название полей
 			'type' => array('sort'=>'sort', 'qw'=>'wysiwyg', 'ans'=>'wysiwyg'), # Тип полей
 //			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('orderby'=>$orderby), # Значение которое всегда будет присвоено полю. Исключает любое изменение
@@ -109,12 +109,16 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_cat"){
 //			'disable' => array('orderby'), # Выключенные для записи поля
 //			'hidden' => array('name', 'enabled'), # Скрытые поля
 			'spisok' => array( # Список для отображения и редактирования
+				'uid' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
 				($fn = 'cat'). '_id' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
 //				'cid'=>array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_cat")),
 //				'admin' => array('*'=>spisok("SELECT id, name FROM {$GLOBALS['conf']['db']['prefix']}admin")),
 				'hide' => array('*'=>array('0'=>'Видим', '1'=>'Скрыт')),
 			),
-			'default' => array('cid'=>max($_GET['where']['cid'], $_POST['cid'])), # Значение полей по умолчанию
+			'default' => array(
+				'cid'=>max($_GET['where']['cid'], $_POST['cid']),
+				'time'=>date("Y.m.d H:i:s"),
+			), # Значение полей по умолчанию
 			'maxsize' => array('qw'=>'250', 'ans'=>'250'), # Максимальное количество символов в поле
 		)
 	);

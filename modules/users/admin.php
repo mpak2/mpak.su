@@ -550,7 +550,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_lang_translation"){
 //			'title' => array('name'=>'Имя', 'img'=>'Изображение', 'description'=>'Описание'), # Название полей
 			'etitle'=> array('time'=>'Время', 'uid'=>'Пользователь', 'count'=>'Количество', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'description'=>'Описание', 'text'=>'Текст'),
 //			'etitle'=> array(),
-//			'type' => array('img'=>'file', 'description'=>'textarea', 'text'=>'wysiwyg'), # Тип полей
+			'type' => array('time'=>'timestamp', 'sort'=>'sort', 'img'=>'file', 'description'=>'textarea', 'text'=>'wysiwyg'), # Тип полей
 //			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('orderby'=>$orderby), # Значение которое всегда будет присвоено полю. Исключает любое изменение
 //			'shablon' => array(
@@ -560,11 +560,11 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_lang_translation"){
 //			), # Шаблон вывода в замене участвуют только поля запроса имеен приоритет перед полем set
 //			'disable' => array('orderby'), # Выключенные для записи поля
 //			'hidden' => array('name', 'enabled'), # Скрытые поля
-//			'spisok' => array( # Список для отображения и редактирования
-//				'uid' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
+			'spisok' => array( # Список для отображения и редактирования
+				'uid' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
 //				'select'=>array('*'=>array('0'=>'Скрыто', '1'=>'Доступно')),
 //				'time' => $time,
-//			),
+			),
 //			'default' => array('uid'=>array('*'=>$conf['user']['uid'])), # Значение полей по умолчанию
 //			'maxsize' => array('bdesc'=>array('*'=>'50'),), # Максимальное количество символов в поле
 		)

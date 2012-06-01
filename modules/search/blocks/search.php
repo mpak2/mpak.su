@@ -102,7 +102,7 @@ if ((int)$arg['confnum']){
     <tr>
 	<td align='center'>
 	    <input type='hidden' name='search_block_num' value='<?=$arg['blocknum']?>'>
-	    <input class="search" type='text' name='search' style="width:100%" value="<?=$_GET['search']?>">
+	    <input class="search" type='text' name='search' style="width:65%" value="<?=$_GET['search']?>">
 	    <input class="search_btn" type='submit' value='Поиск'>
 	</td>
     </tr>

@@ -27,7 +27,7 @@ if(array_key_exists("null", $_GET)){
 		} $mail = ($desc['mail'] ?: $desc['email']);
 		mpevent("Добавление комментария", $referer, $desc['uid'] ?: $mail, $_POST);
 	}else{
-		$conf['tpl']['comments'] = mpql(mpqw($sql = "SELECT txt.* FROM {$conf['db']['prefix']}{$arg['modpath']}_txt AS txt, {$conf['db']['prefix']}{$arg['modpath']}_url AS url WHERE txt.url_id=url.id AND (". $wr. ") ORDER BY id DESC"));
+		$conf['tpl']['comments'] = mpql(mpqw($sql = "SELECT txt.* FROM {$conf['db']['prefix']}{$arg['modpath']}_txt AS txt, {$conf['db']['prefix']}{$arg['modpath']}_url AS url WHERE txt.url_id=url.id AND (". $wr. ") ORDER BY id DESC LIMIT 10"));
 	}
 }else{
 	$conf['tpl']['comments'] = mpql(mpqw($sql = "SELECT txt.*, url.name AS url FROM {$conf['db']['prefix']}{$arg['modpath']}_txt AS txt LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_url AS url ON txt.url_id=url.id ORDER BY txt.id DESC"));

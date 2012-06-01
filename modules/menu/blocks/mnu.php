@@ -31,13 +31,6 @@ $menu = mpqn(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}
 if($param['tpl']){ include mpopendir("themes/{$conf['settings']['theme']}/{$param['tpl']}"); return; }
 
 ?>
-<script type="text/javascript" src="/include/jquery/jquery.url.js"></script>
-<script>
-	$(function(){
-		$(".menu_<?=$arg['blocknum']?>").find("ul").hide();
-		$(".menu_<?=$arg['blocknum']?>").find("a[href='"+path = $.url().attr("path")+"']").parents("li").find("ul").show();
-	});
-</script>
 <ul class="menu_<?=$arg['blocknum']?>">
 	<? foreach($menu[0] as $k=>$t): ?>
 		<li>

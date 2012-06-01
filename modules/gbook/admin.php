@@ -55,7 +55,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}"){
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
 			'edit' => 'list',
-			'title' => array('otime'=>'Время', 'uid'=>'Пользователь', 'img'=>'Изображение', 'name'=>'Подпись', 'vid'=>'Вид', 'text'=>'Вопрос', 'otvet'=>'Ответ'), # Название полей
+			'title' => array('otime'=>'Время', 'uid'=>'Пользователь', 'img'=>'Изображение', 'name'=>'Подпись', 'hide'=>'Скрыт', 'text'=>'Вопрос', 'otvet'=>'Ответ'), # Название полей
 //			'etitle'=>array('uid'=>'Пользователь', 'name'=>'Имя', 'parent'=>'Родитель', 'vid'=>'Видимость', 'time'=>'Время', 'otime'=>'Время ответа', 'text'=>'Вопрос', 'otvet'=>'Ответ'),
 			'type' =>array('otime'=>'timestamp', 'img'=>'file', 'time'=>'timestamp', 'text'=>'textarea', 'otvet'=>'textarea'), # Тип полей
 

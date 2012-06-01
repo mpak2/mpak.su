@@ -1,14 +1,20 @@
 <? if($_POST): ?>
 	<div style="text-align:center; margin:100px;">
-		Сообщение отправлено
-		<!-- <a href="/<?=$arg['modpath']?>/anket_id:<?=$conf['tpl']['anket_id']?>">Смотреть</a> -->
-		<a href="/<?=$arg['modpath']?>/<?=$_GET['id']?>">Продолжить</a>
+		<? if($tpl['captcha'] == "false"): # Капча введена не правильно ?>
+			Защитный код введен не правильно. 
+			<a href="/<?=$arg['modpath']?>/<?=$_GET['id']?>">Вернуться</a>
+		<? else: # Капча введена правильно или не установлена ?>
+			Информация сохранена
+			<a href="<?=($conf['tpl']['index'][ $_GET['id'] ]['href'] ?: "/{$arg['modpath']}/{$_GET['id']}")?>">Продолжить</a>
+		<? endif; ?>
 	</div>
 <? else: ?>
 	<? if($_GET['id']): ?>
+		<style>
+			.img > div {float:left; margin:3px; width:100px; height:100px;}
+		</style>
 		<script language="javascript">
 			$(function(){
-				$('#nav').spasticNav();
 				$("#sel").change(function(){
 					var cat_id = $(this).find("option:selected").val();// alert(cat_id);
 					document.location.href = "/<?=$arg['modpath']?>/"+cat_id;
@@ -19,7 +25,7 @@
 			});
 		</script>
 		<style>
-			.el {width:100%;}
+			.el {width:95%;}
 			.ta {height:160px;}
 			input:disabled, textarea:disabled {background-color:#eee; color:#444;}
 		</style>
@@ -50,7 +56,22 @@
 								<? elseif($v['type'] == 'text'): ?>
 									<input class="el enb" type="text" name="<?=$vid?>" value="<?=$conf['tpl']['result'][ $vid ][ 0 ]['val']?>">
 								<? elseif($v['type'] == 'file'): ?>
-									<input class="el enb" type="file" name="<?=$vid?>[file]">
+									<? if($v['tn']): # Множество файлов ?>
+										<div class="fm">
+											<input type="hidden" name="vopros_id" value="<?=$v['id']?>">
+											<input type="file" name="file[<?=$vid?>]">
+											<input type="button" value="Добавить">
+										</div>
+										<div class="img" vopros_id="<?=$v['id']?>" style="overflow:hidden;">
+										<? foreach($conf['tpl']['variant'][ $vid ] as $img): ?>
+											<div>
+												<img src="/<?=array_shift(array_slice(explode("_", $v['tn']), 1, 1))?>:img/<?=$img['id']?>/tn:<?=implode("_", array_slice(explode("_", $v['tn']), 2, 2))?>/fn:img/w:100/h:100/null/img.jpg">
+											</div>
+										<? endforeach; ?>
+										</div>
+									<? else: # Одиночный файл ?>
+										<input class="el enb" type="file" name="file[<?=$vid?>]">
+									<? endif; ?>
 								<? elseif($v['type'] == 'select'): ?>
 									<select class="enb" name="<?=$vid?>">
 										<? foreach($conf['tpl']['variant'][ $vid ] as $vtid=>$vt): ?>
@@ -67,7 +88,6 @@
 										<? endforeach; ?>
 									</ul>
 								<? elseif($v['type'] == 'spastic'): ?>
-									
 										<ul id="nav">
 											<input type="hidden" name="<?=$vid?>">
 											<? foreach($conf['tpl']['variant'][ $vid ] as $vtid=>$vt): ?>
@@ -90,8 +110,38 @@
 							</fieldset>
 						<? endif; ?>
 					<? endforeach; ?>
-					<div style="text-align:right;"><input type="submit" value="Сохранить"></div>
+					<div>
+						<? if($conf['tpl']['index'][ $_GET['id'] ]['captcha']): ?>
+							<span>
+								<img src="/<?=$arg['modpath']?>:captcha/null/img.png">
+								<br /><input type="text" name="captcha">
+							</span>
+						<? endif; ?>
+						<span style="float:right;"><input type="submit" value="Сохранить"></span>
+					</div>
 				</form>
+				<script src="/include/jquery/jquery.iframe-post-form.js"></script>
+				<script>
+					$(function(){
+						$("form.index_img").iframePostForm({
+							complete:function(data){
+								json = $.parseJSON(data);
+								if(typeof(json) == "object"){
+									vopros_id = $("form.index_img input[name=vopros_id]").val();
+									div = $("<div><img src='/"+json.tn[1]+":img/"+json.id+"/tn:"+json.tn[2]+"/fn:img/w:100/h:100/null/img.jpg'></div>");
+									$(".img[vopros_id="+vopros_id+"]").append(div)
+								}else{
+									alert(data);
+								}
+							}
+						});
+						$("div.fm input[type=button]").click(function(){
+							file = $("div.fm input").clone();
+							$("form.index_img").html(file).submit();
+						});
+					});
+				</script>
+				<form class="index_img" action="/<?=$arg['modpath']?>/<?=$_GET['id']?>/null" method="post" enctype="multipart/form-data" style="display:none;"></form>
 			</div>
 		</div>
 	<? else: ?>

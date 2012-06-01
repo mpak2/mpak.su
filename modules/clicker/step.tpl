@@ -4,6 +4,7 @@
 	$("#clicker").show();
 	<? $tree = function($cmd, $tree) use($conf, $tpl) { ?>
 		$("#clicker").trigger("<?=$cmd['type']?>", {
+			"id":<?=$cmd['id']?>,
 			"<?=$cmd['type']?>":"<?=$cmd['val']?>",
 			"complete":function(){
 				<? if($tpl['cmd'][ $cmd['id'] ]) foreach($tpl['cmd'][ $cmd['id'] ] as $v): ?>

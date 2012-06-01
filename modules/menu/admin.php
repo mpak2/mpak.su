@@ -53,7 +53,7 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_region"){ // 'Мен
 //			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('orderby'=>$orderby), # Значение которое всегда будет присвоено полю. Исключает любое изменение
 			'shablon' => array(
-				'name'=>array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r=".array_search('Содержимое', $m)."&where[rid]={f:id}>{f:{f}}</a>"),
+//				'name'=>array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r=".array_search('Содержимое', $m)."&where[rid]={f:id}>{f:{f}}</a>"),
 //				'link'=>array('*'=>"<a href='{f:{f}}'>{f:{f}}</a>"),
 //				'img'=>array('*'=>"<img src='/{$arg['modpath']}:img/null/{f:id}?w=120&h=120'>"),
 //				'count'=>spisok("SELECT r.id, COUNT(*) FROM {$conf['db']['prefix']}{$arg['modpath']}_region AS r, {$conf['db']['prefix']}{$arg['modpath']} AS m WHERE r.id=m.rid GROUP BY r.id"),

@@ -11,7 +11,7 @@ if($tpl['lesson'] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpa
 	if($_POST['left'] && $_POST['top']){
 		mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']}_step SET `left`=". (int)$_POST['left']. ", `top`=". (int)$_POST['top']. " WHERE id=". (int)$tpl['lesson']['id']);
 	}else if($tpl['index'] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE lesson_id=". (int)$tpl['lesson']['lesson_id']. " AND id>". (int)$tpl['lesson']['index_id']. " ORDER BY id"), 0)){
-		mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']}_step SET index_id=". (int)$tpl['index']['id']. " WHERE id=". (int)$tpl['lesson']['id']);
+		mpqw($sql = "UPDATE {$conf['db']['prefix']}{$arg['modpath']}_step SET index_id=". (int)$tpl['index']['id']. " WHERE id=". (int)$tpl['lesson']['id']);
 		$tpl['cmd'] = mpqn(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_cmd WHERE index_id=". (int)$tpl['index']['id']), 'cmd_id', 'id');
 	}
 }

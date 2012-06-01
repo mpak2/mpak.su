@@ -50,18 +50,11 @@ if ((int)$arg['confnum']){
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 //if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
 
-$users = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']} ORDER BY id DESC LIMIT 50"));
+$cat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} LIMIT 10"));
 
 ?>
-<style>
-	#reg_<?=$arg['blocknum']?> div {float:left; margin:1px; border:1px solid white;}
-</style>
-<div id="reg_<?=$arg['blocknum']?>" style="overflow:hidden;">
-	<? foreach($users as $k=>$v): ?>
-		<div title="<?=$v['name']?> (<?=$v['fm']?> <?=$v['im']?> <?=$v['ot']?>)">
-			<a href="/<?=$arg['modname']?>/<?=$v['id']?>">
-				<img src="/users:img/<?=$v['id']?>/tn:index/w:40/h:40/c:1/null/img.jpg">
-			</a>
-		</div>
+<ul>
+	<? foreach($cat as $k=>$v): ?>
+		<li><a href="/foto/cat:<?=$v['id']?>"><?=$v['name']?></a></li>
 	<? endforeach; ?>
-</div>
+</ul>

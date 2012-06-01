@@ -30,6 +30,7 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 				'del' => array('*'=>true), # Удаление
 				'cp' => array('*'=>true), # Копирование
 			),
+			'edit'=>'list',
 //			'count_rows' => 12, # Количество записей в таблице
 //			'page_links' => 10, # Количество ссылок на страницы в обе стороны
 
@@ -38,7 +39,7 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 //			'middle' => array('tr'=>'<tr>', 'td'=>'<td>', 'shablon'=>"<tr><td>{sql:name}</td><td>&nbsp;{sql:img}</td><td>&nbsp;{sql:description}</td><td align='right'>{config:row-edit}</td></tr>"), # Формат записей таблицы
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
-			'etitle' => array('uid'=>"Пользователь", 'name'=>'Название', 'tn'=>'Таблица', 'sort'=>'Сортировка', 'vopros'=>'Вопросов', 'anket'=>"Анкет", 'description'=>'Описание'), # Название полей
+			'etitle' => array('uid'=>"Пользователь", 'name'=>'Название', 'tn'=>'Таблица', 'sort'=>'Сортировка', 'vopros'=>'Вопросов', 'captcha'=>'Защита', 'href'=>'Ссылка', 'anket'=>"Анкет", 'description'=>'Описание'), # Название полей
 			'type' => array('sort'=>'sort', 'description'=>'textarea'), # Тип полей
 //			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('name'=>'kanal'), # Значение которое всегда будет присвоено полю. Исключает любое изменение
@@ -54,7 +55,8 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 			'spisok' => array( # Список для отображения и редактирования
 				'uid'=>array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
 				'tn'=>array('*'=>array('')+array_combine($tn, $tn)),
-//				'type' => array('*'=> array('checkbox'=>'Много', 'radio'=>'Один', 'text'=>'Текст', 'textarea'=>'Поле')),
+//				'images'=>array('*'=>array('')+array_combine($tn, $tn)),
+				'captcha' => array('*'=> array(0=>'Без капчи', 1=>'С капчей')),
 //				'sort'=>array('*' => range(0, 100)),
 //				'parent' => array('*' => array(0=>'..') + (array)spisok("SELECT id, name FROM {$conf['db']['prefix']}news_kat")),
 //				'time' => $time,
@@ -102,7 +104,7 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 			'spisok' => array( # Список для отображения и редактирования
 				'type' => array('*'=> array('radio'=>'Радио', 'check'=>'Выбор', "spastic"=>"Бегунок", 'select'=>'Список', 'text'=>'Текст', 'textarea'=>'Поле', 'date'=>'Дата', 'file'=>'Файл')),
 				'float' => array('*'=> array(0=>'Гориз', 1=>'Верт')),
-				'tn'=>array("*"=>array_combine($tn, $tn)),
+				'tn'=>array("*"=>array('')+array_combine($tn, $tn)),
 //				'oid' => array('*' => spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}", 30)),
 				($fn = 'type'). '_id' => array('*'=>array('')+spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
 				($fn = 'index'). '_id' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
@@ -292,44 +294,31 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 //			'maxsize' => array('bdesc'=>'50', 'sdesc'=>'50'), # Максимальное количество символов в поле
 		)
 	);
-}elseif($_GET['r']/* == "{$conf['db']['prefix']}{$arg['modpath']}_result"*/){
+}else{// echo "{$_GET['r']}:". __LINE__;
 	stable(
 		array(
-			'dbconn' => $conf['db']['conn'],
 			'url' => "/?m[{$arg['modpath']}]=admin&r={$_GET['r']}", # Ссылка для редактирования
 			'name' => $_GET['r'], # Имя таблицы базы данных
-//			'where' => '', # Условия отбора содержимого
-//			'order' => 'id', # Сортировка вывода таблицы
-//			'debug' => false, # Вывод всех SQL запросов
+			'order' => 'id DESC', # Сортировка вывода таблицы
 			'acess' => array( # Разрешение записи на таблицу
 				'add' => array('*'=>true), # Добавление
 				'edit' => array('*'=>true), # Редактирование
 				'del' => array('*'=>true), # Удаление
 				'cp' => array('*'=>true), # Копирование
 			),
-//			'count_rows' => 12, # Количество записей в таблице
-//			'page_links' => 10, # Количество ссылок на страницы в обе стороны
-
-//			'table' => "<table cellspacing='0' cellpadding='3' border='1'>",
-//			'top' => array('tr'=>'<tr>', 'td'=>'<td>', 'result'=>'<b><center>{result}</center></b>'), # Формат заголовка таблицы
-//			'middle' => array('tr'=>'<tr>', 'td'=>'<td>', 'shablon'=>"<tr><td>{sql:name}</td><td>&nbsp;{sql:img}</td><td>&nbsp;{sql:description}</td><td align='right'>{config:row-edit}</td></tr>"), # Формат записей таблицы
-//			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
-
-//			'title' => array('uchastnik'=>'Участник'), # Название полей
-//			'type' => array('img'=>'file', 'description'=>'textarea'), # Тип полей
-//			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
-//			'set' => array('name'=>'kanal'), # Значение которое всегда будет присвоено полю. Исключает любое изменение
-//			'shablon' => array('sess'=>array('*'=>"<a href='?m[{$arg['modpath']}]=admin&r=".array_search('Результат', $m)."&where[sess]={f:{f}}'>{f:{f}}</a>")), # Шаблон вывода в замене участвуют только поля запроса имеен приоритет перед полем set
-//			'disable' => array('img'), # Выключенные для записи поля
-//			'hidden' => array(), # Скрытые поля
-//			'spisok' => array( # Список для отображения и редактирования
-//				'uchastnik' => array('*' => (array)spisok("SELECT id, vopros FROM {$conf['db']['prefix']}{$arg['modpath']}_result", 30)),
-//				'vid' => array('*' => (array)spisok("SELECT id, vopros FROM {$conf['db']['prefix']}{$arg['modpath']}_vopros", 30)),
-//				'vtid' => array('*' => (array)spisok("SELECT id, variant FROM {$conf['db']['prefix']}{$arg['modpath']}_variant", 30)),
-//				'value' => array('*' => (array)spisok("SELECT id, variant FROM {$conf['db']['prefix']}{$arg['modpath']}_variant", 30)),
-//			),
-//			'default' => array('parent'=>$_POST['parent']), # Значение полей по умолчанию
-//			'maxsize' => array('bdesc'=>'50', 'sdesc'=>'50'), # Максимальное количество символов в поле
+			'etitle'=> array('time'=>'Время', 'uid'=>'Пользователь', 'count'=>'Количество', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'text'=>'Текст', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', 'description'=>'Описание'),
+			'type' => array('time'=>'timestamp', 'sort'=>'sort', 'img'=>'file', 'description'=>'textarea', 'text'=>'wysiwyg'), # Тип полей
+			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
+			'shablon' => array(
+//				($fn = 'img')=>array('*'=>"<img src='/{$arg['modpath']}:img/{f:id}/tn:". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "/fn:{$fn}/w:120/h:100/null/img.jpg'>"),
+			), # Шаблон вывода в замене участвуют только поля запроса имеен приоритет перед полем set
+			'spisok' => array( # Список для отображения и редактирования
+				'uid' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
+			),
+			'default' => array(
+				'uid'=>array('*'=>$conf['user']['uid']),
+				'time'=>array('*'=>date('Y.m.d H:i:s')),
+			), # Значение полей по умолчанию
 		)
 	);
 }

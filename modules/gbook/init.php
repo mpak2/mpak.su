@@ -5,12 +5,14 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}` (
   `uid` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `parent` int(11) NOT NULL,
-  `vid` int(11) NOT NULL,
+  `hide` int(11) NOT NULL,
   `time` int(11) NOT NULL,
   `otime` int(11) NOT NULL,
   `text` text NOT NULL,
   `otvet` text NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `hide` (`hide`),
+  KEY `hide_2` (`hide`)
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);
 

@@ -1,5 +1,5 @@
 <ul id="menu">
-	<? foreach($menu as $k=>$v): if($v['pid']) continue; ?>
+	<? foreach($menu[0] as $k=>$v): ?>
 		<li><a href="<?=$v['link']?>"><?=$v['name']?></a></li>
 	<? endforeach; ?>
 </ul>

@@ -28,8 +28,8 @@ EOF;
 $menu = array(
 //	array('id'=>'0', 'theme'=>'!zhiraf', 'file'=>'themes/blocks/theme.php', 'name'=>'Выбор темы', 'access'=>'0', 'rid'=>'1', 'enabled'=>'1', ),
 	array('id'=>'1', 'theme'=>'!zhiraf', 'file'=>'../include/blocks/login.php', 'name'=>'Авторизация', 'access'=>'1', 'rid'=>'1', 'enabled'=>'1', ),
-	array('id'=>'2', 'theme'=>'!zhiraf', 'file'=>'menu/blocks/mnu.php', 'name'=>'Верхнее меню', 'shablon'=>'2', 'access'=>'1', 'rid'=>'3', 'param'=>'s:1:"2";', 'enabled'=>'1', ),
-	array('id'=>'3', 'theme'=>'!zhiraf', 'file'=>'menu/blocks/mnu.php', 'name'=>'Меню', 'access'=>'1', 'rid'=>'1', 'param'=>'s:1:"1";', 'enabled'=>'1', ),
+	array('id'=>'2', 'theme'=>'!zhiraf', 'file'=>'menu/blocks/mnu.php', 'name'=>'Верхнее меню', 'shablon'=>'2', 'access'=>'1', 'rid'=>'3', 'param'=>'a:2:{s:4:"menu";s:1:"2";s:3:"tpl";s:7:"top.tpl";}', 'enabled'=>'1', ),
+	array('id'=>'3', 'theme'=>'!zhiraf', 'file'=>'menu/blocks/mnu.php', 'name'=>'Меню', 'access'=>'1', 'rid'=>'1', 'param'=>'a:2:{s:4:"menu";s:1:"1";s:3:"tpl";s:0:"";}', 'enabled'=>'1', ),
 	array('id'=>'4', 'theme'=>'!zhiraf', 'file'=>'../include/blocks/htmlcod.php', 'name'=>'Админменю', 'access'=>'0', 'rid'=>'1', 'param'=>$amenu, 'enabled'=>'1',),
 	array('id'=>'5', 'theme'=>'!zhiraf', 'file'=>'messages/blocks/messages.php', 'name'=>'Сообщения', 'access'=>'1', 'rid'=>'1', 'enabled'=>'1', ),
 	array('id'=>'6', 'theme'=>'!zhiraf', 'file'=>'../include/blocks/htmlcod.php', 'name'=>'Поддержка', 'access'=>'0', 'rid'=>'1', 'param'=>$spt, 'enabled'=>'1',),
