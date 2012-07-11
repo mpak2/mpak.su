@@ -41,7 +41,7 @@ $pages = mpql(mpqw("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']
 						</div>
 					<? endif; ?>
 					<div style="margin-right:30px;">
-						<a href="/<?=$arg['modpath']?>/pid:<?=$v['id']?>"><?=$v['name']?></a>
+						<a href="/<?=$arg['modpath']?>/<?=$v['id']?>"><?=$v['name']?></a>
 					</div>
 				</li>
 			<? endforeach; ?>

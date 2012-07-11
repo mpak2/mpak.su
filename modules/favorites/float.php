@@ -1,6 +1,7 @@
 <? die;
 
 $refer = "/". implode('/', array_slice(explode('/', urldecode($_SERVER['HTTP_REFERER'])), 3));
+
 if(array_key_exists('null', $_GET) && $_POST){
 	if($_POST['fav_id']){
 		echo mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_index",

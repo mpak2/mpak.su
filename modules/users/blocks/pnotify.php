@@ -83,13 +83,14 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 								val["description"] = "<a href=\""+val["description"]+"\">"+val["description"]+"</a>";
 							}else if(event[ val["event_id"] ]["name"] == "Открытие страницы сайта"){
 								val["description"] = "<a href=\""+val["description"]+"\">"+val["description"]+"</a>";
+							} if(val["uid"] != <?=$conf['user']['uid']?>){
+								$.pnotify({
+									pnotify_title: event[ val["event_id"] ]["name"],
+									pnotify_text: val["description"]+"<span style='float:right'>"+(val["uid"] > 0 ? "<a href=\"/users/"+val["uid"]+"\">"+val["uname"]+"</a>" : "<?=$conf['settings']['default_usr']?>"+val["uid"])+"</span>",
+									pnotify_type: "error",
+									pnotify_error_icon: "ui-icon ui-icon-signal-diag"
+								});
 							}
-							$.pnotify({
-								pnotify_title: event[ val["event_id"] ]["name"],
-								pnotify_text: val["description"]+"<span style='float:right'>"+(val["uid"] > 0 ? "<a href=\"/users/"+val["uid"]+"\">"+val["uname"]+"</a>" : "<?=$conf['settings']['default_usr']?>"+val["uid"])+"</span>",
-								pnotify_type: "error",
-								pnotify_error_icon: "ui-icon ui-icon-signal-diag"
-							});
 						}); event = json["event"];
 					}else{
 						alert(data);

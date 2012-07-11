@@ -15,7 +15,7 @@ $(document).ready(function(){
 			}
 		}
 	})
-	$("input:text, textarea, input:password, input[type=pass]").focus(function(){
+	$("input:text, textarea, input:password, input[type=pass]").live("focus", function(){
 		if(this.value == this.title)
 			this.value = '';
 			if($(this).is("[type=pass]")){
@@ -23,14 +23,14 @@ $(document).ready(function(){
 				this.value = "";
 			}
 	});
-	$("input:text, textarea, input:password").blur(function(){
+	$("input:text, textarea, input:password").live("blur", function(){
 		if(this.value == '')
 			this.value = this.title;
 			if(this.type == "password"){
 				this.type = "pass";
 			}
 	});
-	$("input:image, input:button, input:submit").click(function(){
+	$("input:image, input:button, input:submit").live("click", function(){
 		$(this.form.elements).each(function(){
 			if(this.type =='text' || this.type =='textarea' || this.type =='password' ){
 				if(this.value == this.title && this.title != ''){

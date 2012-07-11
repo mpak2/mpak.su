@@ -37,7 +37,7 @@ $menu = array(
 	array('id'=>'7', 'theme'=>'zhiraf', 'file'=>'admin/blocks/top.php', 'name'=>'АдминШапка', 'access'=>'0', 'rid'=>'4', 'enabled'=>'1',),
 	array('id'=>'8', 'theme'=>'zhiraf', 'file'=>'admin/blocks/modlist.php', 'name'=>'СписокМодулей', 'access'=>'0', 'rid'=>'1', 'enabled'=>'1',),
 
-	array('id'=>'9', 'theme'=>'!zhiraf', 'file'=>'users/blocks/cabinet.php', 'name'=>'Информация о пользователе', 'access'=>'1', 'rid'=>'7', 'enabled'=>'1',),
+	array('id'=>'9', 'theme'=>'!zhiraf', 'file'=>'users/blocks/user.php', 'name'=>'Свойства пользователя', 'access'=>'1', 'rid'=>'7', 'enabled'=>'1',),
 
 	array('id'=>'10', 'theme'=>'!zhiraf', 'file'=>'chat/blocks/all.php', 'name'=>'Чат', 'access'=>'2', 'rid'=>'8', 'enabled'=>'1',),
 	array('id'=>'11', 'theme'=>'!zhiraf', 'file'=>'foto/blocks/img.php', 'name'=>'Мои фото', 'access'=>'1', 'rid'=>'7', 'enabled'=>'1',),

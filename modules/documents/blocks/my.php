@@ -75,7 +75,7 @@ $index = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index
 		</div>
 	</form>
 <? endif; if($documents): ?>
-	<div id="data_<?=$arg['blocknum']?>">
+	<div id="data_<?=$arg['blocknum']?>" style="margin-top:10px;">
 		<? foreach($documents as $k=>$v): ?>
 			<div index_id="<?=$v['id']?>" style="overflow:hidden;">
 				<? if($arg['uid'] = $conf['user']['uid']): ?>

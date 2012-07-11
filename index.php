@@ -45,6 +45,7 @@ if (strlen($conf['db']['error'] = mysql_error())){
 	mysql_select_db($conf['db']['name'], $conf['db']['conn']);
 	mpqw("SET NAMES 'utf8'");
 } unset($conf['db']['pass']); $conf['db']['sql'] = array();
+header('Content-Type: text/html;charset=UTF-8');
 ini_set('display_errors', 1); error_reporting(E_ALL ^ E_NOTICE);
 
 if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(mpql(mpqw("SHOW TABLES", 'Проверка работы базы')))){ echo mpct('include/install.php'); die; }
@@ -151,6 +152,11 @@ foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE enabled = 
 	$conf['modules'][ mb_strtolower($v['name']) ] = &$conf['modules'][ $v['folder'] ];
 	$conf['modules'][ $v['id'] ] = &$conf['modules'][ $v['folder'] ];
 }
+
+//print_r(array_shift(array_keys($_GET['m'])));
+if($_GET['id'] && $conf['settings']['modules_default'] && empty($conf['modules'][ ($mp = array_shift(array_keys($_GET['m']))) ])){
+	$_GET['m'] = array($conf['settings']['modules_default']=>$_GET['m'][ $mp ]);
+} # Устанавливаем дефолтный раздел. Если нет среди установленных то он считает что страничка оттуда
 
 
 foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_gaccess", 'Права доступа группы к модулю')) as $k=>$v){
@@ -307,11 +313,11 @@ if (!array_key_exists('null', $_GET) || !empty($_GET['m']['users'])){
 } $content .= mcont($content);
 if (!array_key_exists('null', $_GET) || !empty($_GET['m']['users'])){
 	if (!isset($_GET['m']['sqlanaliz'])) $zblocks = bcont();
-	if (strpos($tc, '<!-- [modules] -->')){
+//	if (strpos($tc, '<!-- [modules] -->')){
 		if(!array_key_exists('null', $_GET)){
 			$content = str_replace('<!-- [modules] -->', $content, $tc);
 		} $content = strtr($content, (array)$zblocks);
-	}
+//	}
 }
 
 if ($conf['settings']['microtime']){

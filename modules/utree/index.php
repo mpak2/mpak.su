@@ -20,11 +20,8 @@ $readtree = function ($id, $readtree, $tree = array()) use($arg){ global $conf;
 		$tree[$v['usr']] = $readtree($v['usr'], $readtree);
 	}
 	return $tree;
-}; $conf['tpl']['tree'] = $readtree((isset($_GET['id']) && $arg['access'] >= 3) ? (int)$_GET['id'] : $conf['user']['uid'], $readtree);
+}; $conf['tpl']['tree'] = $readtree(((array_key_exists("id", $_GET) && ($arg['access'] >= 3)) ? (int)$_GET['id'] : $conf['user']['uid']), $readtree);
 
-//echo isset($_GET['id']) ? (int)$_GET['id'] : $conf['user']['uid'];
-
-//$conf['tpl']['tree'][''] = array('name'=>mpidn($_SERVER['HTTP_HOST']));
 $conf['tpl']['index'] = mpql(mpqw("SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}{$arg['modpath']}_index"));
 
 ?>

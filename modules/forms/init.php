@@ -17,6 +17,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index`
   `name` varchar(255) NOT NULL,
   `tn` varchar(255) NOT NULL,
   `sort` int(11) NOT NULL,
+  `href` varchar(255) NOT NULL,
   `description` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `uid` (`uid`)
@@ -33,22 +34,6 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_result
   PRIMARY KEY (`id`),
   KEY `variant_id` (`variant_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
-mpqw($sql);
-
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_test` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `time` int(11) NOT NULL,
-  `uid` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `fm` varchar(255) NOT NULL,
-  `im` varchar(255) NOT NULL,
-  `ot` varchar(255) NOT NULL,
-  `users_lang` int(11) NOT NULL,
-  `description` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `time` (`time`),
-  KEY `uid` (`uid`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_type` (

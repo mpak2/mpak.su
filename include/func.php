@@ -181,12 +181,41 @@ function stable($table){
 			}
 		}
 	}
+
+	if(empty($table['_fields']['img'])) unset($table['shablon']['img']);# Удаляем ссылку на изображение если его нет
+
+	foreach($table['_fields'] as $_fields){ # Устанавливаем заголовки полей виде чтото_id берем названия из свойств
+		if((substr($_fields, -3, 3) == "_id") && ($f = substr($_fields, 0, -3)) && !empty($conf['settings']["{$arg['modpath']}_{$f}"])){
+			$table['etitle'][ $_fields ] = $conf['settings']["{$arg['modpath']}_{$f}"];
+			if(substr($conf['settings'][ substr($_GET['r'], strlen($conf['db']['prefix']), 999) ], 0, 1) == '.'){
+				if(empty($table['spisok'][ $_fields ]))
+					$table['spisok'][ $_fields ] = array('*'=>array('')+spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$f} ORDER BY name"));
+				$table['shablon'][ $_fields ] = array("*"=>"<a href=\"/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$f}&where[id]={f:{f}}\">{spisok:{f}}</a>");
+			}
+		}
+	}
+
+
+	if(!empty($table['title'])) foreach($table['title'] as $k=>$v){
+		if(is_numeric($k)){
+			$table['title'][ $v ] = $table['etitle'][ $v ];
+			unset($table['title'][ $k ]);
+		}
+	}// mpre($table['title']);
+
+	if($table['edit'] == "title" && $table['title']) $table['edit'] = "list";
 	if($table['shablon'] && !array_key_exists('edit', $_GET)){
 		$table['_fields'] += array_flip(array_keys($table['shablon']));
 		if($table['title']){
-			$table['title'] += array_combine(array_keys($table['shablon']), array_keys($table['shablon']));
+//			$table['title'] += array_combine(array_keys($table['shablon']), array_keys($table['shablon']));
+			$p0 = array_keys($table['shablon']);
+			$p1 = array_keys(array_intersect_key((array)$table['etitle'], array_flip(array_keys($table['shablon']))))+$p0;//+array_keys($table['shablon']);
+			$p2 = array_intersect_key((array)$table['etitle'], array_flip(array_keys($table['shablon'])))+array_combine($p0, $p0);//+array_keys($table['shablon']);
+
+			if($p1 && $p2) $table['title'] = $table['title'] + array_combine($p1, $p2);
 		}
-	} if($table['etitle']){
+	}
+	if($table['etitle']){
 		$table['etitle'] = array_intersect_key($table['etitle'] + array_combine(array_keys($table['_fields']), array_keys($table['_fields'])), $table['_fields']);
 		$table['_fields'] = array_intersect_key($table['etitle'] + $table['_fields'], $table['_fields']);
 	}
@@ -253,6 +282,7 @@ function stable($table){
 		$table_data[] = $line;
 	}
 
+//mpre($table['_fields']);
 	# Вывод заголовков таблицы
 	if($table['acess']['add'] && $table['edit'] == 'list') echo "<div style=\"margin:10px;\" class=\"button\"><a href={$table['url']}&edit>Добавить</a></div>";
 	echo "<form name='mptable' action='{$table['url']}&p={$_GET['p']}{$table['_url']}".(strlen($_GET['order']) ? "&order={$_GET['order']}" : '')."' method='post' enctype='multipart/form-data' style='clear:both;'>";
@@ -267,13 +297,13 @@ function stable($table){
 		}else{
 			foreach($table['title'] ? $table['title'] : $table['_fields'] as $k=>$v){
 				if (!isset($hidden[$k])){
-					echo  strlen($table['top']['td']) ? $table['top']['td'] : "<th".($table['type'][$k] == 'file' ? ' style="width:200px;"' : '') .">";
+					echo  strlen($table['top']['td']) ? $table['top']['td'] : "<th".($table['type'][$k] == 'file' ? ' style="min-width:200px;"' : '') .">";
 					if (isset($table['top']['result'])){ # Подстановка значений в результат
 						echo str_replace("{result}", $table['title'][$k], $table['top']['result']);
 					}else{ # Вывод содержимого в случае отсутствия результата заголовка
 						echo "<a href='{$table['url']}".((int)$_GET['p'] ? "&p={$_GET['p']}" : '')."{$table['_url']}&order=$k".($_GET['order'] == $k ? '%20DESC' : '')."'>{$v}</a>";
 					}
-					echo "</td>";
+					echo "</th>";
 				}
 			}
 			if ($table['acess']){
@@ -436,7 +466,7 @@ function stable($table){
 			foreach($title ?: $table['_fields'] as $k=>$v){
 				if ($k == 'id') $sid = $v['id'];
 				if (!isset($hidden[$k])){
-					echo  strlen($table['bottom']['td']) ? $table['bottom']['td'] : ($table['edit'] == 'list' && $edit ? "<tr><td style=\"width: 15%; text-align:right;\">".($title[$k] ? $title[$k] : $k)."</td>" : '')."<td>";
+					echo  strlen($table['bottom']['td']) ? $table['bottom']['td'] : ($table['edit'] == 'list' && $edit ? "<tr><td style=\"width: 15%; text-align:right;\" title=\"{$k}\">".($title[$k] ? $title[$k] : $k)."</td>" : '')."<td>";
 
 					if (gettype($table['spisok'][$k][(int)$_GET['edit']]) == 'array'){ # Для каждого id свой список
 						echo "<select name='$k' style='width:100%'".($disable[$k] || $table['set'][$k] ? ' disabled' : '').">";

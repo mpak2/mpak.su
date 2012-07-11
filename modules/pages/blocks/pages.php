@@ -21,7 +21,7 @@ EOF;
 echo "<ul>";
 if (count($res = mpql(mpqw("SELECT param FROM {$GLOBALS['conf']['db']['prefix']}blocks WHERE id = {$arg['blocknum']}")))) $param = unserialize($res[0]['param']);
 foreach(mpql(mpqw("SELECT * FROM {$GLOBALS['conf']['db']['prefix']}pages_index WHERE kid=1 ORDER BY RAND() LIMIT ".($param ? $param : 3)."")) as $k=>$v){
-	echo "<li><a href=/pages/pid:{$v['id']}>{$v['name']}</a>";
+	echo "<li><a href=/pages/{$v['id']}>{$v['name']}</a>";
 }
 echo "</ul>";
 

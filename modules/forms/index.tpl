@@ -29,8 +29,8 @@
 			.ta {height:160px;}
 			input:disabled, textarea:disabled {background-color:#eee; color:#444;}
 		</style>
-		<div style="margin:10px 0; padding:10px; border-radius:10px; border:1px solid #ddd;">
-			<div><?=$conf['settings']["{$arg['modpath']}_title"]?></div>
+		<div style="margin:10px 0; padding:10px; border-radius:10px; border:1px solid #ddd; overflow:hidden;">
+			<div style="padding:20px; text-align:center;"><?=$conf['tpl']['index'][ $_GET['id'] ]['description']?></div>
 			<? if($conf['settings']["{$arg['modpath']}_user_view"]): ?>
 				<div style="overflow:hidden;">
 					<div style="float:right; width:100px; text-align:center;">
@@ -55,6 +55,28 @@
 									<textarea class="el enb ta" name="<?=$vid?>"><?=$conf['tpl']['result'][ $vid ][ 0 ]['val']?></textarea>
 								<? elseif($v['type'] == 'text'): ?>
 									<input class="el enb" type="text" name="<?=$vid?>" value="<?=$conf['tpl']['result'][ $vid ][ 0 ]['val']?>">
+								<? elseif($v['type'] == 'map'): ?>
+									<!-- Этот блок кода нужно вставить в ту часть страницы, где вы хотите разместить карту (начало) -->
+									<input type="hidden" name="<?=$vid?>" value="">
+									<div id="ymaps-map-id_134128145774966671747" style="width: 80%; height: 250px;"></div>
+									<script type="text/javascript">
+										function fid_134128145774966671747(ymaps) {
+											var map = new ymaps.Map("ymaps-map-id_134128145774966671747", {center: [30.097690164062513, 59.940978814388316], zoom: 8, type: "yandex#map"});
+											map.controls.add("zoomControl").add("mapTools").add(new ymaps.control.TypeSelector(["yandex#map", "yandex#satellite", "yandex#hybrid", "yandex#publicMap"]));
+											map.events.add("click",
+												function(e) {
+													$("input[type='hidden'][name='<?=$vid?>']").attr("value", e.get("coordPosition"));
+													map.balloon.open(
+														e.get("coordPosition"), {
+															contentBody: "Положение объекта:<br />"
+														}   
+													)
+												}
+											);
+										};
+									</script>
+									<script type="text/javascript" src="http://api-maps.yandex.ru/2.0/?coordorder=longlat&load=package.full&wizard=constructor&lang=ru-RU&onload=fid_134128145774966671747"></script>
+									<!-- Этот блок кода нужно вставить в ту часть страницы, где вы хотите разместить карту (конец) -->
 								<? elseif($v['type'] == 'file'): ?>
 									<? if($v['tn']): # Множество файлов ?>
 										<div class="fm">
@@ -75,7 +97,7 @@
 								<? elseif($v['type'] == 'select'): ?>
 									<select class="enb" name="<?=$vid?>">
 										<? foreach($conf['tpl']['variant'][ $vid ] as $vtid=>$vt): ?>
-											<option value="<?=$vt['id']?>" <?=($conf['tpl']['result'][ $vid ][ $vt['id'] ]['id'] ? "selected" : "")?>><?=$vt['name']?></option>
+											<option value="<?=$vt['id']?>" <?=($v['alias'] && ($vt['id'] == $_GET[ $v['alias'] ]) ? "selected" : "")?>><?=$vt['name']?></option>
 										<? endforeach; ?>
 									</select>
 								<? elseif($v['type'] == 'radio'): ?>
@@ -129,7 +151,7 @@
 								if(typeof(json) == "object"){
 									vopros_id = $("form.index_img input[name=vopros_id]").val();
 									div = $("<div><img src='/"+json.tn[1]+":img/"+json.id+"/tn:"+json.tn[2]+"/fn:img/w:100/h:100/null/img.jpg'></div>");
-									$(".img[vopros_id="+vopros_id+"]").append(div)
+									$(".img[vopros_id="+vopros_id+"]").append(div);
 								}else{
 									alert(data);
 								}
@@ -138,6 +160,7 @@
 						$("div.fm input[type=button]").click(function(){
 							file = $("div.fm input").clone();
 							$("form.index_img").html(file).submit();
+							$(this).parents("div.fm").find("input[type=file]").val("");
 						});
 					});
 				</script>

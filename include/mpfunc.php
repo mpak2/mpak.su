@@ -1,5 +1,27 @@
 <?
 
+function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null){
+	$ch = curl_init();
+	//curl_setopt($ch, CURLOPT_PROXY, "1.2.3.4:123"); //если нужен прокси
+	curl_setopt ($ch , CURLOPT_FOLLOWLOCATION , 1);
+	curl_setopt($ch, CURLOPT_COOKIEFILE, $temp);//tempnam(ini_get('upload_tmp_dir'), "curl_cookie_")
+	curl_setopt($ch, CURLOPT_COOKIEJAR, $temp); //В какой файл записывать
+
+	curl_setopt($ch, CURLOPT_URL, $href); //куда шлем
+	if($post){
+		curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, iconv('utf-8', 'cp1251', $post));
+	}
+	if ($referer) curl_setopt($ch, CURLOPT_REFERER, $referer);
+	curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0; MyIE2; .NET CLR 1.1.4322)");
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_HEADER, 0);
+	curl_setopt($ch, CURLOPT_NOBODY, 0);
+	$result=curl_exec ($ch);
+	curl_close ($ch);
+	return $result;
+}
+
 function ql($sql, $ln = null, $fd = null){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата
 	$microtime = microtime(true);
 	if(!($r = mpmc("qn:".$key = md5($sql)))){
@@ -119,7 +141,7 @@ function mpde($string) {
 	foreach ($list as $item) {
 		$sample = @iconv($item, $item, $string);
 		if (md5($sample) == md5($string))
-			return $item;
+			return iconv($item, "utf-8", $string);
 	} return null;
 }
 
@@ -269,8 +291,6 @@ function mpgt($REQUEST_URI, $get = array()){
 			}
 		}
 	} if(!empty($get['стр']) && $get['стр']) $get['p'] = $get['стр'];
-//	$_SERVER['HTTP_REFERER'] = mpidn(urldecode($_SERVER['HTTP_REFERER']));
-//	$_SERVER['HTTP_HOST'] = mpidn(urldecode($_SERVER['HTTP_HOST']));
 	return $get;
 }
 
@@ -532,7 +552,7 @@ function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 function mpqw($sql, $info = null, $conn = null){
 	global $conf;
 	$mt = microtime(true);
-	$result = @mysql_query($sql, ($conn ?: $conf['db']['conn']));
+	$result = mysql_query($sql, ($conn ?: $conf['db']['conn']));
 	if ($error = mysql_error()){// mpre($conf['user']);
 		if(!empty($conf['modules']['sqlanaliz']['access']) && (array_search($conf['user']['uname'], explode(",", $conf['settings']['admin_usr'])) !== false)){
 			echo "<p>$sql<br><font color=red>".mysql_error()."</font>";
@@ -544,8 +564,8 @@ function mpqw($sql, $info = null, $conn = null){
 					"",
 				),
 			),
-			"Unknown column 'hide' in 'where clause'" => array(
-				"SELECT * FROM {$conf['db']['prefix']}gbook" => array(
+			"Unknown column 'g.hide' in 'where clause'" => array(
+				"SELECT g.* FROM {$conf['db']['prefix']}gbook AS g" => array(
 					"ALTER TABLE `{$conf['db']['prefix']}gbook` CHANGE `vid` `hide` INT(11) NOT NULL",
 					"ALTER TABLE `{$conf['db']['prefix']}gbook` ADD INDEX (hide)",
 				),
@@ -813,13 +833,15 @@ function mpmenu($m = array()){
 	if(array_key_exists("null", $_GET)) return false;
 
 	$tab = (int)$_GET['r'];
-/*	echo <<<EOF
-		<script>
-			$(document).ready(function(){
-				$('.tabs li.{$tab}').add('.tabs li.{$_GET['r']}').addClass('act');
-			});
-		</script>
-EOF;*/
+	if($_GET['r']){
+		echo <<<EOF
+			<script>
+				$(function(){
+					$('.tabs li.{$tab}').add('.tabs li.{$_GET['r']}').addClass('act');
+				});
+			</script>
+EOF;
+	}
 	if(empty($conf['settings']['admin_help_hide'])){
 		echo '<div style="float:right; margin:5px;"><a target=blank href="http://mpak.su/help/modpath:'. $arg['modpath']. "/fn:". $arg['fn']. '/r:'. $_GET['r']. '">Помощь</a></div>';
 	}

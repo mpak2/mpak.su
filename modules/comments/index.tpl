@@ -74,7 +74,12 @@
 					</div>
 				<? endif; ?>
 				<div>
-					<span style="float:right;"><?=date('Y.m.d H:i:s', $v['time'])?></span>
+					<span style="float:right;">
+						<?=date('Y.m.d H:i:s', $v['time'])?>
+						<? if($arg['access'] > 3): ?>
+							<a href="/?m[<?=$arg['modpath']?>]=admin&r=<?=$conf['db']['prefix']?><?=$arg['modpath']?>_txt&where[id]=<?=$v['id']?>"><img src="/img/aedit.png"></a>
+						<? endif; ?>
+					</span>
 					<span style="font-weight:bold;">
 						<? if($v['uid'] > 0): ?><a href="/users/<?=$v['uid']?>"><? endif; ?>
 							<?=$v['uname']?>

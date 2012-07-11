@@ -32,21 +32,23 @@ $logo = array(
 	"bot.png"=>"bot",
 );
 
-function strpos_array($haystack, $needles) {
-    if ( is_array($needles) ) {
-        foreach ($needles as $img=>$str) {
-            if ( is_array($str) ) {
-                $pos = strpos_array($haystack, $str);
-            } else {
-                $pos = strpos($haystack, $str);
-            }
-            if ($pos !== FALSE) {
-                return $img;
-            }
-        }
-    } else {
-        return strpos($haystack, $needles);
-    }
+if(!function_exists("strpos_array")){
+	function strpos_array($haystack, $needles) {
+		if ( is_array($needles) ) {
+			foreach ($needles as $img=>$str) {
+				if ( is_array($str) ) {
+					$pos = strpos_array($haystack, $str);
+				} else {
+					$pos = strpos($haystack, $str);
+				}
+				if ($pos !== FALSE) {
+					return $img;
+				}
+			}
+		} else {
+			return strpos($haystack, $needles);
+		}
+	}
 }
 
 foreach($online as $k=>$v){
@@ -58,16 +60,22 @@ foreach($online as $k=>$v){
 	}
 } //echo strpos_array("Googlebot-Image/1.0", $logo);
 
+$guest = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE name=\"". mpquot($conf['settings']['default_usr']). "\""), 0);
+
 ?>
 <div style="overflow:hidden;">
 	<div style="clear:both;">на сайте <b><?=$count?></b> <?=mpfm($count, 'посетитель', 'посетителя', 'посетителей')?></div>
 	<? foreach($online as $k=>$v): ?>
 		<div style="float:left; margin:1px; border:1px solid #ddd; position:relative;">
-			<a href="/<?=$arg['modname']?>/<?=($v['name'] != $conf['settings']['default_usr'] ? $v['id'] : "-{$v['sid']}")?>">
+			<? if($v['id'] != $guest['id']): ?>
+				<a href="/<?=$arg['modname']?>/<?=$v['id']?>">
+			<? elseif($arg['access'] > 3): ?>
+				<a href="/?m[sess]=admin&where[id]=<?=$v['sid']?>">
+			<? else: ?>
+				<a href="/<?=$arg['modname']?>/<?=$guest['id']?>">
+			<? endif; ?>
 				<? if($v['bot']): ?>
-					<div style="position:absolute; top:1px; right:1px; opacity:0.5;">
-						<img src="/<?=$arg['modname']?>:img/w:15/h:15/null/bot.png">
-					</div>
+					<div style="position:absolute; top:1px; right:1px; opacity:0.5;"><img src="/<?=$arg['modname']?>:img/w:15/h:15/null/bot.png"></div>
 				<? endif; ?>
 				<img src="<?=$v['image']?>" title="<?=$v['bot'] ? $v['agent'] : $v['name']. ($v['name'] != $conf['settings']['default_usr'] ? "" : "-{$v['sid']}")?>">
 			</a>

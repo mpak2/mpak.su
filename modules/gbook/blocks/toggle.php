@@ -15,7 +15,7 @@ EOF;*/
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 //if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
 
-$dat = mpql(mpqw("SELECT g.*, u.name AS uname, u.fm, u.im, u.ot FROM {$conf['db']['prefix']}{$arg['modpath']} AS g LEFT JOIN {$conf['db']['prefix']}users AS u ON g.uid=u.id WHERE vid=0 LIMIT 10"));
+$dat = mpql(mpqw("SELECT g.*, u.name AS uname, u.fm, u.im, u.ot FROM {$conf['db']['prefix']}{$arg['modpath']} AS g LEFT JOIN {$conf['db']['prefix']}users AS u ON g.uid=u.id WHERE hide=0 LIMIT 10"));
 
 ?>
 <script>
@@ -32,10 +32,13 @@ $dat = mpql(mpqw("SELECT g.*, u.name AS uname, u.fm, u.im, u.ot FROM {$conf['db'
 	<? foreach($dat as $k=>$v): ?>
 		<div style="display:<?=($k ? "none" : "block")?>">
 			<div class="toggle_content">
-				<div style="float:left; margin: 0 10px 10px 0;">
-					<img src="/users:img/<?=$v['uid']?>/tn:index/w:70/h:70/c:1/null/img.jpg">
+				<div style="overflow:hidden;">
+					<div style="float:left; margin: 0 10px 10px 0;">
+						<img src="/users:img/<?=$v['uid']?>/tn:index/w:70/h:70/c:1/null/img.jpg">
+					</div>
+					<div style="font-weight:bold;"><?=$v['name']?></div>
 				</div>
-				<div><?=mb_substr($v['text'], 0, 100)?></div>
+				<div><?=mb_substr($v['text'], 0, 1500)?></div>
 				<div><?=$v['fm']?> <?=$v['im']?> <?=$v['ot']?></div>
 			</div>
 			<div style="text-align:right; margin:10px 0;"><a href="/<?=$arg['modpath']?>">Все отзывы</a></div>

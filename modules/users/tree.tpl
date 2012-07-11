@@ -16,7 +16,9 @@
 	<? $tree = function($tr, $tree) use($conf) { if(empty($tr[''])) return; ?>
 		<li>
 			<span>
-				<? if($tr['']['id'] > 0): ?>
+				<? if($tr['']['id'] == 0): ?>
+					<?=$_SERVER['HTTP_HOST']?>
+				<? elseif($tr['']['id'] > 0): ?>
 					<a href="/users/<?=$tr['']['id']?>"><?=$tr['']['name']?></a>
 					Вход: <b><?=date('Y.m.d', $tr['']['last_time'])?></b>
 					Регистрация: <b><?=date('Y.m.d', $tr['']['reg_time'])?></b>

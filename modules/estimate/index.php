@@ -6,6 +6,7 @@ if($_POST['estimate']){
 	mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_index SET time=". time(). ", uid=". $conf['user']['uid']. ",  name=\"". mpquot($refer). "\", count=1, estimate=". (int)$est. " ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id),time=". time(). ", uid=". $conf['user']['uid']. ", count=count+1, estimate=estimate+". (int)$est);
 	if($index_id = mysql_insert_id()){
 		$estimate = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE id=". (int)$index_id), 0);
+		mpevent("Пользовательская оценка", $refer);
 	} echo $estimate['count']. "/". number_format($estimate['estimate']/$estimate['count'], 2); exit;
 }elseif(array_key_exists('null', $_GET)){
 	$conf['tpl']['estimate'] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE name=\"". mpquot($refer). "\""), 0);

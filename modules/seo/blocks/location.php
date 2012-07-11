@@ -48,44 +48,25 @@ if ((int)$arg['confnum']){
 
 }//$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
-
-$admin = array("zhiraf", "artfactor", "proffmade");
-
-if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && array_search($_POST['theme'], $admin) !== null){
-	echo $adm = $conf['settings']['theme/*:admin'];
-	mpqw("UPDATE {$conf['db']['prefix']}blocks SET theme=\"". mpquot("!{$_POST['theme']}"). "\" WHERE theme LIKE \"". mpquot("!{$adm}"). "\"");
-	mpqw("UPDATE {$conf['db']['prefix']}blocks SET theme=\"". mpquot("{$_POST['theme']}"). "\" WHERE theme LIKE \"". mpquot("{$adm}"). "\"");
-	mpsettings('theme/*:admin', $_POST['theme']);
-	mpsettings('theme/admin:*', $_POST['theme']);
-	if($_POST['theme'] == 'proffmade'){
-		mpqw("UPDATE mp_blocks SET file='admin/blocks/proffmade.php' WHERE file='admin/blocks/top.php'");
-	}else if($_POST['theme'] == 'artfactor'){
-		mpqw("UPDATE mp_blocks SET file='admin/blocks/artfactor.php' WHERE file='admin/blocks/top.php'");
-		mpqw("UPDATE mp_blocks SET enabled=0 WHERE file='admin/blocks/modlist.php'");
-	}else{
-		mpqw("UPDATE mp_blocks SET file='admin/blocks/top.php' WHERE file='admin/blocks/artfactor.php'");
-		mpqw("UPDATE mp_blocks SET enabled=1 WHERE file='admin/blocks/modlist.php'");
-	}// header("Location: /admin"); exit;
-	exit("Установлен {$_POST['theme']} админраздел");
+if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && array_key_exists("val", $_POST)){
+	mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_redirect",
+		$w = array("to"=>$_POST['to']),
+		$w += array("from"=>$_POST['val']), $w
+	); exit($_POST['redirect_id']);
 };
 
+//$dat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} LIMIT 10"));
+
+$seo = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_redirect WHERE `from`=\"". mpquot($_SERVER['REQUEST_URI']). "\" OR `to`=\"". mpquot($_SERVER['REQUEST_URI']). "\" LIMIT 1"), 0);
+
 ?>
+<script src="/include/jquery/my/jquery.klesh.select.js"></script>
 <script>
 	$(function(){
-		$("#admin_edit_<?=$arg['blocknum']?> input[type=button]").click(function(){
-			theme = $("#admin_edit_<?=$arg['blocknum']?> select option:selected").val();// alert(theme);
-			$("#admin_edit_<?=$arg['blocknum']?> select option:first").attr("selected", "selected");
-			$.post("/blocks/theme:<?=$conf['settings']['theme']?>/<?=$arg['blocknum']?>/null", {theme:theme}, function(data){
-				alert(data);
-			});
-		});
+		$(".klesh").klesh("/blocks/<?=$arg['blocknum']?>/null");
 	});
 </script>
-<div id="admin_edit_<?=$arg['blocknum']?>">
-	<select>
-		<option></option>
-		<? foreach($admin as $adm): ?>
-			<option><?=$adm?></option>
-		<? endforeach; ?>
-	</select> <input type="button" value="Применить">
+<div>
+	<div><?=$seo['to']?></div>
+	<div class="klesh" to="<?=$seo['to']?>" redirect_id="<?=$seo['id']?>"><?=$seo['from']?></div>
 </div>

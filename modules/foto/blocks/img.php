@@ -63,7 +63,7 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 		mpqw("DELETE FROM {$conf['db']['prefix']}{$arg['modpath']}_img WHERE uid=". (int)$conf['user']['uid']. " AND id=". (int)$_POST['img_del']); exit(''. $_POST['img_del']);
 	} 
 }else{
-	$dat = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} WHERE uid=". (int)$arg['uid']. " LIMIT 50"));
+	$dat = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} WHERE uid=". (int)$arg['uid']. " LIMIT 20"));
 }// mpre($dat);
 
 ?>

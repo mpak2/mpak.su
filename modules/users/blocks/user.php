@@ -14,7 +14,9 @@ EOF;*/
 }//$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 
-$diff = array('id', 'name', 'pass', 'param', 'flush', 'refer', 'tid', 'img', 'ref', 'reg_time', 'last_time', 'uid', 'sess', 'gid', 'email', 'uname');
+$diff = array('id', 'name', 'pass', 'param', 'flush', 'refer', 'tid', 'img', 'ref', 'reg_time', 'last_time', 'uid', 'sess', 'gid', 'uname');
+
+$month = explode(",", $conf['settings']['themes_month']);
 
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && ($conf['user']['uid'] == $arg['uid']) && $_POST){
 	if($_FILES){
@@ -22,9 +24,15 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 			mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']} SET img=\"". mpquot($fn). "\" WHERE id=". (int)$conf['user']['uid']);
 			exit($conf['user']['uid']);
 		}
-	}else{
-		mpqw("UPDATE {$conf['db']['prefix']}users SET ". mpquot($_POST['f']). "=\"". mpquot($_POST['val']). "\" WHERE id=". (int)$conf['user']['uid']);
-	} exit();
+	}elseif(array_key_exists('day', $_POST) && array_key_exists('month', $_POST)){
+		mpqw("UPDATE {$conf['db']['prefix']}users SET birth=\"". ($_POST['day'] && $_POST['month'] ? strtotime("2000-". array_search($_POST['month'], $month). "-". (int)$_POST['day']) : 0). "\" WHERE id=". (int)$conf['user']['uid']);
+		exit;
+	}elseif(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && ($conf['user']['uid'] == $arg['uid']) && $_POST['f']){
+		if($_POST['f'] == "geo") $_POST['val'] = implode(",", $_POST['val']);
+		mpqw($sql = "UPDATE {$conf['db']['prefix']}users SET ". mpquot($_POST['f']). "=\"". mpquot($_POST['val']). "\" WHERE id=". (int)$conf['user']['uid']);
+		exit;
+	};
+
 }
 
 foreach($conf['user'] as $k=>$v){
@@ -43,6 +51,19 @@ foreach($conf['user'] as $k=>$v){
 				$(".klesh_<?=$k?>_<?=$arg['blocknum']?>[f='<?=$k?>']").klesh("/blocks/<?=$arg['blocknum']?>/null", function(){
 				}, <?=json_encode($v)?>);
 			<? endforeach; ?>
+			$(".klesh_birth_day_<?=$arg['blocknum']?>[f='birth']").klesh("/blocks/<?=$arg['blocknum']?>/null", function(){
+				save_birth();
+			}, <?=json_encode(array("")+range(0, 31))?>);
+			$(".klesh_birth_month_<?=$arg['blocknum']?>[f='birth']").klesh("/blocks/<?=$arg['blocknum']?>/null", function(){
+				save_birth();
+			}, <?=json_encode($month)?>);
+			function save_birth(){
+				day = $(".klesh_birth_day_<?=$arg['blocknum']?>[f='birth']").html();
+				month = $(".klesh_birth_month_<?=$arg['blocknum']?>[f='birth']").html();
+				$.post("/blocks/<?=$arg['blocknum']?>/null", {day:day, month:month}, function(data){
+					if(isNaN(data)){ alert(data) }
+				});
+			}
 		});
 	</script>
 <? endif; ?>
@@ -52,6 +73,11 @@ foreach($conf['user'] as $k=>$v){
 	#f_<?=$arg['blocknum']?> > div > div:first-child {float:left; width:150px;}
 </style>
 <div id="user_info_<?=$arg['blocknum']?>" style="overflow:hidden;">
+	<? if($arg['access'] > 3): ?>
+		<span style="float:right;">
+			<a href="/?m[<?=$arg['modpath']?>]=admin&r=mp_users&where[id]=<?=$user['id']?>"><img src="/img/aedit.png"></a>
+		</span>
+	<? endif; ?>
 	<div style="float:left; width:200px; text-align:center;">
 		<img class="user_img" src="/<?=$conf['modules']['users']['modname']?>:img/<?=$user['id']?>/tn:index/w:200/h:200/null/img.jpg">
 		<h3 style="text-align:center;"><?=$user['name']?></h3>
@@ -83,6 +109,57 @@ foreach($conf['user'] as $k=>$v){
 					<div><?=($conf['settings'][$f = "users_field_$k"] ?: $f)?>:</div>
 					<? if(substr($k, -3) == '_id'): ?>
 						<div f="<?=$k?>" class="klesh_<?=$k?>_<?=$arg['blocknum']?>"><?=$conf['tpl']['select'][ $k ][ $v ]?></div>
+					<? elseif($k == "geo"): ?>
+						<input type="text" name="geo" value="<?=$v?>" <?=($arg['uid'] == $conf['user']['uid'] ? "" : "disabled")?>>
+						<form id="search_form" style="display:none;">
+							<input type="text" value="Великий Устюг" style="width: 70%;"/>
+							<input type="submit" onClick="return false;" value="Найти"/>
+						</form>
+						<div id="ymaps-map-id_134128145774966671747" style="width: 100%; height: 250px; margin-top:10px;"></div>
+						<script type="text/javascript">
+							function fid_134128145774966671747(ymaps) {
+								var map = new ymaps.Map("ymaps-map-id_134128145774966671747", {center: [<?=($v ?: "30.097690164062513, 59.940978814388316")?>], zoom: <?=($v ? "14" : "8")?>, type: "yandex#map"});
+								map.controls.add("zoomControl").add("mapTools").add(new ymaps.control.TypeSelector(["yandex#map", "yandex#satellite", "yandex#hybrid", "yandex#publicMap"]));
+								<? if($arg['uid'] == $conf['user']['uid']): ?>
+									map.events.add("click",
+										function(e) {
+											$("input[type='text'][name='geo']").attr("value", geo = e.get("coordPosition"));
+											$.post("/blocks/<?=$arg['blocknum']?>/null", {f:"geo", val:geo}, function(data){
+												if(isNaN(data)){ alert(data); }
+											});
+											map.balloon.open(
+												e.get("coordPosition"), {
+													contentBody: "<b><?=$user['name']?></b><br /><?=$user['addr']?>"
+												}   
+											)
+										}
+									);
+								<? endif; ?>
+								<? if($v): ?>
+									map.balloon.open(
+										map.getCenter(), {
+											contentBody: "<b><?=mpquot($user['name'])?></b><br /><?=mpquot($user['addr'])?>"
+										}   
+									)
+								<? endif; ?>
+							};
+//							$('#search_form').submit(function () {
+//								alert(123);
+/*								var search_query = $('input:first').val();
+
+								map.geocode(search_query, {results: 100}).then(function (res) {
+									myCollection.removeAll();
+									myCollection = res.geoObjects;
+									map.geoObjects.add(myCollection);
+								});
+								return false;*/
+//							});
+						</script>
+						<script type="text/javascript" src="http://api-maps.yandex.ru/2.0/?coordorder=longlat&load=package.full&wizard=constructor&lang=ru-RU&onload=fid_134128145774966671747"></script>
+						<!-- Этот блок кода нужно вставить в ту часть страницы, где вы хотите разместить карту (конец) -->
+					<? elseif($k == "birth"): ?>
+						<div style="display:inline-block;" f="<?=$k?>" class="klesh_<?=$k?>_day_<?=$arg['blocknum']?>"><?=($v ? date("d", (int)$v) : "")?></div>
+						<div style="display:inline-block;" f="<?=$k?>" class="klesh_<?=$k?>_month_<?=$arg['blocknum']?>"><?=($v ? $month[date("n", (int)$v)] : "")?></div>
 					<? else: ?>
 						<div f="<?=$k?>" class="klesh_<?=$arg['blocknum']?>"><?=$user[$k]?></div>
 					<? endif; ?>
