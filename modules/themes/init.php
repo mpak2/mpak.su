@@ -50,5 +50,6 @@ mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`,
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('themes', 'description', 'Создать сайт бесплатно за две минуты. Удаленная работа. Разработка портальной системы', '1', 'Описание сайта')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('themes', 'theme/develop:develop', 'zhiraf', '5', 'Тема для страницы планировщика')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('themes', 'theme_logo', 'i/logo_img.png:10:-10', '5', 'Логотип на графические файлы')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('themes', 'themes_month', ',января,февраля,марта,апреля,мая,июня,июля,августа,сентября,октября,ноября,декабря', '0', 'Список названий месяцев')");
 
 ?>

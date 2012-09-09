@@ -122,5 +122,7 @@ mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`,
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_event_memcache_set', 'Сформирован новый memcache', '1', 'Событие')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_event_image', 'Обновление изображения', '1', 'Событие')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_event_mail', 'Отправка сообщения пользователю', '1', 'Событие')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_activation', '1', '0', 'Активация пользователя')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_reg_text', 'Спасибо за регистрацию. Рады приветствовать вас на нашем сайте', '0', 'Текст при регистрации')");
 
 ?>

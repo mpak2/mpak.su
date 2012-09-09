@@ -61,7 +61,7 @@ EOF;
 
 	if($_POST['fields'] && $_POST['data']){
 		foreach(explode("\n", $_POST['data']) as $dat){
-			echo "<br />". $sql = "INSERT INTO `". mpquot($_POST['table']). "` SET `". mpquot($_POST['fields']). "`=\"". mpquot($dat). "\"". ($_POST['field'] ? ", `{$_POST['field']}`=\"". mpquot($_POST['val']). "\"" : ""); mpqw($sql);
+			echo "<br />". $sql = "INSERT INTO `". mpquot($_POST['table']). "` SET `". mpquot($_POST['fields']). "`=\"". mpquot($dat). "\"". ($_POST['field'] ? ", `{$_POST['field']}`=\"". trim(mpquot($_POST['val'])). "\"" : ""); mpqw($sql);
 		}
 	}
 }elseif ($m[(int)$_GET['r']] == 'Структура'){
@@ -108,7 +108,7 @@ EOF;
 		}
 		foreach(array_diff_key($_POST['keys'], $keys) as $n=>$m){
 			$keys[$n] = 'on';
-			mpqw($sql = "ALTER TABLE `{$_POST['tab']}` ADD INDEX ($n)");
+			mpqw($sql = "ALTER TABLE `{$_POST['tab']}` ADD INDEX (`$n`)");
 		} echo $sql;
 	}
 

@@ -22,14 +22,21 @@ if (isset($_POST['add']) && strlen($_POST['name']) && strlen($_POST['pass']) && 
 		echo "<p><p><center><font color=red>Такое имя уже зарегистрировано. Выбирите другое</font>";
 		echo " <a href='/{$arg['modname']}:{$arg['fe']}'>Вернуться</a></center>";
 	}else{
-		mpqw($sql = "INSERT INTO ". ($tn = "{$conf['db']['prefix']}users"). " SET tid=1, name=\"". mpquot($_POST['name']). "\", pass=\"". mphash($_POST['name'], $_POST['pass']). "\", reg_time=". time(). ", last_time=". time(). ", email=\"".mpquot($_POST['email'])."\", ref=\"". mpquot($conf['user']['sess']['ref']). "\"". ($conf['user']['sess']['refer'] ? ", refer=". (int)$conf['user']['sess']['refer'] : ''));
-		if($uid = mysql_insert_id()){
+		mpqw($sql = "INSERT INTO ". ($tn = "{$conf['db']['prefix']}users"). " SET tid=1, name=\"". mpquot($_POST['name']). "\", pass=\"". ($pass = mphash($_POST['name'], $_POST['pass'])). "\", reg_time=". time(). ", last_time=". time(). ", email=\"".mpquot($_POST['email'])."\", ref=\"". mpquot($conf['user']['sess']['ref']). "\"". ($conf['user']['sess']['refer'] ? ", refer=". (int)$conf['user']['sess']['refer'] : ''));
+		if($tpl['mysql_insert_id'] = mysql_insert_id()){
+			if($tpl['users_activation'] = $conf['settings']['users_activation']){ # Для регистрации нужна активация аккаунта
+				mpqw("UPDATE {$conf['db']['prefix']}users SET pass=\"". mpquot($conf['settings']['users_activation']. $pass). "\" WHERE id=". (int)$tpl['mysql_insert_id']);
+			}else{ # Автоподключение а аккаунту
+				mpqw("UPDATE {$conf['db']['prefix']}sess SET uid=". (int)$tpl['mysql_insert_id']. " WHERE id=". (int)$conf['user']['sess']['id']);
+			}
 			if($mpdbf = mpdbf($tn, array_intersect_key($_POST, $conf['tpl']['fields']))){
-				mpqw($sql = "UPDATE $tn SET $mpdbf WHERE id=".(int)$uid);
-			} mpevent("Регистрация нового пользователя", $_POST['name'], $uid, $_POST);
-			mpqw("UPDATE {$conf['db']['prefix']}sess SET uid=$uid WHERE id={$conf['user']['sess']['id']}");
-			$gg = mpql(mpqw($sql = "SELECT id FROM {$conf['db']['prefix']}users_grp WHERE name = '{$conf['settings']['user_grp']}'"), 0, 'id');// echo $sql;
-			mpqw($sql = "INSERT INTO {$conf['db']['prefix']}users_mem SET uid=".(int)$uid.", gid=".(int)$gg);
+				mpqw($sql = "UPDATE $tn SET $mpdbf WHERE id=".(int)$tpl['mysql_insert_id']);
+			} mpevent("Регистрация нового пользователя", $_POST['name'], $tpl['mysql_insert_id'], array("activation"=>"/users:activation/uid:{$tpl['mysql_insert_id']}/activation:". mb_substr($pass, 0, 7))+$_POST);
+//			mpevent("Регистрация нового пользователя", $_POST['name'], $tpl['mysql_insert_id']);
+
+			$gg = mpql(mpqw($sql = "SELECT id FROM {$conf['db']['prefix']}users_grp WHERE name = \"". $conf['settings']['user_grp']. "\""), 0);// echo $sql;
+			mpqw($sql = "INSERT INTO {$conf['db']['prefix']}users_mem SET uid=".(int)$tpl['mysql_insert_id'].", gid=".(int)$gg['id']);
+
 			if($conf['settings']['users_reg_redirect']){ # Перенаправление на страницу с настроек
 				header("Location: {$conf['settings']['users_reg_redirect']}");
 			}else{

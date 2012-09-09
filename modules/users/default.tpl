@@ -8,6 +8,6 @@
 	</script>
 	<div id="block_users">
 		<div><!-- [blocks:5] --></div>
-<!--			<div style="width:50%; margin-left:50%;" ><!-- [blocks:6] --></div>-->
+<!--			<div style="width:50%; margin-left:50%;" ><!- [blocks:6] -></div>-->
 	</div>
 </div>

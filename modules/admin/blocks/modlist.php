@@ -11,7 +11,7 @@ if ((int)$arg['confnum']){
 }
 
 $cat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}admin"));
-$mod = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}modules ORDER BY id DESC"), 'admin', 'id');
+$mod = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}modules ORDER BY priority DESC"), 'admin', 'id');
 
 $modpath = array_search('admin', $_GET['m']);
 

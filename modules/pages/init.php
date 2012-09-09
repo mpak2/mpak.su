@@ -11,7 +11,7 @@ mpqw($sql);
 
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `kid` int(11) NOT NULL,
+  `cat_id` int(11) NOT NULL,
   `uid` int(11) NOT NULL,
   `time` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,

@@ -55,7 +55,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}"){
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
 			'edit' => 'list',
-			'title' => array('otime'=>'Время', 'uid'=>'Пользователь', 'img'=>'Изображение', 'name'=>'Подпись', 'hide'=>'Скрыт', 'text'=>'Вопрос', 'otvet'=>'Ответ'), # Название полей
+			'title' => array('time'=>'Время', 'uid'=>'Пользователь', 'name'=>'Подпись', 'hide'=>'Скрыт', 'text'=>'Вопрос', 'otvet'=>'Ответ'), # Название полей
 //			'etitle'=>array('uid'=>'Пользователь', 'name'=>'Имя', 'parent'=>'Родитель', 'vid'=>'Видимость', 'time'=>'Время', 'otime'=>'Время ответа', 'text'=>'Вопрос', 'otvet'=>'Ответ'),
 			'type' =>array('otime'=>'timestamp', 'img'=>'file', 'time'=>'timestamp', 'text'=>'textarea', 'otvet'=>'textarea'), # Тип полей
 
@@ -71,12 +71,12 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}"){
 			'spisok' => array( # Список для отображения и редактирования
 //				'name' => array('*'=>array(''=>'CФ_Югрател')),
 				'uid' => array('*' => spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
-				'vid'=>array('*'=>array(1=>'Скрыт', 0=>'Видим')),
+				'hide'=>array('*'=>array(1=>'Скрыт', 0=>'Видим')),
 				'parent' => array('*' => array(0=>'') + (array)spisok("SELECT id, text FROM {$conf['db']['prefix']}gbook WHERE parent = 0 ORDER BY id DESC", 30)),
 			),
 			'default' => array(
 				'time'=>date('Y.m.d H:i:s'),
-				'vid'=>array('*'=>(int)$_GET['default']['vid']),
+				'hide'=>array('*'=>(int)$_GET['default']['vid']),
 				'parent'=>array('*'=>(int)$_GET['default']['parent'])
 			), # Значение полей по умолчанию
 			'maxsize' => array('text'=>'250', 'otvet'=>'250'), # Максимальное количество символов в поле

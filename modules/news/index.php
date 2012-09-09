@@ -5,7 +5,7 @@ FROM {$conf['db']['prefix']}{$arg['modpath']}_post AS p
 LEFT JOIN {$conf['db']['prefix']}users AS u
 	ON p.uid=u.id
 LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_kat AS k
-	ON p.kid=k.id WHERE 1=1". ($_GET['id'] ? " AND p.id=".(int)$_GET['id'] : "").($_GET['kid'] ? " AND p.kid=".(int)$_GET['kid'] : '');
+	ON p.kat_id=k.id WHERE 1=1". ($_GET['id'] ? " AND p.id=".(int)$_GET['id'] : "").($_GET['kat_id'] ? " AND p.kat_id=".(int)$_GET['kat_id'] : '');
 
 if (!$_GET['id']) $sql .= " ORDER BY time DESC LIMIT ". ((int)$_GET['p']*5). ",5";
 $conf['tpl']['news'] = mpql(mpqw($sql));

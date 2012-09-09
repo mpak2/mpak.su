@@ -5,7 +5,7 @@
 			<a href="/<?=$arg['modpath']?>/<?=$_GET['id']?>">Вернуться</a>
 		<? else: # Капча введена правильно или не установлена ?>
 			Информация сохранена
-			<a href="<?=($conf['tpl']['index'][ $_GET['id'] ]['href'] ?: "/{$arg['modpath']}/{$_GET['id']}")?>">Продолжить</a>
+			<a href="<?=(($href = $conf['tpl']['index'][ $_GET['id'] ]['href']) ? str_replace("{id}", $tpl['mysql_inset_id'], $href) : "/{$arg['modpath']}/{$_GET['id']}")?>">Продолжить</a>
 		<? endif; ?>
 	</div>
 <? else: ?>
@@ -58,7 +58,7 @@
 								<? elseif($v['type'] == 'map'): ?>
 									<!-- Этот блок кода нужно вставить в ту часть страницы, где вы хотите разместить карту (начало) -->
 									<input type="hidden" name="<?=$vid?>" value="">
-									<div id="ymaps-map-id_134128145774966671747" style="width: 80%; height: 250px;"></div>
+									<div id="ymaps-map-id_134128145774966671747" style="width: 90%; height: 300px;"></div>
 									<script type="text/javascript">
 										function fid_134128145774966671747(ymaps) {
 											var map = new ymaps.Map("ymaps-map-id_134128145774966671747", {center: [30.097690164062513, 59.940978814388316], zoom: 8, type: "yandex#map"});
@@ -68,7 +68,7 @@
 													$("input[type='hidden'][name='<?=$vid?>']").attr("value", e.get("coordPosition"));
 													map.balloon.open(
 														e.get("coordPosition"), {
-															contentBody: "Положение объекта:<br />"
+															contentBody: "Здесь:<br />"
 														}   
 													)
 												}

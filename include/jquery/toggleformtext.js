@@ -11,15 +11,15 @@ $(document).ready(function(){
 		if(this.value == ''){
 			this.value = this.title;
 			if($(this).is("[type=password]")){
-				this.type = "pass";
+//				this.type = "pass";
 			}
 		}
 	})
-	$("input:text, textarea, input:password, input[type=pass]").live("focus", function(){
+	$("input:text, textarea, input:password").live("focus", function(){
 		if(this.value == this.title)
 			this.value = '';
 			if($(this).is("[type=pass]")){
-				this.type = "password";
+//				this.type = "password";
 				this.value = "";
 			}
 	});
@@ -27,7 +27,7 @@ $(document).ready(function(){
 		if(this.value == '')
 			this.value = this.title;
 			if(this.type == "password"){
-				this.type = "pass";
+//				this.type = "pass";
 			}
 	});
 	$("input:image, input:button, input:submit").live("click", function(){

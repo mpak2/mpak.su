@@ -8,8 +8,8 @@ if ((int)$arg['confnum']){
 	} if(array_key_exists("null", $_GET)) exit;
 
 	$klesh = array(
-/*		"Количество символов"=>0,
-		"Курс доллара"=>30,
+/*		($f = "Ширина")=>($param[ $f ] = $param[ $f ] ?: 200),
+		($f = "Высота")=>($param[ $f ] = $param[ $f ] ?: 200),
 		"Список"=>array(
 			1=>"Одын",
 			2=>"Два",

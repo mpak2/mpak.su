@@ -1,22 +1,69 @@
 <? die; # Нуль
 
 if ((int)$arg['confnum']){
-/*	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0, 'param'));
-	if ($_POST) mpqw("UPDATE {$conf['db']['prefix']}blocks SET param = '".serialize($param = $_POST['param'])."' WHERE id = {$arg['confnum']}");
+	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0, 'param'));
+	if ($_POST){
+		$param = array($_POST['param']=>$_POST['val'])+(array)$param;
+		mpqw("UPDATE {$conf['db']['prefix']}blocks SET param = '".serialize($param)."' WHERE id = {$arg['confnum']}");
+	} if(array_key_exists("null", $_GET)) exit;
 
-echo <<<EOF
-	<form method="post">
-		<input type="text" name="param" value="$param"> <input type="submit" value="Сохранить">
-	</form>
-EOF;*/
+	$klesh = array(
+/*		"Количество символов"=>0,
+		"Курс доллара"=>30,
+		"Список"=>array(
+			1=>"Одын",
+			2=>"Два",
+		),
+		"Город"=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users_sity ORDER BY name"),*/
+	);
 
-	return;
-}//$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
+?>
+		<!-- Настройки блока -->
+	<script src="/include/jquery/my/jquery.klesh.select.js"></script>
+	<script>
+		$(function(){
+			<? foreach($klesh as $k=>$v): ?>
+				<? if(gettype($v) == 'array'): ?>
+					$(".klesh_<?=strtr(md5($k), array("="=>''))?>").klesh("/?m[blocks]=admin&r=mp_blocks&null&conf=<?=$arg['confnum']?>", function(){
+					}, <?=json_encode($v)?>);
+				<? else: ?>
+					$(".klesh_<?=strtr(md5($k), array("="=>''))?>").klesh("/?m[blocks]=admin&r=mp_blocks&null&conf=<?=$arg['confnum']?>");
+				<? endif; ?>
+			<? endforeach; ?>
+		});
+	</script>
+	<div style="margin-top:10px;">
+		<? foreach($klesh as $k=>$v): ?>
+			<div style="overflow:hidden;">
+				<div style="width:200px; float:left; padding:5px; text-align:right; font-weight:bold;"><?=$k?> :</div>
+				<? if(gettype($v) == 'array'): ?>
+					<div class="klesh_<?=strtr(md5($k), array("="=>''))?>" param="<?=$k?>"><?=$v[ $param[$k] ]?></div>
+				<? else: ?>
+					<div class="klesh_<?=strtr(md5($k), array("="=>''))?>" param="<?=$k?>"><?=($param[$k] ?: $v)?></div>
+				<? endif; ?>
+			</div>
+		<? endforeach; ?>
+	</div>
+<? return;
+
+} $param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
+//if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
 
 $diff = array('id', 'name', 'pass', 'param', 'flush', 'refer', 'tid', 'img', 'ref', 'reg_time', 'last_time', 'uid', 'sess', 'gid', 'uname');
 
-$month = explode(",", $conf['settings']['themes_month']);
+foreach(range(1, 31) as $v){
+	$day[$v] = array("id"=>$v, "name"=>$v);
+};
+
+foreach(explode(",", $conf['settings']['themes_month']) as $k=>$v){
+	$month_id[$k] = $v;
+	$month[$k] = array("id"=>$k, "name"=>$v);
+};
+
+foreach(range(1900, date("Y")) as $v){
+	$year[$v] = array("id"=>$v, "name"=>$v);
+};
 
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && ($conf['user']['uid'] == $arg['uid']) && $_POST){
 	if($_FILES){
@@ -24,8 +71,8 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 			mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']} SET img=\"". mpquot($fn). "\" WHERE id=". (int)$conf['user']['uid']);
 			exit($conf['user']['uid']);
 		}
-	}elseif(array_key_exists('day', $_POST) && array_key_exists('month', $_POST)){
-		mpqw("UPDATE {$conf['db']['prefix']}users SET birth=\"". ($_POST['day'] && $_POST['month'] ? strtotime("2000-". array_search($_POST['month'], $month). "-". (int)$_POST['day']) : 0). "\" WHERE id=". (int)$conf['user']['uid']);
+	}elseif(array_key_exists('day', $_POST) && array_key_exists('month', $_POST) && array_key_exists('year', $_POST)){
+		mpqw("UPDATE {$conf['db']['prefix']}users SET birth=". strtotime((int)$_POST['year']. "-". array_search($_POST['month'], $month_id). "-". (int)$_POST['day']). " WHERE id=". (int)$conf['user']['uid']);
 		exit;
 	}elseif(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && ($conf['user']['uid'] == $arg['uid']) && $_POST['f']){
 		if($_POST['f'] == "geo") $_POST['val'] = implode(",", $_POST['val']);
@@ -37,13 +84,14 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 
 foreach($conf['user'] as $k=>$v){
 	if(substr($k, -3) == '_id'){
-		$conf['tpl']['select'][$k] = spisok("SELECT id, name FROM {$conf['db']['prefix']}users_". substr($k, 0, strlen($k)-3). " ORDER BY name");
+		$conf['tpl']['select'][$k] = mpqn(mpqw("SELECT id, name FROM {$conf['db']['prefix']}users_". substr($k, 0, strlen($k)-3). " ORDER BY name"));
 	}
 } $user = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}users WHERE id=". (int)$arg['uid']), 0);
 
 ?>
+
 <? if($conf['user']['uid'] == $arg['uid']): ?>
-	<script src="/include/jquery/my/jquery.klesh.select.js"></script>
+	<script src="/include/jquery/my/jquery.klesh.js"></script>
 	<script>
 		$(function(){
 			$(".klesh_<?=$arg['blocknum']?>").klesh("/blocks/<?=$arg['blocknum']?>/null");
@@ -53,14 +101,18 @@ foreach($conf['user'] as $k=>$v){
 			<? endforeach; ?>
 			$(".klesh_birth_day_<?=$arg['blocknum']?>[f='birth']").klesh("/blocks/<?=$arg['blocknum']?>/null", function(){
 				save_birth();
-			}, <?=json_encode(array("")+range(0, 31))?>);
+			}, <?=json_encode($day)?>);
 			$(".klesh_birth_month_<?=$arg['blocknum']?>[f='birth']").klesh("/blocks/<?=$arg['blocknum']?>/null", function(){
 				save_birth();
 			}, <?=json_encode($month)?>);
+			$(".klesh_birth_year_<?=$arg['blocknum']?>[f='birth']").klesh("/blocks/<?=$arg['blocknum']?>/null", function(){
+				save_birth();
+			}, <?=json_encode($year)?>);
 			function save_birth(){
 				day = $(".klesh_birth_day_<?=$arg['blocknum']?>[f='birth']").html();
 				month = $(".klesh_birth_month_<?=$arg['blocknum']?>[f='birth']").html();
-				$.post("/blocks/<?=$arg['blocknum']?>/null", {day:day, month:month}, function(data){
+				year = $(".klesh_birth_year_<?=$arg['blocknum']?>[f='birth']").html();
+				$.post("/blocks/<?=$arg['blocknum']?>/null", {day:day, month:month, year:year}, function(data){
 					if(isNaN(data)){ alert(data) }
 				});
 			}
@@ -108,7 +160,7 @@ foreach($conf['user'] as $k=>$v){
 				<div style="overflow:hidden;">
 					<div><?=($conf['settings'][$f = "users_field_$k"] ?: $f)?>:</div>
 					<? if(substr($k, -3) == '_id'): ?>
-						<div f="<?=$k?>" class="klesh_<?=$k?>_<?=$arg['blocknum']?>"><?=$conf['tpl']['select'][ $k ][ $v ]?></div>
+						<div f="<?=$k?>" class="klesh_<?=$k?>_<?=$arg['blocknum']?>"><?=$conf['tpl']['select'][ $k ][ $v ]['name']?></div>
 					<? elseif($k == "geo"): ?>
 						<input type="text" name="geo" value="<?=$v?>" <?=($arg['uid'] == $conf['user']['uid'] ? "" : "disabled")?>>
 						<form id="search_form" style="display:none;">
@@ -159,7 +211,8 @@ foreach($conf['user'] as $k=>$v){
 						<!-- Этот блок кода нужно вставить в ту часть страницы, где вы хотите разместить карту (конец) -->
 					<? elseif($k == "birth"): ?>
 						<div style="display:inline-block;" f="<?=$k?>" class="klesh_<?=$k?>_day_<?=$arg['blocknum']?>"><?=($v ? date("d", (int)$v) : "")?></div>
-						<div style="display:inline-block;" f="<?=$k?>" class="klesh_<?=$k?>_month_<?=$arg['blocknum']?>"><?=($v ? $month[date("n", (int)$v)] : "")?></div>
+						<div style="display:inline-block;" f="<?=$k?>" class="klesh_<?=$k?>_month_<?=$arg['blocknum']?>"><?=($v ? $month[date("n", (int)$v)]['name'] : "")?></div>
+						<div style="display:inline-block;" f="<?=$k?>" class="klesh_<?=$k?>_year_<?=$arg['blocknum']?>"><?=($v ? date("Y", (int)$v) : "")?></div>
 					<? else: ?>
 						<div f="<?=$k?>" class="klesh_<?=$arg['blocknum']?>"><?=$user[$k]?></div>
 					<? endif; ?>

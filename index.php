@@ -123,24 +123,25 @@ if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аут
 
 $user = mpql(mpqw("SELECT *, id AS uid, name AS uname FROM {$conf['db']['prefix']}users WHERE id={$sess['uid']}", 'Проверка пользователя'));
 list($k, $conf['user']) = each($user);
-if($conf['user']['uname'] == $conf['settings']['default_usr']){
+if(($conf['settings']['users_uname'] = $conf['user']['uname']) == $conf['settings']['default_usr']){
 	$conf['user']['uid'] = -$sess['id'];
 } $conf['settings']['users_uid'] = $conf['user']['uid'];
 $conf['db']['info'] = 'Получаем информацию о группах в которые входит пользователь';
 $conf['user']['gid'] = spisok("SELECT g.id, g.name FROM {$conf['db']['prefix']}users_grp as g, {$conf['db']['prefix']}users_mem as m WHERE g.id = m.gid AND m.uid = {$sess['uid']}");
 $conf['user']['sess'] = $sess;
 
-$content = mpct(mpopendir("include/init.php"), array()); # Установка предварительных переменных
+
 
 if ($conf['settings']['start_mod'] && !$_GET['m']){
 	if (strpos($conf['settings']['start_mod'], 'array://') === 0){
 		$_GET = unserialize(substr($conf['settings']['start_mod'], 8));
+	}else if(strpos($conf['settings']['start_mod'], "http://") === 0){
+		header("Location: {$conf['settings']['start_mod']}"); exit;
 	}else{
 //		header("HTTP/1.1 302 Temporary Redirect");
-//		header("Location: {$conf['settings']['start_mod']}");
-		$_GET = mpgt($conf['settings']['start_mod']);
+		$_GET = mpgt($_SERVER['REQUEST_URI'] = $conf['settings']['start_mod']);
 	}
-}
+} $content = mpct(mpopendir("include/init.php"), array()); # Установка предварительных переменных
 
 list($m, $f) = (array)each($_GET['m']); # Отображение меню с выбором раздела для модуля администратора
 
@@ -197,6 +198,7 @@ if (!function_exists('bcont')){
 				$conf['blocks']['info'][ $v['id'] ]['access'] = $bac;
 			}
 		}
+
 		foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}blocks_gaccess ORDER BY id", 'Права доступа группы к блоку')) as $k=>$v)
 			if ($conf['user']['gid'][ $v['gid'] ]) $conf['blocks']['info'][ $v['bid'] ]['access'] = $v['access'];
 		foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}blocks_uaccess ORDER BY id", 'Права доступа пользователя к блоку')) as $k=>$v)

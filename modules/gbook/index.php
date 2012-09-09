@@ -1,13 +1,13 @@
 <? die;
 
 if($_POST['gbook']){
-	if (substr(md5("{$_POST['gbook']['md5']}:{$conf['user']['sess']}"), 0, 5) == $_POST['gbook']['kod']){
+	if ($_COOKIE['captcha_keystring'] == md5($_POST['gbook']['kod'])){
 		if($mpdbf = mpdbf($tn = "{$conf['db']['prefix']}{$arg['modpath']}", array('time'=>time(), 'hide'=>$conf['settings']["{$arg['modpath']}_vid_mess"], 'uid'=>$conf['user']['uid'])+$_POST['gbook'])){
 			mpqw($sql = "INSERT INTO $tn SET $mpdbf");
-			header("Location: /{$arg['modpath']}");
+			exit();
 		}
 	}else{
-		echo "Код не верный";
+		exit("Код не верен");
 	}
 }
 

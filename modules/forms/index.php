@@ -22,12 +22,14 @@ if($_GET['id']){
 	foreach($conf['tpl']['vopros'] as $t){
 		foreach($t as $v){
 			if(!empty($v['tn'])){
+				$fields = mpqn(mpqw("SHOW COLUMNS FROM `". mpquot($v['tn']). "`"), 'Field');
 				if(array_search($v['type'], array("radio", "select")) !== false){
-					$conf['tpl']['variant'][ $v['id'] ] = array("0"=>array("name"=>""))+mpqn(mpqw("SELECT * FROM ". mpquot($v['tn']). " ORDER BY name"));
+					$conf['tpl']['variant'][ $v['id'] ] = mpqn(mpqw("SELECT * FROM ". mpquot($v['tn']). " WHERE 1 ". ($fields['uid'] ? " AND uid=". (int)$conf['user']['uid'] : ""). " ORDER BY name"));
+					if($v['type'] != "radio") $conf['tpl']['variant'][ $v['id'] ] += array("0"=>array("name"=>""));
 				}else if($v['type'] == "file"){
-					$conf['tpl']['variant'][ $v['id'] ] = mpqn(mpqw("SELECT * FROM ". mpquot($v['tn']). " WHERE uid=". (int)$conf['user']['uid']. " AND ". mpquot($v['alias']). "=0 ORDER BY id"));
+					$conf['tpl']['variant'][ $v['id'] ] = mpqn(mpqw("SELECT * FROM ". mpquot($v['tn']). " WHERE 1 ". ($fields['uid'] ? " AND uid=". (int)$conf['user']['uid'] : ""). " AND ". mpquot($v['alias']). "=0 ORDER BY id"));
 				}else if($v['type'] == "check"){
-					$conf['tpl']['variant'][ $v['id'] ] = mpqn(mpqw("SELECT * FROM ". mpquot($v['tn']). " ORDER BY name"));
+					$conf['tpl']['variant'][ $v['id'] ] = mpqn(mpqw("SELECT * FROM ". mpquot($v['tn']). " WHERE 1 ". ($fields['uid'] ? " AND uid=". (int)$conf['user']['uid'] : ""). " ORDER BY name"));
 				}
 			}
 		}
@@ -72,20 +74,25 @@ if($_GET['id']){
 					}
 				} mpevent("Заполнение формы", $_SERVER['REQUERT_URI'], $anket['uid'], "/{$arg['modpath']}/anket_id:{$conf['tpl']['anket_id']}", implode("<br />", $res), $_POST);
 				if($fds){ # Свойства результирующей таблицы
-					$mysql_inset_id = mpfdk($anket['tn'], null, array("time"=>time(), "uid"=>$conf['user']['uid'])+(array)$fds);
+					$tpl['mysql_inset_id'] = mpfdk($anket['tn'], null, array("time"=>time(), "uid"=>$conf['user']['uid'])+(array)$fds);
 					if($fds_img){
 						foreach($fds_img as $v){
 							$vp = $conf['tpl']['vopros'][0][ $v ];
-							mpqw($sql = "UPDATE ". mpquot($vp['tn']). " SET ". mpquot($vp['alias']). "=". (int)$mysql_inset_id. " WHERE uid=". (int)$conf['user']['uid']. " AND ". mpquot($vp['alias']). "=0"); mpre($sql);
+							mpqw($sql = "UPDATE ". mpquot($vp['tn']). " SET ". mpquot($vp['alias']). "=". (int)$tpl['mysql_inset_id']. " WHERE uid=". (int)$conf['user']['uid']. " AND ". mpquot($vp['alias']). "=0");// mpre($sql);
 						}
 					}
 				} if($cds){ # Связанные списки выбора
 					foreach($cds as $vid=>$ds){
 						$tn = $anket['tn']. "_". ($fk = array_shift(array_slice(explode("_", $vopros[$vid]['tn'], 3), 2, 1)));
+						if(implode("_", array_slice(explode("_", $anket['tn']), 0, 2)) != implode("_", array_slice(explode("_", $vopros[$vid]['tn']), 0, 2))){
+							$fk = implode("_", array_slice(explode("_", $vopros[$vid]['tn']), 1, 999));
+						}else{
+							$fk .= "_id";
+						}
 						if(mpql(mpqw("SHOW TABLES WHERE Tables_in_{$conf['db']['name']}='". mpquot($tn). "'"), 0)){ # Есть ли таблица связанных элементов в базе данных
 							$pk = array_shift(array_slice(explode("_", $conf['tpl']['index'][ $_GET['id'] ]['tn'], 3), 2, 1));
 							foreach($ds as $v){
-								mpqw("INSERT INTO {$tn} SET {$fk}_id=". (int)$v. ", {$pk}_id=". (int)$mysql_inset_id);
+								mpqw("INSERT INTO {$tn} SET {$fk}=". (int)$v. ", {$pk}_id=". (int)$tpl['mysql_inset_id']);
 							}
 						}else{
 							mpqw("Таблица {$tn} для связанных элементов не найдена");

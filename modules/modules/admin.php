@@ -238,7 +238,7 @@ if ($m[(int)$_GET['r']] == 'Модули'){ # Добавление модуля
 			foreach($z as $fil=>$val){
 				if ($fil == 'id') continue;
 				$fields[] = "`$fil`";
-				$values[] = "'".($z['aid'] == 0 && $fil == 'value' ? '' : strtr(mpquot($val), array('$'=>'\\$')))."'";
+				$values[] = "'".((($arg['access'] < $z['aid']) && ($fil == 'value')) ? '' : strtr(mpquot($val), array('$'=>'\\$')))."'";
 			}
 			$init .= "\nmpqw(\"INSERT INTO `{\$conf['db']['prefix']}settings` (".implode(', ', $fields).") VALUES (".implode(', ', $values).")\");";
 		}

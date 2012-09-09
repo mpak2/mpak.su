@@ -1,11 +1,9 @@
 <? die;
 
-if($_GET['id'] > 0){
-	$tn = array(''=>'');
-	$sql = "SELECT img FROM {$conf['db']['prefix']}{$arg['modpath']}{$tn[$_GET['tn']]} WHERE id=".(int)$_GET['id'];
-	$file_name = mpopendir("include/". ($fn = mpql(mpqw($sql), 0, 'img')));
+if(($_GET['id'] > 0) && ($img = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}{$tn[$_GET['tn']]} WHERE img<>'' AND id=".(int)$_GET['id']), 0))){
+	$file_name = mpopendir("include/". ($fn = $img['img']));
 	header ("Content-type: image/". array_pop(explode('.', $file_name)));
-	echo mprs($fn ? $file_name : mpopendir("modules/{$arg['modpath']}/img/unknown.png"), $_GET['w'], $_GET['h'], $_GET['c']);
+	echo mprs($file_name, $_GET['w'], $_GET['h'], $_GET['c']);
 }elseif(file_exists($fn = mpopendir("modules/{$arg['modpath']}/img/". basename($_GET[''])))){
 	header ("Content-type: image/". array_pop(explode('.', $file_name)));
 	echo mprs($fn, $_GET['w'], $_GET['h'], $_GET['c']);

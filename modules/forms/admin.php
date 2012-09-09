@@ -1,8 +1,8 @@
 <? die;
 
 $conf['settings'] += array(
-	"{$arg['modpath']}_index"=>"Опросы",
-	"{$arg['modpath']}_anket"=>"Анкеты",
+	"{$arg['modpath']}_index"=>"Формы",
+	"{$arg['modpath']}_anket"=>"Результаты",
 	"{$arg['modpath']}_result"=>"Результаты",
 	"{$arg['modpath']}_variant"=>"Варианты",
 	"{$arg['modpath']}_vopros"=>"Вопросы",
@@ -14,7 +14,7 @@ foreach(mpql(mpqw("SHOW TABLES WHERE Tables_in_{$conf['db']['name']} LIKE \"{$co
 	$m["{$conf['db']['prefix']}". $fn] = $val;
 } mpmenu($m); if(!$_GET['r']) $_GET['r'] = array_shift(array_keys($m));
 
-if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
+if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 	$tn = array_keys(mpqn(mpqw("SHOW TABLES"), "Tables_in_{$conf['db']['name']}"));
 	stable(
 		array(
@@ -102,7 +102,7 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 //			'disable' => array('img'), # Выключенные для записи поля
 //			'hidden' => array(), # Скрытые поля
 			'spisok' => array( # Список для отображения и редактирования
-				'type' => array('*'=> array('radio'=>'Радио', 'check'=>'Выбор', "spastic"=>"Бегунок", 'select'=>'Список', 'text'=>'Текст', 'textarea'=>'Поле', 'date'=>'Дата', 'file'=>'Файл', 'map'=>'Карта')),
+				'type' => array('*'=> array('radio'=>'Радио', 'check'=>'Выбор', "spastic"=>"Бегунок", 'select'=>'Список', 'text'=>'Текст', 'textarea'=>'Поле', 'date'=>'Дата', 'file'=>'Файл', 'pass'=>'Пароль', 'map'=>'Карта')),
 				'float' => array('*'=> array(0=>'Гориз', 1=>'Верт')),
 				'tn'=>array("*"=>array('')+array_combine($tn, $tn)),
 //				'oid' => array('*' => spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}", 30)),

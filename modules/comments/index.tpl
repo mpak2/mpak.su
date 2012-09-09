@@ -67,8 +67,8 @@
 			<? foreach((array)$conf['tpl']['comments'] as $k=>$v): ?>
 			<li style="overflow:hidden;">
 				<? if($v['uid']): ?>
-					<div id="gallery" style="float:left; margin:0 10px;">
-						<a href="/users:img/<?=$v['uid']?>/tn:index/w:600/h:500/null/img.jpg">
+					<div style="float:left; margin:0 10px;">
+						<a href="/users/<?=$v['uid']?>">
 							<img src="/users:img/<?=$v['uid']?>/tn:index/w:40/h:40/null/img.jpg">
 						</a>
 					</div>
@@ -77,7 +77,9 @@
 					<span style="float:right;">
 						<?=date('Y.m.d H:i:s', $v['time'])?>
 						<? if($arg['access'] > 3): ?>
-							<a href="/?m[<?=$arg['modpath']?>]=admin&r=<?=$conf['db']['prefix']?><?=$arg['modpath']?>_txt&where[id]=<?=$v['id']?>"><img src="/img/aedit.png"></a>
+							<a href="/?m[<?=$arg['modpath']?>]=admin&r=<?=$conf['db']['prefix']?><?=$arg['modpath']?>_txt&where[id]=<?=$v['id']?>">
+								<img src="/img/aedit.png">
+							</a>
 						<? endif; ?>
 					</span>
 					<span style="font-weight:bold;">

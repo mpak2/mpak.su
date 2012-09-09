@@ -1,9 +1,17 @@
 <? die;
 
-if ($_GET['id']){
-	$fn = mpql(mpqw("SELECT img FROM {$conf['db']['prefix']}{$arg['modpath']}_post WHERE id=".(int)$_GET['id']), 0, 'img');
-	header("Content-type: image/". array_pop(explode('.', $fn)));
-	echo mprs(mpopendir("include/$fn"), $_GET['w'], $_GET['h'], $_GET['c']);
+if($_GET['tn']){
+	$tn = array(
+		($f = 'post')=>"_{$f}",
+		($f = 'kat')=>"_{$f}",
+	);
+	$sql = "SELECT `". mpquot($_GET['fn'] ?: "img"). "` FROM {$conf['db']['prefix']}{$arg['modpath']}{$tn[$_GET['tn']]} WHERE id=".(int)$_GET['id'];
+	$file_name = mpopendir("include")."/".($fn = mpql(mpqw($sql), 0, ($_GET['fn'] ?: "img")));
+//	if(empty($fn)){ $file_name = mpopendir("modules/{$arg['modpath']}/img/no.png"); }
+}else{
+//	$file_name = mpopendir("modules/{$arg['modpath']}/img/". basename($_GET['']));
 }
+header ("Content-type: image/". array_pop(explode('.', $file_name)));
+echo mprs($file_name, $_GET['w'], $_GET['h'], $_GET['c']);
 
 ?>

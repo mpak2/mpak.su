@@ -10,6 +10,6 @@
 	<?=$conf['settings']['comments']?>
 <? else: ?>
 	<? foreach($conf['tpl'][ $arg['fn'] ] as $k=>$v): ?>
-		<div><a href="/<?=$arg['modname']?>:<?=$arg['fn']?>/<?=$v['id']?>"><?=$v['name']?></a></div>
+		<div><a href="/<?=$arg['modname']?><?=($arg['fn'] != 'index' ? ":{$arg['fn']}" : "")?>/<?=$v['id']?>"><?=$v['name']?></a></div>
 	<? endforeach; ?>
 <? endif; ?>

@@ -7,19 +7,17 @@
 <!-- [settings:foto_lightbox] -->
 <? foreach($conf['tpl']['news'] as $k=>$news): ?>
 	<div style="overflow:hidden;">
-		<div class="news_tema" style="margin-top: 20px; padding: 5px;">
+		<div class="news_name" style="margin-top: 20px; padding: 5px;">
 			<b>
 				<?=date('Y.m.d H.i.s', $news['time'])?>
-				<? if(!$_GET['id']): ?><a href="/news/<?=$news['id']?>"><? endif; ?>
-					<?=$news['tema']?>
-				<? if(!$_GET['id']): ?></a><? endif; ?>
+				<? if(!$_GET['id']): ?><a href="/news/<?=$news['id']?>"><? endif; ?><?=$news['name']?><? if(!$_GET['id']): ?></a><? endif; ?>
 			</b>
 		</div>
 		<div class="news_img" style="padding: 5px;">
 			<?// if(!empty($news['img']) && !$_GET['id']):?>
 				<div id="gallery" style="float:right;">
-					<a title="<?=$news['tema']?>" alt="<?=$news['tema']?>" href="/<?=$arg['modname']?>:img/<?=$news['id']?>/w:600/h:500/null/img.jpg">
-						<img src="/<?=$arg['modname']?>:img/<?=$news['id']?>/w:150/h:150/null/img.jpg" />
+					<a title="<?=$news['name']?>" alt="<?=$news['name']?>" href="/<?=$arg['modname']?>:img/<?=$news['id']?>/tn:post/fn:img/w:600/h:500/null/img.jpg">
+						<img src="/<?=$arg['modname']?>:img/<?=$news['id']?>/tn:post/fn:img/w:150/h:150/null/img.jpg" />
 					</a>
 				</div>
 			<?// endif; ?>
@@ -29,7 +27,7 @@
 			<? endif; ?>
 		</div>
 		<div style="padding: 5px;">
-			Категория: <a href="/<?=$arg['modname']?>/kid:<?=$news['kid']?>"><?=$news['kname']?></a>; Просмотров: <?=$news['count']?>
+			Категория: <a href="/<?=$arg['modname']?>/kat_id:<?=$news['kat_id']?>"><?=$news['kname']?></a>; Просмотров: <?=$news['count']?>
 		</div>
 	</div>
 		<div>

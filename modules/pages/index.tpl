@@ -26,10 +26,19 @@
 			<? endif; ?>
 		</div>
 	<? endif; ?>
+<?// elseif($cat = $tpl['cat'][ $_GET['cat_id'] ]): ?>
+
 <? else: ?>
 	<ul>
-		<? foreach($conf['tpl']['cat'] as $k=>$v): ?>
-			<li><a href="/<?=$arg['modname']?>:list/cid:<?=$v['id']?>"><?=$v['name']?></a> [<?=$v['cnt']?>]</li>
+		<? foreach($tpl['pages'] as $cat_id=>$cats): ?>
+			<li>
+				<b><?=$tpl['cat'][ $cat_id ]['name']?></b> [<?=$tpl['cat'][ $cat_id ]['cnt']?>]
+				<ul>
+					<? foreach($cats as $v): ?>
+						<li><a href="/<?=$arg['modname']?>/<?=$v['id']?>"><?=$v['name']?></a></li>
+					<? endforeach; ?>
+				</ul>
+			</li>
 		<? endforeach; ?>
 	</ul>
 <? endif; ?>

@@ -18,6 +18,8 @@ if ((int)$arg['confnum']){
 		"Ширина"=>"100",
 		"Цвет элементов"=>"0000ff",
 		"Файл"=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_files WHERE name LIKE '%.mp3' ORDER BY name"),
+		"Адрес"=>"",
+		"Автостарт"=>array(""=>"По умолчанию", "true"=>"При запуске", "false"=>"Вручную"),
 	);
 
 ?>
@@ -56,17 +58,19 @@ if ((int)$arg['confnum']){
 //$dat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} LIMIT 10"));
 
 ?>
-<script type="text/javascript" src="/include/jquery/jquery.jmp3.js"></script>
-<script type="text/javascript">
-	$(document).ready(function(){
-		$(".mp3").jmp3({
-			filepath: "/files/<?=$param["Файл"]?>/null/images/",	
-			backcolor: "<?=($param["Цвет фона"] ?: "000000")?>",
-			forecolor: "<?=($param["Цвет элементов"] ?: "0000ff")?>",
-			width: <?=($param['Ширина'] ?: 100)?>,
-			autoplay: "true",
-			showdownload: "true"
+<? if(empty($param["Адрес"]) || ($param["Адрес"] == $_SERVER['REQUEST_URI'])): ?>
+	<script type="text/javascript" src="/include/jquery/jquery.jmp3.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function(){
+			$(".mp3[blocknum=<?=$arg['blocknum']?>]").jmp3({
+				filepath: "/files/<?=$param["Файл"]?>/null/images/",	
+				backcolor: "<?=($param["Цвет фона"] ?: "000000")?>",
+				forecolor: "<?=($param["Цвет элементов"] ?: "0000ff")?>",
+				width: <?=($param['Ширина'] ?: 100)?>,
+				autoplay: <?=($param["Автостарт"] ?: "true")?>,
+				showdownload: "true"
+			});
 		});
-	});
-</script>
-<span id="sound" class="mp3" mp3="img.mp3" style="margin-top:10px;"></span>
+	</script>
+	<span id="sound" class="mp3" blocknum="<?=$arg['blocknum']?>" mp3="img.mp3" style="margin-top:10px;"></span>
+<? endif; ?>

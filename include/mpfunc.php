@@ -1,5 +1,32 @@
 <?
 
+function mptс($time = null, $format = 1){
+	if($time === null) $time = time();
+	$time = time()-$time;
+	$month = explode(",", $conf['settings']['themes_month']);
+	$days = floor($time/86400);
+	$hours = floor($time/3600)%60;
+	$minutes = floor($time/60);
+	if($format == 1){
+		return ($time > 86400 ? str_pad($days, 2, '0', STR_PAD_LEFT). ":" : "")
+				. str_pad($hours%24, 2, '0', STR_PAD_LEFT). ":"
+				. str_pad($minutes%60, 2, '0', STR_PAD_LEFT). ":"
+				. str_pad($time%60, 2, '0', STR_PAD_LEFT);
+	}else{
+		return ($days ? " {$days} ". mpfm($days, "день", "дня", "дней") : "").
+				($hours ? " ". ($hours%24). " ". mpfm($hours, "час", "часа", "часов") : "").
+				($minutes ? " ". ($minutes%60). " ". mpfm($minutes, "минута", "минуты", "минут")  : "");
+	//			$time. mpfm($minutes, "секунда", "секунды", "секунд");
+	}
+}
+
+function mb_ord($char){
+		list(, $ord) = unpack('N', mb_convert_encoding($char, 'UCS-4BE', 'UTF-8'));
+		return $ord;
+} function mb_chr($string){
+    return html_entity_decode('&#' . intval($string) . ';', ENT_COMPAT, 'UTF-8');
+}
+
 function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null){
 	$ch = curl_init();
 	//curl_setopt($ch, CURLOPT_PROXY, "1.2.3.4:123"); //если нужен прокси
@@ -42,10 +69,6 @@ function qn($sql){ # Выполнение запроса к базе данны�
 			mpmc($key, $r, 3600);
 		}
 	} return $r;
-}
-
-function mrep($ar){
-	
 }
 
 function mpfm($n, $form1, $form2, $form5){ # единственные двойственные и множественные числительные. Пример использования mpfm($n, 'письмо', 'письма', 'писем');
@@ -123,17 +146,18 @@ function mpmc($key, $data = null, $compress = 0, $limit = 10000, $event = true){
 	}
 }
 
-function mprb($arr, $key = 'id'){
+function mprb($arr, $key = 'id', $num = false){
 	foreach($arr as $k=>$v){
 		if(empty($ar[ $v[$key] ])){
 			foreach($v as $n=>$z){
+				if($v[$key] == $num) return $v;
 				$ar[ $z[$key] ] = $z;
 			}
 		}else{
 			mpre($v);
 			$ar[ $v[$key] ] = $v;
 		}
-	} return $ar;
+	} return $num ? $ar[$num] : $ar;
 }
 
 function mpde($string) { 
@@ -193,7 +217,7 @@ function mpevent($name, $description = null, $own = null){
 			mpevent("Неизвестное событие", $src, $conf['user']['uid'], $debug_backtrace);
 		} return false;
 	}
-	$func_get_args = func_get_args();// mpre($func_get_args);
+	$func_get_args = func_get_args();
 	$debug_backtrace = debug_backtrace();
 	if(!empty($debug_backtrace[1]['args'][0]) && ($param = $debug_backtrace[1]['args'][0]) && $param['modpath']){
 		$desc = "{$param['modpath']}:{$param['fn']}";
@@ -229,9 +253,14 @@ function mpevent($name, $description = null, $own = null){
 		} mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event SET time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", name=\"". mpquot($name). "\", description=\"". mpquot($desc). "\", count=1 ON DUPLICATE KEY UPDATE time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", count=count+1, last=". (int)$func_get_args[1]. ", max=IF(". (int)$func_get_args[1]. ">max, ". (int)$func_get_args[1]. ", max), min=IF(". (int)$func_get_args[1]. "<min, ". (int)$func_get_args[1]. ", min), description=\"". mpquot($desc). "\", log_last=". (!empty($event['log']) && $event['log'] ? "(SELECT id FROM {$conf['db']['prefix']}users_event_log WHERE event_id=". (int)$event['id']. " ORDER BY id DESC limit 1)" : 0));
 
 		if(!empty($event['send']) && $event['send']){
-			if(($event['send'] < 0) && preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $func_get_args[2])){
-				mpqw("UPDATE {$conf['db']['prefix']}users_event SET cmail=cmail+1 WHERE id=". (int)$event['id']);
-				mpmail($func_get_args[2], strtr($event['subject'], $zam), strtr($event['text'], $zam), $conf['settings']['mail']);
+			if($func_get_args[2] && ($event['send'] < 0)){
+				if((gettype($func_get_args[2]) == "string") && preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $func_get_args[2])){
+					mpmail($func_get_args[2], strtr($event['subject'], $zam), strtr($event['text'], $zam), $conf['settings']['mail']);
+				}else if((gettype($func_get_args[2]['email']) == "string") && preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $func_get_args[2]['email'])){
+					mpmail($func_get_args[2]['email'], strtr($event['subject'], $zam), strtr($event['text'], $zam), $conf['settings']['mail']);
+				}else{
+					mpevent("Не найден электронный ящик", $func_get_args[2]. " а также в ". $func_get_args[2]['email'], $func_get_args[2]);
+				} mpqw("UPDATE {$conf['db']['prefix']}users_event SET cmail=cmail+1 WHERE id=". (int)$event['id']);
 			}else{
 				$users = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}users_grp AS g INNER JOIN {$conf['db']['prefix']}users_mem AS m ON g.id=m.gid INNER JOIN {$conf['db']['prefix']}users AS u ON m.uid=u.id WHERE 1 AND ". ($event['send'] > 0 ? " g.id=". (int)$event['send'] : " u.id=". (int)$func_get_args[2]['id']. " GROUP BY u.id")));
 				foreach($users as $k=>$v){
@@ -294,20 +323,20 @@ function mpgt($REQUEST_URI, $get = array()){
 	return $get;
 }
 
-function mpwr($tn, $get = array()){
+function mpwr($tn, $get = null, $prefix = null){
 	global $conf;
-	$where = ' WHERE 1=1';
+	if(empty($prefix)) $where = ' WHERE 1=1';
 	$f = mpqn(mpqw("DESC {$tn}"), 'Field');
-	foreach((array)$get ?: $_GET as $k=>$v){
+	foreach($get !== null ? $get : $_GET as $k=>$v){
 		$n = array_pop(explode('.', $k));
 		if((substr($k, 0, 1) == '!') && ($f[substr($k, 1)] || $f[$n])){
-			$where .= " AND `". mpquot(substr($k, 1)). "`<>\"". mpquot($v). "\"";
+			$where .= " AND {$prefix}`". mpquot(substr($k, 1)). "`<>\"". mpquot($v). "\"";
 		}elseif(is_numeric($v) && (substr($k, 0, 1) == '+') && ($f[substr($k, 1)] || $f[$n])){
-			$where .= " AND `". mpquot(substr($k, 1)). "`>". (int)$v;
+			$where .= " AND {$prefix}`". mpquot(substr($k, 1)). "`>". (int)$v;
 		}elseif(is_numeric($v) && (substr($k, 0, 1) == '-') && ($f[substr($k, 1)] || $f[$n])){
-			$where .= " AND `". mpquot(substr($k, 1)). "`<". (int)$v;
+			$where .= " AND {$prefix}`". mpquot(substr($k, 1)). "`<". (int)$v;
 		}elseif(($v !== "") && $f[$n]){
-			$where .= " AND `". mpquot($k). "`=\"". mpquot($v). "\"";
+			$where .= " AND {$prefix}`". mpquot($k). "`=\"". mpquot($v). "\"";
 		}
 	} return $where;
 }
@@ -418,11 +447,16 @@ function mpdbf($tn, $post = null, $and = false){
 	} return implode(($and ? " AND " : ', '), (array)$f);
 }
 
-function mpager($count, $cur=null, $url=null){
+function mpager($count, $null=null, $cur=null, $url=null){
 	global $conf;
 	$p = (strpos($_SERVER['HTTP_HOST'], "xn--") === 0) ? "стр" : "p";
 	if ($cur === null) $cur = $_GET[$p];
-	if ($url === null) $url = strtr(urldecode($_SERVER['REQUEST_URI']), array("/{$p}:{$_GET[$p]}"=>'', "&{$p}={$_GET[$p]}"=>''));
+	if ($url === null) $url = strtr($u = urldecode($_SERVER['REQUEST_URI']), array("/{$p}:{$_GET[$p]}"=>'', "&{$p}={$_GET[$p]}"=>''));
+	if ($null){
+		$url = str_replace($u, $u. (strpos($url, '&') || strpos($url, '?') ? "&null" : "/null"), $url);
+	}else if($null === false){
+		$url = strtr($url, array("/null"=>"", "&null"=>"", "?null"=>""));
+	}
 	if(2 > $count = ceil($count)) return;
 	$return .=  "<div class=\"pager\">";
 	if($cur <= 0){
@@ -555,13 +589,72 @@ function mpqw($sql, $info = null, $conn = null){
 	$result = mysql_query($sql, ($conn ?: $conf['db']['conn']));
 	if ($error = mysql_error()){// mpre($conf['user']);
 		if(!empty($conf['modules']['sqlanaliz']['access']) && (array_search($conf['user']['uname'], explode(",", $conf['settings']['admin_usr'])) !== false)){
-			echo "<p>$sql<br><font color=red>".mysql_error()."</font>";
+			echo "<p>$sql<br><div color=red>".mysql_error()."</div>";
 		}
 		$check = array(
 			"" => array(
 				"" => array(
 					"",
 					"",
+				),
+			),
+			"Unknown column 'id.cat_id' in 'on clause'" => array(
+				"SELECT c.*, COUNT(DISTINCT id.id) AS cnt FROM mp_pages_cat" => array(
+					"ALTER TABLE `mp_pages_index` CHANGE `kid` `cat_id` int(11) NOT NULL",
+					"ALTER TABLE `mp_pages_index` ADD INDEX (cat_id)",
+				),
+			),
+			"Unknown column 'p.kat_id' in 'on clause'" => array(
+				"SELECT SQL_CALC_FOUND_ROWS p.*, p.id AS id" => array(
+					"ALTER TABLE `mp_news_post` CHANGE `kid` `kat_id` int(11) NOT NULL",
+					"ALTER TABLE `mp_news_post` CHANGE `tema` `name` varchar(255) NOT NULL",
+					"ALTER TABLE `mp_news_post` ADD INDEX (uid)",
+				),
+			),
+			"Unknown column 'w.plan_id' in 'where clause'" => array(
+				"SELECT w.*, u.name FROM {$conf['db']['prefix']}develop_work" => array(
+					"ALTER TABLE `{$conf['db']['prefix']}develop_work` CHANGE `pid` `plan_id` int(11) NOT NULL",
+					"ALTER TABLE `{$conf['db']['prefix']}develop_work` ADD INDEX (plan_id)",
+					"ALTER TABLE `{$conf['db']['prefix']}develop_work` ADD `uid` int(11) NOT NULL AFTER `plan_id`"
+				),
+			),
+			"Unknown column 'performers_id' in 'field list'" => array(
+				"INSERT INTO {$conf['db']['prefix']}develop_plan" => array(
+					"ALTER TABLE `{$conf['db']['prefix']}develop_plan` ADD `performers_id` int(11) NOT NULL AFTER `cat_id`",
+					"ALTER TABLE `{$conf['db']['prefix']}develop_plan` ADD INDEX (performers_id)",
+				),
+			),
+			"Unknown column 'plan_id' in 'field list'" => array(
+				"SELECT plan_id, COUNT(*) FROM {$conf['db']['prefix']}develop_golos" => array(
+					"ALTER TABLE `{$conf['db']['prefix']}develop_golos` CHANGE `pid` `plan_id` int(11) NOT NULL",
+					"ALTER TABLE `{$conf['db']['prefix']}develop_golos` CHANGE `sid` `uid` int(11) NOT NULL",
+				),
+			),
+			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}develop_performers' doesn't exist" => array(
+				"SELECT p.*, CONCAT(u.name, ' (', p.name, ')') AS name FROM {$conf['db']['prefix']}develop_performers" => array(
+					"CREATE TABLE `{$conf['db']['prefix']}develop_performers` (`id` int(11) NOT NULL AUTO_INCREMENT,`time` int(11) NOT NULL,`uid` int(11) NOT NULL,`name` varchar(255) NOT NULL,`description` text NOT NULL, PRIMARY KEY (`id`), KEY `time` (`time`),KEY `uid` (`uid`)) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
+					"INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('develop', 'develop_golos', 'Голос', '0', 'Название таблицы')",
+					"INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('develop', 'develop_kat', 'Категории', '0', 'Название таблицы')",
+					"INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('develop', 'develop_plan', 'Задачи', '0', 'Название таблицы')",
+					"INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('develop', 'develop_work', 'Работа', '0', 'Название таблицы')",
+					"INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('develop', 'develop_performers', 'Исполнители', '0', 'Название таблицы')",
+				),
+			),
+			"Unknown column 'p.cat_id' in 'field list'" => array(
+				"SELECT p.*, p.id AS plan_id, p.cat_id, COUNT(*) AS cnt FROM {$conf['db']['prefix']}develop_plan" => array(
+					"ALTER TABLE `{$conf['db']['prefix']}develop_plan` CHANGE `kid` `cat_id` int(11) NOT NULL",
+				),
+			),
+			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}develop_cat' doesn't exist" => array(
+				"SELECT * FROM {$conf['db']['prefix']}develop_cat" => array(
+					"ALTER TABLE {$conf['db']['prefix']}develop_kat RENAME {$conf['db']['prefix']}develop_cat",
+					"ALTER TABLE `{$conf['db']['prefix']}develop_cat` ADD INDEX (sort)",
+				),
+			),
+			"Unknown column 'priority' in 'order clause'" => array(
+				"SELECT * FROM {$conf['db']['prefix']}modules" => array(
+					"ALTER TABLE `{$conf['db']['prefix']}modules` ADD `priority` int(11) NOT NULL",
+					"ALTER TABLE `{$conf['db']['prefix']}modules` ADD INDEX (`priority`)",
 				),
 			),
 			"Unknown column 'g.hide' in 'where clause'" => array(
@@ -571,14 +664,14 @@ function mpqw($sql, $info = null, $conn = null){
 				),
 			),
 			"DELAYED option not supported for table" => array(
-				"INSERT DELAYED INTO mp_users_event_log SET" => array(
-					"ALTER TABLE mp_users_event_log ENGINE=MyISAM"
+				"INSERT DELAYED INTO {$conf['db']['prefix']}users_event_log SET" => array(
+					"ALTER TABLE {$conf['db']['prefix']}users_event_log ENGINE=MyISAM"
 				),
 			),
 			"Unknown column 'r.fn' in 'where clause'" => array(
-				"SELECT * FROM mp_blocks_reg AS r WHERE" => array(
-					"ALTER TABLE `mp_blocks_reg` ADD `fn` varchar(255) NOT NULL",
-					"ALTER TABLE `mp_blocks_reg` ADD INDEX (fn)",
+				"SELECT * FROM {$conf['db']['prefix']}blocks_reg AS r WHERE" => array(
+					"ALTER TABLE `{$conf['db']['prefix']}blocks_reg` ADD `fn` varchar(255) NOT NULL",
+					"ALTER TABLE `{$conf['db']['prefix']}blocks_reg` ADD INDEX (fn)",
 				),
 			),
 			"Unknown column 'log_last' in 'field list'" => array(
@@ -600,13 +693,13 @@ function mpqw($sql, $info = null, $conn = null){
 					"ALTER TABLE `{$conf['db']['prefix']}faq` ADD INDEX (hide)",
 				),
 			),
-			"Table 'shop_mpak_su.mp_faq' doesn't exist" => array(
+			"Table 'shop_mpak_su.{$conf['db']['prefix']}faq' doesn't exist" => array(
 				"SELECT cat.*, COUNT(*) AS cnt FROM {$conf['db']['prefix']}faq_cat" => array(
-					"ALTER TABLE {$conf['db']['prefix']}faq RENAME mp_faq_index",
+					"ALTER TABLE {$conf['db']['prefix']}faq RENAME {$conf['db']['prefix']}faq_index",
 				),
 			),
 			"Unknown column 'reg_id' in 'where clause'" => array(
-				"SELECT * FROM mp_blocks_reg" => array(
+				"SELECT * FROM {$conf['db']['prefix']}blocks_reg" => array(
 					"ALTER TABLE `{$conf['db']['prefix']}blocks_reg` ADD `reg_id` int(11) NOT NULL AFTER `id`",
 					"ALTER TABLE `{$conf['db']['prefix']}blocks_reg` ADD INDEX (reg_id)",
 				),
@@ -637,7 +730,7 @@ function mpqw($sql, $info = null, $conn = null){
 				),
 			),
 			"Unknown column 'flush' in 'field list'"=>array(
-				"UPDATE mp_users SET pass="=>array(
+				"UPDATE {$conf['db']['prefix']}users SET pass="=>array(
 					"ALTER TABLE `{$conf['db']['prefix']}users` ADD `flush` int(11) NOT NULL AFTER `refer`",
 					"ALTER TABLE `{$conf['db']['prefix']}users` ADD INDEX (flush)",
 				),
@@ -711,11 +804,11 @@ function mpqw($sql, $info = null, $conn = null){
 			),
 			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}pages_index' doesn't exist" => array(
 				"SELECT * FROM {$conf['db']['prefix']}pages_index" => array(
-					"ALTER TABLE {$conf['db']['prefix']}pages_post RENAME mp_pages_index",
+					"ALTER TABLE {$conf['db']['prefix']}pages_post RENAME {$conf['db']['prefix']}pages_index",
 				),
 			),
 			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_event' doesn't exist" => array(
-				"INSERT INTO mp_users_event SET" => array(
+				"INSERT INTO {$conf['db']['prefix']}users_event SET" => array(
 					"CREATE TABLE `{$conf['db']['prefix']}users_event` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `name` varchar(255) NOT NULL, `count` int(11) NOT NULL, `log` smallint(6) NOT NULL, `description` varchar(255) NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `name_2` (`name`), KEY `name` (`name`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
 					"CREATE TABLE `{$conf['db']['prefix']}users_event_log` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `event_id` int(11) NOT NULL, `uid` int(11) NOT NULL, `description` text NOT NULL, PRIMARY KEY (`id`), KEY `event_id` (`event_id`), KEY `uid` (`uid`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
 				),
@@ -724,12 +817,12 @@ function mpqw($sql, $info = null, $conn = null){
 				"SELECT * FROM {$conf['db']['prefix']}search" => array(
 					"ALTER TABLE `{$conf['db']['prefix']}search` ADD `time` int(11) NOT NULL AFTER `uid`",
 					"ALTER TABLE `{$conf['db']['prefix']}search` ADD INDEX (time)",
-					"ALTER TABLE `mp_search` DROP `date`ALTER TABLE `mp_search` DROP `date`",
+					"ALTER TABLE `{$conf['db']['prefix']}search` DROP `date`ALTER TABLE `{$conf['db']['prefix']}search` DROP `date`",
 				),
 			),*/
-/*			"Table '{$conf['db']['name']}.mp_search_index' doesn't exist" => array(
-				"SELECT * FROM mp_search_index" => array(
-					"ALTER TABLE mp_search RENAME mp_search_index",
+/*			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}search_index' doesn't exist" => array(
+				"SELECT * FROM {$conf['db']['prefix']}search_index" => array(
+					"ALTER TABLE {$conf['db']['prefix']}search RENAME {$conf['db']['prefix']}search_index",
 				),
 			),*/
 		);
@@ -763,10 +856,10 @@ function mpfile($filename, $description = null){
 	if (file_exists($file_name)){
 		$ext = explode('.', $file_name); $ext = $ext[count($ext) - 1];
 //		header("Content-Type:	 text/html; charset=windows-1251");
-		header("Content-Type: application/force-download; name=\"".($description ? "$description.$ext" : basename($file_name))."\"");
+//		header("Content-Type: application/force-download; name=\"".($description ? "/$description/". (substr($description, strlen($ext)*-1)) : basename($file_name))."\"");
 		header("Content-Transfer-Encoding: binary");
 		header("Content-Length: ".filesize("$file_name"));
-		header("Content-Disposition: attachment; filename=\"".($description ? "$description.$ext" : basename($file_name))."\"");
+		header("Content-Disposition: attachment; filename=\"".($description ? "$description". (substr($description, strlen($ext)*-1) == $ext ? "" : ".". $ext) : basename($file_name))."\"");
 		header("Expires: ".date('r'));
 		header("Cache-Control: max-age=3600");
 //		header("Cache-Control: max-age=3600, must-revalidate");
@@ -829,7 +922,8 @@ function mpwysiwyg($name, $content = null, $tpl = ""){
 
 function mpmenu($m = array()){
 	global $conf, $arg;
-	if($arg['access'] < 5) return;
+	# Скрываем меню в админке для администраторов
+	if($conf['settings']['admin_mpmenu_hide'] && $arg['access'] < 5) return;
 	if(array_key_exists("null", $_GET)) return false;
 
 	$tab = (int)$_GET['r'];
@@ -845,10 +939,15 @@ EOF;
 	if(empty($conf['settings']['admin_help_hide'])){
 		echo '<div style="float:right; margin:5px;"><a target=blank href="http://mpak.su/help/modpath:'. $arg['modpath']. "/fn:". $arg['fn']. '/r:'. $_GET['r']. '">Помощь</a></div>';
 	}
+	if($modname = array_search('admin', $_GET['m'])){
+		$modname_id = mpfdk("{$conf['db']['prefix']}modules",
+			array("folder"=>$modname), null, array("priority"=>time())
+		);
+	}
 	echo '<ul class="nl tabs">';
 	foreach($m as $k=>$v){
 		if ($v[0] == '.') continue;
-		echo "<li class=\"$k\"><a href=\"/?m[". array_search('admin', $_GET['m']). "]=admin". ($k ? "&r=$k" : ''). "\">$v</a></li>";
+		echo "<li class=\"$k\"><a href=\"/?m[{$modname}]=admin". ($k ? "&r=$k" : ''). "\">$v</a></li>";
 	}
 	echo '</ul>';
 	if(!empty($m) && empty($_GET['r'])){
@@ -892,7 +991,23 @@ function mpqwt($result){
 	echo "</table>";
 }
 
-function mptree($array, $sid=0, $shablon =array()){
+function mptree($ar, $func, $top = array("id"=>0), $level, $line = 0){
+	$tree = function($p, $tree, $func, $level, $line) use($ar, $conf, $arg){
+ 		if($level) $func($p, $ar, $line);
+		if($ar[ $p['id'] ]){
+			$ent = "";
+			foreach($ar[ $p['id'] ] as $v){
+//				ob_start();
+					$tree($v, $tree, $func, $level, $line+1);
+//				$ent .= ob_get_contents();
+//				ob_end_clean();
+			}
+		}
+ 		if(!$level) $func($p, $ar, $line);
+	}; $tree($top, $tree, $func, $level, $line);
+}
+
+/*function mptree($array, $sid=0, $shablon =array()){
         foreach($array as $k=>$v){
                 $id[ $v[ $shablon['id'] ] ] = $v;
                 $pid[ $v[ $shablon['pid'] ] ][] = $v[ $shablon['id'] ];
@@ -926,7 +1041,7 @@ function mptreer($id, $pid, $sid, $shablon, $prefix=0, $use=array()){
                 }
         }
         return $result;
-}
+}*/
 
 function mpquot($text){
 	$text = stripslashes($text);

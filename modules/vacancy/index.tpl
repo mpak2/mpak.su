@@ -18,7 +18,7 @@
 				</div>
 			</div>
 			<div>
-				<?=nl2br($v['description'])?>
+				<?=nl2br($_GET['id'] ? $v['description'] : substr($v['description'], 0, 100))?>
 			</div>
 		</div>
 	<? endforeach; ?>

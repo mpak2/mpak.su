@@ -1,0 +1,242 @@
+
+/* common */
+html { -webkit-text-size-adjust: auto; -ms-text-size-adjust: auto; }
+html, body, img, form {margin: 0px; padding: 0px; border: none;}
+html, body {height:100%;}
+body {background-color:#fff;}
+body, td {font-size: 12px; font-family: 'PT Sans', sans-serif; color: #333333;}
+a {color: #2e7aed;	text-decoration: underline;}
+a:hover {text-decoration: none;}
+td {vertical-align: top;}
+p {padding: 0px; margin: 0px 0px 12px 0px;}
+object {outline:none;}
+fieldset {border:0;}
+
+
+
+.clear {clear:both;}
+.none {line-height:0;}
+.relative {width:100%; position:relative;}
+.img-marg {float:left; margin:0 10px 5px 0;}
+.float-l {float:left;}
+.float-r {float:right;}
+.highlight {font-weight: bold;}
+.hfeed .posts {margin-bottom:10px;}
+
+.main-cont {width:975px; margin:0 auto; min-height:100%; background-color:#fff; border-right: 7px solid #f1f1f1; border-left: 7px solid #f1f1f1;padding-top: 76px; }
+
+/*typography*/
+h1 {font-size:15px; padding: 0px; margin: 0px 0px 10px 0px;}
+h2 {font-size:14px; color: #95bb1c; font-weight: normal; padding: 0px; margin: 0px 0px 10px 0px;}
+h3 {font-size:13px; padding: 0px; margin: 0px 0px 10px 0px;}
+
+h2.H-size {font-size:22px !important;}
+
+/*----PIE--*/
+
+.btn, .qw, .ans {behavior:url(PIE.htc)}
+
+/*----buttons---*/
+.btn {text-align:center; color:#333333; text-decoration:none; background: url(../img/start1px.jpg) left top repeat-x; text-decoration: none; cursor:pointer; border-radius:5px;  box-shadow:1px 2px 3px rgba(0,0,0,0.2); width:auto; display:block; font-size:14px !important; font-family:arial;padding: 5px 6px; line-height:15px; border-bottom:1px solid #c1c1c1; border-top:1px solid #9e9e9e;border-left: 1px solid #9e9e9e; border-right: 1px solid #989d86;border-bottom:1px solid #c1c1c1;margin:1px 4px;}
+.btn:active {border-top:1px solid #c1c1c1;border-right: 1px solid #c1c1c1;border-bottom:1px solid #9e9e9e;}
+
+/* header */
+.header {height:77px; width:100%; background: url(../img/hdr_bg.gif) left top repeat-x; position: fixed;top: o;z-index:10 !important;}
+.header-b {width:975px; margin: 0 auto;}
+.Logo {float: left; margin: 11px 20px 0px 0px;}
+.ChoseCity {float: left; margin: 6px 10px 0px 0px;} 
+.SearchBlock {width: 704px; /*background: url(../img/input_bg.gif) left top no-repeat;*/ float: left; margin: 6px 0px 15px; overflow: hidden; }
+.SearchBlock input[type='text'] {float: left;font-size: 16px;height: 24px;margin: 1px 5px 0 6px;padding: 0px 4px 3px;width: 445px;}
+.SearchMiniBtn {float: left; border: 0px; cursor: pointer; margin: 1px 0px 0px 0px; width:13px; height:17px; background: url(../img/srch_button.gif) left top no-repeat;}
+.SearchBlockBtns, .GreenNoticeBtns {float:right;}
+.SearchBlockBtns .btn {float:left; font-size: 14px;}
+
+.TopMenu {float: right; margin: 4px 0px 0px 0px;}
+.TopMenu ul,.TopMenu ul li {margin: 0px; padding: 0px ; list-style: none;}
+.TopMenu ul li {float: left; display: block; height:22px; background: url(../img/top_sep.gif) right top no-repeat; padding: 4px 12px 0px 12px ;}
+.TopMenu ul li:last-child {padding-right: 0px; background: transparent;}
+.TopMenu ul li a {text-decoration: none; font-size: 14px; color: #fff; text-shadow: 1px 1px 0px #000;}
+.HeaderSecondLine {margin: 9px 0px 0px 0px; float:left;width: 100%;}
+.UserName {font-weight: bold; text-shadow: 1px 1px 0px #728f12; font-family: Arial, sans-serif; margin: 8px 16px 0px 0px;  font-size: 12px; color: #fff; float: left;}
+.UserMenu,.UserMenu ul,.UserMenu ul li {float: left; margin: 0px; padding: 0px ; list-style: none;}
+.UserMenu, .LoginBlock {padding-top: 8px;}
+.UserMenu ul li {margin-right: 16px;}
+.UserMenu ul li a {font-size: 12px; text-shadow: 1px 1px 0px #728f12; color: #fff;}
+.LoginBlock {float: right; color: #fff; text-shadow: 1px 1px 0px #728f12;}
+.LoginBlock.FastLogin {padding-top: 1px; !important}
+.LoginBlock a {font-size: 12px; color: #fff; text-shadow: 1px 1px 0px #728f12;}
+.login-table label, .login-table a {color:#fff;padding:4px 10px 0 0;}
+.login-table a {padding:0px 10px 0 !important;border-right: 1px solid white;height: 16px;margin-top: 4px;}
+.login-table a:last-child {border:none;padding-right:0px !important;}
+.login-table td {padding-left: 10px;}
+.login-table td input[type="text"], .login-table td input[type="password"]  {width:100px !important;padding-left:3px;}
+.login-table td * {float:left;vertical-align:middle !important;}
+.LogInBtn {padding-bottom:2px;margin-left:0px;}
+.parrent-submit-btn {width:100%;padding:10px 0;float:left;}
+
+/* center col */
+.center-col {width:975px; float:left; overflow:hidden;}
+.center-col .padding {padding:20px 0px 70px 0px;}
+.center-col li {margin:10px 0;}
+.ContentPadding {padding: 0px 11px 0px 11px ;}
+
+.ProjectFilters {margin: 0px 0px 15px 0px;}
+.ProjectFilters ul,.ProjectFilters ul li {margin: 0px; padding: 0px ; list-style: none;}
+.ProjectFilters ul li {float: left;}
+.ProjectFilters ul li a {font-size: 14px; color: #4e4d4d; float: left;}
+.ProjectFilters ul li,.ProjectFilters ul li a,.ProjectFilters ul li a span {display: block;}
+.ProjectFilters ul li  {height:24px;  margin-right: 1px;}
+.ProjectFilters ul li a {height:24px;  }
+.ProjectFilters ul li a span {height:22px; padding: 2px 10px 0px 10px; }
+.ProjectFilters ul li.curent {background: url(../img/filters_c.gif) left top repeat;}
+.ProjectFilters ul li.curent a {background: url(../img/filters_l.gif) left top no-repeat; text-decoration: none; color: #fff;}
+.ProjectFilters ul li.curent a span {background: url(../img/filters_r.gif) right top no-repeat;}
+
+.GreenNotice {color: #fff; width:674px; min-height: 49px; padding: 13px 15px 10px 15px ; background: #99c321;}
+.GreenNotice p {color: white;width: 353px;float: left;margin-bottom: 0px;font-size: 14px; text-align: center;}
+.GreenNotice .btn {float:left;}
+
+
+.HeaderImg {width:952px; height:117px; background: #e2e2e2; margin-bottom: 15px; display:none;}
+.TopBanner {width:952px; height:90px; margin-bottom: 19px; display:none;}
+
+.SecondMenu {border-bottom: 3px solid #8fb516 ; float:left;margin-bottom:15px;width:100%;}
+.SeconMenubanner {float: right; margin-bottom: 3px;}
+.SecondMenu ul {margin: 0px; float: left; display: block; margin-top: 4px; padding: 0px ; list-style: none;}
+.SecondMenu ul li {float: left; margin: 0px 2px 0px 0px; background: url(../img/second_li_c.gif) left top repeat-x; background-position: left -25px; padding: 0px; display: block; height: 25px; list-style: none;}
+.SecondMenu ul li a {font-size: 14px; text-decoration: none; background: url(../img/second_li_l.gif) left top no-repeat; background-position: left -25px; color: #333232; display: block; height: 25px;}
+.SecondMenu ul li a span {display: block; height: 21px; padding: 4px 10px 0px 10px ; background: url(../img/second_li_r.gif) right top no-repeat; background-position: left -25px;}
+.SecondMenu ul li.curent a, .SecondMenu ul li.curent {background-position: left 0px; color: #fff;}
+.SecondMenu ul li.curent a span {background-position: right 0px;}
+
+.ProjectBanners {margin: 15px 0px 15px 0px;}
+.ProjectBannerItem, .UsersAdsItem {display: block; width:227px; height:84px; float: left; margin-right: 15px; position: relative; overflow:hidden;}
+.ProjectBannerItem:nth-child(4), .UsersAdsItem:nth-child(4)  {margin-right: 0px;}
+.ProjectBannerDescription {display: none; color: #fff; width:206px; height:72px; padding: 7px 10px 5px 10px; background: url(../img/pr_overlay.png) left top repeat; position: absolute; top:0px; left:0px;}
+.ProjectBannerItem:hover .ProjectBannerDescription {display: block;} 
+.ProjectBannerTitle {font-weight: bold; font-size: 14px; display: block; margin-bottom: 2px;}
+.ProjectBannerText {font-size: 12px;}
+
+.UsersAdsItemImg {float: left; width:50px; margin-top: 2px; margin-right: 10px;}
+.UsersAdsItemDescription {float: left; width: 159px; padding-right:8px;}
+.UsersAdsItemDescription a {font-size: 12px;white-space:nowrap;}
+.UsersAdsItemDescription p  {display: block; line-height: 14px; margin-top: 3px;}
+             
+.FotoOfTheDay {width: 432px; margin-right: 50px; float: left;}
+.UsersNewRefresh {float: right; width:215px; float: left; }             
+
+.FotoOfTheDayNav {margin-bottom: 8px;}                                     
+.FotoOfTheDayNav a {float: left;}
+.FotoOfTheDayNav .NextPrev {float: right;}                   
+.FotoOfTheDayNav .NextPrev a {margin-left: 20px;}                                     
+
+.UsersCollItem {width: 193px; margin-bottom: 14px;}                        
+.UsersCollItemImg {width: 50px; float: left; margin-right: 8px;}                        
+.UsersCollItemDescr {float: left; width: 130px;}                             
+.UsersCollItemDescr a {font-weight: bold;}
+.UsersCollItemDescr span {display: block; color: #7f8080; margin-top: 2px;}
+
+.MainLeft {float: left; width:236px;}
+.MainRight {float: right; width:714px;}
+.LeftMenu {margin-bottom: 15px;}
+.LeftMenu ul,.LeftMenu ul li {margin: 0px; padding: 0px ; list-style: none;}
+.LeftMenu ul li a {display: block; background: #faf9f2; text-decoration: none; font-size: 13px; color:#6a6a6a; border-bottom: 1px solid #e7e7e4 ; width: 196px; height:19px; padding: 3px 7px 0px 7px ;}
+.LeftMenu ul li a:hover {background: #fefdf6;}
+.LeftMenu ul ul li a {background: #efeee7; border-bottom: 1px solid #f9f8f5 ; padding-left: 15px; width:191px;}
+.LeftMenu ul ul {display: none;}
+.EventServices {margin-bottom: 15px;}
+.EventServices .UsersAdsItem {float: none; margin: 0px 0px 20px 0px;}
+.LeftBanner {width: 213px; height:354px;}
+
+.ProjectsRow {margin: 18px 0px 0px 0px; float: left;}
+.ProjectItem {border-bottom: 1px dashed #acacac ; padding: 14px 14px 17px 14px; overflow:hidden;}
+.ProjectItem.Marked {background: #faf9f2;}
+.ProjectItemHeading a {font-size: 22px; color:#333333; float: left; padding-right: 150px;}
+.ProjectItemHeading span {float: right;}
+.ProjectItem p {line-height: 17px; margin-bottom: 12px;font-size: 13px;}
+.OrangePrice {font-size: 20px; color:#f26522; position: absolute; top: 0px; right: 0px;}
+.ProjectItemHeading {margin-bottom: 12px; position: relative;}
+.ProjectTime {float: left; color: #acacac;}
+.ProjectRespons {float: right;}
+
+.ProjectCompany {margin-bottom: 5px;}
+.ProjectStatus {position: relative; float: left; margin: 10px 0px 0px 6px; text-align: center; font-size: 12px; color: #fff; text-shadow: 1px 1px 0px #a24417; padding: 5px 10px 0px 10px ; height:24px; min-width:30px; background: url(../img/stat_c.png) left top repeat-x;}
+.ProjectStatus_a {width:9px; height:29px; background: url(../img/stat_l.png) left top no-repeat; position: absolute; top:0px; left:-9px;}
+.ProjectStatus_b {width:9px; height:29px; background: url(../img/stat_r.png) left top no-repeat; position: absolute; top:0px; right:-9px;}
+
+.TwoCollasLine {border-bottom: 3px dashed #8FB516; padding-bottom: 10px;float:left;width: 100%;}
+.MainContTwocolls {padding-top:20px;padding-top: 10px; float:left;}
+
+.InfoBlock {width:974px; min-height: 100px; margin: 11px 0px 26px 0px; color: #fff; background: url(../img/info_c.gif) left top repeat-y;float: left;}
+.InfoBlock_a {width:974px; min-height: 100px; background: url(../img/info_t.gif) left top no-repeat;}
+.InfoBlock_b {width:954px; min-height: 80px; padding: 20px 10px 20px 10px ; background: url(../img/info_b.gif) left bottom no-repeat;}
+.InfoBlockMiddle {font-size: 18px;  text-align: center;}
+.InfoBlockBig {font-size: 30px; font-weight: bold;  text-align: center;}
+.InfoTwoColls {margin: 20px 0px 20px 215px;}
+.InfoTwoColls ul,.InfoTwoColls ul li {margin: 0px; padding: 0px ; list-style: none;}
+.InfoTwoColls ul li {font-size: 20px; font-weight: bold; background: url(../img/check.png) left top no-repeat; padding: 0px 0px 0px 25px ;}
+.InfoTwoColls ul {float: left; margin-right: 100px;}
+.InfoBlocAdd {display: block; width:224px; height:54px; margin: 0 auto; background: url(../img/add.png) left top no-repeat;}
+
+.NewsBlock {float: left; margin-right: 44px; margin-left: 10px;}
+.NewsBlock h1, .ReportBlock h1, .ShopBlock h1 {font-size:22px;}
+.NewsBlock.Scale {margin-right: 0px;}
+.NewsItem {width: 275px;margin-bottom: 15px; text-align: justify;}
+.NewsItem span {display: block; color: #a3a3a3; margin: 4px 0px 0px 0px;}
+
+.ReportBlock {margin: 20px 0px 0px 0px;}
+.ReportItem {margin-right: 18px; width:176px; float: left;}
+.ReportItem.last-child {margin-right: 0px;}
+.ReportItemImg {width: 176px; height:117px; position: relative; margin-bottom: 4px;}
+.Play {display: block; width: 57px; height:58px; position: absolute; top:25px; left:59px; background: url(../img/play.png) left top no-repeat;}
+
+.ShopBlock {margin: 30px 0px 10px 5px;}
+.ShopItemImg {margin-bottom: 5px;}
+.ShopItem {width: 111px; float: left; margin: 0px 0 25px 0px; padding:0 12px;}
+.ShopItemCategory {color: #ababab; margin: 2px 0px 2px 0px;}
+.ShopItemPrice {font-size: 14px; font-weight: bold;}
+
+/*faq*/
+.faq {margin-right:100px; float:left; padding: 0px 50px 20px 50px;}
+.faq h1 {font-size:22px;color: #95BB1C;}
+.faq-item {width:100%; float:left; overflow:hidden;}
+.qw{padding:5px;background:#FFD7C3 !important; box-shadow:3px 6px 12px rgba(0, 0, 0, 0.2);}
+.qw, .ans{ margin:10px; border-radius:6px;}
+.ans { margin-left:50px; background:#DBEDD4;padding: 5px; box-shadow:inset -4px -8px 11px rgba(0, 0, 0, 0.2);}
+.href { padding-left:50px; text-align:right; white-space:nowrap; overflow:hidden;}
+#comments {width:100%; float:left;}
+#comments textarea {width: 697px !important;}
+
+/*Registration*/
+.registration h2 {font-size:34px; color:#000;}
+.reg-table input[type="text"] {font-family: Arial,Helvetica,sans-serif !important;margin: 0;height: 23px !important;line-height: 23px !important;vertical-align: baseline !important;color: black;width: 100%;}
+.reg-table  tr td {font-size:14px;}
+.reg-hint {font-size:12px !important; padding-left:15px;}
+.td-inp {width:280px;}
+.td-inp input {padding-left:4px;font-size:19px;}
+.alert  .alert-msg {visibility:visible;}
+.alert input {border-color:#FF2626;}
+.alert-msg {color:#C4271F; width:100%; text-align:left; visibility:hidden;}
+
+/*user*/
+.UserPic {float:left; width:220px; text-align:center;overflow:hidden;}
+.UserPic img{width:220px; height:auto;}
+
+/*form-title*/
+.FormTitle {padding:20px; text-align:center;color:#95BB1C;font-size:18px !important;}
+.form-in label {width:100%;padding:10px 0; float:left;font-weight:bold;}
+.map-view {float:left;width: 90%; height: 300px;}
+
+/* footer */
+.footer {width:975px; color:#fff; margin:0 auto; position:relative;}
+.footer-b {width:100%; height:50px; background-color:#434742; position: absolute; top:-50px; left:0;}
+.FooterLeft {float: left; padding: 10px 0px 0px 10px ;}
+.FooterLeft span {display: block;}
+.Develope {float: left; margin: 0px 3px 0px 0px;}
+.DevelopeLink {float: left; margin: 3px 0px 0px 0px;}
+.FooterRight {float: right; padding: 10px 13px 0px 0px ;}
+.FooterRight ul,.FooterRight ul li {margin: 0px; padding: 0px ; list-style: none;}
+.FooterRight ul li {float: left; margin-left: 17px;}
+.FooterRight ul li a {color: #fff;}
+
+

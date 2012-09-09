@@ -1,4 +1,5 @@
 <? die;
+
 // ----------------------------------------------------------------------
 // mpak Content Management System
 // Copyright (C) 2007 by the mpak.
@@ -10,28 +11,15 @@
 // Please READ carefully the Docs/License.txt file for further details
 // Please READ the Docs/credits.txt file for complete credits list
 // ----------------------------------------------------------------------
-// Original Author of file: Krivoshlykov Evgeniy (mpak) +7 3462 634132
+// Original Author of file: Krivoshlykov Evgeniy (mpak) +7 9291140042
 // Purpose of file:
 // ----------------------------------------------------------------------
 
-#Загрузка файлов
-
-/*if ((int)$_GET['name']){
-	$v = mpql(mpqw("SELECT name, description FROM {$conf['db']['prefix']}{$arg['modpath']}_files WHERE id=".(int)$_GET['name']), 0);
-	mpfile($v['name'], $v['description']);
-}*/
-
-if ($_GET['f']){
-	$table_name = "{$conf['db']['prefix']}{$arg['modpath']}_files";
-	list($k, $v) = each($_GET['f']);
-	mpfile(mpql(mpqw("SELECT ".addslashes($k)." FROM $table_name WHERE id=".(int)$v), 0, $k));
-}
-
 $conf['settings'] += array(
-	"{$arg['modpath']}_index"=>$arg['modname'],
+	"{$arg['modpath']}_index"=>$conf['modules'][ $arg['modname'] ]['name'],
 	"{$arg['modpath']}_cat"=>"Категории",
 	"{$arg['modpath']}_files"=>"Файлы",
-	"{$arg['modpath']}_ext"=>".Расширения",
+	"{$arg['modpath']}_ext"=>".Расширение",
 );
 
 foreach(mpql(mpqw("SHOW TABLES WHERE Tables_in_{$conf['db']['name']} LIKE \"{$conf['db']['prefix']}{$arg['modpath']}\_%\"")) as $k=>$v){
@@ -39,14 +27,27 @@ foreach(mpql(mpqw("SHOW TABLES WHERE Tables_in_{$conf['db']['name']} LIKE \"{$co
 	$m["{$conf['db']['prefix']}". $fn] = $val;
 } mpmenu($m); if(!$_GET['r']) $_GET['r'] = array_shift(array_keys($m));
 
-if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_cat"){//'Категории'
+$tn = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"), strlen($_GET['r']));
+$etitle_id = $count_id = array();
+foreach($m as $table=>$v){
+	$columns = mpqn(mpqw("SHOW COLUMNS FROM ". mpquot($table). ""), 'Field');
+	foreach($columns as $f=>$fields){
+		if((substr($f, -3, 3) == "_id") && (substr($f, 0, -3) == $tn)){
+			$fn = substr($table, strlen("{$conf['db']['prefix']}{$arg['modpath']}_"), strlen($table));
+			$etitle_id += array($fn=>$conf['settings'][ "{$arg['modpath']}_{$fn}" ]);
+			$count_id[ $fn ] = array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "_id]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "{$prx}_id]=', r.id, '>', COUNT(*), '_". ($conf['settings']["{$arg['modpath']}_{$fn}"] ?: $fn). "</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$arg['modpath']}". ($fn ? "_{$fn}" : ""). " AS fn WHERE r.id=fn.". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "{$prx}_id GROUP BY r.id");
+		}
+	}
+}
+
+if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_files"){// echo "<div style=float:right;color:#bbb;>{$_GET['r']}:". __LINE__. "</div>";
 	stable(
 		array(
-			'dbconn' => $conf['db']['conn'],
+//			'dbconn' => $conf['db']['conn'],
 			'url' => "/?m[{$arg['modpath']}]=admin&r={$_GET['r']}", # Ссылка для редактирования
 			'name' => $_GET['r'], # Имя таблицы базы данных
 //			'where' => '', # Условия отбора содержимого
-//			'order' => 'id', # Сортировка вывода таблицы
+			'order' => ($conf['settings']["{$arg['modname']}_{$tn}=>order"] ?: 'id DESC'), # Сортировка вывода таблицы
 //			'debug' => false, # Вывод всех SQL запросов
 			'acess' => array( # Разрешение записи на таблицу
 				'add' => array('*'=>true), # Добавление
@@ -54,40 +55,61 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_cat"){//'Катег�
 				'del' => array('*'=>true), # Удаление
 				'cp' => array('*'=>true), # Копирование
 			),
+			'edit'=>'title',
 //			'count_rows' => 12, # Количество записей в таблице
 //			'page_links' => 10, # Количество ссылок на страницы в обе стороны
-			'shablon' => array(
-//				'name'=>array('*'=>"<a href='?m[{$arg['modpath']}]=admin&where[cat]={f:id}'>{f:{f}}</a>"),
-				(($fn = 'files'). ($prx = ''))=>array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "_id]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "{$prx}_id]=', r.id, '>', COUNT(*), '_{$fn}</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$arg['modpath']}_{$fn} AS fn WHERE r.id=fn.". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "{$prx}_id GROUP BY r.id"),
-				'rand'=>array('*'=>"<a href=\"/{$arg['modpath']}/cat_id:{f:id}/null/images/cat.jpg\">images/cat.jpg</a>"),
-			),
-//			'table' => "<table cellspacing='0' cellpadding='3' border='1'>",
+
 //			'top' => array('tr'=>'<tr>', 'td'=>'<td>', 'result'=>'<b><center>{result}</center></b>'), # Формат заголовка таблицы
 //			'middle' => array('tr'=>'<tr>', 'td'=>'<td>', 'shablon'=>"<tr><td>{sql:name}</td><td>&nbsp;{sql:img}</td><td>&nbsp;{sql:description}</td><td align='right'>{config:row-edit}</td></tr>"), # Формат записей таблицы
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
-			'title' => array('parent'=>'Владелец', 'name'=>'Категория', 'files'=>'Файлы', 'rand'=>'Случайные'), # Название полей
-//			'type' => array('img'=>'file', 'description'=>'textarea'), # Тип полей
-//			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
-//			'set' => array('name'=>'kanal'), # Значение которое всегда будет присвоено полю. Исключает любое изменение
-//			'disable' => array('img'), # Выключенные для записи поля
-//			'hidden' => array(), # Скрытые поля
+//			'title' => (!empty($conf['settings']["{$arg['modpath']}_{$tn}=>title"]) ? explode(",", $conf['settings']["{$arg['modpath']}_{$tn}=>title"]) : null), # Название полей
+			'title'=>array("uid"=>"Пользователь", "cat_id"=>"Категория", "name"=>"Файл", "w"=>"Ширина", "h"=>"Высота", "c"=>"Обрезание", "activ"=>"Активность"),
+			'etitle'=> array('time'=>'Время', 'uid'=>'Пользователь', 'count'=>'Количество', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'duration'=>'Длительность', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', "users_sity"=>'Город', 'activ'=>'Активность', 'w'=>'Ширина', 'h'=>'Высота', 'c'=>'Обрезание', 'description'=>'Описание', 'text'=>'Текст') + $etitle_id,
+			'type' => array('time'=>'timestamp', 'sort'=>'sort', 'name'=>'file', 'duration'=>'timecount', 'description'=>'textarea', 'text'=>'wysiwyg'), # Тип полей
+			'ext' => array('name'=>array("*"=>"*")),
+//			'set' => array('orderby'=>$orderby), # Значение которое всегда будет присвоено полю. Исключает любое изменение
+			'shablon' => $count_id + array(
+//				($fn = "spisok"). "_id" => (array("*"=>"<a href=\"/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[id]={f:{f}}\">{spisok:{f}}</a>")),
+//				'num'=>array('*'=>'<a target=_blank href=http://stom-firms.ru/clinics.php?i={f:{f}}>http://stom-firms.ru/clinics.php?i={f:{f}}</a>'),
+//				'name'=>array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_index&where[rid]={f:id}>{f:{f}}</a>"),
+//				($fn = 'img')=>array('*'=>"<img src='/{$arg['modpath']}:img/{f:id}/tn:". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "/fn:{$fn}/w:120/h:100/null/img.jpg' title='{f:{f}}' alt='{f:{f}}'>"),
+//				($fn = "link"). "_id"=>array('*'=>"<a href='/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[id]={f:{f}}'>{f:{f}}</a>"),
+//				(($fn = 'cnt'). ($prx = ''))=>array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "_id]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "{$prx}_id]=', r.id, '>', COUNT(*), '_". ($conf['settings']["{$arg['modpath']}_{$fn}"] ?: $fn). "</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$arg['modpath']}". ($fn ? "_{$fn}" : ""). " AS fn WHERE r.id=fn.". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "{$prx}_id GROUP BY r.id"),
+//				(($tn = "people"). ($fn = '_index_performers'). ($prx = ''))=>array('*'=>"<a href=/?m[{$tn}]=admin&r={$conf['db']['prefix']}{$tn}{$fn}&where[". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "_id]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$tn}]=admin&r={$conf['db']['prefix']}{$tn}{$fn}&where[". ($tn ? $arg['modpath']. "_" : ""). substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). ($tn ? "" : "_id"). "]=', r.id, '>', COUNT(*), '_". ($conf['settings']["{$tn}{$fn}"] ?: $fn). "</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$tn}{$fn} AS fn WHERE r.id=fn.". ($tn ? $arg['modpath']. "_" : ""). substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). ($tn ? "" : "_id")." GROUP BY r.id"),
+				'name'=>array('*'=>"<a href=\"/{$arg['modpath']}/{f:id}/null/{f:{f}}\">{f:{f}}</a>"),
+			), # Шаблон вывода в замене участвуют только поля запроса имеен приоритет перед полем set
+//			'disable' => array('orderby'), # Выключенные для записи поля
+//			'hidden' => array('name', 'enabled'), # Скрытые поля
 			'spisok' => array( # Список для отображения и редактирования
-				'parent' => array('*' => array('0'=>'.') + (array)spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_cat")),
+				'uid' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
+				($fn = "cat"). "_id" => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
+//				(($tn = "users"). $fn = "_sity") => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$tn}{$fn}")),
+//				'metro_id' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_metro")),
+//				'kuzov_type_id' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_kuzov_type")),
+//				'zagruzka_type_id' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_zagruzka_type")),
+//				'vygruzka_type_id' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_vygruzka_type")),
+//				'select'=>array('*'=>array('0'=>'Скрыто', '1'=>'Доступно')),
+				'activ'=>array("*"=>array(1=>"Активен", 0=>"Скрыт")),
+				'c'=>array("*"=>array(0=>"Как есть", 1=>"Обрезать")),
 			),
-//			'default' => array('parent'=>$_POST['parent']), # Значение полей по умолчанию
-//			'maxsize' => array('bdesc'=>'50', 'sdesc'=>'50'), # Максимальное количество символов в поле
+			'default' => array(
+				'uid'=>array('*'=>$conf['user']['uid']),
+				'time'=>array('*'=>date('Y.m.d H:i:s')),
+				'activ'=>array("*"=>1),
+//				($f = 'type_id')=>array('*'=>max($_GET['where'][$f], $_POST[$f])),
+			), # Значение полей по умолчанию
+			'maxsize' => array('description'=>150, 'text'=>250), # Максимальное количество символов в поле
 		)
 	);
-}elseif($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_files"){ //'Вложения'
-	if (!$arg['access'] > 4) $_GET['where']['uid'] = $conf['user']['uid'];
+}else if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo "<div style=float:right;color:#bbb;>{$_GET['r']}:". __LINE__. "</div>";
 	stable(
 		array(
-			'dbconn' => $conf['db']['conn'],
+//			'dbconn' => $conf['db']['conn'],
 			'url' => "/?m[{$arg['modpath']}]=admin&r={$_GET['r']}", # Ссылка для редактирования
 			'name' => $_GET['r'], # Имя таблицы базы данных
 //			'where' => '', # Условия отбора содержимого
-			'order' => 'id DESC', # Сортировка вывода таблицы
+			'order' => ($conf['settings']["{$arg['modname']}_{$tn}=>order"] ?: 'id DESC'), # Сортировка вывода таблицы
 //			'debug' => false, # Вывод всех SQL запросов
 			'acess' => array( # Разрешение записи на таблицу
 				'add' => array('*'=>true), # Добавление
@@ -95,35 +117,48 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_cat"){//'Катег�
 				'del' => array('*'=>true), # Удаление
 				'cp' => array('*'=>true), # Копирование
 			),
+			'edit'=>'title',
 //			'count_rows' => 12, # Количество записей в таблице
 //			'page_links' => 10, # Количество ссылок на страницы в обе стороны
 
-//			'table' => "<table cellspacing='0' cellpadding='3' border='1'>",
 //			'top' => array('tr'=>'<tr>', 'td'=>'<td>', 'result'=>'<b><center>{result}</center></b>'), # Формат заголовка таблицы
 //			'middle' => array('tr'=>'<tr>', 'td'=>'<td>', 'shablon'=>"<tr><td>{sql:name}</td><td>&nbsp;{sql:img}</td><td>&nbsp;{sql:description}</td><td align='right'>{config:row-edit}</td></tr>"), # Формат записей таблицы
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
-			'title' => array('time'=>'Время', 'cat_id'=>'Категория', 'activ'=>'Доступ', 'count'=>'Счет', 'w'=>'Шир', 'h'=>'Выс', 'c'=>'Кроп', 'name'=>'Файл', 'description'=>'Описание'), # Название полей
-			'type' => array('name'=>'file', 'time'=>'timestamp', 'description'=>'textarea'), # Тип полей
-//			'ext' => array('name'=>(array)spisok("SELECT name, ext FROM {$conf['db']['prefix']}{$arg['modpath']}_ext")),
-			'ext' => array('name'=>array("*"=>"*")),
-//			'set' => $adm ? null : array('uid'=>$conf['user']['uid']), # Значение которое всегда будет присвоено полю.
-			'shablon' => array(
-				'name'=>array('*'=>"<a href=\"/{$arg['modpath']}/{f:id}/null/{f:{f}}\">{f:{f}}</a>"),
-//				'name'=>spisok("SELECT id, '<a href=/?m[{$arg['modpath']}]&id={f:id}>Скачать</a>' FROM {$conf['db']['prefix']}{$arg['modpath']}_files WHERE name<>''"),
-//				'cat'=>array('*'=>"<a href='?m[{$arg['modpath']}]=admin&where[{f}]={f:cat}'>{spisok:{f}:*:{f:{f}}}</a>"),
+			'title' => (!empty($conf['settings']["{$arg['modpath']}_{$tn}=>title"]) ? explode(",", $conf['settings']["{$arg['modpath']}_{$tn}=>title"]) : null), # Название полей
+			'etitle'=> array('time'=>'Время', 'uid'=>'Пользователь', 'count'=>'Количество', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'duration'=>'Длительность', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', "users_sity"=>'Город', 'description'=>'Описание', 'rand'=>'Случайная', 'text'=>'Текст') + $etitle_id,
+			'type' => array('time'=>'timestamp', 'sort'=>'sort', 'img'=>'file', 'duration'=>'timecount', 'description'=>'textarea', 'text'=>'wysiwyg'), # Тип полей
+			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
+//			'set' => array('orderby'=>$orderby), # Значение которое всегда будет присвоено полю. Исключает любое изменение
+			'shablon' => $count_id + array(
+//				($fn = "spisok"). "_id" => (array("*"=>"<a href=\"/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[id]={f:{f}}\">{spisok:{f}}</a>")),
+//				'num'=>array('*'=>'<a target=_blank href=http://stom-firms.ru/clinics.php?i={f:{f}}>http://stom-firms.ru/clinics.php?i={f:{f}}</a>'),
+//				'name'=>array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_index&where[rid]={f:id}>{f:{f}}</a>"),
+				($fn = 'img')=>array('*'=>"<img src='/{$arg['modpath']}:img/{f:id}/tn:". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "/fn:{$fn}/w:120/h:100/null/img.jpg' title='{f:{f}}' alt='{f:{f}}'>"),
+//				($fn = "link"). "_id"=>array('*'=>"<a href='/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[id]={f:{f}}'>{f:{f}}</a>"),
+//				(($fn = 'cnt'). ($prx = ''))=>array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "_id]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "{$prx}_id]=', r.id, '>', COUNT(*), '_". ($conf['settings']["{$arg['modpath']}_{$fn}"] ?: $fn). "</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$arg['modpath']}". ($fn ? "_{$fn}" : ""). " AS fn WHERE r.id=fn.". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "{$prx}_id GROUP BY r.id"),
+//				(($tn = "people"). ($fn = '_index_performers'). ($prx = ''))=>array('*'=>"<a href=/?m[{$tn}]=admin&r={$conf['db']['prefix']}{$tn}{$fn}&where[". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "_id]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$tn}]=admin&r={$conf['db']['prefix']}{$tn}{$fn}&where[". ($tn ? $arg['modpath']. "_" : ""). substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). ($tn ? "" : "_id"). "]=', r.id, '>', COUNT(*), '_". ($conf['settings']["{$tn}{$fn}"] ?: $fn). "</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$tn}{$fn} AS fn WHERE r.id=fn.". ($tn ? $arg['modpath']. "_" : ""). substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). ($tn ? "" : "_id")." GROUP BY r.id"),
+//				'name'=>array('*'=>"<a href=\"/{$arg['modpath']}/{f:id}/null/{f:{f}}\">{f:{f}}</a>"),
+				'rand'=>array('*'=>"<a href=\"/{$arg['modpath']}/cat_id:{f:id}/null/images/cat.jpg\">images/cat.jpg</a>"),
 			), # Шаблон вывода в замене участвуют только поля запроса имеен приоритет перед полем set
-//			'shablon' => array('name'=>array('*'=>"<a href='?m[{$arg['modpath']}]&id={f:id}'>Скачать</a>")), # Шаблон вывода в замене участвуют только поля запроса имеен приоритет перед полем set
-//			'disable' => array('img'), # Выключенные для записи поля
-//			'hidden' => array(), # Скрытые поля
+//			'disable' => array('orderby'), # Выключенные для записи поля
+			'hidden' => array('parent'), # Скрытые поля
 			'spisok' => array( # Список для отображения и редактирования
-				'cat_id' => array('*' => spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_cat")),
-				'uid' => array('*' => array('0'=>'*')+spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
-				'activ' => array('*' => array('0'=>'Выкл', '1'=>'Включ')),
-				'c'=>array('*'=>array(0=>'', 1=>'Обрез')),
+				'uid' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
+//				($fn = "index"). "_id" => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
+//				(($tn = "users"). $fn = "_sity") => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$tn}{$fn}")),
+//				'metro_id' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_metro")),
+//				'kuzov_type_id' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_kuzov_type")),
+//				'zagruzka_type_id' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_zagruzka_type")),
+//				'vygruzka_type_id' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_vygruzka_type")),
+//				'select'=>array('*'=>array('0'=>'Скрыто', '1'=>'Доступно')),
 			),
-			'default' => array('uid'=>array('*'=>0), 'time'=>date("Y.m.d H:i:s"), 'activ'=>'1'), # Значение полей по умолчанию
-//			'maxsize' => array('bdesc'=>'50', 'sdesc'=>'50'), # Максимальное количество символов в поле
+			'default' => array(
+				'uid'=>array('*'=>$conf['user']['uid']),
+				'time'=>array('*'=>date('Y.m.d H:i:s')),
+//				($f = 'type_id')=>array('*'=>max($_GET['where'][$f], $_POST[$f])),
+			), # Значение полей по умолчанию
+			'maxsize' => array('description'=>150, 'text'=>250), # Максимальное количество символов в поле
 		)
 	);
 }
