@@ -8,8 +8,8 @@ if ((int)$arg['confnum']){
 	} if(array_key_exists("null", $_GET)) exit;
 
 	$klesh = array(
-/*		"Количество символов"=>0,
-		"Курс доллара"=>30,
+/*		($f = "Ширина")=>($param[ $f ] = $param[ $f ] ?: 200),
+		($f = "Высота")=>($param[ $f ] = $param[ $f ] ?: 200),
 		"Список"=>array(
 			1=>"Одын",
 			2=>"Два",
@@ -48,30 +48,19 @@ if ((int)$arg['confnum']){
 
 }//$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
-if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && array_key_exists("val", $_POST)){
-	if(empty($_POST['val'])){
-		mpqw("DELETE FROM {$conf['db']['prefix']}{$arg['modpath']}_redirect WHERE `to`=\"". mpquot($_POST['to']). "\"");
-		exit();
-	}else{
-		mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_redirect",
-			$w = array("to"=>$_POST['to']),
-			$w += array("time"=>time(), "from"=>$_POST['val'], "uid"=>$conf['user']['uid']), $w
-		); exit($_POST['redirect_id']);
-	}
-};
+//if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
 
-$seo = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_redirect WHERE `from`=\"". mpquot(urldecode($_SERVER['REQUEST_URI'])). "\" OR `to`=\"". mpquot(urldecode($_SERVER['REQUEST_URI'])). "\" LIMIT 1"), 0);
-
-$to = $seo['id'] ? $seo['to'] : urldecode($_SERVER['REQUEST_URI']);
+$dat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} LIMIT 10"));
 
 ?>
-<script src="/include/jquery/my/jquery.klesh.select.js"></script>
 <script>
 	$(function(){
-		$(".klesh").klesh("/blocks/<?=$arg['blocknum']?>/null");
+		$("body").keypress(function(e){
+			if(e.ctrlKey && e.keyCode == 13){
+				alert("Ошибка на сайте")
+			}
+		});
 	});
 </script>
-<div>
-	<div style="padding-left:18px;"><a href="<?=$to?>"><?=$to?></a></div>
-	<div class="klesh" to="<?=$to?>" redirect_id="<?=$seo['id']?>"><?=$seo['from']?></div>
-</div>
+<div id="dialog" style="display:none;">123</div>
+<p>Если вы нашли ошибку, выделите фрагмент текста и нажмите Ctrl+Enter.</p>

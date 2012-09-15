@@ -406,17 +406,13 @@ function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.pn
 		if ($exts[ $file['type'] ] || isset($exts['*'])){
 			if(!($ext = $exts[ $file['type'] ])){
 				$ext = '.'. array_pop(explode('.', $file['name']));
-			}
-			$f = "{$tn}_{$fn}_{$id}". $ext;
-/*			if($glob = glob(ini_get('upload_tmp_dir'). "/{$_SERVER['SERVER_NAME']}/*_{$tn}_{$fn}_{$id}*")){
-				foreach ($glob as $fn) {
-					unlink($fn);
-				}
-			}*/
+			} $f = "{$tn}_{$fn}_". (int)($img_id = mpfdk($tn, array("id"=>$id), array("time"=>time(), "uid"=>$conf['user']['uid']))). $ext;
 			if(($ufn = mpopendir('include/images')) && move_uploaded_file($file['tmp_name'], "$ufn/$f")){
-				$return = "images/$f";
+				if($img_id != $id) mpqw($sql = "UPDATE {$tn} SET `". mpquot($fn). "`=\"". mpquot($return = "images/$f"). "\" WHERE id=". (int)$img_id);
 			}else{
-				echo "images/$f";
+				if($img_id != $id){
+					mpqw("DELETE FROM {$tn} WHERE id=". (int)$img_id);
+				} echo "images/$f";
 			}
 		}else{
 			echo " <span style='color:red;'>{$file['type']}</span>";

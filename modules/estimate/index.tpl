@@ -36,7 +36,7 @@
 	</script>
 	<div class="estimate" estimate="<?=$conf['tpl']['estimate']['sum']?>" act="1" style="white-space:nowrap;">
 		<? for($i=1; $i<=5; $i++): ?>
-			<a estimate="<?=$i?>" href="javascript: void(0);">
+			<a estimate="<?=$i?>" href="javascript: void(0);" style="text-decoration:none;">
 				<img src="/<?=$arg['modname']?>:img/null/<?=($conf['tpl']['estimate']['sum'] >= $i ? "" : "n")?>s.png">
 			</a>
 		<? endfor; ?>

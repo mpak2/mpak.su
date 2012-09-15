@@ -15,7 +15,7 @@ $tpl['hide'] = mpql(mpqw($sql = "SELECT m.*, a.id as aid FROM {$conf['db']['pref
 
 $tpl[$arg['fn']] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE id=".(int)$_GET['id']), 0);
 
-$tpl['modules'] = mpql(mpqw("SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}modules WHERE admin=". (int)$tpl[$arg['fn']]['id']));
+$tpl['modules'] = mpql(mpqw("SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}modules WHERE admin=". (int)$tpl[$arg['fn']]['id']. " ORDER BY priority DESC"));
 $tpl['cnt'] = mpql(mpqw("SELECT FOUND_ROWS()/10 AS cnt"), 0, 'cnt');
 
 foreach((array)$tpl['modules'] as $k=>$v){

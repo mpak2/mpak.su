@@ -30,6 +30,7 @@ $logo = array(
 	"adsbot.png"=>"adsbot",
 	"archive.org.png"=>"archive.org_bot",
 	"begun.png"=>"Begun",
+	"majestic12.png"=>"majestic12",
 	"bot.png"=>"bot",
 );// mpre($logo);
 

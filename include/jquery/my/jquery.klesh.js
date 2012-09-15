@@ -21,7 +21,10 @@ jQuery.fn.klesh = function(action, callbackFnk, select){
 			input = $("<select>").attr("old", text);//.css({"position":"absolute", "z-index":10});
 
 			$.each(select, function(key, val){
-				$("<option value='"+val.id+"' "+(text == val.name ? "selected" : "")+">"+val.name+"</option>").appendTo(input);
+				option = $("<option value='"+val.id+"' "+(text == val.name ? "selected" : "")+">"+val.name+"</option>");
+				for(var v in val){
+					if(v != "id"){ $(option).attr(v, val[v]); }
+				} $(option).appendTo(input);
 			});
 			$(this)
 //				.html($("<input type='button'>").addClass("fnok").val("ok").css("float", "right").css("width", "50px"))
@@ -35,7 +38,7 @@ jQuery.fn.klesh = function(action, callbackFnk, select){
 				.html($("<div>")/*.css("margin-right", "60px")*/.html(input));
 			$(this).find("input").select();
 		}
-		$(klesh = this).find("input[type='text'],select").change(ch = function(){
+		$(klesh = this).find("input[type='text'],select").bind("blur change", ch = function(){
 			val = $(this).val();// alert(val);
 			old = $(this).attr("old");
 			$(klesh).attr("val", val);
@@ -51,12 +54,9 @@ jQuery.fn.klesh = function(action, callbackFnk, select){
 					}
 				});
 			};
-			$(this).parent().parent().attr("old", select ? select[val].name : val).html(select ? select[val].name : val).bind("click", f);
 			if(typeof callbackFnk == "function"){
 				callbackFnk.call(klesh);
-			}
-		}).bind("blur", function(){
-			$(this).change();
+			} $(this).parent().parent().attr("old", select ? select[val].name : val).html(select ? select[val].name : val).bind("click", f);
 		});
 	}).css("padding-left", "15px")
 	.css("background-repeat", "no-repeat")
