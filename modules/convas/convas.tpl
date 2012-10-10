@@ -124,81 +124,80 @@
 	var restorePoints = [];
 	$(document).ready(function(){
 		// This array will store the restoration points of the canvas
-	var restorePoints = [];
-	var a=false;var b,c="";var d=document.getElementById("can");
-	var e=d.getContext("2d");
+		var restorePoints = [];
+		var a=false;var b,c="";var d=document.getElementById("can");
+		var e=d.getContext("2d");
 
 
-/*	var image = new Image();
-	image.src = "/themes/null/i/logo_last.png";
-	$(image).load(function() {
-		e.drawImage(image, 0, 0);
-	});*/
+	/*	var image = new Image();
+		image.src = "/themes/null/i/logo_last.png";
+		$(image).load(function() {
+			e.drawImage(image, 0, 0);
+		});*/
 
-	e.strokeStyle="red";
-	e.lineWidth=5;
-	e.lineCap="round";
-	e.fillStyle="#fff";
-	e.fillRect(0,0,d.width,d.height);
-	$("#bsz").change(function(a){e.lineWidth=this.value});
-	$("#bcl").change(function(a){e.strokeStyle=this.value});
-	$("#can").mousedown(function(d){
-		saveRestorePoint();a=true;e.save();b=d.pageX+<?=(int)$conf['settings']['convas_pageX']?>-this.offsetLeft;c=d.pageY+<?=(int)$conf['settings']['convas_pageY']?>-this.offsetTop}
-	);
-
-
-	$(document).mouseup(function(){a=false});
-	$(document).click(function(){a=false});
-
-	$("#can").mousemove(function(d){
-		if(a==true){
-			e.beginPath();
-			e.moveTo(d.pageX+<?=(int)$conf['settings']['convas_pageX']?>-this.offsetLeft,d.pageY+<?=(int)$conf['settings']['convas_pageY']?>-this.offsetTop);
-			e.lineTo(b,c);
-			e.stroke();
-			e.closePath();
-			b=d.pageX+<?=(int)$conf['settings']['convas_pageX']?>-this.offsetLeft;
-			c=d.pageY+<?=(int)$conf['settings']['convas_pageY']?>-this.offsetTop
-		}
-	});
-			
-	$("#clr > div[color]").click(function(){
-		e.strokeStyle = $(this).css("background-color");
-		color = $(this).attr("color");
-		$("#clr > div[size] > div").each(function(key, val){
-			if($(val).css("background-color") != "transparent"){
-				$(val).css("background-color", color);
-			}
-		});
-		$("#bcl").val(color);
-	});
-	$("#clr > div[size]").click(function(){
-		color = $("#bcl").val();
-		e.lineWidth = $(this).attr("size");
-		$("#clr > div[size] > div").css("background-color", "");
-		$(this).find(">div").css("background-color", color);
-		$("#bsz").val(e.lineWidth);
-	});
-	$("#undo").click(function(){undoDrawOnCanvas();});
-
-	$("#save").click(function(){
-		index_id = $("#can").attr("index_id");
-		$.post("/<?=$arg['modname']?>:<?=$arg['fn']?>/null", {index_id:index_id, base64:d.toDataURL()}, function(data){
-			if(isNaN(data)){ alert(data) }else{
-				$("#result").html("<img src="+d.toDataURL()+' />');
-				$("#data").val(d.toDataURL());
-				$("#can").attr("index_id", data);
-			}
-		});
-	});
-	$("#clear").click(function(){
+		e.strokeStyle="red";
+		e.lineWidth=5;
+		e.lineCap="round";
 		e.fillStyle="#fff";
 		e.fillRect(0,0,d.width,d.height);
-		e.strokeStyle="red";
-		e.fillStyle="red"
-	})
-	});
+		$("#bsz").change(function(a){e.lineWidth=this.value});
+		$("#bcl").change(function(a){e.strokeStyle=this.value});
+		$("#can").mousedown(function(d){
+			saveRestorePoint();a=true;e.save();b=d.pageX+<?=(int)$conf['settings']['convas_pageX']?>-this.offsetLeft;c=d.pageY+<?=(int)$conf['settings']['convas_pageY']?>-this.offsetTop}
+		);
 
+
+		$(document).mouseup(function(){a=false});
+		$(document).click(function(){a=false});
+
+		$("#can").mousemove(function(d){
+			if(a==true){
+				e.beginPath();
+				e.moveTo(d.pageX+<?=(int)$conf['settings']['convas_pageX']?>-this.offsetLeft,d.pageY+<?=(int)$conf['settings']['convas_pageY']?>-this.offsetTop);
+				e.lineTo(b,c);
+				e.stroke();
+				e.closePath();
+				b=d.pageX+<?=(int)$conf['settings']['convas_pageX']?>-this.offsetLeft;
+				c=d.pageY+<?=(int)$conf['settings']['convas_pageY']?>-this.offsetTop
+			}
+		});
+				
+		$("#clr > div[color]").click(function(){
+			e.strokeStyle = $(this).css("background-color");
+			color = $(this).attr("color");
+			$("#clr > div[size] > div").each(function(key, val){
+				if($(val).css("background-color") != "transparent"){
+					$(val).css("background-color", color);
+				}
+			});
+			$("#bcl").val(color);
+		});
+		$("#clr > div[size]").click(function(){
+			color = $("#bcl").val();
+			e.lineWidth = $(this).attr("size");
+			$("#clr > div[size] > div").css("background-color", "");
+			$(this).find(">div").css("background-color", color);
+			$("#bsz").val(e.lineWidth);
+		});
+		$("#undo").click(function(){undoDrawOnCanvas();});
+
+		$("#save").click(function(){
+			index_id = $("#can").attr("index_id");
+			$.post("/<?=$arg['modname']?>:<?=$arg['fn']?>/null", {index_id:index_id, base64:d.toDataURL()}, function(data){
+				if(isNaN(data)){ alert(data) }else{
+					$("#result").html("<img src="+d.toDataURL()+' />');
+					$("#data").val(d.toDataURL());
+					$("#can").attr("index_id", data);
+				}
+			});
+		});
+		$("#clear").click(function(){
+			e.fillStyle="#fff";
+			e.fillRect(0,0,d.width,d.height);
+			e.strokeStyle="red";
+			e.fillStyle="red"
+		})
+	});
 
 	function saveRestorePoint() {
 		var oCanvas = document.getElementById("can");

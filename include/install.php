@@ -168,7 +168,8 @@ EOF;
 	mpqw("UPDATE {$conf['db']['prefix']}settings SET `value`='/pages/1' WHERE `name`='start_mod'");
 
 	# Добавляем доступ группы Администратор к модулю админстраница
-	mpqw("INSERT INTO {$conf['db']['prefix']}modules_gaccess (`mid`, `gid`, `access`, `description`) VALUE ((SELECT id FROM {$conf['db']['prefix']}modules WHERE folder='admin'), (SELECT id FROM {$conf['db']['prefix']}users_grp WHERE name = 'Администратор'), 1, 'Доступ на чтение модуля админменю группе администраторов')");
+	$admin_grp_id = mpfdk("{$conf['db']['prefix']}users_grp", $w = array("name"=>"Администратор"), $w);
+	mpqw("INSERT INTO {$conf['db']['prefix']}modules_gaccess (`mid`, `gid`, `access`, `description`) VALUE ((SELECT id FROM {$conf['db']['prefix']}modules WHERE folder='admin'), ". (int)$admin_grp_id. ", 1, 'Доступ на чтение модуля админменю группе администраторов')");
 	mpqw("UPDATE `{$conf['db']['prefix']}settings` SET `value`='{$_POST['theme']}' WHERE `name`='theme'");
 	setcookie("{$conf['db']['prefix']}sess", ($sess = md5("{$_SERVER['REMOTE_ADDR']}:".microtime())));
 	mpqw("INSERT INTO `{$conf['db']['prefix']}sess` SET uid=(SELECT id FROM {$conf['db']['prefix']}users WHERE name=\"".mpquot($_POST['user'])."\"), last_time=".time().", ip=\"".mpquot($_SERVER['REMOTE_ADDR'])."\", agent=\"".mpquot($_SERVER['HTTP_USER_AGENT'])."\", sess=\"$sess\"");

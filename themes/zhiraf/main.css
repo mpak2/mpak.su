@@ -171,17 +171,18 @@ input[type="submit"]
 }
 .button
 {
-	padding:0 0 0 15px;
+/*	padding:0 0 0 15px;*/
 	background-position:0 -111px;
 	float:left;
 	margin:0 10px 0 0;
 	height:25px;
+	text-align:center;
 }
 	.button input,
 	.button a
 	{
 		display:block;
-		padding:0 15px 0 0;
+		padding:0 15px;
 		background-position:100% -111px;
 		height:25px;
 		line-height:25px;
@@ -189,9 +190,9 @@ input[type="submit"]
 		text-decoration:none;
 		font-size:14px;
 	}
-	.button input
-	{
-		padding:0 15px 3px 0;
+	.button input{
+		text-align:center;
+		padding:0 15px 2px 15px;
 	}
 	.button:hover
 	{

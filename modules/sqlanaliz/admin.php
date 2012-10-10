@@ -14,9 +14,77 @@
 // Purpose of file:
 // ----------------------------------------------------------------------
 
-mpmenu($m = array('Быстродействие', 'Структура', 'Запрос', 'Вставка', 'Статус'));
+mpmenu($m = array('Быстродействие', 'Структура', 'Ключ', 'Запрос', 'Вставка', 'Статус'));
 
-if ($m[(int)$_GET['r']] == 'Вставка'){
+if ($m[(int)$_GET['r']] == 'Ключ'){
+	$tables = mpqn(mpqw("SHOW TABLES"), "Tables_in_{$conf['db']['name']}");
+	foreach($tables as $v){
+		$field = mpqn(mpqw("SHOW FIELDS FROM ". mpquot($v["Tables_in_{$conf['db']['name']}"])), 'Field');
+		$fields[ $v["Tables_in_{$conf['db']['name']}"] ] = array_keys($field);
+	}// mpre($fields);
+	if($_POST){
+		mpqw($sql = "ALTER TABLE ". mpquot($_POST['one']). " ENGINE=InnoDB"); echo "\n$sql";
+		mpqw($sql = "ALTER TABLE ". mpquot($_POST['two']). " ENGINE=InnoDB"); echo "\n$sql";
+		mpqw($sql = $_POST['sql']); echo "\n$sql";
+	}else{
+		echo "<form class=\"foreign\" style=\"margin:10px;\" method=\"post\" action=\"/?m[sqlanaliz]=admin&r=2&null\">";
+		echo <<<EOF
+			<script src="/include/jquery/jquery.iframe-post-form.js"></script>
+			<script>
+				$("form.foreign").iframePostForm({
+					complete:function(data){
+						$(".debug").html(data);
+					}
+				});
+				$(function(){
+					$("select[name=one]").change(function(){
+						$("select.f").change();
+					});
+					$("select[name=two]").change(function(){
+						table = $(this).find("option:selected").val();// alert(table);
+						$("select.f option").each(function(key, val){
+							if($(val).attr("table") == table){
+								$(val).show();
+							}else{
+								$(val).hide();
+							}
+						});
+						$("select.f option:visible").attr("checked", true);
+						$("select.f").change();
+					}).change();
+					$("select.f").change(function(){
+						one = $("select[name=one] option:selected").val();
+						two = $("select[name=two] option:selected").val();
+						f = $("select.f option:selected").val();
+						sql = "ALTER TABLE `"+two+"` ADD FOREIGN KEY (`"+f+"`) REFERENCES `"+one+"` (`id`) ON DELETE CASCADE";
+						$("textarea[name=sql]").text(sql);
+					});
+				});
+			</script>
+EOF;
+		echo "<select name=\"one\">";
+			foreach($tables as $v){
+				echo "<option>". $v["Tables_in_{$conf['db']['name']}"]. "</option>";
+			}
+		echo "</select>";
+		echo "<select name=\"two\" style=\"margin-left:10px;\">";
+			foreach($tables as $v){
+				echo "<option>". $v["Tables_in_{$conf['db']['name']}"]. "</option>";
+			}
+		echo "</select>";
+		echo "<select class=\"f\" style=\"margin-left:10px;\">";
+			foreach($fields as $table=>$fld){
+				foreach($fld as $f){ if($f == "id") continue;
+					echo "<option table=\"{$table}\" f=\"{$f}\">{$f}</option>";
+				}
+			}
+		echo "</select>";
+		echo "<input type=\"submit\" value=\"Применить\" style=\"margin-left:10px;\">";
+		echo "<div><textarea name=\"sql\" style=\"margin-top:10px; width:450px; height:100px;\"></textarea></div>";
+		echo "</form>";
+		echo "<pre class=\"debug\"></pre>";
+	}
+}elseif ($m[(int)$_GET['r']] == 'Вставка'){
 
 	echo "<form method=\"post\"><div><select name=table style=\"margin:5px 10px 0;\">";
 	foreach($tables = mpql(mpqw("SHOW TABLES")) as $k=>$v){

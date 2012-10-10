@@ -38,7 +38,7 @@ jQuery.fn.klesh = function(action, callbackFnk, select){
 				.html($("<div>")/*.css("margin-right", "60px")*/.html(input));
 			$(this).find("input").select();
 		}
-		$(klesh = this).find("input[type='text'],select").bind("blur change", ch = function(){
+		$(klesh = this).find("input[type='text'],select")/*.not(".hasDatepicker")*/.bind("blur change", ch = function(){
 			val = $(this).val();// alert(val);
 			old = $(this).attr("old");
 			$(klesh).attr("val", val);

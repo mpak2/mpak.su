@@ -58,7 +58,7 @@ foreach($conf['event'] as $v){
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum'])){
 	foreach($_POST['event'] as $v){
 		if($v['log_last'] != $conf['event'][ $v['name'] ]['log_last']){
-			$log[ $v['id'] ] = mpql(mpqw($sql = "SELECT l.*, u.name AS uname FROM {$conf['db']['prefix']}{$arg['modpath']}_event_log AS l LEFT JOIN {$conf['db']['prefix']}users AS u ON (l.uid=u.id) WHERE l.event_id=". (int)$v['id']. " AND l.id>". (int)$v['log_last']. " LIMIT 1"), 0);
+			$log[ $v['id'] ] = mpql(mpqw($sql = "SELECT l.*, u.name AS uname FROM {$conf['db']['prefix']}{$arg['modpath']}_event_logs AS l LEFT JOIN {$conf['db']['prefix']}users AS u ON (l.uid=u.id) WHERE l.event_id=". (int)$v['id']. " AND l.id>". (int)$v['log_last']. " LIMIT 1"), 0);
 		}
 	} exit($log ? json_encode(array("log"=>$log, "event"=>$event)) : 0);
 }

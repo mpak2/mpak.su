@@ -11,7 +11,7 @@
 <? else: ?>
 	<? if($_GET['id']): ?>
 		<style>
-			.img > div {float:left; margin:3px; width:100px; height:100px; text-align:center;}
+			.img > div {float:left; margin:3px; width:100px; height:100px;}
 		</style>
 		<script language="javascript">
 			$(function(){
@@ -81,7 +81,7 @@
 									<? if($v['tn']): # Множество файлов ?>
 										<div class="fm">
 											<input type="hidden" name="vopros_id" value="<?=$v['id']?>">
-											<input type="file" name="<?=$v['alias']?>[<?=$vid?>]">
+											<input type="file" name="file[<?=$vid?>]">
 											<input type="button" value="Добавить">
 										</div>
 										<div class="img" vopros_id="<?=$v['id']?>" style="overflow:hidden;">

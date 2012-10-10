@@ -9,7 +9,7 @@
 //	mpqw("INSERT INTO {$conf['db']['prefix']}utree_index SET time=". time(). ", usr=". (int)$conf['user']['uid']. " ON DUPLICATE KEY UPDATE view=view+1");
 }*/
 
-$readtree = function ($id, $readtree, $tree = array()) use($arg){ global $conf;
+/*$readtree = function ($id, $readtree, $tree = array()) use($arg){ global $conf;
 	if($id > 0){
 		$tree[''] = array("uid"=>$id)+mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE id=". (int)$id), 0);
 	}else{
@@ -22,6 +22,10 @@ $readtree = function ($id, $readtree, $tree = array()) use($arg){ global $conf;
 	return $tree;
 }; $conf['tpl']['tree'] = $readtree(((array_key_exists("id", $_GET) && ($arg['access'] >= 3)) ? (int)$_GET['id'] : $conf['user']['uid']), $readtree);
 
-$conf['tpl']['index'] = mpql(mpqw("SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}{$arg['modpath']}_index"));
+$conf['tpl']['index'] = mpql(mpqw("SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}{$arg['modpath']}_index"));*/
+
+$tpl['tree'] = mpqn(mpqw("SELECT id.*, id.usr AS id, u.fm, u.im, u.name AS uname FROM {$conf['db']['prefix']}{$arg['modpath']}_index AS id LEFT JOIN {$conf['db']['prefix']}users AS u ON (id.usr=u.id)"), 'uid', 'id');
+
+//mpre($tpl['tree']);
 
 ?>

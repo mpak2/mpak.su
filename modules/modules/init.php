@@ -12,10 +12,12 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}` (
   `access` smallint(6) NOT NULL,
   `admin` int(11) NOT NULL,
   `md5` varchar(255) NOT NULL,
+  `priority` int(11) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `enabled` (`enabled`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251"; mpqw($sql);
-echo mysql_error();
+  KEY `enabled` (`enabled`),
+  KEY `priority` (`priority`)
+) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
+mpqw($sql);
 
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_gaccess` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

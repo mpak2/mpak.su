@@ -2,7 +2,7 @@
 
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `tid` int(11) NOT NULL,
+  `type_id` int(11) NOT NULL,
   `refer` int(11) NOT NULL,
   `img` varchar(255) NOT NULL,
   `ref` varchar(255) NOT NULL,
@@ -14,11 +14,14 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}` (
   `param` text NOT NULL,
   `icq` varchar(255) NOT NULL,
   `skype` varchar(255) NOT NULL,
+  `geoname_id` int(11) NOT NULL,
+  `geo` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`),
   KEY `ref` (`refer`),
   KEY `pass` (`pass`),
-  KEY `ref_2` (`ref`)
+  KEY `ref_2` (`ref`),
+  KEY `geoname_id` (`geoname_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
@@ -44,7 +47,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_event`
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_event_log` (
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_event_logs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `time` int(11) NOT NULL,
   `event_id` int(11) NOT NULL,
@@ -59,6 +62,28 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_event_
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_geoname` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` int(11) NOT NULL,
+  `uid` int(11) NOT NULL,
+  `continentCode` varchar(255) NOT NULL,
+  `countryCode` varchar(255) NOT NULL,
+  `countryName` varchar(255) NOT NULL,
+  `fclName` varchar(255) NOT NULL,
+  `fcode` varchar(255) NOT NULL,
+  `fcodeName` varchar(255) NOT NULL,
+  `geonameId` varchar(255) NOT NULL,
+  `lat` varchar(255) NOT NULL,
+  `lng` varchar(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `population` varchar(255) NOT NULL,
+  `toponymName` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `uid` (`uid`),
+  KEY `geonameId` (`geonameId`)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+mpqw($sql);
+
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_grp` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
@@ -70,9 +95,9 @@ mpqw($sql);
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_mem` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `uid` int(11) NOT NULL,
-  `gid` int(11) NOT NULL,
+  `grp_id` int(11) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uid` (`uid`,`gid`)
+  UNIQUE KEY `uid` (`uid`,`grp_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
@@ -122,7 +147,9 @@ mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`,
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_event_memcache_set', 'Сформирован новый memcache', '1', 'Событие')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_event_image', 'Обновление изображения', '1', 'Событие')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_event_mail', 'Отправка сообщения пользователю', '1', 'Событие')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_activation', '1', '0', 'Активация пользователя')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_activation', '', '0', 'Активация пользователя')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_reg_text', 'Спасибо за регистрацию. Рады приветствовать вас на нашем сайте', '0', 'Текст при регистрации')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_field_geoname_id', 'География', '5', 'Название поля в таблице пользователя')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_field_geo', 'На карте', '0', 'Название поля в личных данных пользователя')");
 
 ?>

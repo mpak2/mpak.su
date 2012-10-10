@@ -10,6 +10,11 @@
 	RewriteCond %{REQUEST_FILENAME} !/index.php.* 
 
 	RewriteEngine On
+
+#	RewriteCond %{HTTP_HOST} ^www.{HTTP_HOST}(.*)
+#	RewriteRule ^(.*)$ http://{HTTP_HOST}/$1 [R=301,L]
+
 #	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteRule ^(.*)$ /index.php [L]
+
 </IfModule>

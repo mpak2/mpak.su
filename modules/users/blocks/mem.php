@@ -15,17 +15,17 @@ EOF;*/
 
 if(array_key_exists('check', $_POST) && array_key_exists('blocks', $_GET['m'])){
 	if($_POST['check']){
-		if(!mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_mem WHERE uid=". (int)$conf['user']['uid']. " AND gid=6"))){
-			mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_mem SET uid=". (int)$conf['user']['uid']. ", gid=6");
+		if(!mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_mem WHERE uid=". (int)$conf['user']['uid']. " AND grp_id=6"))){
+			mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_mem SET uid=". (int)$conf['user']['uid']. ", grp_id=6");
 			echo "Контактная информация открыта";
 		}
 	}else{
-		mpqw("DELETE FROM {$conf['db']['prefix']}{$arg['modpath']}_mem WHERE uid=". (int)$conf['user']['uid']. " AND gid=6");
+		mpqw("DELETE FROM {$conf['db']['prefix']}{$arg['modpath']}_mem WHERE uid=". (int)$conf['user']['uid']. " AND grp_id=6");
 		echo "Контактная информация закрыта";
 	} exit;
 }
 
-$check = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_mem WHERE uid=". (int)$conf['user']['uid']. " AND gid=6"));
+$check = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_mem WHERE uid=". (int)$conf['user']['uid']. " AND grp_id=6"));
 $grp = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_grp LIMIT 10"));
 
 ?>

@@ -70,10 +70,6 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 		if($fn = mpfn("{$conf['db']['prefix']}{$arg['modpath']}", "img", $conf['user']['uid'])){
 			mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']} SET img=\"". mpquot($fn). "\" WHERE id=". (int)$conf['user']['uid']);
 		} exit($conf['user']['uid']);
-	}elseif($geoname = $_POST['geoname']){
-		$geoname_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_geoname", array("geonameId"=>$geoname['geonameId']), $geoname, $geoname);
-		$user_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}", array("id"=>$conf['user']['uid']), null, array("uid"=>$conf['user']['uid'], "time"=>time())+array("geoname_id"=>$geoname_id));
-		exit($geoname_id);
 	}elseif(array_key_exists('day', $_POST) && array_key_exists('month', $_POST) && array_key_exists('year', $_POST)){
 		mpqw("UPDATE {$conf['db']['prefix']}users SET birth=". strtotime((int)$_POST['year']. "-". array_search($_POST['month'], $month_id). "-". (int)$_POST['day']). " WHERE id=". (int)$conf['user']['uid']);
 		exit;
@@ -164,73 +160,7 @@ foreach($conf['user'] as $k=>$v){
 			<? foreach(array_diff_key($user, array_flip($diff)) as $k=>$v): ?>
 				<div style="overflow:hidden;">
 					<div><?=($conf['settings'][$f = "users_field_$k"] ?: $f)?>:</div>
-					<? if($k == "geoname_id"): ?>
-						
-						<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.0/themes/base/jquery-ui.css" />
-						<script src="http://code.jquery.com/ui/1.9.0/jquery-ui.js"></script>
-
-						<script>
-							$(function() {
-								function log( message ) {
-									$( "<div>" ).text( message ).prependTo( "#log" );
-									$( "#log" ).scrollTop( 0 );
-								}
-						
-								$( "#city" ).autocomplete({
-									source: function( request, response ) {
-										$.ajax({
-											url: "http://ws.geonames.org/searchJSON",
-											dataType: "jsonp",
-											data: {
-												lang:"RU",
-												featureClass: "P",
-												style: "full",
-												maxRows: 12,
-												name_startsWith: request.term
-											},
-											success: function( data ) {
-												response( $.map( data.geonames, function( item ) {
-													return {
-														label: item.name + (item.adminName1 ? ", " + item.adminName1 : "") + ", " + item.countryName,
-														value: item.name,
-														item:item
-													}
-												}));
-											}
-										});
-									},
-									minLength: 2,
-									select: function( event, ui ) {
-										ui.item.item.alternateNames = null;
-										$.post("/blocks/<?=$arg['blocknum']?>/null", {"geoname":ui.item.item}, function(data){
-											if(isNaN(data)){ alert(data) }else{
-												$("#city").css("background-color","#00ff00");
-												setTimeout(function(){
-													$("#city").css("background-color","");
-												}, 300);
-											}
-										});
-										console.log(ui.item);
-										log( ui.item ?
-											"Selected: " + ui.item.label :
-											"Nothing selected, input was " + this.value);
-									},
-									open: function() {
-										$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
-									},
-									close: function() {
-										$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
-									}
-								});
-							});
-						</script>
-						<div class="ui-widget">
-							<input id="city" title="Ваш город" value="<?=$conf['tpl']['select'][ $k ][ $v ]['name']?>" />
-						</div>
-						<div class="ui-widget" style="margin-top: 2em; font-family: Arial; display:none;">
-							Result: <div id="log" style="height: 200px; width: 300px; overflow: auto;" class="ui-widget-content"></div>
-						</div>
-					<? elseif(substr($k, -3) == '_id'): ?>
+					<? if(substr($k, -3) == '_id'): ?>
 						<div f="<?=$k?>" class="klesh_<?=$k?>_<?=$arg['blocknum']?>"><?=$conf['tpl']['select'][ $k ][ $v ]['name']?></div>
 					<? elseif($k == "geo"): ?>
 						<input type="text" name="geo" value="<?=$v?>" <?=($arg['uid'] == $conf['user']['uid'] ? "" : "disabled")?>>

@@ -92,8 +92,10 @@
 			</li>
 			<? endforeach; ?>
 		</ul>
+		<div><?=$tpl['mpager']?></div>
 	<? endif; ?>
 <? else: ?>
+	<div><?=$tpl['mpager']?></div>
 	<? foreach($conf['tpl']['comments'] as $k=>$v): ?>
 		<div style="margin-top:10px;">
 			<div>
@@ -104,4 +106,5 @@
 			<div style="text-align:right;"><a href="<?=$v['url']?>">На страницу комментария</a></div>
 		</div>
 	<? endforeach; ?>
+	<div><?=$tpl['mpager']?></div>
 <? endif; ?>
