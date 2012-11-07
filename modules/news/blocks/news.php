@@ -25,14 +25,11 @@ if ((int)$arg['confnum']){
 if (count($res = mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"))))
 	$param = @unserialize($res[0]['param']);
 
-$sql = "SELECT p.id, k.name, p.time, p.tema FROM {$conf['db']['prefix']}news_kat as k, {$conf['db']['prefix']}news_post as p WHERE k.id = p.kid ORDER BY id DESC LIMIT ".((int)$param['count'] ? $param['count'] : 3);
-$month = array('01'=>'Январь', '02'=>'Февраль', '03'=>'Март', '04'=>'Апрель', '05'=>'Апрель');
-foreach(mpql(mpqw($sql)) as $k=>$v){
-	if ($cdate != date('Y.m.d', $v['time'])){
-		echo "<b>".date('Y.m.d', $v['time'])."</b> <a href=/news>Все новости</a><br>";
-		$cdate = date('Y.m.d', $v['time']);
-	}
-	echo "<small><b>".date('H:i', $v['time'])."</b> <a href='/news/{$v['id']}'>{$v['tema']}</small></a><br>";
-}
+$news = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_post"));
 
 ?>
+<ul>
+	<? foreach($news as $v): ?>
+		<li><a href="/<?=$arg['modname']?>/<?=$v['id']?>"><?=$v['name']?></a></li>
+	<? endforeach; ?>
+</ul>

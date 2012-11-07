@@ -8,8 +8,8 @@ if ((int)$arg['confnum']){
 	} if(array_key_exists("null", $_GET)) exit;
 
 	$klesh = array(
-/*		"Количество анкет"=>1,
-		"Курс доллара"=>30,
+/*		($f = "Ширина")=>($param[ $f ] = $param[ $f ] ?: 200),
+		($f = "Высота")=>($param[ $f ] = $param[ $f ] ?: 200),
 		"Список"=>array(
 			1=>"Одын",
 			2=>"Два",
@@ -18,15 +18,16 @@ if ((int)$arg['confnum']){
 	);
 
 ?>
+		<!-- Настройки блока -->
 	<script src="/include/jquery/my/jquery.klesh.select.js"></script>
 	<script>
 		$(function(){
 			<? foreach($klesh as $k=>$v): ?>
 				<? if(gettype($v) == 'array'): ?>
-					$(".klesh_<?=strtr(base64_encode($k), array("="=>''))?>").klesh("/?m[blocks]=admin&r=mp_blocks&null&conf=<?=$arg['confnum']?>", function(){
+					$(".klesh_<?=strtr(md5($k), array("="=>''))?>").klesh("/?m[blocks]=admin&r=mp_blocks&null&conf=<?=$arg['confnum']?>", function(){
 					}, <?=json_encode($v)?>);
 				<? else: ?>
-					$(".klesh_<?=strtr(base64_encode($k), array("="=>''))?>").klesh("/?m[blocks]=admin&r=mp_blocks&null&conf=<?=$arg['confnum']?>");
+					$(".klesh_<?=strtr(md5($k), array("="=>''))?>").klesh("/?m[blocks]=admin&r=mp_blocks&null&conf=<?=$arg['confnum']?>");
 				<? endif; ?>
 			<? endforeach; ?>
 		});
@@ -36,9 +37,9 @@ if ((int)$arg['confnum']){
 			<div style="overflow:hidden;">
 				<div style="width:200px; float:left; padding:5px; text-align:right; font-weight:bold;"><?=$k?> :</div>
 				<? if(gettype($v) == 'array'): ?>
-					<div class="klesh_<?=strtr(base64_encode($k), array("="=>''))?>" param="<?=$k?>"><?=$v[ $param[$k] ]?></div>
+					<div class="klesh_<?=strtr(md5($k), array("="=>''))?>" param="<?=$k?>"><?=$v[ $param[$k] ]?></div>
 				<? else: ?>
-					<div class="klesh_<?=strtr(base64_encode($k), array("="=>''))?>" param="<?=$k?>"><?=($param[$k] ?: $v)?></div>
+					<div class="klesh_<?=strtr(md5($k), array("="=>''))?>" param="<?=$k?>"><?=($param[$k] ?: $v)?></div>
 				<? endif; ?>
 			</div>
 		<? endforeach; ?>
@@ -47,82 +48,106 @@ if ((int)$arg['confnum']){
 
 }//$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
-
-$fields = mpqn(mpqw("SHOW FIELDS FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']}"), 'Field');
-
-if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum'])){
-	if($fields[ $_POST['fn'] ]){
-		echo $id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']}",
-			array("id"=>$_POST['anket_id'], "uid"=>$conf['user']['uid']),
-			array("uid"=>$conf['user']['uid'], "time"=>time(), $_POST['fn']=>$_POST['val']),
-			array($_POST['fn']=>$_POST['val'])
-		); exit;
-	}elseif(array_key_exists("del", $_GET) && $_POST['anket_id']){
-		mpqw("DELETE FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} WHERE id=". (int)$_POST['anket_id']. " AND uid=". (int)$conf['user']['uid']);
-	}elseif(array_key_exists("add", $_GET)){
-		mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} SET time=". time(). ", uid=". (int)$conf['user']['uid']);
-/*		mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']}", null,
-			array("uid"=>$conf['user']['uid'], "time"=>time())
-		);*/
+if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
+	if($_POST['level']){
+		$level_id = mpfdk("{$conf['db']['prefix']}pay_level", $w = array("name"=>$_POST['level']), $w += array("value"=>$_POST['val']), $w);
+		exit($level_id);
+	}else{
+		$anket_data_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_anket_data", null, $w = array("time"=>time(), "uid"=>$arg['uid'], "anket_id"=>$_POST['anket_id'], "name"=>$_POST['val']));
+		exit($anket_data_id);
+//		mpre($_POST); exit;
 	}
 };
 
-$anket = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} WHERE uid=". (int)$conf['user']['uid']. " ORDER BY id DESC"));
-
-foreach($fields as $k=>$v){
-	if(substr($k, -3, 3) == "_id"){
-		$users[$k] = spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_". substr($k, 0, strlen($k)-3));
+$anket = mpqn(mpqw("SELECT a.* FROM {$conf['db']['prefix']}{$arg['modpath']}_anket AS a INNER JOIN {$conf['db']['prefix']}{$arg['modpath']}_anket_type AS at ON (a.anket_type_id=at.id) WHERE reg<>1 ORDER BY at.sort, a.sort"), "anket_type_id", "id");// mpre($anket);
+$tables = mpqn(mpqw("SHOW TABLES"), "Tables_in_{$conf['db']['name']}");// mpre($tables);
+foreach($anket as $anket_type){
+	foreach($anket_type as $a){
+		if((substr($a['alias'], -3, 3) == "_id") && array_key_exists("{$conf['db']['prefix']}{$arg['modpath']}_". ($alias = substr($a['alias'], 0, -3)), $tables)){
+			$select[ $a['alias'] ] = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$alias}"));
+		}
 	}
-}
+}// mpre($select);
+
+$anket_type = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_anket_type ORDER BY sort"));
+
+$anket_data = mpqn(mpqw("SELECT d.*
+	FROM {$conf['db']['prefix']}{$arg['modpath']}_anket_data AS d
+	LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_anket AS a ON (a.id=d.anket_id)
+	LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_anket_type AS t ON (a.anket_type_id=t.id) 
+	INNER JOIN (SELECT MAX(`id`) AS max, anket_id FROM {$conf['db']['prefix']}{$arg['modpath']}_anket_data WHERE uid=". (int)$arg['uid']. " GROUP BY `anket_id`) AS m ON (m.max=d.id)
+	ORDER BY t.sort, a.sort DESC"
+), 'anket_id');// mpre($anket_data);
+
+$refer = mpql(mpqw($sql = "SELECT u.* FROM {$conf['db']['prefix']}utree_index AS t LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']} AS u ON (t.uid=u.id) WHERE t.usr=". (int)$arg['uid']), 0);
 
 ?>
-<? if(!array_key_exists("null", $_GET)): ?>
-	<script>
-		$(function(){
-			$(".add_<?=$arg['blocknum']?>").click(function(){
-				$.post("/blocks/<?=$arg['blocknum']?>/add/null", {add:1}, function(data){
-//					if(isNaN(data)){// alert(data) }else{
-						$("#data_<?=$arg['blocknum']?>").html(data);
-//					}
-				});
-			});
-			$(".del_<?=$arg['blocknum']?>").live("click", function(){
-				anket_id = $(this).parents("[anket_id]").attr("anket_id");// alert(anket_id);
-				$.post("/blocks/<?=$arg['blocknum']?>/del/null", {anket_id:anket_id}, function(data){
-					$("#data_<?=$arg['blocknum']?>").html(data);
-				});
-			});
+<style>
+	.anket_<?=$arg['blocknum']?> h3 { cursor:pointer; border:1px solid blue; margin:3px 0; padding:0 10px; border-radius:20px; background-color:#00eeff; }
+	.anket_<?=$arg['blocknum']?> div.toggle { display:none; }
+	.anket_<?=$arg['blocknum']?> div.toggle > div { text-align:right; /*display:none; */}
+	.anket_<?=$arg['blocknum']?> div.toggle > div > span { display:inline-block; vertical-align:top; text-align:left;}
+	.anket_<?=$arg['blocknum']?> div.toggle > div > span:nth-child(1) {text-align:right; /*min-width:50%;*/ padding:4px 3px;}
+	.anket_<?=$arg['blocknum']?> div.toggle > div > span:nth-child(2) {min-width:40%}
+	.lvl > div {padding:2px;}
+</style>
+<script src="/include/jquery/my/jquery.klesh.js"></script>
+<script src="/include/jquery/jquery-ui/jquery-ui-1.8.23.custom.min.js"></script>
+<link rel="stylesheet" href="/include/jquery/jquery-ui/themes/redmond/jquery-ui-1.8.23.custom.css" type="text/css" />
+<script>
+	$(function(){
+		var select = <?=json_encode($select)?>;
+		$(".anket_<?=$arg['blocknum']?> .klesh[select=false]").klesh("/blocks/<?=$arg['blocknum']?>/null", function(){
+//			$(this).removeClass("hasDatepicker");
 		});
-	</script>
-	<div style="text-align:right;"><a class="add_<?=$arg['blocknum']?>" href="javascript: return false;">Добавить анкету</a></div>
-<? endif; ?>
-<div id="data_<?=$arg['blocknum']?>">
-	<script src="/include/jquery/my/jquery.klesh.select.js"></script>
-	<script>
-		$(function(){
-			<? foreach($fields as $k=>$v): ?>
-				<? if($users[$k]): ?>
-					$(".klesh[fn=<?=$k?>]").klesh("/blocks/<?=$arg['blocknum']?>/null", function(){
-					}, <?=json_encode($users[$k])?>)
-				<? else: ?>
-					$(".klesh[fn=<?=$k?>]").not("[fn=id]").klesh("/blocks/<?=$arg['blocknum']?>/null");
-				<? endif; ?>
-			<? endforeach; ?>
-		})
-	</script>
-	<div>
-		<? foreach($anket as $a): ?>
-			<div anket_id="<?=$a['id']?>">
-				<div>
-					<span style="float:right;"><a class="del_<?=$arg['blocknum']?>" href="javascript: return false;">Удалить</a></span>
-					<h2>Анкета #<?=$a['id']?></h2>
-				</div>
-				<? foreach(array_diff_key($a, array_flip(array('id', 'time', 'uid'))) as $k=>$v): ?>
-					<div style="overflow:hidden;">
-						<div style="float:left; width:150px; padding:6px;"><?=($conf['settings'][$f = "{$arg['modpath']}_{$arg['fn']}_$k"] ? : $f)?></div>
-						<div style="float:left;" class="klesh" anket_id="<?=$a['id']?>" fn="<?=$k?>"><?=($users[$k] ? $users[$k][$v] : $v)?></div>
+		$(".klesh.level").klesh("/blocks/<?=$arg['blocknum']?>/null");
+		$.each(select, function(key, val){
+			$(".anket_<?=$arg['blocknum']?> .klesh[select=true][alias="+key+"]").klesh("/blocks/<?=$arg['blocknum']?>/null", function(){
+			}, val);
+		});
+		$(".anket_<?=$arg['blocknum']?> h3").click(function(){
+			$(this).next("div").slideToggle();
+		});
+	});
+</script>
+
+<div class="anket_<?=$arg['blocknum']?>" style="min-height:20px; overflow:hidden; padding-bottom:20px;">
+	<div style="width:25%; float:left; text-align:center;">
+		Мы приветствуем вас в веб-офисе FinWirtschaft GmbH
+		<? if($refer): ?>
+			<div>
+				<div><img src="/<?=$arg['modpath']?>:img/<?=$refer['id']?>/tn:index/w:100/h:100/null/img.jpg"></div>
+				<div>Ваш наставник: <b><?=$refer['name']?></b></div>
+				<div>Фамилия наставника: <b><?=$refer['fm']?></b></div>
+				<div>Имя наставника: <b><?=$refer['im']?></b></div>
+				<div>Электронная почта наставника: <b><?=$refer['email']?></b></div>
+			</div>
+		<? endif; ?>
+	</div>
+	<div style="float:right; min-width:70%;">
+		<? foreach($anket as $anket_type_id=>$anket): $num = 0; ?>
+			<div>
+				<h3 style="padding:5px 12px; width:70%; text-align:right;">
+					<?=$anket_type[ $anket_type_id ]['sort']?><?=($anket_type[ $anket_type_id ] ? "." : "")?>
+					<?=$anket_type[ $anket_type_id ]['name']?>
+				</h3>
+				<div class="toggle">
+				<? foreach($anket as $v): ++$num; ?>
+					<div style="overflow:hidden; white-space:nowrap;">
+						<span>
+							<? if($arg['access'] > 3): ?>
+								<span>
+									<a href="/?m[users]=admin&r=mp_users_anket_data&where[uid]=<?=$arg['uid']?>&where[anket_id]=<?=$v['id']?>">
+										<img src="/img/aedit.png">
+									</a>
+								</span>
+							<? endif; ?>
+							<?=$anket_type[ $anket_type_id ]['sort']?>.<?=$num?>. <?=$v['name']?>:
+						</span>
+						<span><div class="klesh" alias="<?=$v['alias']?>" select="<?=$select[ $v['alias'] ] ? "true" : "false"?>" anket_id="<?=$v['id']?>" style="width:100%;"><?=($select[ $v['alias'] ] ? $select[ $v['alias'] ][ $anket_data[ $v['id'] ]['name'] ]['name'] : $anket_data[ $v['id'] ]['name'])?></div></span>
 					</div>
 				<? endforeach; ?>
+				</div>
 			</div>
 		<? endforeach; ?>
 	</div>

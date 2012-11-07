@@ -1,37 +1,54 @@
 <? die;
 
-if (strlen(trim($_REQUEST['search'])) && $_REQUEST['search_block_num']){
-	$search = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}search_index WHERE search=\"". mpquot($_REQUEST['search']). "\" AND num=". (int)$_REQUEST['search_block_num']), 0);
-	if($search){
-		mpqw("UPDATE {$conf['db']['prefix']}search_index SET time=". time(). " WHERE id=". (int)$search['id']);
-	}else{
-		mpqw("INSERT INTO {$conf['db']['prefix']}search_index (uid, time, num, search, ip) VALUE (". (int)$conf['user']['uid']. ", '". time(). "', '".(int)$_REQUEST['search_block_num']."', \"".mpquot(htmlspecialchars($_REQUEST['search']))."\", '". mpquot($_SERVER['REMOTE_ADDR']). "')");
-		$search['id'] = mysql_insert_id();
-	} header("Location: /{$arg['modname']}/". (int)$search['id']. "/". str_replace("%", "%25", $_REQUEST['search']));
-//	echo ("Location: /{$arg['modname']}/". (int)$search['id']);
-}elseif($_GET['id']){
+if ($_REQUEST['search_block_num'] || empty($_GET['keys_id'])){
+	$index = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE (id=". (int)$_GET['id']. " OR name=\"". mpquot($_REQUEST['search']). "\") AND num=". (int)$_GET['search_block_num']), 0);
+	$index_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_index",
+		$w = array("id"=>$index['id']),
+		$w += array("name"=>$_REQUEST['search'], "time"=>time(), "num"=>$_GET['search_block_num'])
+	);
+	$keys_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_keys",
+		$w = array("index_id"=>$index_id, "name"=>$_GET['search_key']),
+		$w += array("time"=>time())
+	); header("Location: /{$arg['modname']}/keys_id:". (int)$keys_id. "/". str_replace("%", "%25", $_REQUEST['search']));
+}elseif($_GET['keys_id']){
+		$tpl['search'] = mpql(mpqw("SELECT i.*, k.id AS keys_id
+			FROM {$conf['db']['prefix']}{$arg['modpath']}_index AS i
+			INNER JOIN {$conf['db']['prefix']}{$arg['modpath']}_keys AS k ON (i.id=k.index_id)
+			WHERE k.id=". (int)$_GET['keys_id']
+		), 0);
 
-//	if(!($conf['tpl'] = mpmc($key = "/{$arg['modname']}:{$arg['fn']}/result:{$_GET['id']}/p:{$_GET['p']}"))){
 
-		$conf['tpl']['search'] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}search_index WHERE id=". (int)$_GET['id']), 0);
+		$tpl['http_host'] = mpidn($_SERVER['HTTP_HOST']);
+		$conf['settings']['title'] .= " : ". $tpl['search']['name'];
+		mpevent("Поиск по сайту", $tpl['search']['name'], $conf['user']['uid']);
 
-		$conf['tpl']['http_host'] = mpidn($_SERVER['HTTP_HOST']);
-		$conf['settings']['title'] .= " : ". $conf['tpl']['search']['search'];
-		mpevent("Поиск по сайту", $conf['tpl']['search']['search'], $conf['user']['uid']);
+		$res = mpql(mpqw($sql = "SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = ".(int)$tpl['search']['num']), 0);
+		$tpl['param'] = unserialize($res['param']);
 
-		$res = mpql(mpqw($sql = "SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = ".(int)$conf['tpl']['search']['num']), 0); $param = unserialize($res['param']);
-
-		foreach($param as $k=>$v){
+		foreach($tpl['param'] as $k=>$v){
 			if ($k == 'search_priority' || $k == 'search_query' || $k == 'search_name') continue;
-			$tab[$k] = $param['search_priority'][$k];
-		} arsort($tab);// mpre($tab);
+			$tpl['tab'][$k] = $tpl['param']['search_priority'][$k];
+		} arsort($tpl['tab']);// mpre($tpl['tab']);
 
-		foreach(explode(' ', $conf['tpl']['search']['search']) as $k=>$v){
+		foreach(explode(' ', $tpl['search']['name']) as $k=>$v){
 			$str_replace[$v] = "<span style=font-weight:bold;>{$v}</span>";
-		}// mpre(explode(' ', $conf['tpl']['search']['search']));
-
-		foreach($tab as $k=>$v){
-			$v = $param[$k];
+		}// mpre(explode(' ', $tpl['search']['search']));
+		foreach($tpl['tab'] as $k=>$v){
+			$tpl['tab'][ $k ] = $tpl['param']['search_name'][ $k ];
+			if(!empty($_GET['search_key'])){
+				if(($k != "{$conf['db']['prefix']}{$_GET['search_key']}")){
+					continue;
+				}else{
+					$ar = array_slice(explode("_", $k), 0, 2);
+					foreach($tpl['param'][ $k ] as $key=>$on){
+						if(substr($key, -3) == "_id"){
+							$tn = implode("_", array_merge($ar, array(substr($key, 0, -3))));
+							$tpl['param']['tab'][ $key ] = array(array("id"=>0))+mpqn(mpqw("SELECT * FROM {$tn}"));
+						}
+					}// mpre($tpl['param']['tab']);
+				} $tpl['search']['tab_data'] = unserialize($tpl['search']['tab']);
+			}else if(empty($tpl['search']['name'])){ continue; }
+			$v = $tpl['param'][$k];
 			if($pos = strpos($k, '_', strlen($conf['db']['prefix']))){
 				$fn = substr($k, $pos+1);
 				$mp = substr($k, strpos($k, '_')+1, $pos-strlen($conf['db']['prefix']));
@@ -40,50 +57,55 @@ if (strlen(trim($_REQUEST['search'])) && $_REQUEST['search_block_num']){
 				$mp = substr($k, strlen($conf['db']['prefix']));
 			}
 			$desc = mpqn(mpqw("DESC $k"), 'Field');
-			preg_match_all("/{(.*?)}/", $param['search_query'][$k], $regs);
+			preg_match_all("/{(.*?)}/", $tpl['param']['search_query'][$k], $regs);
 			$fields = $where = array();
+			if($tpl['search']['tab_data']) foreach($tpl['search']['tab_data'] as $t=>$val){
+				$tab .= " `{$t}`=". (int)$val. " AND";
+			}// mpre($tab);
 			foreach($v as $f=>$z){
-				$where[] = "(`$f` LIKE \"%". implode("%\" AND `$f` LIKE \"%", explode(' ', mpquot($conf['tpl']['search']['search']))). "%\")";
+				$where[] = "($tab `$f` LIKE \"%". implode("%\" AND `$f` LIKE \"%", explode(' ', mpquot($tpl['search']['name']))). "%\")";
 				$fields[] = "`$f`";
 			} if($desc['uid']) $fields[] = "`uid`";
-			mpql(mpqw($sql = "SELECT SQL_CALC_FOUND_ROWS ". implode(', ', $regs[1]).", ". implode(', ', $fields)." FROM $k WHERE ".implode(' OR ', $where). " ORDER BY id DESC LIMIT ". ($_GET['p']*5). ",5"));
-			$conf['tpl']['page'] += mpql(mpqw("SELECT FOUND_ROWS() AS cnt"), 0, 'cnt');
+			mpql(mpqw($sql = "SELECT SQL_CALC_FOUND_ROWS ". implode(', ', $regs[1]).", ". implode(', ', $fields)." FROM $k WHERE 1 AND ". implode(" OR ", $where). " ORDER BY id DESC LIMIT ". ($_GET['p']*5). ",5"));
+			$tpl['page'] += mpql(mpqw("SELECT FOUND_ROWS() AS cnt"), 0, 'cnt');// echo $sql;
 
 			foreach(mpql(mpqw($sql)) as $r){
 				$lstring = ''; $zamena = array();
 				foreach($r as $t=>$f){
 					$zamena['{'.$t.'}'] = str_replace("%", "%25", $f);
-					if (isset($param[$k][$t])){
+					if (isset($tpl['param'][$k][$t])){
 						$lstring .= ' '. strip_tags($f);
 					}
 				}// mpre($zamena);
 				foreach($regs[1] as $t=>$f){
 					$zamena['{'.$f.'}'] = str_replace("%", "%25", $r[$f]);
 				}// mpre($zamena);
-				if($pos = mb_strpos($lstring, $conf['tpl']['search']['search'])){
-					$lstring = mb_substr($lstring, max($pos-150, 0), 300, 'utf-8');
-				}else{
-					$lstring = mb_substr($lstring, 0, 300, 'utf-8');
-				}
+//				if(strlen($tpl['search']['name'])){
+					if($pos = mb_strpos($lstring, $tpl['search']['name'])){
+						$lstring = mb_substr($lstring, max($pos-150, 0), 300, 'utf-8');
+					}else{
+						$lstring = mb_substr($lstring, 0, 300, 'utf-8');
+					}
+//				}
 				if (strlen($lstring)){
-					$conf['tpl']['result'][] = array(
+					$tpl['result'][] = array(
 						'uid'=>$r['uid'] ? ($users[$r['uid']] ?: $users[$r['uid']] = mpql(mpqw("SELECT id, name FROM {$conf['db']['prefix']}users WHERE id=". (int)$r['uid']), 0)) : "",
 						'img'=>($desc['img'] ? "/{$mp}:img/{$r['id']}/tn:{$fn}/w:500/h:600/themes/null/img.jpg" : ''),
 						'logo'=>($desc['img'] ? "/{$mp}:img/{$r['id']}/tn:{$fn}/w:100/h:100/themes/null/img.jpg" : ''),
-						'title' => $param['search_name'][$k],
-						'link' => $link = ("http://". $conf['tpl']['http_host']. strtr($param['search_query'][$k], $zamena)),
+						'title' => $tpl['param']['search_name'][$k],
+						'link' => $link = ("http://". $tpl['http_host']. strtr($tpl['param']['search_query'][$k], $zamena)),
 						'name'=> $r['name'] ?: $link,
 						'text'=> strtr($lstring, $str_replace),
 					); //$content = str_ireplace(" $search ", "<span style=background:yellow;>{$search}</span>", $content);
 				}
 			}
-		}// mpmc($key, $conf['tpl']);
-//	}
-	if($conf['tpl']['page']){ # Обновление информации о поиске
-		$conf['tpl']['mpager'] = mpager($conf['tpl']['pages'] = ($conf['tpl']['page']/5));
-		mpqw("UPDATE {$conf['db']['prefix']}search_index SET count=count+1, pages=". ($conf['tpl']['pages'] > 0 ? $conf['tpl']['pages']+1 : 0). " WHERE id=". (int)$conf['tpl']['search']['id']);
-		$conf['tpl']['pages'] = ceil($conf['tpl']['pages']);
+		}// mpmc($key, $tpl);
+	if($tpl['page']){ # Обновление информации о поиске
+		$tpl['mpager'] = mpager($tpl['pages'] = ($tpl['page']/5));
+		mpqw("UPDATE {$conf['db']['prefix']}search_index SET count=count+1, pages=". ($tpl['pages'] > 0 ? $tpl['pages']+1 : 0). " WHERE id=". (int)$tpl['search']['id']);
+		$tpl['pages'] = ceil($tpl['pages']);
 	}
-} $conf['tpl']['search']['num'] = $conf['tpl']['search']['num'] ?: (int)$conf['settings']['search_num'];
+//	mpre($tpl['param']);
+} $tpl['search']['num'] = $tpl['search']['num'] ?: (int)$conf['settings']['search_num'];
 
 ?>

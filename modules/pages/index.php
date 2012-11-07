@@ -28,9 +28,7 @@ if($arg['access'] >= 4 && is_numeric($_GET['del'])){
 	}
 }
 
-if($_GET['id'] == 5){
-	header("Location: /news"); exit;
-}else if($_GET['id']){
+if($_GET['id']){
 	$tpl['page'] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE id = ".(int)max($_GET['pid'], $_GET['id'])), 0);
 	$conf['settings']['title'] = $tpl['page']['name']; # Заголовок страницы
 	if($tpl['page']['keywords']) $conf['settings']['keywords'] = $tpl['page']['keywords']; # Ключевые слова страницы

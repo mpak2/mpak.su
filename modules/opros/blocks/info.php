@@ -11,7 +11,7 @@ if ((int)$arg['confnum']){
 }
 
 $status = array('0'=>'новый', '1'=>'обработка', '2'=>'отменен', '3'=>'выполнен');
-$opros = mpql(mpqw("SELECT a.*, u.name AS uname FROM {$conf['db']['prefix']}{$arg['modpath']}_anket AS a LEFT JOIN {$conf['db']['prefix']}users AS u ON u.id=a.uid WHERE a.status<2 ORDER BY a.id DESC"));
+$opros = mpql(mpqw("SELECT a.*, u.name AS uname FROM {$conf['db']['prefix']}{$arg['modpath']}_anket AS a LEFT JOIN {$conf['db']['prefix']}users AS u ON u.id=a.uid WHERE a.status<2 ORDER BY a.id DESC LIMIT 10"));
 
 ?>
 <div style="margin:10px;">

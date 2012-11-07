@@ -7,6 +7,8 @@ if ($conf['user']['uname'] != $conf['settings']['default_usr']){
 	$gid  = $conf['user']['gid'];
 }
 
+$anket = mpql(mpqw("SELECT id, COUNT(*) AS cnt FROM {$conf['db']['prefix']}{$arg['modpath']}_anket"), 0);
+
 ?>
 <? if($conf['user']['flush']): ?>
 	<script type="text/javascript" src="/include/jquery/simplemodal-demo-basic/js/jquery.simplemodal.js"></script>
@@ -56,7 +58,7 @@ if ($conf['user']['uname'] != $conf['settings']['default_usr']){
 
 <? if($conf['user']['uname'] != $conf['settings']['default_usr']): ?>
 	<div class="user_links">
-		<a href='/?logoff'>Выход</a> <a href=/users:edit>Настройки</a>
+		<a href='/?logoff'>Выход</a> <a href="<?=($conf['settings']["{$arg['modpath']}_edit_link"] ?: "/{$arg['modname']}")?>">Кабинет</a>
 		<?// if($conf['modules'][ $conf['modules']['admin']['id'] ]['access']	|| ($conf['user']['uname'] == $conf['settings']['admin_usr'] )): ?>
 		<? if(array_search($conf['settings']['admin_grp'], $conf['user']['gid'])): ?>
 			<a href='/admin'>Управление</a>
@@ -75,7 +77,14 @@ if ($conf['user']['uname'] != $conf['settings']['default_usr']){
 			<!-- <tr><td>OpenID: </td><td><img src="http://wiki.openid.net/f/openid-16x16.gif"> <a href="/users:openid">Представиться</a></td></tr> -->
 			<tr><td>Логин: </td><td><input class='login' type='text' name='name'></td></tr>
 			<tr><td>Пароль: </td><td><input class='login' type='password' name='pass'></td></tr>
-			<tr><td>&nbsp;</td><td><a href='/users:reg'>Регистрация</a> <br /><a href="/users:resque">Восстановление</a> | <input type='submit' value='Войти'></td></tr>
+			<tr>
+				<td>&nbsp;</td>
+				<td>
+					<a href='<?=($conf['settings']["{$arg['modpath']}_reg_link"] ?: "/{$arg['modname']}:reg")?>'>Регистрация</a>
+					<br /><a href="/users:resque">Восстановление</a> |
+					<input type='submit' value='Войти'>
+				</td>
+			</tr>
 		</table>
 	</form>
 <? endif; ?>

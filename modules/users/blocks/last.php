@@ -31,7 +31,7 @@ $users = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users ORDER BY id DESC 
 		<? foreach($users as $k=>$v): ?>
 			<div style="overflow:hidden;">
 				<span>
-					<a href="/<?=$arg['modpath']?>/<?=$v['id']?>">
+					<a href="/<?=$arg['modname']?>/<?=$v['id']?>">
 						<?=$v['name']?>
 					</a>
 				</span>

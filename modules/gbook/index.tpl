@@ -1,3 +1,4 @@
+<h1><?=$conf['modules'][ $arg['modpath'] ]['name']?></h1>
 <p><center><b><?=$conf['settings']['gbook_title']?></b></center>
 <div class="gbook" style="margin-left:10%;">
 	<script src="/include/jquery/jquery.iframe-post-form.js"></script>

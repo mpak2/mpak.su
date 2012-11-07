@@ -8,8 +8,8 @@ if ((int)$arg['confnum']){
 	} if(array_key_exists("null", $_GET)) exit;
 
 	$klesh = array(
-/*		"Количество символов"=>0,
-		"Курс доллара"=>30,
+		"Настройки пользователя"=>array(0=>"Все", 1=>"Только фото", 2=>"Только настройки"),
+/*		"Курс доллара"=>30,
 		"Список"=>array(
 			1=>"Одын",
 			2=>"Два",
@@ -50,7 +50,7 @@ if ((int)$arg['confnum']){
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 //if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
 
-$diff = array('id', 'name', 'pass', 'param', 'flush', 'refer', 'type_id', 'img', 'ref', 'reg_time', 'last_time', 'uid', 'sess', 'gid', 'uname');
+$diff = array('id', 'name', 'pass', 'param', 'flush', 'refer', 'type_id', 'img', 'ref', 'reg_time', 'last_time', 'uid', 'sess', 'gid', 'uname', 'time');
 
 foreach(range(1, 31) as $v){
 	$day[$v] = array("id"=>$v, "name"=>$v);
@@ -65,14 +65,14 @@ foreach(range(1900, date("Y")) as $v){
 	$year[$v] = array("id"=>$v, "name"=>$v);
 };
 
-if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && ($conf['user']['uid'] == $arg['uid']) && $_POST){
+if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && (($conf['user']['uid'] == $arg['uid']) || ($arg['access'] > 3)) && $_POST){
 	if($_FILES){
 		if($fn = mpfn("{$conf['db']['prefix']}{$arg['modpath']}", "img", $conf['user']['uid'])){
 			mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']} SET img=\"". mpquot($fn). "\" WHERE id=". (int)$conf['user']['uid']);
 		} exit($conf['user']['uid']);
-	}elseif($geoname = $_POST['geoname']){
+	}elseif($arg['access'] > 3 && ($geoname = $_POST['geoname'])){
 		$geoname_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_geoname", array("geonameId"=>$geoname['geonameId']), $geoname, $geoname);
-		$user_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}", array("id"=>$conf['user']['uid']), null, array("uid"=>$conf['user']['uid'], "time"=>time())+array("geoname_id"=>$geoname_id));
+		$user_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}", array("id"=>$arg['uid']), null, array("uid"=>$arg['uid'], "time"=>time())+array("geoname_id"=>$geoname_id));
 		exit($geoname_id);
 	}elseif(array_key_exists('day', $_POST) && array_key_exists('month', $_POST) && array_key_exists('year', $_POST)){
 		mpqw("UPDATE {$conf['db']['prefix']}users SET birth=". strtotime((int)$_POST['year']. "-". array_search($_POST['month'], $month_id). "-". (int)$_POST['day']). " WHERE id=". (int)$conf['user']['uid']);
@@ -161,8 +161,8 @@ foreach($conf['user'] as $k=>$v){
 	</div>
 	<? if($user['name'] != $conf['settings']['default_usr']): ?>
 		<div id="f_<?=$arg['blocknum']?>" style="margin-left:210px;">
-			<? foreach(array_diff_key($user, array_flip($diff)) as $k=>$v): ?>
-				<div style="overflow:hidden;">
+			<? foreach(array_diff_key($user, array_flip($diff)) as $k=>$v): if(substr($conf['settings']["users_field_{$k}"], 0, 1) == ".") continue; ?>
+				<div style="overflow:hidden; float:none;">
 					<div><?=($conf['settings'][$f = "users_field_$k"] ?: $f)?>:</div>
 					<? if($k == "geoname_id"): ?>
 						
@@ -234,10 +234,6 @@ foreach($conf['user'] as $k=>$v){
 						<div f="<?=$k?>" class="klesh_<?=$k?>_<?=$arg['blocknum']?>"><?=$conf['tpl']['select'][ $k ][ $v ]['name']?></div>
 					<? elseif($k == "geo"): ?>
 						<input type="text" name="geo" value="<?=$v?>" <?=($arg['uid'] == $conf['user']['uid'] ? "" : "disabled")?>>
-						<form id="search_form" style="display:none;">
-							<input type="text" value="Великий Устюг" style="width: 70%;"/>
-							<input type="submit" onClick="return false;" value="Найти"/>
-						</form>
 						<div id="ymaps-map-id_134128145774966671747" style="width: 100%; height: 250px; margin-top:10px;"></div>
 						<script type="text/javascript">
 							function fid_134128145774966671747(ymaps) {

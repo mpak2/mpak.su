@@ -27,7 +27,7 @@ function mb_ord($char){
     return html_entity_decode('&#' . intval($string) . ';', ENT_COMPAT, 'UTF-8');
 }
 
-function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null){
+function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $headers = array()){
 	$ch = curl_init();
 	//curl_setopt($ch, CURLOPT_PROXY, "1.2.3.4:123"); //если нужен прокси
 	curl_setopt ($ch , CURLOPT_FOLLOWLOCATION , 1);
@@ -42,6 +42,7 @@ function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null){
 	if ($referer) curl_setopt($ch, CURLOPT_REFERER, $referer);
 	curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0; MyIE2; .NET CLR 1.1.4322)");
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_HTTPHEADER, $headers); 
 	curl_setopt($ch, CURLOPT_HEADER, 0);
 	curl_setopt($ch, CURLOPT_NOBODY, 0);
 	$result=curl_exec ($ch);
@@ -188,7 +189,7 @@ function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
 			return array_keys($sel);
 		}
 	}elseif($insert){
-		mpqw($sql = "INSERT INTO `". mpquot($tn). "` SET ". mpdbf($tn, $insert));
+		mpqw($sql = "INSERT INTO `". mpquot($tn). "` SET ". mpdbf($tn, $insert+array("time"=>time(), "uid"=>(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0))));
 		return $sel['id'] = mysql_insert_id();
 	}else{
 //		mpre($find);
@@ -231,7 +232,8 @@ function mpevent($name, $description = null, $own = null){
 
 	if($conf['settings']['users_log']){
 		if(!empty($conf['event'][$name])) $event = $conf['event'][$name];
-		if((!empty($event['log']) && ($event['log'] > 1)) || !empty($event['send'])){
+		$notice = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event_notice WHERE event_id=". (int)$event['id']));
+		if((!empty($event['log']) && ($event['log'] > 1)) || $notice){
 			if(!is_numeric($func_get_args[2])){
 				unset($func_get_args[2]['pass']);
 			}
@@ -249,11 +251,38 @@ function mpevent($name, $description = null, $own = null){
 
 		if(!empty($event['log']) && $event['log']){
 			mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event_logs SET time=". time(). ", event_id=". (int)$event['id']. ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", description=\"". mpquot($description). "\", own=". /*mpquot(is_array($own) ? var_export($own, true) : $own)*/ (int)$func_get_args[2]['id']. ", `return`=\"". mpquot($return). "\", zam=\"". mpquot(!empty($zam) ? var_export($zam, true) : ""). "\"");
-//			$event_log = mpql(mpqw("SELECT id AS max FROM {$conf['db']['prefix']}users_event_log WHERE event_id=". (int)$event['id']. " ORDER BY id DESC limit 1"), 0, 'max'); //$event_log = mysql_insert_id();
 		} mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event SET time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", name=\"". mpquot($name). "\", description=\"". mpquot($desc). "\", count=1 ON DUPLICATE KEY UPDATE time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", count=count+1, last=". (int)$func_get_args[1]. ", max=IF(". (int)$func_get_args[1]. ">max, ". (int)$func_get_args[1]. ", max), min=IF(". (int)$func_get_args[1]. "<min, ". (int)$func_get_args[1]. ", min), description=\"". mpquot($desc). "\", log_last=". (!empty($event['log']) && $event['log'] ? "(SELECT id FROM {$conf['db']['prefix']}users_event_logs WHERE event_id=". (int)$event['id']. " ORDER BY id DESC limit 1)" : 0));
 
-		if(!empty($event['send']) && $event['send']){
-			if($func_get_args[2] && ($event['send'] < 0)){
+		if($notice){
+			foreach($notice as $v){
+				if(empty($v['zam'])){ # Сохраняем замещаемые значения
+					mpqw($sql = "UPDATE {$conf['db']['prefix']}users_event_notice SET zam=\"". mpquot(var_export($zam, true)). "\" WHERE id=". (int)$v['id']);
+				} if($v['grp_id'] > 0){ # Рассылка на группу
+					$grp = mpqn(mpqw($sql = "SELECT u.* FROM {$conf['db']['prefix']}users_mem AS m LEFT JOIN {$conf['db']['prefix']}users AS u ON (m.uid=u.id) WHERE 1 AND grp_id=". (int)$v['grp_id']));
+				}else{ # Если рассылка владельцу то он нам уже известен
+					$grp = array($func_get_args[2]['id']=>$func_get_args[2]);
+				}// mpre($grp);
+				foreach($grp as $m){
+					switch($v['type']){
+						case "email":# Сообщение на электронную почту
+							if(preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $m['email'])){
+								mpqw("UPDATE {$conf['db']['prefix']}users_event_notice SET count=count+1 WHERE id=". (int)$v['id']);
+								$response = mpmail($m['email'], $name = strtr(($v['name'] ?: $event['name']), $zam), $text = strtr($v['text'], $zam));
+								if($v['log']){ # Сохраняем если включен лог
+									mpfdk("{$conf['db']['prefix']}users_event_mess", null, array("event_notice_id"=>$v['id'], "dst"=>$m['email'], "name"=>$name, "text"=>$text, "response"=>$response));
+								} if($response){
+									mpevent("Ошибка при отправке уведомления", $text);
+								}
+							}
+						break;# Скайп уведомление
+						case "skype":
+						break;# Уведомление по джаббер протоколу
+						case "jabber":
+						break;
+					}// mpre($v['type']);
+				}
+			}
+/*			if($func_get_args[2] && ($event['send'] < 0)){
 				if((gettype($func_get_args[2]) == "string") && preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $func_get_args[2])){
 					mpmail($func_get_args[2], strtr($event['subject'], $zam), strtr($event['text'], $zam), $conf['settings']['mail']);
 				}else if((gettype($func_get_args[2]['email']) == "string") && preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $func_get_args[2]['email'])){
@@ -267,7 +296,7 @@ function mpevent($name, $description = null, $own = null){
 					mpqw("UPDATE {$conf['db']['prefix']}users_event SET cmail=cmail+1 WHERE id=". (int)$event['id']);
 					mpmail($v['email'], strtr($event['subject'], $zam), strtr($event['text'], $zam), $conf['settings']['mail']);
 				}
-			}
+			}*/
 		}
 	} if(isset($return)) return $return;
 }
@@ -473,9 +502,9 @@ function mpdbf($tn, $post = null, $and = false){
 			$f[] = "`$k`=\"". htmlspecialchars(mpquot($v)). "\"";
 		}elseif(array_key_exists($k, $fields)){
 			if(gettype($v) == 'array'){
-				$f[] = "`$k` IN (". htmlspecialchars(mpquot(implode(",", $v))). ")";
+				$f[] = "`$k` IN (". mpquot(strtr(implode(",", $v), array("<"=>"&lt;", ">"=>"&gt;"))). ")";
 			}else{
-				$f[] = "`$k`=\"". htmlspecialchars(mpquot($v)). "\"";
+				$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
 			}
 		}// mpre($f);
 	} return implode(($and ? " AND " : ', '), (array)$f);
@@ -495,12 +524,14 @@ function mpager($count, $null=null, $cur=null, $url=null){
 	$return .=  "<div class=\"pager\">";
 	if($cur <= 0){
 		$return .= "<span>&#8592; назад</span>";
+		$mpager['prev'] = 'javascript:';
 	}else{
 		$return .= "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>";
+		$mpager['prev'] = $url. ($cur > 1 ? "/{$p}:".($cur-1) : '');
 	};
 	for($i = max(0, min($cur-10, $count-20)); $i < min($count, max($cur+10, 20)); $i++){
 		if($i == $cur){
-			$mpager[ ($i+1) ] = '';
+			$mpager[ ($i+1) ] = 'javascript:';
 			$return .= "&nbsp;<span>".($i+1)."</span>";
 		}else{
 			$mpager[ $i+1 ] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : "/{$p}:$i") : '');
@@ -510,8 +541,10 @@ function mpager($count, $null=null, $cur=null, $url=null){
 	$return .=  '&nbsp;';
 	if($cur+1 >= $count){
 		$return .=  "<span>вперед &#8594;</span>";
+		$mpager['next'] = 'javascript:';
 	}else{
 		$return .=  "<a rel=\"next\" href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : "/{$p}:".($cur+1)) : '')."\">вперед &#8594;</a>";
+		$mpager['next'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : "/{$p}:".($cur+1)) : '');
 	}// mpre($mpager);
 	$return .= "</div>";
 	if($fn = mpopendir("themes/{$conf['settings']['theme']}/mpager.tpl")){
@@ -630,6 +663,42 @@ function mpqw($sql, $info = null, $conn = null){
 				"" => array(
 					"",
 					"",
+				),
+			),
+			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_geoname' doesn't exist" => array(
+				"SELECT id, CONCAT(name, \' (\', countryName, \')\') FROM mp_users_geoname" => array(
+					"",
+					"",
+				),
+			),
+			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_lang_words' doesn't exist" => array(
+				"SELECT id, name FROM {$conf['db']['prefix']}users_lang_words" => array(
+					"CREATE TABLE `{$conf['db']['prefix']}users_lang_words` ( `id` int(11) NOT NULL AUTO_INCREMENT, `modules` varchar(255) NOT NULL, `name` varchar(255) NOT NULL, `description` varchar(255) NOT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
+				),
+			),
+			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_lang' doesn't exist" => array(
+				"SELECT id, name FROM {$conf['db']['prefix']}users_lang" => array(
+					"CREATE TABLE `{$conf['db']['prefix']}users_lang` ( `id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `description` varchar(255) NOT NULL, `sort` int(11) NOT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=cp1251",
+					"CREATE TABLE `{$conf['db']['prefix']}users_lang_words` ( `id` int(11) NOT NULL AUTO_INCREMENT, `modules` varchar(255) NOT NULL, `name` varchar(255) NOT NULL, `description` varchar(255) NOT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
+					"CREATE TABLE `{$conf['db']['prefix']}users_lang_translation` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `lang_id` int(11) NOT NULL, `lang_words_id` int(11) NOT NULL, `name` varchar(255) NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `name` (`name`,`lang_id`), KEY `lang_words_id` (`lang_words_id`) ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=cp1251"
+				),
+			),
+			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_anket_type' doesn't exist" => array(
+				"SELECT id, name FROM {$conf['db']['prefix']}users_anket_type" => array(
+					"CREATE TABLE `{$conf['db']['prefix']}users_anket_type` ( `id` int(11) NOT NULL AUTO_INCREMENT, `sort` int(11) NOT NULL, `name` varchar(255) NOT NULL, `description` varchar(255) NOT NULL, `border` int(11) NOT NULL, PRIMARY KEY (`id`), KEY `sort` (`sort`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
+					"CREATE TABLE `{$conf['db']['prefix']}users_anket` ( `id` int(11) NOT NULL AUTO_INCREMENT, `sort` int(11) NOT NULL, `anket_type_id` int(11) NOT NULL, `name` varchar(255) NOT NULL, `required` int(11) NOT NULL, `alias` varchar(255) NOT NULL, `description` varchar(255) NOT NULL, `reg` int(11) NOT NULL, PRIMARY KEY (`id`), KEY `sort` (`sort`), KEY `anket_type_id` (`anket_type_id`) ) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=cp1251",
+					"CREATE TABLE `{$conf['db']['prefix']}users_anket_data` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `anket_id` int(11) NOT NULL, `name` varchar(255) NOT NULL, `description` varchar(255) NOT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=cp1251"
+				),
+			),
+			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_geoname' doesn't exist" => array(
+				"SELECT id, name FROM {$conf['db']['prefix']}users_geoname" => array(
+					"CREATE TABLE `mp_users_geoname` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `continentCode` varchar(255) NOT NULL, `countryCode` varchar(255) NOT NULL, `countryName` varchar(255) NOT NULL, `fclName` varchar(255) NOT NULL, `fcode` varchar(255) NOT NULL, `fcodeName` varchar(255) NOT NULL, `geonameId` varchar(255) NOT NULL, `lat` varchar(255) NOT NULL, `lng` varchar(255) NOT NULL, `name` varchar(255) NOT NULL, `population` varchar(255) NOT NULL, `toponymName` varchar(255) NOT NULL, PRIMARY KEY (`id`), KEY `uid` (`uid`), KEY `geonameId` (`geonameId`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
+				),
+			),
+			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_event_notice' doesn't exist" => array(
+				"SELECT * FROM {$conf['db']['prefix']}users_event_notice" => array(
+					"CREATE TABLE `{$conf['db']['prefix']}users_event_notice` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `grp_id` int(11) NOT NULL, `type` varchar(255) NOT NULL, `event_id` int(11) NOT NULL, `log` int(11) NOT NULL, `count` int(11) NOT NULL, `name` varchar(255) NOT NULL, `text` text NOT NULL, `zam` text NOT NULL, PRIMARY KEY (`id`), KEY `event_id` (`event_id`), KEY `uid` (`uid`), KEY `grp_id` (`grp_id`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
+					"CREATE TABLE `mp_users_event_mess` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `event_notice_id` int(11) NOT NULL, `dst` varchar(255) NOT NULL, `name` varchar(255) NOT NULL, `text` text NOT NULL, `response` varchar(255) NOT NULL, PRIMARY KEY (`id`), KEY `time` (`time`), KEY `uid` (`uid`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
 				),
 			),
  			"Unknown column 'm.grp_id' in 'where clause'" => array(

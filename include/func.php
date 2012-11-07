@@ -38,6 +38,19 @@ function stable($table){
 	while($line = mysql_fetch_array($result, 1)){
 		$table['_fields'][$line['Field']] = $line['Field'];
 	} //mpre($table['_fields']);
+	foreach($table['_fields'] as $k=>$v){ # Отображаем возле названия поля язык
+		$ar = explode("_", $k);
+		$num = array_pop($ar);
+		if(is_numeric($num)){
+			if(empty($table['etitle'][ $k ])){
+				if(empty($lang)) $lang = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}users_lang"));
+				$table['etitle'][ $k ] = $table['etitle'][ implode("_", $ar) ]. "(". $lang[ $num ]['name']. ")";
+				if($table['type'][ implode("_", $ar) ]){
+					$table['type'][ $k ] = $table['type'][ implode("_", $ar) ];
+				}
+			}
+		}
+	}// mpre($table['etitle']);
 
 	$url = $where = '';
 	foreach((array)$_GET['where'] as $k=>$v){

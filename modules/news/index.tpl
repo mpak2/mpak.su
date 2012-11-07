@@ -1,3 +1,4 @@
+<h1><?=$conf['modules'][ $arg['modpath'] ]['name']?></h1>
 <? if($conf['tpl']['count']): ?>
 	<? for($i = 0; $i<$conf['tpl']['count']/10; $i++): ?>
 		<a href=/news/pid:<?=$i?> style="border: 1px solid rgb(0, 0, 0); margin: 1px; padding: 2px;"><?=($i+1)?></a>

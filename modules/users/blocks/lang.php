@@ -51,7 +51,7 @@ if ((int)$arg['confnum']){
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
 	mpqw("UPDATE {$conf['db']['prefix']}sess SET lang_id=\"". (int)$_POST['lang_id']. "\" WHERE id=". (int)$conf['user']['sess']['id']);
 	if($conf['user']['uid'] > 0){
-		mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']} SET lang_id=\"". (int)$_POST['lang_id']. "\" WHERE id=". (int)$conf['user']['uid']);
+		mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']} SET lang_id=". (int)$_POST['lang_id']. "11 WHERE id=". (int)$conf['user']['uid']);
 	} exit;
 };
 
@@ -72,6 +72,6 @@ $lang = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_lang")
 </script>
 <div id="lang">
 	<? foreach($lang as $v): ?>
-		<a lang_id="<?=($base++ ? $v['id'] : 0)?>" href="javascript:return false;"><?=$v['name']?></a>
+		<a lang_id="<?=($base++ ? $v['id'] : 0)?>" href="javascript:"><?=$v['name']?></a>
 	<? endforeach; ?>
 </div>
