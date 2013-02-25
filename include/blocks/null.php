@@ -1,5 +1,15 @@
 <? die; # Нуль
 
+if($klesh = array(
+/*		($f = "Ширина")=>($param[ $f ] = $param[ $f ] ?: 200),
+	($f = "Высота")=>($param[ $f ] = $param[ $f ] ?: 200),
+	"Список"=>array(
+		1=>"Одын",
+		2=>"Два",
+	),
+	"Группа руководителей"=>array(0=>"")+spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_type ORDER BY name"),*/
+)) $param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id=". max($arg['blocknum'], $arg['confnum'])), 0, 'param'));
+
 if ((int)$arg['confnum']){
 	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0, 'param'));
 	if ($_POST){
@@ -7,18 +17,7 @@ if ((int)$arg['confnum']){
 		mpqw("UPDATE {$conf['db']['prefix']}blocks SET param = '".serialize($param)."' WHERE id = {$arg['confnum']}");
 	} if(array_key_exists("null", $_GET)) exit;
 
-	$klesh = array(
-/*		($f = "Ширина")=>($param[ $f ] = $param[ $f ] ?: 200),
-		($f = "Высота")=>($param[ $f ] = $param[ $f ] ?: 200),
-		"Список"=>array(
-			1=>"Одын",
-			2=>"Два",
-		),
-		"Город"=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users_sity ORDER BY name"),*/
-	);
-
-?>
-		<!-- Настройки блока -->
+?>	<!-- Настройки блока -->
 	<script src="/include/jquery/my/jquery.klesh.select.js"></script>
 	<script>
 		$(function(){
@@ -46,15 +45,13 @@ if ((int)$arg['confnum']){
 	</div>
 <? return;
 
-}//$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
+}
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 //if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
 
-$dat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} LIMIT 10"));
+//$dat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} LIMIT 10"));
 
 ?>
 <ul>
-	<? foreach($dat as $k=>$v): ?>
-		<li><?=$v['name']?></li>
-	<? endforeach; ?>
+	Новый блок
 </ul>

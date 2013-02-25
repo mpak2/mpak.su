@@ -1,29 +1,26 @@
 <? die;
 
-echo '<p>'.$sql = "DROP TABLE {$conf['db']['prefix']}{$arg['modpath']}_basket";
+echo '<p>'.$sql = "DROP Table {$conf['db']['prefix']}{$arg['modpath']}_basket";
 mpqw($sql);
 
-echo '<p>'.$sql = "DROP TABLE {$conf['db']['prefix']}{$arg['modpath']}_desc";
+echo '<p>'.$sql = "DROP Table {$conf['db']['prefix']}{$arg['modpath']}_basket_order";
 mpqw($sql);
 
-echo '<p>'.$sql = "DROP TABLE {$conf['db']['prefix']}{$arg['modpath']}_img";
+echo '<p>'.$sql = "DROP Table {$conf['db']['prefix']}{$arg['modpath']}_cat";
 mpqw($sql);
 
-echo '<p>'.$sql = "DROP TABLE {$conf['db']['prefix']}{$arg['modpath']}_list";
+echo '<p>'.$sql = "DROP Table {$conf['db']['prefix']}{$arg['modpath']}_groups";
 mpqw($sql);
 
-echo '<p>'.$sql = "DROP TABLE {$conf['db']['prefix']}{$arg['modpath']}_obj";
+echo '<p>'.$sql = "DROP Table {$conf['db']['prefix']}{$arg['modpath']}_index";
 mpqw($sql);
 
-echo '<p>'.$sql = "DROP TABLE {$conf['db']['prefix']}{$arg['modpath']}_order";
+echo '<p>'.$sql = "DROP Table {$conf['db']['prefix']}{$arg['modpath']}_price";
 mpqw($sql);
 
-echo '<p>'.$sql = "DROP TABLE {$conf['db']['prefix']}{$arg['modpath']}_producer";
+echo '<p>'.$sql = "DROP Table {$conf['db']['prefix']}{$arg['modpath']}_vendor";
 mpqw($sql);
 
-echo '<p>'.$sql = "DROP TABLE {$conf['db']['prefix']}{$arg['modpath']}_sity";
-mpqw($sql);
-
-mpqw("DELETE FROM `{$conf['db']['prefix']}settings` WHERE `modpath`='services'");
+mpqw("DELETE FROM `{$conf['db']['prefix']}settings` WHERE `modpath`='shop'");
 
 ?>

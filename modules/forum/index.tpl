@@ -61,11 +61,11 @@
 							<a href="/users/<?=$v['uid']?>"><?=($v['uid'] > 0 ? $v['uname']. " [{$v['count']}]" : "{$conf['settings']['default_usr']}{$v['uid']}")?></a> 
 						<div>
 						<div style="margin:5px;">
-							<img src="/users:img/<?=$v['uid']?>/tn:index/w:100/h:100/null/img.jpg">
+							<img src="/users:img/<?=$v['uid']?>/tn:index/w:100/h:65/null/img.jpg">
 						</div>
 					</td>
 					<td valign=middle style="text-align:center;">
-						<?=nl2br(htmlspecialchars($v['text']))?>
+						<?=nl2br($v['text'])?>
 					</td>
 				</tr>
 			<? endforeach; ?>
@@ -73,12 +73,15 @@
 				<tr>
 					<td colspan=2>
 						<form method=post>
-							<? if((int)$conf['tpl']['edit']['id']): ?>
-								<input type='hidden' name='id' value='<?=$conf['tpl']['edit']['id']?>'>
-							<? endif; ?>
-								<textarea name='text' style='width: 100%; height: 70px;'><?=($conf['tpl']['edit']['text'] ? htmlspecialchars($conf['tpl']['edit']['text']) : '')?></textarea>
-							<div align=right>
-								<input type=submit value='Сохранить'>
+							<input type='hidden' name='id' value="<?=(int)$conf['tpl']['edit']['id']?>">
+							<div style="float:left; width:120px; text-align:center;">
+								<div style="margin:5px;"><img src="/users:img/<?=$conf['user']['uid']?>/tn:index/w:100/h:65/null/img.jpg"></div>
+								<div style="overflow:hidden; margin:10px;">
+									<input type=submit value='Сохранить'>
+								</div>
+							</div>
+							<div style="position:relative; margin-left:125px;">
+								<textarea name='text' placeholder="Ваше сообщение" style='width:95%; height:105px;'><?=($conf['tpl']['edit']['text'] ? htmlspecialchars($conf['tpl']['edit']['text']) : '')?></textarea>
 							</div>
 						</form>
 					</td>

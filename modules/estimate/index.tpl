@@ -1,7 +1,7 @@
 <? if(array_key_exists('null', $_GET)): ?>
 	<script>
 		$(function(){
-			$(".estimate a").live("click", function(){
+			$(".estimate a").on("click", function(){
 				if(act = $(this).parents("[act]").attr("act")){
 					$(".estimate").attr("act", "");
 					estimate = $(this).attr("estimate");// alert(estimate);
@@ -9,7 +9,7 @@
 						$(".estimate").find("span").text(data);
 					});
 				}
-			}).live("mousemove", function(){
+			}).on("mousemove", function(){
 				if(act = $(this).parents("[act]").attr("act")){
 					estimate = $(this).attr("estimate");// alert(estimate);
 					$(this).parents("[act]").find("a").each(function(key, val){
@@ -20,7 +20,7 @@
 						}
 					});
 				}
-			}).live("mouseout", function(){
+			}).on("mouseout", function(){
 				if(act = $(this).parents("[act]").attr("act")){
 					estimate = $(this).parents("[act]").attr("estimate");// alert(estimate);
 					$(this).parents("[act]").find("a").each(function(key, val){

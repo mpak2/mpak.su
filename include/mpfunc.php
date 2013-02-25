@@ -1,6 +1,11 @@
 <?
 
-function mptс($time = null, $format = 1){
+function aedit($href){
+	global $arg;
+	if($arg['access'] > 3) echo "<span style=\"float:right; margin-left:5px;\"><a href=\"{$href}\"><img src=\"/img/aedit.png\"></a></span>";
+}
+
+function mptс($time = null, $format = 0){
 	if($time === null) $time = time();
 	$time = time()-$time;
 	$month = explode(",", $conf['settings']['themes_month']);
@@ -27,9 +32,12 @@ function mb_ord($char){
     return html_entity_decode('&#' . intval($string) . ';', ENT_COMPAT, 'UTF-8');
 }
 
-function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $headers = array()){
+function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $headers = array(), $proxy = null){
+//	if(empty($temp)) $temp = "/tmp/_". md5($href). ".txt";
 	$ch = curl_init();
-	//curl_setopt($ch, CURLOPT_PROXY, "1.2.3.4:123"); //если нужен прокси
+	if($proxy){
+		curl_setopt($ch, CURLOPT_PROXY, $proxy); //если нужен прокси
+	}
 	curl_setopt ($ch , CURLOPT_FOLLOWLOCATION , 1);
 	curl_setopt($ch, CURLOPT_COOKIEFILE, $temp);//tempnam(ini_get('upload_tmp_dir'), "curl_cookie_")
 	curl_setopt($ch, CURLOPT_COOKIEJAR, $temp); //В какой файл записывать
@@ -52,22 +60,24 @@ function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $hea
 
 function ql($sql, $ln = null, $fd = null){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата
 	$microtime = microtime(true);
-	if(!($r = mpmc("qn:".$key = md5($sql)))){
+	if(!($r = mpmc($key = "ql:". md5($sql))) && (gettype($r) == "boolean")){
 		$r = mpql(mpqw($sql), $ln, $fd);
-		if(($mt = microtime(true) - $microtime) > .3){
-			mpmc($key, $r, 3600);
+		if(($mt = (microtime(true) - $microtime)) > .3){
+			mpevent("Кеширование списка", $sql);
+			mpmc($key, $r);
 		}
 	} return $r;
 }
 
 function qn($sql){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата
 	$microtime = microtime(true);
-	if(!($r = mpmc("qn:".$key = md5($sql)))){
+	if(!($r = mpmc($key = "qn:". md5($sql))) && (gettype($r) == "boolean")){
 		$func_get_args = func_get_args();
 		$func_get_args[0] = mpqw($sql);
 		$r = call_user_func_array('mpqn', $func_get_args);
 		if(($mt = microtime(true) - $microtime) > .3){
-			mpmc($key, $r, 3600);
+			mpevent("Кеширование нумерованного списка", $sql);
+			mpmc($key, $r);
 		}
 	} return $r;
 }
@@ -89,14 +99,14 @@ function mc($key, $function, $force = false){
 	} return $tmp;
 }
 
-function mpsmtp($to, $obj, $text){
+function mpsmtp($to, $obj, $text, $login = null){
 	global $conf;
 	ini_set("include_path", ini_get("include_path"). ":". "./include/mail/");
 
 	include_once("PEAR.php");
 	include_once("Mail.php");
 
-	$param = explode("@", $conf['settings']['smtp']);
+	$param = explode("@", $login ?: $conf['settings']['smtp']);
 	$host = explode(":", array_pop($param));
 	$auth = explode(":", implode("@", $param));
 
@@ -130,15 +140,15 @@ function mpsmtp($to, $obj, $text){
 }
 
 function mpue($name){
-	return str_replace('%', '%25', $name);
+	return str_replace('%', '%25', trim($name));
 }
 
-function mpmc($key, $data = null, $compress = 0, $limit = 10000, $event = true){
+function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 	global $conf;
 	if(!function_exists('memcache_connect')) return false;
-	if($memcache = @memcache_connect("localhost", 11211)){
+	if($memcache = memcache_connect("localhost", 11211)){
 		if($data){
-			memcache_set($memcache, $key, $data, $compress, $limit);
+			@memcache_set($memcache, $key, $data, $compress, $limit);
 	//		if($event) mpevent($conf['settings']['users_event_memcache_set'], $key, $conf['user']['uid']);
 		}else{
 			$mc = memcache_get($memcache, $key);
@@ -210,7 +220,7 @@ function mpdk($tn, $insert, $update = array()){
 }
 
 function mpevent($name, $description = null, $own = null){
-	global $conf;
+	global $conf, $argv;
 	if(empty($name)){
 		$debug_backtrace = debug_backtrace();
 		if($args = $debug_backtrace[1]['args'][0]){
@@ -230,9 +240,14 @@ function mpevent($name, $description = null, $own = null){
 	}
 	if(!empty($func_get_args[0]) && function_exists("event")){ $return = event($func_get_args); }
 
-	if($conf['settings']['users_log']){
+	if($conf['settings']['users_log'] || !empty($argv)){
 		if(!empty($conf['event'][$name])) $event = $conf['event'][$name];
-		$notice = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event_notice WHERE event_id=". (int)$event['id']));
+
+		mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event SET time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", name=\"". mpquot($name). "\", description=\"". mpquot($desc). "\", count=1 ON DUPLICATE KEY UPDATE time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", count=count+1, last=". (int)$func_get_args[1]. ", max=IF(". (int)$func_get_args[1]. ">max, ". (int)$func_get_args[1]. ", max), min=IF(". (int)$func_get_args[1]. "<min, ". (int)$func_get_args[1]. ", min), description=\"". mpquot($desc). "\", log_last=". (!empty($event['log']) && $event['log'] ? "(SELECT id FROM {$conf['db']['prefix']}users_event_logs WHERE event_id=". (int)$event['id']. " ORDER BY id DESC limit 1)" : 0));
+		if(!empty($argv)){
+			$event = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event WHERE id=". (int)mysql_insert_id()), 0);
+		} $notice = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event_notice WHERE event_id=". (int)$event['id']));
+
 		if((!empty($event['log']) && ($event['log'] > 1)) || $notice){
 			if(!is_numeric($func_get_args[2])){
 				unset($func_get_args[2]['pass']);
@@ -251,33 +266,51 @@ function mpevent($name, $description = null, $own = null){
 
 		if(!empty($event['log']) && $event['log']){
 			mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event_logs SET time=". time(). ", event_id=". (int)$event['id']. ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", description=\"". mpquot($description). "\", own=". /*mpquot(is_array($own) ? var_export($own, true) : $own)*/ (int)$func_get_args[2]['id']. ", `return`=\"". mpquot($return). "\", zam=\"". mpquot(!empty($zam) ? var_export($zam, true) : ""). "\"");
-		} mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event SET time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", name=\"". mpquot($name). "\", description=\"". mpquot($desc). "\", count=1 ON DUPLICATE KEY UPDATE time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", count=count+1, last=". (int)$func_get_args[1]. ", max=IF(". (int)$func_get_args[1]. ">max, ". (int)$func_get_args[1]. ", max), min=IF(". (int)$func_get_args[1]. "<min, ". (int)$func_get_args[1]. ", min), description=\"". mpquot($desc). "\", log_last=". (!empty($event['log']) && $event['log'] ? "(SELECT id FROM {$conf['db']['prefix']}users_event_logs WHERE event_id=". (int)$event['id']. " ORDER BY id DESC limit 1)" : 0));
+		}
 
 		if($notice){
 			foreach($notice as $v){
-				if(empty($v['zam'])){ # Сохраняем замещаемые значения
+				if(empty($v['log'])){ # Сохраняем замещаемые значения
 					mpqw($sql = "UPDATE {$conf['db']['prefix']}users_event_notice SET zam=\"". mpquot(var_export($zam, true)). "\" WHERE id=". (int)$v['id']);
-				} if($v['grp_id'] > 0){ # Рассылка на группу
+				}
+				if($v['grp_id'] > 0){ # Рассылка на группу
 					$grp = mpqn(mpqw($sql = "SELECT u.* FROM {$conf['db']['prefix']}users_mem AS m LEFT JOIN {$conf['db']['prefix']}users AS u ON (m.uid=u.id) WHERE 1 AND grp_id=". (int)$v['grp_id']));
 				}else{ # Если рассылка владельцу то он нам уже известен
 					$grp = array($func_get_args[2]['id']=>$func_get_args[2]);
-				}// mpre($grp);
-				foreach($grp as $m){
+				} /*mpre($grp);*/ foreach($grp as $m){
+					mpqw($sql = "UPDATE {$conf['db']['prefix']}users_event_notice SET count=count+1 WHERE id=". (int)$v['id']);
+					$name = strtr(($v['name'] ?: $event['name']), $zam);
+					$text = strtr($v['text'], $zam);
 					switch($v['type']){
 						case "email":# Сообщение на электронную почту
 							if(preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $m['email'])){
-								mpqw("UPDATE {$conf['db']['prefix']}users_event_notice SET count=count+1 WHERE id=". (int)$v['id']);
-								$response = mpmail($m['email'], $name = strtr(($v['name'] ?: $event['name']), $zam), $text = strtr($v['text'], $zam));
+								$response = mpmail($m['email'], $name, $text);
 								if($v['log']){ # Сохраняем если включен лог
 									mpfdk("{$conf['db']['prefix']}users_event_mess", null, array("event_notice_id"=>$v['id'], "dst"=>$m['email'], "name"=>$name, "text"=>$text, "response"=>$response));
-								} if($response){
-									mpevent("Ошибка при отправке уведомления", $text);
+								}
+							}
+						break;
+						case "smtp":# Сообщение по smtp протоколу
+							if(preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $m['email'])){
+								$response = mpsmtp($m['email'], $name, $text, $v['login']);
+								if($v['log']){ # Сохраняем если включен лог
+									$event_notice_id = mpfdk("{$conf['db']['prefix']}users_event_mess", null, array("event_notice_id"=>$v['id'], "dst"=>$m['email'], "name"=>$name, "text"=>$text, "response"=>$response));
 								}
 							}
 						break;# Скайп уведомление
 						case "skype":
 						break;# Уведомление по джаббер протоколу
-						case "jabber":
+						case "xmpp":
+							if(preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $m['xmpp'])){
+								ini_set("include_path", ini_get("include_path"). ":". "/srv/www/vhosts/mpak.cms/include");
+								include_once("xmpp/class.jabber.php");
+//								mpre(ini_get("include_path"));
+//								$response = mpmail($m['email'], $name, $text);
+//								mpre(mpopendir("modules"));
+								if($v['log']){ # Сохраняем если включен лог
+									$event_notice_id = mpfdk("{$conf['db']['prefix']}users_event_mess", null, array("uid"=>$m['id'], "event_notice_id"=>$v['id'], "dst"=>$m['xmpp'], "name"=>$name, "text"=>$text, "response"=>$response));
+								}
+							}
 						break;
 					}// mpre($v['type']);
 				}
@@ -319,7 +352,7 @@ function mpsettings($name, $value = null){
 		if(mpql(mpqw($sql = "SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"". mpquot($name). "\""), 0)){
 			mpqw($sql = "UPDATE {$conf['db']['prefix']}settings SET value=\"". mpquot($value). "\" WHERE name=\"". mpquot($name). "\"");
 		}else{
-			mpqw($sql = "INSERT INTO {$conf['db']['prefix']}settings SET modpath=\"". mpquot($arg['modpath']). "\", aid=5, name=\"". mpquot($name). "\", value=\"". mpquot($value). "\"");
+			mpqw($sql = "INSERT INTO {$conf['db']['prefix']}settings SET modpath=\"". mpquot(array_shift(explode("_", $name))). "\", aid=5, name=\"". mpquot($name). "\", value=\"". mpquot($value). "\"");
 		} return $value;
 	} return $conf['settings'][$name];
 }
@@ -339,7 +372,18 @@ function mpgt($REQUEST_URI, $get = array()){
 		if($mod[0] == 'include' || urldecode($mod[0]) == 'img') $get['null'] = '';
 	}
 	if(!empty($part[2]) && $part[2] != ''){
-		foreach(explode('/', $part[2]) as $k=>$v){
+		foreach($tpl = explode('/', $part[2]) as $k=>$v){
+/*			if($param = explode(':', $v, 2)){
+				if(!empty($param[0]) && !empty($param[1])){
+					if(is_numeric($param[0])){
+						$get["id"][ $param[0] ] = $param[1];
+					}else{
+						$get += array(@urldecode($param[0])=>@urldecode($param[1]));
+					}
+				}else if(is_numeric($param[0])){
+					$get += array('id'=>$param[0]);
+				}
+			}*/
 			if($param = explode(':', $v, 2)){
 				if(!empty($param[0]) && !is_numeric($param[0])){
 					$get += array(@urldecode($param[0])=>@urldecode($param[1]));
@@ -364,7 +408,7 @@ function mpwr($tn, $get = null, $prefix = null){
 			$where .= " AND {$prefix}`". mpquot(substr($k, 1)). "`>". (int)$v;
 		}elseif(is_numeric($v) && (substr($k, 0, 1) == '-') && ($f[substr($k, 1)] || $f[$n])){
 			$where .= " AND {$prefix}`". mpquot(substr($k, 1)). "`<". (int)$v;
-		}elseif(($v !== "") && $f[$n]){
+		}elseif(($v !== "") && $f[$n] && gettype($v) == "string"){
 			$where .= " AND {$prefix}`". mpquot($k). "`=\"". mpquot($v). "\"";
 		}
 	} return $where;
@@ -430,14 +474,14 @@ function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.p
 			'error'=>$_FILES[$fn]['error'][$prefix],
 			'size'=>$_FILES[$fn]['size'][$prefix],
 		);
-	}
+	}// mpre($file);
 	if($file['error'] === 0){
 		if ($exts[ $file['type'] ] || isset($exts['*'])){
 			if(!($ext = $exts[ $file['type'] ])){
 				$ext = '.'. array_pop(explode('.', $file['name']));
-			} $f = "{$tn}_{$fn}_". (int)($img_id = mpfdk($tn, array("id"=>$id), array("time"=>time(), "uid"=>$conf['user']['uid']))). $ext;
+			} $f = "{$tn}_{$fn}_". (int)($img_id = mpfdk($tn, $w = array("id"=>$id), $w += array("time"=>time(), "uid"=>$conf['user']['uid']), $w)). $ext;
 			if(($ufn = mpopendir('include/images')) && move_uploaded_file($file['tmp_name'], "$ufn/$f")){
-				if($img_id != $id) mpqw($sql = "UPDATE {$tn} SET `". mpquot($fn). "`=\"". mpquot($return = "images/$f"). "\" WHERE id=". (int)$img_id);
+				/*if($img_id != $id)*/ mpqw($sql = "UPDATE {$tn} SET `". mpquot($fn). "`=\"". mpquot($return = "images/$f"). "\" WHERE id=". (int)$img_id);
 				mpevent("Загрузка файла", $_SERVER['REQUEST_URI'], $conf['user']['uid'], $file);
 			}else{
 				if($img_id != $id){
@@ -453,6 +497,32 @@ function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.p
 		echo "file error {$file['error']}";
 		mpevent("Ошибка загрузки файла", $_SERVER['REQUEST_URI'], $conf['user']['uid'], $file);
 	} return null;
+}
+
+function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
+	global $conf;
+	$file['tmp_name'] = tempnam("/tmp", "mphid_");
+	if(copy($href, $file['tmp_name'])){
+		if (($ext = '.'. array_pop(explode('.', $href))) && (array_search($ext, $exts) || isset($exts['*']))){
+			$f = "{$tn}_{$fn}_". (int)($img_id = mpfdk($tn, $w = array("id"=>$id), $w += array("time"=>time()), $w)). $ext;
+			if(($ufn = mpopendir('include/images')) && copy($file['tmp_name'], "$ufn/$f")){
+				mpqw($sql = "UPDATE {$tn} SET `". mpquot($fn). "`=\"". mpquot($return = "images/$f"). "\" WHERE id=". (int)$img_id);
+				chown("$ufn/$f", "www-data");
+				mpevent("Загрузка внешнего файла", $href, $conf['user']['uid'], func_get_args());
+			}else{
+				if($img_id != $id){
+					mpqw("DELETE FROM {$tn} WHERE id=". (int)$img_id);
+				} mpevent("Ошибка копирования удаленного файла", $href, $conf['user']['uid'], func_get_args());
+			} return $img_id;
+		}else{
+			echo $ext;
+			mpevent("Ошибка расширения при загрузке удаленного файла", $href, $conf['user']['uid'], func_get_args());
+			return 0;
+		}
+	}elseif(empty($file)){
+		echo "file href error {$error}";
+		mpevent("Ошибка загрузки внешнего файла", $href, $conf['user']['uid'], func_get_args());
+	} unlink($file['tmp_name']); return null;
 }
 
 function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
@@ -503,7 +573,7 @@ function mpdbf($tn, $post = null, $and = false){
 		}elseif(array_key_exists($k, $fields)){
 			if(gettype($v) == 'array'){
 				$f[] = "`$k` IN (". mpquot(strtr(implode(",", $v), array("<"=>"&lt;", ">"=>"&gt;"))). ")";
-			}else{
+			}else/* if(gettype($v) == "string")*/{
 				$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
 			}
 		}// mpre($f);
@@ -527,9 +597,10 @@ function mpager($count, $null=null, $cur=null, $url=null){
 		$mpager['prev'] = 'javascript:';
 	}else{
 		$return .= "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>";
-		$mpager['prev'] = $url. ($cur > 1 ? "/{$p}:".($cur-1) : '');
+//		$mpager['prev'] = $url. ($cur > 1 ? "/{$p}:".($cur-1) : '');
+		$mpager['prev'] = $url. ($cur > 1 ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur-1) : "/{$p}:".($cur-1)) : '');
 	};
-	for($i = max(0, min($cur-10, $count-20)); $i < min($count, max($cur+10, 20)); $i++){
+	for($i = max(0, min($cur-5, $count-10)); $i < min($count, max($cur+5, 10)); $i++){
 		if($i == $cur){
 			$mpager[ ($i+1) ] = 'javascript:';
 			$return .= "&nbsp;<span>".($i+1)."</span>";
@@ -659,18 +730,51 @@ function mpqw($sql, $info = null, $conn = null){
 			echo "<p>$sql<br><div color=red>".mysql_error()."</div>";
 		}
 		$check = array(
-			"" => array(
-				"" => array(
-					"",
-					"",
+			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_geoname' doesn't exist" => array(
+				"SELECT id, CONCAT(name, ' (', countryName, ')') FROM {$conf['db']['prefix']}users_geoname" => array(
+					"CREATE TABLE `{$conf['db']['prefix']}users_geoname` (`id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `continentCode` varchar(255) NOT NULL, `countryCode` varchar(255) NOT NULL, `countryName` varchar(255) NOT NULL, `fclName` varchar(255) NOT NULL, `fcode` varchar(255) NOT NULL, `fcodeName` varchar(255) NOT NULL, `geonameId` varchar(255) NOT NULL, `lat` varchar(255) NOT NULL, `lng` varchar(255) NOT NULL, `name` varchar(255) NOT NULL, `population` varchar(255) NOT NULL, `toponymName` varchar(255) NOT NULL, PRIMARY KEY (`id`), KEY `uid` (`uid`), KEY `geonameId` (`geonameId`)) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
 				),
 			),
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_geoname' doesn't exist" => array(
+			"Unknown column 's.geo' in 'where clause'" => array(
+				"SELECT s.*, u.name AS uname" => array(
+					"ALTER TABLE `{$conf['db']['prefix']}sess` ADD `geo` varchar(255) NOT NULL",
+				),
+			),
+			"Unknown column 'sort' in 'order clause'" => array(
+				"SELECT * FROM {$conf['db']['prefix']}blocks_reg" => array(
+					"ALTER TABLE `{$conf['db']['prefix']}blocks_reg` ADD `sort` int(11) NOT NULL AFTER `id`",
+					"UPDATE {$conf['db']['prefix']}blocks_reg SET sort=id",
+				),
+			),
+			"Unknown column 'sort' in 'where clause'" => array(
+				"SELECT COUNT(*) FROM {$conf['db']['prefix']}blocks_reg" => array(
+					"ALTER TABLE `{$conf['db']['prefix']}blocks_reg` ADD `sort` int(11) NOT NULL AFTER `id`",
+					"UPDATE {$conf['db']['prefix']}blocks_reg SET sort=id",
+				),
+			),
+			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}search_keys_tabs' doesn't exist" => array(
+				"SELECT i.*, k.id AS keys_id, k.name as keys_name, kt.name AS tabs_name" => array(
+					"CREATE TABLE `{$conf['db']['prefix']}search_keys_tabs` ( `id` int(11) NOT NULL AUTO_INCREMENT, `keys_id` int(11) NOT NULL, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `name` varchar(255) NOT NULL, PRIMARY KEY (`id`), KEY `search_keys_id` (`keys_id`), KEY `time` (`time`), KEY `uid` (`uid`) ) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=cp1251",
+				),
+			),
+			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}search_keys' doesn't exist" => array(
+				"SELECT i.*, k.id AS keys_id, k.name as keys_name, kt.name AS tabs_name" => array(
+					"CREATE TABLE `{$conf['db']['prefix']}search_keys` ( `id` int(11) NOT NULL AUTO_INCREMENT, `index_id` int(11) NOT NULL, `name` varchar(255) NOT NULL, `tab` varchar(255) NOT NULL, PRIMARY KEY (`id`), KEY `index_id` (`index_id`) ) ENGINE=InnoDB AUTO_INCREMENT=80 DEFAULT CHARSET=cp1251",
+					"ALTER TABLE `{$conf['db']['prefix']}search_index` CHANGE `search` `name` varchar(255) NOT NULL",
+				),
+			),
+			"Unknown column 'term' in 'where clause'" => array(
+				"SELECT * FROM {$conf['db']['prefix']}blocks_reg AS r WHERE r.reg_id=0 AND" => array(
+					"ALTER TABLE `{$conf['db']['prefix']}blocks_reg` ADD `term` int(11) NOT NULL AFTER `id`",
+					"ALTER TABLE `{$conf['db']['prefix']}blocks_reg` ADD INDEX (`term`)",
+				),
+			),
+/*			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_geoname' doesn't exist" => array(
 				"SELECT id, CONCAT(name, \' (\', countryName, \')\') FROM mp_users_geoname" => array(
 					"",
 					"",
 				),
-			),
+			),*/
 			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_lang_words' doesn't exist" => array(
 				"SELECT id, name FROM {$conf['db']['prefix']}users_lang_words" => array(
 					"CREATE TABLE `{$conf['db']['prefix']}users_lang_words` ( `id` int(11) NOT NULL AUTO_INCREMENT, `modules` varchar(255) NOT NULL, `name` varchar(255) NOT NULL, `description` varchar(255) NOT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
@@ -690,11 +794,11 @@ function mpqw($sql, $info = null, $conn = null){
 					"CREATE TABLE `{$conf['db']['prefix']}users_anket_data` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `anket_id` int(11) NOT NULL, `name` varchar(255) NOT NULL, `description` varchar(255) NOT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=cp1251"
 				),
 			),
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_geoname' doesn't exist" => array(
+/*			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_geoname' doesn't exist" => array(
 				"SELECT id, name FROM {$conf['db']['prefix']}users_geoname" => array(
 					"CREATE TABLE `mp_users_geoname` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `continentCode` varchar(255) NOT NULL, `countryCode` varchar(255) NOT NULL, `countryName` varchar(255) NOT NULL, `fclName` varchar(255) NOT NULL, `fcode` varchar(255) NOT NULL, `fcodeName` varchar(255) NOT NULL, `geonameId` varchar(255) NOT NULL, `lat` varchar(255) NOT NULL, `lng` varchar(255) NOT NULL, `name` varchar(255) NOT NULL, `population` varchar(255) NOT NULL, `toponymName` varchar(255) NOT NULL, PRIMARY KEY (`id`), KEY `uid` (`uid`), KEY `geonameId` (`geonameId`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
 				),
-			),
+			),*/
 			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_event_notice' doesn't exist" => array(
 				"SELECT * FROM {$conf['db']['prefix']}users_event_notice" => array(
 					"CREATE TABLE `{$conf['db']['prefix']}users_event_notice` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `grp_id` int(11) NOT NULL, `type` varchar(255) NOT NULL, `event_id` int(11) NOT NULL, `log` int(11) NOT NULL, `count` int(11) NOT NULL, `name` varchar(255) NOT NULL, `text` text NOT NULL, `zam` text NOT NULL, PRIMARY KEY (`id`), KEY `event_id` (`event_id`), KEY `uid` (`uid`), KEY `grp_id` (`grp_id`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
@@ -946,15 +1050,19 @@ function mpqw($sql, $info = null, $conn = null){
 				),
 			),*/
 		);
-		if($init = $check[ $error ]){
-			foreach($init as $r=>$q){
-				if(strpos($sql, $r) !== false){
-					mpre($q);
-					foreach($q as $n=>$s){
-						mpqw($s); echo $s;
+		if($error){
+			mpevent("Ошибка в структуре базы данных", $error, $conf['user']['uid']);
+			if($init = $check[ $error ]){
+				mpevent("Таблица исправлений структуры базы даных", $sql, $conf['user']['uid'], $init);
+				foreach($init as $r=>$q){
+					if(strpos($sql, $r) !== false){
+						mpevent("Исправление структуры базы данных", $sql, $conf['user']['uid'], $init[ $q ]);
+						foreach($q as $n=>$s){
+							mpqw($s); echo $s;
+						} mpre($q);
 					}
-				}
-			};
+				};
+			}
 		}
 	}
 
@@ -1082,16 +1190,15 @@ function mpre($array = false, $access = 4, $line = 0){
 	if(empty($argv) && ($arg['access'] < $access)) return;
 	foreach(debug_backtrace() as $k=>$v){
 		if(!is_numeric($line) || $k === $line){
-			if($array){
-				echo "<fieldset><legend>[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()</legend>";
+			if($array){ # Комментарии выводим для javascript шаблонов. Чтобы они игнорировались как код
+				echo "/*<fieldset><legend>[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()</legend>*/";
 			}else{
-				echo "[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()<br>";
+				echo "/*[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()<br>*/";
 			}
 			foreach($v['args'] as $n=>$z){
-				echo "<pre>"; print_r($z); echo "</pre>";
+				echo "/*<pre>"; print_r($z); echo "</pre>*/";
 			}
-			if($array)
-				echo "</fieldset>";
+			if($array) echo "/*</fieldset>*/";
 		}
 	}
 }

@@ -15,10 +15,10 @@ function get_iframe_url_params($operation_id, $sum, $md5check) {
 }
 
 function data_create_operation($sum) {
-  $userid 			= 1;
+/*  $userid 			= 1;
   $type 				= "Р’РЅРµС€РЅСЏСЏ";
   $comment 			= "РџРѕРїРѕР»РЅРµРЅРёРµ СЃС‡РµС‚Р°";
-  $description 	= "С‡РµСЂРµР· СЃРёСЃС‚РµРјСѓ Onpay";
+  $description 	= "С‡РµСЂРµР· СЃРёСЃС‚РµРјСѓ Onpay";*/
 
 	$query = "INSERT INTO `mp_onpay_operations` (`sum`,`uid`, `status`, `type`, `comment`, `description`, `date`) VALUES('". (int)$sum. "', '". (int)$userid. "', ".get_constant('new_operation_status').", '". mpquot($type). "', '". mpquot($comment). "', '". mpquot($description). "', NOW());"; 
   return mysql_query($query);
@@ -30,6 +30,7 @@ function data_get_created_operation($id) {
 }
 
 function data_set_operation_processed($id) {
+	
 	$query = "UPDATE mp_onpay_operations SET status=1, date=NOW() WHERE id='". (int)$id. "'";
 	return mysql_query($query); 
 }
@@ -41,7 +42,7 @@ function data_update_user_balance($operation_id, $sum) {
 		$operation_row = mysql_fetch_assoc($operation);
 		$userid = $operation_row["uid"];
 		
-		$query = "INSERT INTO mp_onpay_balances SET uid=". (int)$userid. ", sum=". (int)$sum. ", date=NOW() ON DUPLICATE KEY UPDATE date=NOW()";
+		$query = "INSERT INTO mp_onpay_balances SET uid=". (int)$userid. ", sum=". (int)$sum. ", date=NOW() ON DUPLICATE KEY UPDATE sum=sum+". (int)$sum. ", date=NOW()";
 
 		mpevent("Новый платеж", $operation_id, $operation_row['uid'], $operation_row);
 		return mysql_query($query);

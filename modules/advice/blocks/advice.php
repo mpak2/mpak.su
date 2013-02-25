@@ -25,7 +25,7 @@ if(array_key_exists('null', $_GET) && array_key_exists('blocks', $_GET['m']) && 
 <? if(!array_key_exists('null', $_GET)): ?>
 <script language="javascript">
 	$(document).ready(function(){
-		$(".href_<?=$arg['blocknum']?>").live("click", function(){
+		$("#data_<?=$arg['blocknum']?>").on("click", ".href_<?=$arg['blocknum']?>", function(){
 			var type = $(this).attr("type");
 			var num = $(this).attr("num");
 			$.post("/blocks/<?=$arg['blocknum']?>/null", {id:num, type:type}, function(data){

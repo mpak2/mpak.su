@@ -29,6 +29,9 @@ if ($_POST['text'] && $conf['tpl']['vetka']['aid'] > 1){ # Добавление 
 			echo "<div align=center>Недостаточно прав для редактирования сообщения</div>";
 		}
 	}else{
+		$_POST['text'] = preg_replace( '/(?<!S)((http(s?):\/\/)|(www\.[A-Za-zА-Яа-яЁё0-9-_]+\.))+([A-Za-zА-Яа-яЁё0-9\/*+-_?&;:%=.,#]+)/u', '<a href="http$3://$4$5" target="_blank" rel="nofollow">http$3://$4$5</a>', htmlspecialchars($_POST['text']));
+		$_POST['text'] = preg_replace ( '/(?<!S)([A-Za-zА-Яа-яЁё0-9_.\-]+\@{1}[A-Za-zА-Яа-яЁё0-9\.|-|_]*[.]{1}[a-z-а-я]{2,5})/u', '<a href="mailto:$1">$1</a>', $_POST['text'] );
+
 		mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_mess (time, uid, vetki_id, text) VALUE (".time().", {$conf['user']['uid']}, ".(int)$_GET['vetki_id'].", '".mpquot($_POST['text'])."')");
 	}
 }elseif((int)$_GET['edit']){ # Редактирование сообщений

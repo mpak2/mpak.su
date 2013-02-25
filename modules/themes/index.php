@@ -2,22 +2,25 @@
 
 if(isset($_GET[''])) $_GET['q'] = $_GET[''];
 if (isset($_GET['q'])){
+//	print_r($_GET); exit;
 	$ext = array_pop(explode('.', $_GET['q']));
-	$tn = "themes/".basename($_GET['null'] ? $_GET['null'] : $conf['settings']['theme']);
+	$tn = "themes/".basename($_GET['theme'] ? $_GET['theme'] : $conf['settings']['theme']);
 	$res_name = $tn ."/".strtr($_GET['q'], array('..'=>''));
 	header('Last-Modified: Cache-Control: max-age=86400, must-revalidate');
 	header("Expires: " . date("r", time() + 3600));
 	header("Cache-Control: public");
 	$defaultmimes = array(
-		'aif' => 'audio/x-aiff', 'aiff' => 'audio/x-aiff', 'arc' => 'application/octet-stream', 'arj' => 'application/octet-stream', 'art' => 'image/x-jg', 'asf' => 'video/x-ms-asf', 'asx' => 'video/x-ms-asf', 'avi' => 'video/avi', 'bin' => 'application/octet-stream', 'bm' => 'image/bmp', 'bmp' => 'image/bmp', 'bz2' => 'application/x-bzip2', 'css' => 'text/css', 'doc' => 'application/msword', 'dot' => 'application/msword', 'dv' => 'video/x-dv', 'dvi' => 'application/x-dvi', 'eps' => 'application/postscript', 'exe' => 'application/octet-stream', 'gif' => 'image/gif', 'gz' => 'application/x-gzip', 'gzip' => 'application/x-gzip', 'htm' => 'text/html', 'html' => 'text/html', 'ico' => 'image/x-icon', 'jpe' => 'image/jpeg', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'js' => 'application/x-javascript', 'log' => 'text/plain', 'mid' => 'audio/x-midi', 'mov' => 'video/quicktime', 'mp2' => 'audio/mpeg', 'mp3' => 'audio/mpeg3', 'mpg' => 'audio/mpeg', 'pdf' => 'aplication/pdf', 'png' => 'image/png', 'rtf' => 'application/rtf', 'tif' => 'image/tiff', 'tiff' => 'image/tiff', 'txt' => 'text/plain', 'xml' => 'text/xml',
+		'otf'=>'font/opentype', 'cur'=>'application/octet-stream', 'ani'=>'application/x-navi-animation', 'aif' => 'audio/x-aiff', 'aiff' => 'audio/x-aiff', 'arc' => 'application/octet-stream', 'arj' => 'application/octet-stream', 'art' => 'image/x-jg', 'asf' => 'video/x-ms-asf', 'asx' => 'video/x-ms-asf', 'avi' => 'video/avi', 'bin' => 'application/octet-stream', 'bm' => 'image/bmp', 'bmp' => 'image/bmp', 'bz2' => 'application/x-bzip2', 'css' => 'text/css', 'doc' => 'application/msword', 'dot' => 'application/msword', 'dv' => 'video/x-dv', 'dvi' => 'application/x-dvi', 'eps' => 'application/postscript', 'exe' => 'application/octet-stream', 'gif' => 'image/gif', 'gz' => 'application/x-gzip', 'gzip' => 'application/x-gzip', 'htm' => 'text/html', 'html' => 'text/html', 'ico' => 'image/x-icon', 'jpe' => 'image/jpeg', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'js' => 'application/x-javascript', 'log' => 'text/plain', 'mid' => 'audio/x-midi', 'mov' => 'video/quicktime', 'mp2' => 'audio/mpeg', 'mp3' => 'audio/mpeg3', 'mpg' => 'audio/mpeg', 'pdf' => 'aplication/pdf', 'png' => 'image/png', 'rtf' => 'application/rtf', 'tif' => 'image/tiff', 'tiff' => 'image/tiff', 'txt' => 'text/plain', 'xml' => 'text/xml', 'ttf'=>'application/x-font-ttf',
 	);
 	header("Content-type: ".($defaultmimes[$ext] ? $defaultmimes[$ext] : "text/$ext"));
+
 	if(($_GET['w'] || $_GET['h']) && array_search($ext, array(1=>'jpg', 'png', 'gif'))){
-		echo mprs($res_name, $_GET['w'], $_GET['h'], $_GET['c']);
+		echo mprs(mpopendir($res_name), $_GET['w'], $_GET['h'], $_GET['c']);
 	}else{
-		$f = fopen($res_name, "rb");
-		while (!feof($f)) {
-			echo fread($f, 256);
+		if($f = fopen(mpopendir($res_name), "rb")){
+			while(!feof($f)) {
+				echo fread($f, 256);
+			}
 		}
 	}
 /*}else{

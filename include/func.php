@@ -165,15 +165,21 @@ function stable($table){
 			if (strlen($table['where'])) $sql .= " AND ".mpquot($table['where']);
 			if (strlen($table['_where'])) $sql .= " AND {$table['_where']}";
 			if ($table['debug']) mpre($sql);
-			$result = mpqw($sql);
-			if ((gettype($table['dbconn']) == 'object' && $result->_numOfRows) || (gettype($table['dbconn']) == 'resource' && mysql_num_rows($result))){
+			$result = mpql(mpqw($sql), 0);
+			if(array_key_exists('img', $result) && ($file_name = mpopendir("include/{$result['img']}"))){
+				@mkdir("/tmp/del/", true);
+				copy($file_name, "/tmp/del/". basename($file_name));
+				unlink($file_name);
+			}
+/*			if ((gettype($table['dbconn']) == 'object' && $result->_numOfRows) || (gettype($table['dbconn']) == 'resource' && mysql_num_rows($result))){
+mpre($_GET); exit;
 				foreach(gettype($table['dbconn']) == 'object' ? $result->fields : mysql_fetch_array($result, 1) as $field=>$value){
+					$file_name = strtr("include/$value", array('/..'=>''));
 					if ($table['type'][$field] == 'file' && file_exists($file_name)){
-						$file_name = strtr("include/$value", array('/..'=>''));
 						unlink($file_name);
 					}
 				}
-			}
+			}*/
 			$sql = "DELETE FROM {$table['name']} WHERE id = ".(int)$_GET['del'];
 			if (strlen($table['where'])) $sql .= " AND ".mpquot($table['where']);
 			if (strlen($table['_where'])) $sql .= " AND {$table['_where']}";

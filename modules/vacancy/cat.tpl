@@ -21,7 +21,7 @@
 					<div>
 						<span style="float:right;">разместил: <a href="/users/<?=$v['uid']?>"><?=($v['uid'] > 0 ? $v['uname'] : $conf['settings']['default_usr'])?></a></span>
 						<span>
-							<?=date('Y.m.d H:i:s', $v['time'])?>
+							<?=date('d.m.Y H:i:s', $v['time'])?>
 						</span>
 					</div>
 					<div>

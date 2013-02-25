@@ -75,7 +75,10 @@
 //				'value' => ,
 //				'time' => $time,
 //			),
-			'default' => array('modpath'=>array('*'=>$_GET['where']['modpath'])), # Значение полей по умолчанию
+			'default' => array(
+				'aid'=>array("*"=>4),
+				'modpath'=>array('*'=>$_GET['where']['modpath'])
+			), # Значение полей по умолчанию
 			'maxsize' => array('value'=>'50'), # Максимальное количество символов в поле
 		)
 	);

@@ -20,6 +20,7 @@ $conf['settings'] += array(
 	"{$arg['modpath']}_cat"=>"Категории",
 	"{$arg['modpath']}_files"=>"Файлы",
 	"{$arg['modpath']}_ext"=>".Расширение",
+	"{$arg['modpath']}_type"=>"Тип",
 );
 
 foreach(mpql(mpqw("SHOW TABLES WHERE Tables_in_{$conf['db']['name']} LIKE \"{$conf['db']['prefix']}{$arg['modpath']}\_%\"")) as $k=>$v){

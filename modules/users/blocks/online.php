@@ -19,7 +19,10 @@ $online = mpql(mpqw($sql = "SELECT SQL_CALC_FOUND_ROWS u.*, s.count, s.cnull, s.
 $count = mpql(mpqw("SELECT FOUND_ROWS() AS count"), 0, 'count');
 
 $logo = array(
+	"Mediapartners-Google.png"=>"Mediapartners-Google",
+	"statdom.png"=>"statdom",
 	"ezooms.png"=>"ezooms",
+	"ahrefs.png"=>"ahrefs",
 	"yahoo.png"=>"Yahoo",
  	"google.png"=>"Googlebot",
 	"rambler.png"=>"StackRambler",
@@ -31,6 +34,7 @@ $logo = array(
 	"archive.org.png"=>"archive.org_bot",
 	"begun.png"=>"Begun",
 	"majestic12.png"=>"majestic12",
+	"mail.ru.png"=>"Mail.RU",
 	"bot.png"=>"bot",
 );// mpre($logo);
 

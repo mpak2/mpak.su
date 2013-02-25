@@ -48,32 +48,38 @@ if ((int)$arg['confnum']){
 
 }//$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
+
+
+
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
+	$geoname_id = mpfdk("{$conf['db']['prefix']}users_geoname", array("geonameId"=>$_POST['geoname']['geonameId']), $_POST['geoname'], $_POST['geoname']);
 	if($conf['user']['uid'] > 0){
-		if((array_key_exists("geo", $conf['user'])) && (empty($conf['user']['geo']))){
-			mpqw("UPDATE {$conf['db']['prefix']}users SET geo=\"". mpquot($_POST['smart']['longitude']. ",". $_POST['smart']['latitude']). "\" WHERE id=". (int)$conf['user']['uid']);
-			mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']} SET geo=\"". mpquot($_POST['smart']['longitude']. ",". $_POST['smart']['latitude']). "\" WHERE id=". (int)$conf['user']['uid']);
-		} if(array_key_exists("geoname_id", $conf['user']) && !$conf['user']['geoname_id']){
-			echo $geoname_id = mpfdk("{$conf['db']['prefix']}users_geoname", array("geonameId"=>$_POST['geoname']['geonameId']), $_POST['geoname'], $_POST['geoname']);
-			mpqw("UPDATE {$conf['db']['prefix']}users SET geoname_id=". (int)$geoname_id. " WHERE id=". (int)$conf['user']['uid']);
+		if(array_key_exists("geoname_id", $conf['user']) && !$conf['user']['geoname_id']){
+			mpqw($sql = "UPDATE {$conf['db']['prefix']}users SET geoname_id=". (int)$geoname_id. " WHERE id=". (int)$conf['user']['id']);
 		}
-	}else{
-		mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']} SET geo=\"". mpquot($_POST['smart']['longitude']. ",". $_POST['smart']['latitude']). "\" WHERE id=". abs($conf['user']['uid']));
-	} $data = "<b>{$_POST['smart']['countryName']}</b> {$_POST['smart']['city']}";
+		if((array_key_exists("geo", $conf['user'])) && empty($conf['user']['geo'])){
+			mpqw($sql = "UPDATE {$conf['db']['prefix']}users SET geo=\"". mpquot($_POST['smart']['latitude']. ",". $_POST['smart']['longitude']). "\" WHERE id=". (int)$conf['user']['id']);
+		}
+	}
+	if((array_key_exists("geo", $conf['user']['sess'])) && empty($conf['user']['sess']['geo'])){
+		mpqw($sql = "UPDATE {$conf['db']['prefix']}{$arg['modpath']} SET geo=\"". mpquot($_POST['smart']['longitude']. ",". $_POST['smart']['latitude']). "\" WHERE id=". (int)$conf['user']['sess']['id']);
+	} if(array_key_exists("geoname_id", $conf['user']['sess']) && !$conf['user']['sess']['geoname_id']){
+		mpqw($sql = "UPDATE {$conf['db']['prefix']}{$arg['modpath']} SET geoname_id=". (int)$geoname_id. " WHERE id=". (int)$conf['user']['sess']['id']);
+	} exit("<div class=\"geoip_{$arg['blocknum']}\"><b>{$_POST['smart']['hidden']['countryName']}</b> {$_POST['smart']['hidden']['city']}</div>");
 };
 
 //$dat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} LIMIT 10"));
 
 ?>
-<? if(!array_key_exists("null", $_GET) && array_key_exists("geo", $conf['user']) && empty($conf['user']['geo']) && empty($conf['user']['sess']['geo'])): ?>
+<? if(	!array_key_exists("null", $_GET) && (
+		((array_key_exists("geo", $conf['user']['sess']) && !$conf['user']['sess']['geo']) || (array_key_exists("geoname_id", $conf['user']['sess']) && empty($conf['user']['sess']['geoname_id']))) ||
+		($conf['user']['uid'] > 0 && ((array_key_exists("geo", $conf['user']) && empty($conf['user']['geo'])) || (array_key_exists("geoname_id", $conf['user']) && empty($conf['user']['geoname_id']))))
+	)): ?>
 	<script>
 		$(function(){
 			$(document).ready( function() {
-				$.getJSON( "http://smart-ip.net/geoip-json?lang=ru&callback=?", function(smart){ console.log("smart:", smart);
-
-//					$(".geoip_<?=$arg['blocknum']?>").html("<b>"+smart.countryName+"</b> "+smart.city+" ("+smart.latitude+"x"+smart.longitude+")");
+				$.getJSON( "http://smart-ip.net/geoip-json?lang=ru&callback=?", function(smart){
 					$.getJSON("http://ws.geonames.org/searchJSON?country=RU&maxRows=10&name_startsWith="+smart.city, function(geoname){ console.log("geoname:", geoname);
-
 						$.post("/blocks/<?=$arg['blocknum']?>/null", {smart:smart, geoname:geoname.geonames[0]}, function(data){
 							if(html = $("<div>").html(data).find(".geoip_<?=$arg['blocknum']?>").html()){
 								$(".geoip_<?=$arg['blocknum']?>").append(html);

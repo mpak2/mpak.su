@@ -133,34 +133,35 @@ foreach($conf['user'] as $k=>$v){
 			<a href="/?m[<?=$arg['modpath']?>]=admin&r=mp_users&where[id]=<?=$user['id']?>"><img src="/img/aedit.png"></a>
 		</span>
 	<? endif; ?>
-	<div style="float:left; width:200px; text-align:center;">
-		<img class="user_img" src="/<?=$conf['modules']['users']['modname']?>:img/<?=$user['id']?>/tn:index/w:200/h:200/null/img.jpg">
-		<h3 style="text-align:center;"><?=$user['name']?></h3>
-		<div><a href="/<?=$conf['modules']['messages']['modname']?>:письмо/uid:<?=$user['id']?>">Написать личное сообщение</a></div>
-		<? if($arg['uid'] == $conf['user']['uid']): ?>
-			<script src="/include/jquery/jquery.iframe-post-form.js"></script>
-			<script>
-				$(function(){
-					$("#load_img_<?=$arg['blocknum']?>").iframePostForm({
-						complete:function(data){
-							if(isNaN(data)){ alert(data) }else{
-								$("#load_img_<?=$arg['blocknum']?>").find("input[type=file]").val('');
-								src = "/users:img/"+data+"/tn:index/w:200/h:200/rand:"+parseInt(Math.random()*1000)+"/null/img.jpg";
-								$("#user_info_<?=$arg['blocknum']?> img.user_img").attr("src", src);
+	<? if($param['Настройки пользователя'] < 2): ?>
+		<div style="float:left; width:200px; text-align:center;">
+			<img class="user_img" src="/<?=$conf['modules']['users']['modname']?>:img/<?=$user['id']?>/tn:index/w:200/h:200/null/img.jpg">
+			<h3 style="text-align:center;"><?=$user['name']?></h3>
+			<div><a href="/<?=$conf['modules']['messages']['modname']?>:письмо/uid:<?=$user['id']?>">Написать личное сообщение</a></div>
+			<? if($arg['uid'] == $conf['user']['uid']): ?>
+				<script src="/include/jquery/jquery.iframe-post-form.js"></script>
+				<script>
+					$(function(){
+						$("#load_img_<?=$arg['blocknum']?>").iframePostForm({
+							complete:function(data){
+								if(isNaN(data)){ alert(data) }else{
+									$("#load_img_<?=$arg['blocknum']?>").find("input[type=file]").val('');
+									src = "/users:img/"+data+"/tn:index/w:200/h:200/rand:"+parseInt(Math.random()*1000)+"/null/img.jpg";
+									$("#user_info_<?=$arg['blocknum']?> img.user_img").attr("src", src);
+								}
 							}
-						}
+						});
 					});
-				});
-			</script>
-			<form id="load_img_<?=$arg['blocknum']?>" style="text-align:right;" method="post" action="/blocks/<?=$arg['blocknum']?>/null" enctype="multipart/form-data">
-				<input type="hidden" name="uid" value="<?=$conf['user']['uid']?>">
-				<input type="file" name="img" style="margin-bottom:5px;">
-				<input type="submit" value="Загрузить фото">
-			</form>
-		<? endif; ?>
-	</div>
-	<? if($user['name'] != $conf['settings']['default_usr']): ?>
-		<div id="f_<?=$arg['blocknum']?>" style="margin-left:210px;">
+				</script>
+				<form id="load_img_<?=$arg['blocknum']?>" style="text-align:right;" method="post" action="/blocks/<?=$arg['blocknum']?>/null" enctype="multipart/form-data">
+					<input type="hidden" name="uid" value="<?=$conf['user']['uid']?>">
+					<input type="file" name="img" style="margin-bottom:5px;">
+					<input type="submit" value="Загрузить фото">
+				</form>
+			<? endif; ?>
+		</div>
+	<? endif; if(($param['Настройки пользователя'] != 1) && ($user['name'] != $conf['settings']['default_usr'])): ?>
+		<div id="f_<?=$arg['blocknum']?>" style="margin-left:<?=($param['Настройки пользователя'] == 2 ? 0 : 210)?>px;">
 			<? foreach(array_diff_key($user, array_flip($diff)) as $k=>$v): if(substr($conf['settings']["users_field_{$k}"], 0, 1) == ".") continue; ?>
 				<div style="overflow:hidden; float:none;">
 					<div><?=($conf['settings'][$f = "users_field_$k"] ?: $f)?>:</div>

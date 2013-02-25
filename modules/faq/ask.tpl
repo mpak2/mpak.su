@@ -1,6 +1,6 @@
 <script>
 	$(function(){
-		$("#faq_ask_btn").click(function(){
+		$("#faq_ask_btn").on(function(){
 			$(this).parents("#faq_ask").find("#faq_fm").toggle();
 		});
 		$("#faq_fm_btn").click(function(){

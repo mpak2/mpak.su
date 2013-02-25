@@ -116,6 +116,7 @@ if ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_region"){ // 'Мен
 //				'time' => $time,
 			),
 			'default' => array(
+				'link'=>array("*"=>"/"),
 				'pid'=>array('*'=>max($_POST['pid'], $_GET['where']['pid'])),
 				'rid'=>array('*'=>max($_POST['rid'], $_GET['where']['rid'])),
 			), # Значение полей по умолчанию

@@ -17,6 +17,25 @@
 mpmenu($m = array('Модули', 'Доступ групп', 'Доступ пользователей', 'Скрипты'));
 
 if ($m[(int)$_GET['r']] == 'Модули'){ # Добавление модуля
+
+
+/*	$modules_list = array_flip( spisok("SELECT id, folder FROM {$conf['db']['prefix']}modules") );
+	foreach(mpreaddir("modules", 1) as $k=>$file_name){
+		if ( !isset($modules_list[$file_name]) ){
+			if (substr($file_name, 0, 1) != '.' && $file_name != 'null'){
+				if(($f = mpopendir("modules/$file_name")) && is_link($f)){
+					echo "<br>". mpopendir("modules/". readlink($f). "/init.php"). "</br>";
+				}else{
+					echo "<br>". mpopendir("modules/$file_name/init.php"). "</br>";
+				}
+//				echo "<h2>{$file_name}</h2> {modules/$file_name/info.php}";
+				mpct("modules/$file_name/info.php", array('modpath'=>$file_name));
+				mpre($conf['modversion']);
+				$modlist[] = "<a title=\"{$conf['modversion']['description']}\" alt=\"{$conf['modversion']['description']}\" href='?m[modules]=admin".($_GET['r'] ? "&r={$_GET['r']}" : '')."&install=$file_name'>{$conf['modversion']['name']}</a>";
+			}
+		}
+	}*/
+
 	if($_GET['del'] && !mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE id = {$_GET['del']}"), 0)){
 		if (file_exists($del = mpopendir("modules/{$mod['folder']}")."/del.php")){
 			echo "<p>Сценарий удаления модуля<p>";
@@ -31,20 +50,25 @@ if ($m[(int)$_GET['r']] == 'Модули'){ # Добавление модуля
 		foreach(mpreaddir("modules", 1) as $k=>$file_name){
 			if ( !isset($modules_list[$file_name]) ){
 				if (substr($file_name, 0, 1) != '.' && $file_name != 'null'){
-					mpct("modules/$file_name/info.php", array('modpath'=>$file_name));
+					if(($f = mpopendir("modules/$file_name")) && is_link($f)){
+//						echo "<div>". mpopendir("modules/". readlink($f). "/info.php"). "</div>";
+						mpct("modules/". readlink($f). "/info.php", array('modpath'=>readlink($f)));
+					}else{
+//						echo "<br />modules/$file_name/info.php";
+						mpct("modules/$file_name/info.php", array('modpath'=>$file_name));
+					}// mpre($conf['modversion']);
 					$modlist[] = "<a title=\"{$conf['modversion']['description']}\" alt=\"{$conf['modversion']['description']}\" href='?m[modules]=admin".($_GET['r'] ? "&r={$_GET['r']}" : '')."&install=$file_name'>{$conf['modversion']['name']}</a>";
 				}
 				if ($_GET['install'] == $file_name){
 					if (file_exists( mpopendir($infofile = "modules/$file_name/info.php") ) ){
-						mpct($infofile, array('modpath'=>$file_name));
+						if(($f = mpopendir("modules/$file_name")) && is_link($f) && ($infofile = $f)){
+							# Ссылка на рездел
+						} mpct($infofile, array('modpath'=>$file_name));
 					}else{
 						echo "<p>Информация о версии не найдена";
 					}
 					echo "<p><font color=red>Добавлен модуль</font>: {$conf['modversion']['name']} [$file_name]<br>";
-					foreach($conf['modversion']+array('folder'=>$file_name) as $n=>$z){
-						$f[] = "`". mpquot($n). "`='". ($m == 'enabled' ? 2 : mpquot($z)). "'";
-					}
-					mpqw($sql = "INSERT INTO {$conf['db']['prefix']}modules SET ".implode(', ', $f));
+					mpfdk("{$conf['db']['prefix']}modules", null, $w = $conf['modversion']+array('folder'=>$file_name));
 					if(mpopendir("modules/$file_name/init.php")){
 						echo mpct("modules/$file_name/init.php", array('modpath'=>$file_name));
 					}

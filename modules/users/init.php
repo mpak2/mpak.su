@@ -14,15 +14,49 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}` (
   `param` text NOT NULL,
   `icq` varchar(255) NOT NULL,
   `skype` varchar(255) NOT NULL,
-  `geoname_id` int(11) NOT NULL,
-  `geo` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`),
   KEY `ref` (`refer`),
   KEY `pass` (`pass`),
-  KEY `ref_2` (`ref`),
-  KEY `geoname_id` (`geoname_id`)
+  KEY `ref_2` (`ref`)
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
+mpqw($sql);
+
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_anket` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sort` int(11) NOT NULL,
+  `anket_type_id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `required` int(11) NOT NULL,
+  `alias` varchar(255) NOT NULL,
+  `description` varchar(255) NOT NULL,
+  `reg` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `sort` (`sort`),
+  KEY `anket_type_id` (`anket_type_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+mpqw($sql);
+
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_anket_data` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` int(11) NOT NULL,
+  `uid` int(11) NOT NULL,
+  `anket_id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+mpqw($sql);
+
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_anket_type` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sort` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` varchar(255) NOT NULL,
+  `border` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `sort` (`sort`)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_event` (
@@ -62,6 +96,40 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_event_
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_event_mess` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` int(11) NOT NULL,
+  `uid` int(11) NOT NULL,
+  `event_notice_id` int(11) NOT NULL,
+  `dst` varchar(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `text` text NOT NULL,
+  `response` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `time` (`time`),
+  KEY `uid` (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+mpqw($sql);
+
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_event_notice` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` int(11) NOT NULL,
+  `uid` int(11) NOT NULL,
+  `grp_id` int(11) NOT NULL,
+  `type` varchar(255) NOT NULL,
+  `login` varchar(255) NOT NULL,
+  `log` int(11) NOT NULL,
+  `count` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `text` text NOT NULL,
+  `zam` text NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `event_id` (`event_id`),
+  KEY `uid` (`uid`),
+  KEY `grp_id` (`grp_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+mpqw($sql);
+
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_geoname` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `time` int(11) NOT NULL,
@@ -92,24 +160,6 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_grp` (
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_mem` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uid` int(11) NOT NULL,
-  `grp_id` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uid` (`uid`,`grp_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
-mpqw($sql);
-
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_type` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
-  `auth` int(11) NOT NULL,
-  `description` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
-mpqw($sql);
-
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_lang` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
@@ -129,6 +179,33 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_lang_t
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`,`lang_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+mpqw($sql);
+
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_lang_words` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `modules` varchar(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+mpqw($sql);
+
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_mem` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uid` int(11) NOT NULL,
+  `grp_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uid` (`uid`,`grp_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
+mpqw($sql);
+
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_type` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `auth` int(11) NOT NULL,
+  `description` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'user_grp', 'Зарегистрированные', '4', 'Группа зарегистрированных пользователей')");

@@ -32,7 +32,7 @@
 			<tr>
 				<td class="ar">Ссылка для оплаты:</td>
 				<td class="al">
-					<a target=_blank href="http://secure.onpay.ru/pay/<?=$conf['settings']['onpay_onpay_form']?>?pay_mode=fix&price=<?=$conf['tpl']['operation']['sum']?>&currency=RUR&pay_for=<?=$conf['tpl']['operation']['id']?>&convert=no<?=($_conf['user']['email'] ? "&user_email=admin@{$_conf['user']['email']}" : '')?>&url_success=<?=$_SERVER['REQUEST_URI']?>">
+					<a href="/<?=$arg['modname']?>/<?=$conf['tpl']['operation']['id']?>">
 						Оплатить
 					</a>
 				</td>

@@ -12,13 +12,18 @@
 				</div>
 				<div style="margin:10px;"><?=$v['description']?></div>
 			</div>
-			<div style="text-align:right;">
+			<div style="text-align:left;">
 				<? if($_GET['id']): ?>
-					<a href="/<?=$arg['modpath']?>">В список</a>
+					<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>">В список</a>
 					<div style="margin:10px;"><?=$v['url']?></div>
+					<div style="margin:10px;"><?=$v['email']?></div>
 					<div style="margin:10px;"><?=$v['tel']?></div>
+					<div style="margin:10px;"><?=$v['rtel']?></div>
+					<div style="margin:10px;"><?=$conf['tpl']['sity'][ $v['sity_id'] ]?></div>
+					<div style="margin:10px;"><?=$v['addr']?></div>
+					<div><?=$v['text']?></div>
 				<? else: ?>
-					<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/<?=$v['id']?>">Комментариев [<?=(int)$conf['tpl']['comments'][$v['id']]?>]</a>
+					<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/<?=$v['id']?>">Подробная информация [<?=(int)$conf['tpl']['comments'][$v['id']]?>]</a>
 				<? endif; ?>
 			</div>
 		<? endforeach; ?>

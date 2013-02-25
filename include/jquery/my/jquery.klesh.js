@@ -65,6 +65,7 @@ jQuery.fn.klesh = function(action, callbackFnk, select){
 	.css("min-height", "25px")
 	.css("min-width", "25px")
 	.css("line-height", "25px")
-	.css("overflow", "hidden");
+	.css("overflow", "hidden")
+	.css("white-space", "nowrap");
 	return this;
 };

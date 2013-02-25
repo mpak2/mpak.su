@@ -19,6 +19,7 @@ $conf['settings'] += array(
 	"{$arg['modpath']}_index"=>$conf['modules'][ $arg['modname'] ]['name'],
 	"{$arg['modpath']}_cat"=>"Категории",
 	"{$arg['modpath']}_keys"=>"Ключи",
+	"{$arg['modpath']}_keys_tabs"=>"Табы",
 	"{$arg['modpath']}_pages"=>"Страницы",
 );
 

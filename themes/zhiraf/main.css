@@ -233,7 +233,7 @@ input[type="submit"]
 			{
 				margin:0 0 0 222px;
 				padding:0 1px;
-				/*content:'&nbsp;';*/
+				content:'&nbsp;';
 			}
 				#content .cont
 				{
@@ -631,6 +631,8 @@ select
 	font-size:12px;
 	line-height:19px;
 }
+
+-webkit-input-placeholder { color:gray; } :-moz-placeholder { color:gray; } :-ms-input-placeholder { color:gray; }
 /* *** Постановщик задач *** */
 .TicketBlock
 {

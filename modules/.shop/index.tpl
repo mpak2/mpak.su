@@ -1,6 +1,6 @@
 <!-- [settings:foto_lightbox] -->
 
-<? if($_GET['id'] || $_GET['oid'] || $_GET['pid'] || $_GET['sity_id']): ?>
+<? if($_GET['id'] || $_GET['oid'] || $_GET['pid'] || $_GET['sity_id'] || $_GET['uid']): ?>
 	<style>
 		.button {
 			margin:4px;
@@ -21,25 +21,25 @@
 		<div style="overflow:hidden;">
 			<div style="float:right; margin-right:50px;"><img src="/services:img/<?=$conf['tpl']['producer']['id']?>/tn:3/w:100/h:100/c:1/null/img.jpg"></div>
 			<div style="font-size:19.2px;"><a href="/">На главную</a></div> 
-			<h1><a href="/<?=$arg['modpath']?>/pid:<?=$conf['tpl']['producer']['id']?>"><?=$conf['tpl']['producer']['name']?></a></h1>
+			<h1><a href="/<?=$arg['modpath']?>:producer/<?=$conf['tpl']['producer']['id']?>"><?=$conf['tpl']['producer']['name']?></a></h1>
 		</div>
 		<? endif; ?>
 		<div><i><?=$conf['tpl']['obj']['description']?></i></div>
 	</div>
-	<div style="margin-bottom:10px;"><? mpager($conf['tpl']['pcount']); ?></div>
+	<div style="margin-bottom:10px;"><?=$conf['tpl']['pcount']?></div>
 	<? foreach($conf['tpl']['desc'] as $k=>$v): ?>
-		<div style="overflow:hidden; border-top: dashed 1px blue; padding:10px;">
+		<div style="overflow:hidden; border-top: dashed 1px blue; padding:10px; float:<?=($_GET['id'] ? "none" : "left")?>; width:<?=$_GET['id'] ? "100%" : "45%"?>;">
 			<div id="gallery">
 				<a title="<?=$v['name']?>" alt="<?=$v['name']?>" href="/<?=$arg['modpath']?>:img/<?=$v['id']?>/tn:1/w:600/h:500/null/img.jpg">
 					<img src="/<?=$arg['modpath']?>:img/<?=$v['id']?>/tn:1/w:200/h:150/null/img.jpg" style="float:right;">
 				</a>
 			</div>
-			<h3><a href=/<?=$arg['modpath']?>/<?=$v['id']?>><?=$v['name']?></a></h3>
-			<div>город: <?=$conf['tpl']['sity'][ $v['sity_id'] ]?></div>
-			<div>категория: <?=$conf['tpl']['objs'][ $v['oid'] ]?></div>
+			<h2>
+				<a href="/<?=$arg['modpath']?>/<?=$v['id']?>" style="font-size:130%;"><?=$v['name']?></a>
+			</h2>
+			<div>категория: <a href="/<?=$arg['modpath']?>/oid:<?=$v['obj_id']?>"><?=$conf['tpl']['objs'][ $v['obj_id'] ]?></a></div>
 			<div>цена: <?=$v['price']?>&nbsp;<!-- [settings:onpay_currency] --></div>
 			<div style="margin-top:10px;"><i><?=$v['description']?></i></div>
-			<div style="margin-top:10px;"><?=$v['text']?></div>
 			<div style="text-align:left;">
 			<input type="text" id="count_<?=$v['id']?>" style="width:70px;" value="1">
 			<input type="button" id="button" id="<?=$v['id']?>" class="button" onClick="javascript: location.href='/<?=$arg['modpath']?>:order/did:<?=$v['id']?>/count:'+document.getElementById('count_<?=$v['id']?>').value;">
@@ -57,29 +57,45 @@
 		<div style="clear:both;"></div>
 		<?=$conf['settings']['comments']?>
 	<? else: ?>
-		<? mpager($conf['tpl']['pcount']); ?>
+		<?=$conf['tpl']['pcount']?>
 	<? endif; ?>
 <? else: ?>
-	<? foreach($conf['tpl']['obj'] as $k=>$v): if($v['pid']) continue; ?>
-		<div style="float:left; text-align:center; border:0px solid gray; overflow:hidden; width:130px;">
-			<h3 id="gallery">
-				<a title="<?=$v['description']?>" alt="<?=$v['description']?>" href="/<?=$arg['modpath']?>:img/<?=$v['id']?>/w:600/h:500/null/img.jpg">
-					<img src="/<?=$arg['modpath']?>:img/<?=$v['id']?>/w:70/h:50/c:1/null/img.jpg" style="border:1px solid gray;">
-				</a>
-				<div><?=$v['name']?></div>
-			</h3>
-			<ul style="text-align:left;">
-				<? foreach($conf['tpl']['objs'] as $n=>$z): if($z['pid'] != $v['id']) continue; ?>
-				<li>
-					<a href=/<?=$arg['modpath']?>/oid:<?=$z['id']?>>
-						<?=$z['name']?> <?=($conf['tpl']['dcount'][$z['id']] ? "[{$conf['tpl']['dcount'][$z['id']]}]" : '')?>
-					</a>
-				</li>
-				<? endforeach; ?>
-			</ul>
-		</div>
-		<? if($k % 3 == 2): ?>
-			<div style="clear:both;"></div>
-		<? endif; ?>
-	<? endforeach; ?>
+	<style>
+		.serva:hover {
+			background:#faf8f4;
+			color:red;
+		}
+	</style>
+	<div style="margin:10px 0 30px;">
+		<a href="/users/0">
+			Добавьте свой товар прямо сейчас из личного кабинета
+		</a>
+	</div>
+	<div>
+		<? foreach($conf['tpl']['obj'] as $k=>$v): if($v['obj_id']) continue; ?>
+			<div style="width:32%; float:left; text-align:center;">
+				<div id="gallery" style="text-align:center; margin-top:10px;">
+	<!--				<a title="<?=$v['description']?>" alt="<?=$v['description']?>" href="/<?=$arg['modpath']?>:img/<?=$v['id']?>/w:600/h:500/null/img.jpg">
+						<img src="/<?=$arg['modpath']?>:img/<?=$v['id']?>/w:70/h:50/c:1/null/img.jpg" style="border:1px solid gray;">
+					</a>-->
+						<div>
+							<img src="/<?=$arg['modname']?>:img/<?=$v['id']?>/tn:img/w:100/h:100/c:1/null/img.jpg" style="border-radius:3px;">
+						</div>
+					<h4><?=$v['name']?></h4>
+				</div>
+				<ul style="text-align:left; list-style:none;">
+					<? foreach($conf['tpl']['objs'] as $n=>$z): if($z['obj_id'] != $v['id']) continue; ?>
+					<li>
+						<a href="/<?=$arg['modpath']?>/oid:<?=$z['id']?>" style="font-weight:normal; text-decoration:none; padding:1px 0 1px 5px; display:block;" class="serva">
+							<?=$z['name']?> <?=($conf['tpl']['dcount'][$z['id']] ? "[{$conf['tpl']['dcount'][$z['id']]}]" : '')?>
+						</a>
+					</li>
+					<? endforeach; ?>
+				</ul>
+			</div>
+			<? if($k % 3 == 2): ?>
+				<div style="clear:both;"></div>
+			<? endif; ?>
+		<? endforeach; ?>
+	</div>
 <? endif; ?>

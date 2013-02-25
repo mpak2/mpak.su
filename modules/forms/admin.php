@@ -111,7 +111,10 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 				'required'=>array('*'=>array(0=>'', 1=>'обаз')),
 //				'time' => $time,
 			),
-			'default' => array('oid'=>array('*'=>max($_GET['where']['oid'], $_POST['oid']))), # Значение полей по умолчанию
+			'default' => array(
+				'type'=>array("*"=>"text"),
+				'oid'=>array('*'=>max($_GET['where']['oid'], $_POST['oid']))
+			), # Значение полей по умолчанию
 //			'maxsize' => array('bdesc'=>'50', 'sdesc'=>'50'), # Максимальное количество символов в поле
 		)
 	);

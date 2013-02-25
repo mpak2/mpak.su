@@ -68,8 +68,9 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 ?>
 <script src="/include/jquery/pnotify-1.1.1/jquery.pnotify.js"></script>
 <link rel="stylesheet" href="/include/jquery/pnotify-1.1.1/jquery.pnotify.default.css" type="text/css">
+<link rel="stylesheet" href="/include/jquery/jquery-ui/themes/redmond/jquery-ui-1.8.23.custom.css" type="text/css">
 <style>
-	.ui-pnotify {background-color:#eee; border:1px solid #888; border-radius:10px;}
+/*	.ui-pnotify {background-color:#eee; border:1px solid #888; border-radius:10px;}*/
 </style>
 <script>
 	var event = <?=json_encode($event)?>;
@@ -86,7 +87,7 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 							} if(val["uid"] != <?=$conf['user']['uid']?>){
 								$.pnotify({
 									pnotify_title: event[ val["event_id"] ]["name"],
-									pnotify_text: val["description"]+"<span style='float:right'>"+(val["uid"] > 0 ? "<a href=\"/users/"+val["uid"]+"\">"+val["uname"]+"</a>" : "<?=$conf['settings']['default_usr']?>"+val["uid"])+"</span>",
+									pnotify_text: "<div style='overflow:hidden'>"+val["description"]+"<span style='float:right'><img src='/users:bimg/"+val["uid"]+"/w:20/h:20/null/img.png'>"+(val["uid"] > 0 ? "<a href=\"/users/"+val["uid"]+"\">"+val["uname"]+"</a>" : "<?=$conf['settings']['default_usr']?>"+val["uid"])+"</span></div>",
 									pnotify_type: "error",
 									pnotify_error_icon: "ui-icon ui-icon-signal-diag"
 								});

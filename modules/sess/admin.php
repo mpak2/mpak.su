@@ -20,7 +20,6 @@ mpmenu($m = array('Сессии')+($admin ? array(1=>'Содержание', 2=>
 
 if ($m[ (int)$_GET['r'] ] == 'Сессии'){
 	if (!isset($_GET['order'])) $_GET['order'] = 'last_time DESC';
-//	print_r(spisok("SELECT id, name FROM {$conf['db']['prefix']}users WHERE name = '{$conf['settings']['admin_usr']}'"));
 	stable(
 		array(
 			'dbconn' => $conf['db']['conn'],
@@ -44,7 +43,7 @@ if ($m[ (int)$_GET['r'] ] == 'Сессии'){
 //			'middle' => array('tr'=>'<tr>', 'td'=>'<td>', 'shablon'=>"<tr><td>{sql:name}</td><td>&nbsp;{sql:img}</td><td>&nbsp;{sql:description}</td><td align='right'>{config:row-edit}</td></tr>"), # Формат записей таблицы
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
-			'title' => array('uid'=>'Пользователь', 'last_time'=>'Вход', 'count'=>'Запр', 'cnull'=>'Нуль', 'count_time'=>'Время', 'ip'=>'Адрес', 'agent'=>'Агент')+($admin ? array('sess'=>'Сессия') : array()), # Название полей
+			'title' => array('uid'=>'Пользователь', 'geoname_id'=>"Город", 'last_time'=>'Вход', 'count'=>'Запр', 'cnull'=>'Нуль', 'count_time'=>'Время', 'ip'=>'Адрес', 'agent'=>'Агент')+($admin ? array('sess'=>'Сессия') : array()), # Название полей
 			'type' => array('last_time'=>'timestamp', 'count_time'=>'timecount'), # Тип полей
 //			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('name'=>'kanal'), # Значение которое всегда будет присвоено полю. Исключает любое изменение
@@ -57,6 +56,7 @@ if ($m[ (int)$_GET['r'] ] == 'Сессии'){
 			'disable' => ($admin ? array('img') : array()), # Выключенные для записи поля
 //			'hidden' => array(), # Скрытые поля
 			'spisok' => array( # Список для отображения и редактирования
+				($fn = "geoname"). "_id" => array('*'=>array('')+spisok("SELECT id, name FROM {$conf['db']['prefix']}users_{$fn}")),
 				'uid' => array('*' => spisok("SELECT id, name FROM {$conf['db']['prefix']}users WHERE name <> '{$conf['settings']['admin_usr']}' ORDER BY name")),
 //				'time' => $time,
 			),

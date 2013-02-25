@@ -20,5 +20,5 @@
 				</div>
 			</div>
 		<? endforeach; ?>
-		<div><? mpager($conf['tpl']['cnt']); ?></div>
+		<div><?=$conf['tpl']['mpager']?></div>
 </div>

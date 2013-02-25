@@ -9,6 +9,8 @@
 	<script type="text/javascript" src="../../utils/editable_selects.js"></script>
 	<script type="text/javascript" src="js/image.js"></script>
 	<link href="css/advimage.css" rel="stylesheet" type="text/css" />
+
+	<script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
 </head>
 <body id="advimage" style="display: none">
     <form onsubmit="ImageDialog.insert();return false;" action="#"> 
@@ -23,14 +25,42 @@
 		<div class="panel_wrapper">
 			<div id="general_panel" class="panel current">
 				<fieldset>
+					<legend>{#advimage_dlg.load}</legend>
+						
+					<div>
+						<script>
+							$(function(){
+								$("#tiny_mce").on("prev", function(event){
+									alert("prev");
+								}).on("next", function(event){
+									alert("next");
+								});
+								$.post("/files:tiny/null", {next:"0"}, function(data){
+									try {
+										var json = $.parseJSON(data);
+										$("#tiny_mce").trigger("next", json);
+										$("img").attr("src", "/files/3/w:20/h:20/null/img.png").appendTo("#tiny_mce");
+									} catch (e){
+										alert(data);
+									}
+								});
+							});
+						</script>
+						<div id="tiny_mce">
+							<div style="float:right;"><input type="file" name="file"></div>
+						</div>
+					</div>
+				</fieldset>
+				<fieldset>
 						<legend>{#advimage_dlg.general}</legend>
-
 						<table class="properties">
 							<tr>
 								<td class="column1"><label id="srclabel" for="src">{#advimage_dlg.src}</label></td>
 								<td colspan="2"><table border="0" cellspacing="0" cellpadding="0">
 									<tr> 
-									  <td><input name="src" type="text" id="src" value="" class="mceFocus" onchange="ImageDialog.showPreviewImage(this.value);" /></td> 
+										<td>
+											<input name="src" type="text" id="src" value="" class="mceFocus" onchange="ImageDialog.showPreviewImage(this.value);" />
+										</td>
 									  <td id="srcbrowsercontainer">&nbsp;</td>
 									</tr>
 								  </table></td>

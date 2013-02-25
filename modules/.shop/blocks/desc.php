@@ -36,7 +36,7 @@ foreach($desc as $k=>$v){
 echo <<<EOF
 	<div>
 		<a href="/{$arg['modpath']}/{$v['id']}">
-			<img src="/{$arg['modpath']}:img/{$v['id']}/tn:1/w:150/h:150/null/img.jpg">
+			<img src="/{$arg['modpath']}:img/{$v['id']}/tn:1/w:150/h:150/c:1/null/img.jpg">
 		</a>
 	</div>
 	<div style="float:right; margin-left:10px; margin-top:3px;">{$v['price']} <!-- [settings:onpay_currency] --></div>

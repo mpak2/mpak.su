@@ -21,6 +21,9 @@ mpqw($sql);
 echo '<p>'.$sql = "DROP TABLE {$conf['db']['prefix']}{$arg['modpath']}_producer";
 mpqw($sql);
 
+echo '<p>'.$sql = "DROP TABLE {$conf['db']['prefix']}{$arg['modpath']}_sity";
+mpqw($sql);
+
 mpqw("DELETE FROM `{$conf['db']['prefix']}settings` WHERE `modpath`='services'");
 
 ?>

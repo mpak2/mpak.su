@@ -11,8 +11,8 @@
 	<ul class="nl MdlsList">
 		<? foreach($conf['tpl']['modules'] as $k=>$v): ?>
 		<li>
-			<img src="/admin:img/<?=$v['id']?>/null/img.jpg" alt="" />
-			<h1><a href="/<?=$v['folder']?>"><?=$v['name']?></a></h1>
+			<a href="/<?=$conf['modules'][ $v['folder'] ]['modname']?>"><img src="/admin:img/<?=$v['id']?>/null/img.jpg" alt="" /></a>
+			<h1><a href="/?m[<?=$v['folder']?>]=admin"><?=$v['name']?></a></h1>
 			<p><?=$v['description']?></p>
 			<div class="button"><a href="/admin/hide:<?=$v['id']?>/<?=$_GET['id']?>">скрыть</a></div>
 			<div class="button"><a href="/?m[settings]=admin&where[modpath]=<?=$v['folder']?>">настройки</a></div>

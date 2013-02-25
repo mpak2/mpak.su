@@ -1,6 +1,10 @@
 <? die;
 
-$conf['tpl']['vacancy'] = mpql(mpqw("SELECT id.*, u.name AS uname, u.mtel, s.name AS sity FROM {$conf['db']['prefix']}{$arg['modpath']}_index AS id LEFT JOIN {$conf['db']['prefix']}users AS u ON id.uid=u.id LEFT JOIN {$conf['db']['prefix']}users_sity AS s ON u.sity_id=s.id ORDER BY id.id DESC LIMIT 10"));
+$conf['tpl']['vacancy'] = mpql(mpqw("SELECT id.*, u.name AS uname, u.mtel
+	FROM {$conf['db']['prefix']}{$arg['modpath']}_index AS id
+	LEFT JOIN {$conf['db']['prefix']}users AS u ON (id.uid=u.id)
+	ORDER BY id.id DESC LIMIT 10"
+));
 
 $conf['tpl']['cnt'] = mpqn(mpqw("SELECT c.id, COUNT(*) AS cnt FROM {$conf['db']['prefix']}{$arg['modpath']}_cat AS c INNER JOIN {$conf['db']['prefix']}{$arg['modpath']}_index AS id ON c.id=id.cat_id GROUP BY c.id"));
 

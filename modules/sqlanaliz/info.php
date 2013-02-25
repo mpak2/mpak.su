@@ -8,7 +8,7 @@ $conf['modversion']=array(
 	'description'=>'Анализотор запросов к базе данных',
 	'enabled'=>'2',
 	'access'=>'1',
-	'admin'=>'7',
+	'admin'=>'6',
 	'md5'=>'fdb77344a694fffe3bf735356d74b1ba',
 );
 

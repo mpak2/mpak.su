@@ -25,7 +25,7 @@ require_once("config/config.php"); # Конфигурация
 mp_require_once("config/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
 
-$_GET += mpgt($_SERVER['REQUEST_URI'], $_GET);
+$_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI'], $_GET);
 
 if (!isset($index) && file_exists($index = array_shift(explode(':', $conf['fs']['path'], 2)). '/index.php')){
 	include($index); if($content) die;
@@ -40,11 +40,12 @@ if(!function_exists('mysql_connect')){
 	$conf['db']['conn'] = mysql_connect($conf['db']['host'], $conf['db']['login'], $conf['db']['pass']); # Соединение с базой данных
 }
 if (strlen($conf['db']['error'] = mysql_error())){
-#	echo "Ошибка соединения с базой данных<p>";
+#	echo "Ошибка соединения с базой данных";
 }else{
 	mysql_select_db($conf['db']['name'], $conf['db']['conn']);
 	mpqw("SET NAMES 'utf8'");
 } unset($conf['db']['pass']); $conf['db']['sql'] = array();
+
 header('Content-Type: text/html;charset=UTF-8');
 ini_set('display_errors', 1); error_reporting(E_ALL ^ E_NOTICE);
 
@@ -53,7 +54,7 @@ if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count
 if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) && array_key_exists('null', $_GET)){
 	if(empty($_GET['theme'])){
 		$_GET['theme'] = mpql(mpqw("SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"theme\""), 0, 'value');
-	} $ex = array('css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', '.svg'=>'font/svg+xml', '.tpl'=>'text/html');
+	} $ex = array('otf'=>'font/opentype', 'css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', '.svg'=>'font/svg+xml', '.tpl'=>'text/html');
 	$fn = "themes/{$_GET['theme']}/{$_GET['']}";
 	$ext = array_pop(explode('.', $fn));
 	header("Content-type: ". ($ex[$ext] ?: "image/$ext"));
@@ -67,7 +68,6 @@ if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) 
 $conf['db']['info'] = 'Загрузка свойств модулей';
 $conf['settings'] = array('http_host'=>$_SERVER['HTTP_HOST'])+spisok("SELECT `name`, `value` FROM `{$conf['db']['prefix']}settings`");
 if($conf['settings']['users_log']) $conf['event'] = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event"), "name");
-//echo "<pre>"; print_r($conf['event']); echo "</pre>"; exit;
 
 $conf['settings']['access_array'] = array('0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ');
 if ($conf['settings']['microtime']) $conf['settings']['microtime'] = microtime();
@@ -81,7 +81,7 @@ if($conf['settings']['del_sess']){
 	$request = serialize(array('$_POST'=>$post, '$_GET'=>$get, '$_FILES'=>$files, '$_SERVER'=>$server));
 } setlocale (LC_ALL, "Russian"); putenv("LANG=ru_RU");// bindtextdomain("messages", "./locale"); textdomain("messages"); bind_textdomain_codeset('messages', 'CP1251'); //setlocale(LC_ALL, "ru_RU.CP1251")
 
-if (!$guest_id = mpql(mpqw("SELECT id as gid FROM {$conf['db']['prefix']}users WHERE name='{$conf['settings']['default_usr']}'", 'Получаем свойства пользователя гость'), 0, 'gid')){ # Создаем пользователя в случае если его нет
+if (!$guest_id = mpql(mpqw("SELECT id as gid FROM {$conf['db']['prefix']}users WHERE name='{$conf['settings']['default_usr']}'", "Получаем свойства пользователя гость"), 0, "gid")){ # Создаем пользователя в случае если его нет
 	$guest_id = mpfdk("{$conf['db']['prefix']}users", $w = array("name"=>$conf['settings']['default_usr']), $w += array("pass"=>"nopass", "reg_time"=>time(), "last_time"=>time()));
 	$guest_grp_id = mpfdk("{$conf['db']['prefix']}users_grp", $w = array("name"=>$conf['settings']['default_grp']), $w);
 	$guest_mem_id = mpfdk("{$conf['db']['prefix']}users", $w = array("uid"=>$guest_id, "grp_id"=>$guest_grp_id), $w);
@@ -90,7 +90,7 @@ if (!$guest_id = mpql(mpqw("SELECT id as gid FROM {$conf['db']['prefix']}users W
 $sess = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE `ip`='{$_SERVER['REMOTE_ADDR']}' AND last_time>=".(time()-$conf['settings']['sess_time'])." AND `agent`=\"".mpquot($_SERVER['HTTP_USER_AGENT']). "\" AND (". ($_COOKIE["{$conf['db']['prefix']}sess"] ? "sess=\"". mpquot($_COOKIE["{$conf['db']['prefix']}sess"]). "\"" : "uid=". (int)$guest_id).") ORDER BY id DESC", 'Получаем свойства текущей сессии'), 0);
 if(!$sess){
 	$sess = array('uid'=>$guest_id, 'sess'=>md5("{$_SERVER['REMOTE_ADDR']}:".microtime()), 'ref'=>mpidn(urldecode($_SERVER['HTTP_REFERER'])), 'ip'=>$_SERVER['REMOTE_ADDR'], 'agent'=>$_SERVER['HTTP_USER_AGENT'], 'url'=>$_SERVER['REQUEST_URI']);
-	mpqw($sql = "INSERT INTO {$conf['db']['prefix']}sess (uid, ref, sess, last_time, ip, agent, url) VALUES ($guest_id, '{$sess['ref']}', '{$sess['sess']}', ".time().", '{$sess['ip']}', '".mpquot($sess['agent'])."', '".mpquot($sess['url'])."')");
+	mpqw($sql = "INSERT INTO {$conf['db']['prefix']}sess (uid, ref, sess, last_time, ip, agent, url) VALUES (". (int)$guest_id. ", '". mpquot($sess['ref']). "', \"". mpquot($_COOKIE["{$conf['db']['prefix']}sess"]). "\", ".time().", '". mpquot($sess['ip']). "', '".mpquot($sess['agent'])."', '".mpquot($sess['url'])."')");
 	$sess['id'] = mysql_insert_id();
 }
 
@@ -103,13 +103,11 @@ if ($conf['settings']['del_sess'] && ($conf['settings']['del_sess'] != 3 || $_SE
 	mpqw("INSERT INTO {$conf['db']['prefix']}sess_post (sid, url, time, method, post) VALUE ({$sess['id']}, '{$_SERVER['QUERY_STRING']}', ".time().", '{$_SERVER['REQUEST_METHOD']}', '$request')", 'Обновляем свойства сессии');
 }
 
-//if(!array_key_exists("null", $_GET)){ # Обновление информации о сессии При запррсе ресурса не обязательна
+//if(!array_key_exists("null", $_GET)){ # Обновление информации о сессии При запросе ресурса обязательна
 	mpqw("UPDATE {$conf['db']['prefix']}sess SET count_time = count_time+".time()."-last_time, last_time=".time().", ".(isset($_GET['null']) ? 'cnull=cnull' : 'count=count')."+1, sess=\"". mpquot($sess['sess']). "\" WHERE id=". (int)$sess['id']);
 //}
 
 if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аутентификация' && $uid = mpql(mpqw("SELECT id FROM {$conf['db']['prefix']}users WHERE type_id=1 AND name = \"".mpquot($_POST['name'])."\" AND pass='".mphash($_POST['name'], $_POST['pass'])."'", 'Проверка существования пользователя'), 0, 'id')){
-//	echo "<pre>"; print_r($sess); echo "</pre>";
-//	print_r($_POST); exit;
 	mpqw($sql = "UPDATE {$conf['db']['prefix']}sess SET uid=".($sess['uid'] = $uid)." WHERE id=". (int)$sess['id']);// echo $sql;
 	mpqw("UPDATE {$conf['db']['prefix']}users SET last_time=". time(). " WHERE id=".(int)$uid);
 	header("Location: ". $_SERVER['REQUEST_URI']); exit;
@@ -128,6 +126,7 @@ list($k, $conf['user']) = each($user);
 if(($conf['settings']['users_uname'] = $conf['user']['uname']) == $conf['settings']['default_usr']){
 	$conf['user']['uid'] = -$sess['id'];
 } $conf['settings']['users_uid'] = $conf['user']['uid'];
+
 $conf['db']['info'] = 'Получаем информацию о группах в которые входит пользователь';
 $conf['user']['gid'] = spisok("SELECT g.id, g.name FROM {$conf['db']['prefix']}users_grp as g, {$conf['db']['prefix']}users_mem as m WHERE (g.id=m.grp_id) AND m.uid = {$sess['uid']}");
 $conf['user']['sess'] = $sess;
@@ -140,12 +139,9 @@ if ($conf['settings']['start_mod'] && !$_GET['m']){
 	}else if(strpos($conf['settings']['start_mod'], "http://") === 0){
 		header("Location: {$conf['settings']['start_mod']}"); exit;
 	}else{
-//		header("HTTP/1.1 302 Temporary Redirect");
 		$_GET = mpgt($_SERVER['REQUEST_URI'] = $conf['settings']['start_mod']);
 	}
 } $content = mpct(mpopendir("include/init.php"), array()); # Установка предварительных переменных
-
-list($m, $f) = (array)each($_GET['m']); # Отображение меню с выбором раздела для модуля администратора
 
 foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE enabled = 2", 'Информация о модулях')) as $k=>$v){
 	if (array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) $v['access'] = 5; # Права суперпользователя
@@ -155,6 +151,20 @@ foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE enabled = 
 	$conf['modules'][ mb_strtolower($v['name']) ] = &$conf['modules'][ $v['folder'] ];
 	$conf['modules'][ $v['id'] ] = &$conf['modules'][ $v['folder'] ];
 }
+
+if(!array_key_exists("null", $_GET) && $conf['modules']['seo']){
+	if($_GET['p']){
+		$r = strtr($_SERVER['REQUEST_URI'], array("?p={$_GET['p']}"=>"", "&p={$_GET['p']}"=>"", "/p:{$_GET['p']}"=>""));
+	}else{ $r = $_SERVER['REQUEST_URI']; }// exit($r);
+	if($redirect = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}seo_redirect WHERE `from`=\"". $r. "\""), 0)){
+		$_GET = mpgt($redirect['to'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"));
+	}
+}
+
+list($m, $f) = (array)each($_GET['m']); # Отображение меню с выбором раздела для модуля администратора
+
+$conf['settings']['modpath'] = $conf['modules'][ array_shift(array_keys($_GET['m'])) ]['folder'];
+$conf['settings']['fn'] = array_shift(array_values($_GET['m'])) ?: "index";
 
 //print_r(array_shift(array_keys($_GET['m'])));
 if($_GET['id'] && $conf['settings']['modules_default'] && empty($conf['modules'][ ($mp = array_shift(array_keys($_GET['m']))) ])){
@@ -185,7 +195,7 @@ if (!function_exists('bcont')){
 		} $sid[] = "r.mid=0";
 		$sid[] = "r.mid=". (int)$conf['modules']['blocks']['id']. " AND r.fn=\"index\"";
 		
-		$regions = mpqn(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}blocks_reg AS r WHERE r.reg_id=0 AND (". implode(') OR (', $sid). ")"));
+		$regions = mpqn(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}blocks_reg AS r WHERE r.reg_id=0 AND ((term=0 AND ((". implode(') OR (', $sid). "))) OR (term=-1 AND NOT ((". implode(') OR (', $sid). "))))"));
 
 		$blocks = mpql(mpqw($sql = "SELECT b.*, r.reg_id FROM {$conf['db']['prefix']}blocks_reg AS r INNER JOIN {$conf['db']['prefix']}blocks AS b ON r.id=b.rid WHERE b.enabled=1 AND (b.theme = \"". mpquot($conf['settings']['theme']). "\" OR b.theme='*' OR b.theme='' OR (SUBSTR(b.theme, 1, 1)='!' AND b.theme<>\"!". mpquot($conf['settings']['theme']). "\")) ". ($bid ? " AND b.id=". (int)$bid : " AND ((r.id IN (". implode(',', array_keys($regions)). ") OR r.reg_id IN (". implode(',', array_keys($regions)). ")) AND (". implode(') OR (', $sid). "))"). " ORDER BY b.`orderby`", 'Информация о блоках'));// mpre($sql);
 
@@ -233,7 +243,8 @@ if (!function_exists('mcont')){
 		global $conf, $arg, $tpl;
 		foreach($_GET['m'] as $k=>$v){ $k = urldecode($k);
 			$mod = $conf['modules'][ $k ];
-			ini_set("include_path" ,mpopendir("modules/{$mod['folder']}"). ":./modules/{$mod['folder']}:". ini_get("include_path"));
+			$mod['link'] = (is_link($f = mpopendir("modules/{$mod['folder']}")) ? readlink($f) : $mod['folder']);
+			ini_set("include_path" ,mpopendir("modules/{$mod['link']}"). ":./modules/{$mod['link']}:". ini_get("include_path"));
 			if($conf['settings']['modules_title']){
 				$conf['settings']['title'] = $conf['modules'][ $k ]['name']. ' : '. $conf['settings']['title'];
 			}
@@ -242,39 +253,42 @@ if (!function_exists('mcont')){
 			if ( ((strpos($v, 'admin') === 0) ? $conf['modules'][$k]['access'] >= 4 : $conf['modules'][$k]['access'] >= 1) ){
 				$conf['db']['info'] = "Модуль '". ($name = $mod['name']). "'";
 
-				if(($glob = glob(mpopendir("modules/{$mod['folder']}"). "/*{$v}.*php"))
-					|| ($glob = glob("modules/{$mod['folder']}/*{$v}.*php"))){
+				if(preg_match("/[a-z]/", $v, $arg)){
+					$g = "/*{$v}.*php";
+				}else{
+					$g = "/*.{$v}.php";
+				}
+				if(($glob = glob($gb = (mpopendir("modules/{$mod['link']}"). $g)))
+					|| ($glob = glob($gb = ("modules/{$mod['link']}". $g)))){
 					$glob = basename(array_pop($glob));
 					$g = explode(".", $glob);
 					$v = array_shift($g);
-				}
+				}// print_r($mod); exit;
 
 				$fe = ((strpos($_SERVER['HTTP_HOST'], "xn--") !== false) && (count($g) > 1)) ? array_shift($g) : $v;
 				$arg = array('modpath'=>$mod['folder'], 'modname'=>$mod['modname'], 'fn'=>$v, "fe"=>$fe, 'access'=>$mod['access']);
 
 				if($glob){
-					$content .= mpct("modules/{$mod['folder']}/$glob", $arg);
-				}elseif(($tmp = mpct("modules/{$mod['folder']}/". ($fn = $v). ".php", $arg)) === false){
-					$content .= mpct("modules/{$mod['folder']}/". ($fn = "default"). ".php", $arg);
+					$content .= mpct("modules/{$mod['link']}/$glob", $arg);
+				}elseif(($tmp = mpct("modules/{$mod['link']}/". ($fn = $v). ".php", $arg)) === false){
+					$content .= mpct("modules/{$mod['link']}/". ($fn = "default"). ".php", $arg);
 				}else{
 					$content .= $tmp;
 				} if(!empty($tpl) || !empty($conf['tpl'])) $tpl = array_merge((array)$tpl, (array)$conf['tpl']); $conf['tpl'] = $tpl;
 
-				if (mpopendir("modules/{$mod['folder']}/$v.tpl")){# Проверяем модуль на файл шаблона
-					ob_start();
-					mp_require_once("modules/{$mod['folder']}/$v.tpl");
-					$content .= ob_get_contents();
-					ob_end_clean();
-				}else{# Проверяем модуль на файл шаблона
-					ob_start();
-					mp_require_once("modules/{$mod['folder']}/$fn.tpl");
-					$content .= ob_get_contents();
-					ob_end_clean();
-				}
+				ob_start();
+				if (mpopendir("modules/{$mod['link']}/$v.tpl")){# Проверяем модуль на файл шаблона
+					mp_require_once("modules/{$mod['link']}/$v.tpl");
+				}else if(mpopendir("modules/{$mod['link']}/$v.js")){
+					if(array_key_exists("null", $_GET)) header("Content-type: application/x-javascript");
+					mp_require_once("modules/{$mod['link']}/$v.js");
+				}else{# Дефолтный файл
+					mp_require_once("modules/{$mod['link']}/$fn.tpl");
+				} $content .= ob_get_contents(); ob_end_clean();
 
 			}else{
-				if (file_exists(mpopendir("modules/{$mod['folder']}/deny.php"))){
-					$content = mpct("modules/{$mod['folder']}/deny.php", $conf['arg'] = array('modpath'=>$mod['folder']));
+				if (file_exists(mpopendir("modules/{$mod['link']}/deny.php"))){
+					$content = mpct("modules/{$mod['link']}/deny.php", $conf['arg'] = array('modpath'=>$mod['folder']));
 				}else if(!array_key_exists("themes", $_GET)){
 					if(!array_key_exists('null', $_GET) && ($_SERVER['REQUEST_URI'] != "/admin")){
 						header('HTTP/1.0 404 Unauthorized');
@@ -295,6 +309,11 @@ if (empty($f)) $f = 'index';
 if (!empty($conf['settings']["theme/*:$f"])) $conf['settings']['theme'] = $conf['settings']["theme/*:$f"];
 if (!empty($conf['settings']["theme/$m:*"])) $conf['settings']['theme'] = $conf['settings']["theme/$m:*"];
 if (!empty($conf['settings']["theme/$m:$f"])) $conf['settings']['theme'] = $conf['settings']["theme/$m:$f"];
+
+/*if (!empty($conf['settings']["theme/*:". $conf['modules'][$f]['modpath'] ])) $conf['settings']['theme'] = $conf['settings']["theme/*:". $conf['modules'][$f]['modpath']];
+if (!empty($conf['settings']["theme/". $conf['modules'][$f]['modpath']. ":*"])) $conf['settings']['theme'] = $conf['settings']["theme/". $conf['modules'][$f]['modpath']. ":*"];
+if (!empty($conf['settings']["theme/". $conf['modules'][$f]['modpath']. ":$f"])) $conf['settings']['theme'] = $conf['settings']["theme/". $conf['modules'][$f]['modpath']. ":$f"];*/
+
 if ((strpos($f, "admin") === 0) && $conf['settings']["theme/*:admin"])
 	$conf['settings']['theme'] = $conf['settings']["theme/*:admin"];
 
@@ -322,7 +341,7 @@ if (!array_key_exists('null', $_GET) || !empty($_GET['m']['users'])){
 			$content = str_replace('<!-- [modules] -->', $content, $tc);
 		} $content = strtr($content, (array)$zblocks);
 //	}
-}
+}// echo $content;
 
 if ($conf['settings']['microtime']){
 	$conf['settings']['microtime'] = (substr(microtime(), strpos(microtime(), ' ')) - substr($conf['settings']['microtime'], strpos($conf['settings']['microtime'], ' ')) + microtime() - $conf['settings']['microtime']);

@@ -65,7 +65,7 @@ if($_GET['id']){
 									if(($fid = mpfid("{$conf['db']['prefix']}{$arg['modpath']}_result", 'file', null, $vopros_id, array("*"=>"*")))){
 										$file = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_result WHERE id=". (int)$fid), 0);// mpre($sql); exit;
 										$fds[ $v['alias'] ] = $file['file'];// mpre($fds); exit;
-									}else{ mpre($_FILES); }// mpre($fds);
+									}else{ /*mpre($_FILES);*/ }// mpre($fds);
 								}
 							}elseif((int)$_POST[ $vopros_id ]){
 								$sql = "INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_result SET anket_id=". (int)$conf['tpl']['anket_id']. ", vopros_id=". (int)$vopros_id. ", variant_id=". (int)$_POST[$vopros_id];

@@ -3,130 +3,91 @@
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_basket` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `time` int(11) NOT NULL,
-  `sum` int(11) NOT NULL,
-  `sid` int(11) NOT NULL,
   `uid` int(11) NOT NULL,
-  `close` int(11) NOT NULL,
-  `fm` varchar(255) NOT NULL,
-  `im` varchar(255) NOT NULL,
-  `ot` varchar(255) NOT NULL,
-  `sity` varchar(255) NOT NULL,
+  `status` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
   `addr` varchar(255) NOT NULL,
-  `mtel` varchar(255) NOT NULL,
-  `rtel` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `icq` varchar(255) NOT NULL,
+  `tel` varchar(255) NOT NULL,
   `description` text NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `uid` (`uid`),
-  KEY `close` (`close`),
-  KEY `sum` (`sum`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
-mpqw($sql);
-
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_desc` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `pid` int(11) NOT NULL,
-  `uid` int(11) NOT NULL,
-  `obj_id` int(11) NOT NULL,
-  `sity_id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `price` int(11) NOT NULL,
-  `img` varchar(255) NOT NULL,
-  `disable` int(11) NOT NULL,
-  `article` int(11) NOT NULL,
-  `itogo` int(11) NOT NULL,
-  `sort` int(11) NOT NULL,
-  `description` text NOT NULL,
-  `text` text NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `pid` (`pid`,`disable`),
-  KEY `oid` (`obj_id`,`disable`),
-  KEY `sity_id` (`sity_id`),
-  KEY `sort` (`sort`),
-  KEY `uid` (`uid`),
-  KEY `price` (`price`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
-mpqw($sql);
-
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_img` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uid` int(11) NOT NULL,
-  `desc_id` int(11) NOT NULL,
-  `img` varchar(255) NOT NULL,
-  `sort` int(11) NOT NULL,
-  `description` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `desc_id` (`desc_id`),
-  KEY `uid` (`uid`),
-  KEY `sort` (`sort`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
-mpqw($sql);
-
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_list` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `pid` int(11) NOT NULL,
-  `sort` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `description` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_obj` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `obj_id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `img` varchar(255) NOT NULL,
-  `sort` int(11) NOT NULL,
-  `description` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `obj_id` (`obj_id`),
-  KEY `sort` (`sort`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
-mpqw($sql);
-
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_order` (
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_basket_order` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `time` int(11) NOT NULL,
   `basket_id` int(11) NOT NULL,
-  `desc_id` int(11) NOT NULL,
+  `index_id` int(11) NOT NULL,
   `count` int(11) NOT NULL,
-  `uid` int(11) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `bid` (`basket_id`,`desc_id`),
-  KEY `count` (`count`),
-  KEY `uid` (`uid`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
+  KEY `time` (`time`),
+  KEY `basket_id` (`basket_id`),
+  KEY `index_id` (`index_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_producer` (
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_cat` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
-  `fio` varchar(255) NOT NULL,
-  `url` varchar(255) NOT NULL,
+  `description` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+mpqw($sql);
+
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_groups` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `description` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+mpqw($sql);
+
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` int(11) NOT NULL,
+  `uid` int(11) NOT NULL,
+  `cat_id` int(11) NOT NULL,
+  `vendor_id` int(11) NOT NULL,
+  `groups_id` int(11) NOT NULL,
   `img` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `tel` varchar(255) NOT NULL,
-  `rtel` varchar(255) NOT NULL,
-  `sity_id` int(11) NOT NULL,
-  `addr` varchar(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `balance` int(11) NOT NULL,
+  `price` int(11) NOT NULL,
   `description` varchar(255) NOT NULL,
   `text` text NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `sity_id` (`sity_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
+  KEY `time` (`time`),
+  KEY `uid` (`uid`),
+  KEY `cat_id` (`cat_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_sity` (
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_price` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `csv` varchar(255) NOT NULL,
+  `premium` int(11) NOT NULL,
+  `season` smallint(6) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+mpqw($sql);
+
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_vendor` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
-  `img` varchar(255) NOT NULL,
-  `description` text NOT NULL,
+  `description` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('services', 'services_currency', 'руб.', '1', 'Валюта')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('shop', 'shop_basket', 'Корзина', '5', 'Название таблицы')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('shop', 'shop_index=>title', 'cat_id,vendor_id,img,name,price', '5', 'Название таблицы')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('shop', 'shop_premium', '20%', '5', 'Наценка на весь товар в магазине')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('shop', 'shop_price', 'Цены', '5', 'Название таблицы')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('shop', 'shop_groups', 'Группы', '5', 'Название таблицы')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('shop', 'shop_vendor', 'Производитель', '5', 'Название таблицы')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('shop', 'shop=>spisok', 'vendor,groups', '5', 'Списки раздела')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('shop', 'shop_basket_order', 'Выбор', '5', 'Название таблицы')");
 
 ?>

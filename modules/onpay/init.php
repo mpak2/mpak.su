@@ -53,5 +53,8 @@ mpqw($sql);
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('onpay', 'onpay_private_code', '', '0', 'Секретный код платежа')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('onpay', 'onpay_onpay_form', '', '0', 'Логин в системе оплат')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('onpay', 'onpay_currency', 'руб.', '1', 'Валюта баланса')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('onpay', 'onpay_balances', 'Баланс', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('onpay', 'onpay_operations', 'Операции', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('onpay', 'onpay_pay', 'Оплаты', '4', '')");
 
 ?>

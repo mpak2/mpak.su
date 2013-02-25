@@ -35,7 +35,7 @@ if ((int)$arg['confnum']){
 	<div style="margin-top:10px;">
 		<? foreach($klesh as $k=>$v): ?>
 			<div style="overflow:hidden;">
-				<div style="width:200px; float:left; padding:5px; text-align:right; font-weight:bold;"><?=$k?> :</div>
+				<div style="width:200px; float:left; padding:5px; /*text-align:right;*/ font-weight:bold;"><?=$k?> :</div>
 				<? if(gettype($v) == 'array'): ?>
 					<div class="klesh_<?=strtr(md5($k), array("="=>''))?>" param="<?=$k?>"><?=$v[ $param[$k] ]?></div>
 				<? else: ?>
@@ -59,7 +59,8 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 	}
 };
 
-$anket = mpqn(mpqw("SELECT a.* FROM {$conf['db']['prefix']}{$arg['modpath']}_anket AS a INNER JOIN {$conf['db']['prefix']}{$arg['modpath']}_anket_type AS at ON (a.anket_type_id=at.id) WHERE reg<>1 ORDER BY at.sort, a.sort"), "anket_type_id", "id");// mpre($anket);
+$anket = mpqn(mpqw("SELECT a.* FROM {$conf['db']['prefix']}{$arg['modpath']}_anket AS a LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_anket_type AS at ON (a.anket_type_id=at.id) WHERE reg<>1 ORDER BY at.sort, a.sort"), "anket_type_id", "id");// mpre($anket);
+
 $tables = mpqn(mpqw("SHOW TABLES"), "Tables_in_{$conf['db']['name']}");// mpre($tables);
 foreach($anket as $anket_type){
 	foreach($anket_type as $a){
@@ -83,9 +84,9 @@ $refer = mpql(mpqw($sql = "SELECT u.* FROM {$conf['db']['prefix']}utree_index AS
 
 ?>
 <style>
-	.anket_<?=$arg['blocknum']?> h3 { cursor:pointer; border:1px solid blue; margin:3px 0; padding:0 10px; border-radius:20px; background-color:#00eeff; }
-	.anket_<?=$arg['blocknum']?> div.toggle { display:none; }
-	.anket_<?=$arg['blocknum']?> div.toggle > div { text-align:right; /*display:none; */}
+	.anket_<?=$arg['blocknum']?> h3 { cursor:pointer; /*border:1px solid blue;*/ margin:3px 0; padding:0 10px; border-radius:20px; /*background-color:#00eeff;*/ }
+	.anket_<?=$arg['blocknum']?> div.toggle { /*display:none;*/ }
+	.anket_<?=$arg['blocknum']?> div.toggle > div { /*text-align:right;*/ /*display:none; */}
 	.anket_<?=$arg['blocknum']?> div.toggle > div > span { display:inline-block; vertical-align:top; text-align:left;}
 	.anket_<?=$arg['blocknum']?> div.toggle > div > span:nth-child(1) {text-align:right; /*min-width:50%;*/ padding:4px 3px;}
 	.anket_<?=$arg['blocknum']?> div.toggle > div > span:nth-child(2) {min-width:40%}
@@ -112,19 +113,7 @@ $refer = mpql(mpqw($sql = "SELECT u.* FROM {$conf['db']['prefix']}utree_index AS
 </script>
 
 <div class="anket_<?=$arg['blocknum']?>" style="min-height:20px; overflow:hidden; padding-bottom:20px;">
-	<div style="width:25%; float:left; text-align:center;">
-		Мы приветствуем вас в веб-офисе FinWirtschaft GmbH
-		<? if($refer): ?>
-			<div>
-				<div><img src="/<?=$arg['modpath']?>:img/<?=$refer['id']?>/tn:index/w:100/h:100/null/img.jpg"></div>
-				<div>Ваш наставник: <b><?=$refer['name']?></b></div>
-				<div>Фамилия наставника: <b><?=$refer['fm']?></b></div>
-				<div>Имя наставника: <b><?=$refer['im']?></b></div>
-				<div>Электронная почта наставника: <b><?=$refer['email']?></b></div>
-			</div>
-		<? endif; ?>
-	</div>
-	<div style="float:right; min-width:70%;">
+	<div style="/*float:right;*/ min-width:70%;">
 		<? foreach($anket as $anket_type_id=>$anket): $num = 0; ?>
 			<div>
 				<h3 style="padding:5px 12px; width:70%; text-align:right;">

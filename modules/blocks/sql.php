@@ -4,7 +4,7 @@ $users = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE folder=\"
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_reg` (`id`, `reg_id`, `mid`, `fn`, `description`) VALUES ('1', '0', '0', '', 'Общая Лево'), ('2', '0', '0', '', 'Общая Право'), ('3', '0', '0', '', 'Верх'), ('4', '0', '0', '', 'АдминШапка'), ('5', '0', '0', '', 'Лево'), ('6', '0', '0', '', 'Право'), ('7', '5', '{$users['id']}', 'index', 'Кабинет'), ('8', '6', '{$users['id']}', 'index', 'Кабинет')");
 
-mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_shablon` (`id`, `name`, `description`, `shablon`) VALUES ('1', 'Основной', 'Блок по умолчанию', '<table width=240px cellspacing=0 cellpadding=5 border=0> <tr> <td align=center bgcolor=<!-- [settings:theme_block_color] -->><b><!-- [block:title] --></b></td> </tr> <tr> <td><!-- [block:content] --></td> </tr> </table>'), ('2', 'БезТитла', 'Блок без заголовка', '<!-- [block:content] -->')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_shablon` (`id`, `name`, `description`, `shablon`) VALUES ('1', 'Основной', 'Блок по умолчанию', '<table width=240px cellspacing=0 cellpadding=5 border=0> <tr> <td align=center bgcolor=<!-- [settings:theme_block_color] -->><b><!-- [block:title] --></b></td> </tr> <tr> <td><!-- [block:content] --></td> </tr> </table>'), ('2', 'БезТитла', 'Блок без заголовка', '<!-- Блок <!-- [block:modpath] -->:<!-- [block:fn] -->:<!-- [block:id] --> --><!-- [block:content] --><!-- Блок конец <!-- [block:modpath] -->:<!-- [block:fn] -->:<!-- [block:id] --> -->')");
 
 $amenu = <<<EOF
 <ul>
@@ -22,11 +22,14 @@ $amenu = <<<EOF
 EOF;
 
 $spt = <<<EOF
-Вопросы по работе системы задавайте в icq 264723755  т. +79312273177. По оформлению дизайна шаблонов модулей и блоков в icq 264723755
+Вопросы по работе системы задавайте по телефону +79291140042.
+По оформлению дизайна шаблонов модулей и блоков в skype: mpak2skype
 EOF;
 
 $menu = array(
 //	array('id'=>'0', 'theme'=>'!zhiraf', 'file'=>'themes/blocks/theme.php', 'name'=>'Выбор темы', 'access'=>'0', 'rid'=>'1', 'enabled'=>'1', ),
+	array('id'=>'11', 'theme'=>'!zhiraf', 'file'=>'admin/blocks/host.php', 'name'=>'Оплата хостинга', 'access'=>'-1', 'rid'=>'1', 'enabled'=>'1',),
+
 	array('id'=>'1', 'theme'=>'!zhiraf', 'file'=>'../include/blocks/login.php', 'name'=>'Авторизация', 'access'=>'1', 'rid'=>'1', 'enabled'=>'1', ),
 	array('id'=>'2', 'theme'=>'!zhiraf', 'file'=>'menu/blocks/mnu.php', 'name'=>'Верхнее меню', 'shablon'=>'2', 'access'=>'1', 'rid'=>'3', 'param'=>'a:2:{s:4:"menu";s:1:"2";s:3:"tpl";s:7:"top.tpl";}', 'enabled'=>'1', ),
 	array('id'=>'3', 'theme'=>'!zhiraf', 'file'=>'pages/blocks/list.php', 'name'=>'Меню', 'access'=>'1', 'rid'=>'1', 'enabled'=>'1'),
@@ -40,7 +43,8 @@ $menu = array(
 	array('id'=>'9', 'theme'=>'!zhiraf', 'file'=>'users/blocks/user.php', 'name'=>'Свойства пользователя', 'access'=>'1', 'rid'=>'7', 'enabled'=>'1',),
 
 	array('id'=>'10', 'theme'=>'!zhiraf', 'file'=>'chat/blocks/all.php', 'name'=>'Чат', 'access'=>'2', 'rid'=>'8', 'enabled'=>'1',),
-	array('id'=>'11', 'theme'=>'!zhiraf', 'file'=>'foto/blocks/img.php', 'name'=>'Мои фото', 'access'=>'1', 'rid'=>'7', 'enabled'=>'1',),
+
+//	array('id'=>'11', 'theme'=>'!zhiraf', 'file'=>'foto/blocks/img.php', 'name'=>'Мои фото', 'access'=>'1', 'rid'=>'7', 'enabled'=>'1',),
 	array('id'=>'12', 'theme'=>'!zhiraf', 'file'=>'pages/blocks/my.php', 'name'=>'Мои статьи', 'access'=>'1', 'rid'=>'7', 'enabled'=>'1',),
 );
 
@@ -48,15 +52,19 @@ foreach($menu as $sort=>$line){
 	$values = array();
 	foreach($line as $k=>$v){
 		$values[] = " `$k`='".mpquot($v)."'";
-	}
-	mpqw($sql = "INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}` SET ".implode(', ', $values). ", `orderby`='$sort'");
-//	echo $sql;
+	} mpqw($sql = "INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}` SET ".implode(', ', $values));
 }
+
 mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_gaccess` SET `bid`='1', `gid`='2', `access`='1', `description`='Права доступа администратора к блоку смены шаблонов'");
 mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_gaccess` SET `bid`='3', `gid`='2', `access`='1', `description`='Права доступа администратора к блоку админменю'");
 mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_gaccess` SET `bid`='6', `gid`='2', `access`='1', `description`='Права доступа администратора к блоку поддержка'");
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_gaccess` SET `bid`='7', `gid`='2', `access`='1', `description`='Права доступа администратора к админ шапке'");
 mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_gaccess` SET `bid`='8', `gid`='2', `access`='1', `description`='Права доступа администратора к списку модулей'");
+
+mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_gaccess` SET `bid`='11', `gid`='3', `access`='1', `description`='Права доступа администратора к списку модулей'");
+
+mpqw("UPDATE `{$conf['db']['prefix']}{$arg['modpath']}` SET `orderby`=`id`");
+mpqw("UPDATE `{$conf['db']['prefix']}{$arg['modpath']}_reg` SET `sort`=`id`");
 
 ?>

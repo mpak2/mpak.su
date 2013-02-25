@@ -2,7 +2,7 @@
 
 if($_POST['sum']){
 	$mpdbf = mpdbf($tn = "{$conf['db']['prefix']}{$arg['modpath']}_operations", $_POST);
-	mpqw($sql = "INSERT INTO $tn SET $mpdbf, date=NOW(), type=\"". ($_GET['type'] ? $_GET['type'] : $arg['modpath'])."\", uid=".(int)$conf['user']['uid']);// echo $sql; exit;
+	mpqw($sql = "INSERT INTO $tn SET $mpdbf, date=NOW(), type=\"". ($_GET['type'] ? $_GET['type'] : $arg['modpath'])."\", uid=".(int)($_GET['uid'] ?: $conf['user']['uid']));// echo $sql; exit;
 	if($operations_id = mysql_insert_id()){
 		mpevent("Создание нового платежа", $operations_id, $conf['user']['uid']);
 	} header("Location: /{$arg['modpath']}:new/". (int)$operations_id);

@@ -10,6 +10,7 @@
 	<li><a href="/<?=$arg['modpath']?>:asql">Подгрузка больших обьемов данных</a></li>
 	<li><a href="/<?=$arg['modpath']?>:uri">Установка заглавной страницы</a></li>
 	<li><a href="/<?=$arg['modpath']?>:reg">Проверка регулярных выражений</a></li>
+	<li><a href="/<?=$arg['modpath']?>:svg">SVG Рисование</a></li>
 	<li><a href="/ocr">Распознавалка текста</a></li>
 </ul>
 

@@ -12,23 +12,33 @@
 <div style="text-align:center; margin-top:20px;">Страница <?=($_GET['p']+1)?> из <?=$tpl['pages']?> найденных</div>
 <form class="search" style="text-align:center;" method="GET" action="/<?=$arg['modname']?>">
 	<input type="hidden" name="search_block_num" value="<?=$tpl['search']['num']?>">
-	<input type="hidden" name="search_key" value="<?=$_GET['search_key']?>">
+	<input type="hidden" name="search_key" value="<?=$tpl['search']['keys_name']?>">
 	<input type="text" name="search" style="width:50%;" value="<?=$tpl['search']['name']?>">
 	<input type="submit" value="Искать">
+	<ul class="search_name">
+		<script>
+			$(function(){
+				$("form.search .search_name li a").click(function(){
+					search_key = $(this).attr("search_key"); console.log(search_key);
+					$("form.search input[name=search_key]").attr("value", search_key);
+					$("form.search input.tab[type=hidden]").remove();
+					$("form.search").submit();
+				});
+			});
+		</script>
+		<? if($tpl['tab']) foreach($tpl['tab'] as $search_key=>$search_name): ?>
+			<? if(($search_key = substr($search_key, strlen($conf['db']['prefix']))) && empty($search_name)) continue; ?>
+				<li style="float:left;" class="<?=($search_key == $tpl['search']['keys_name'] ? "active" : "")?>">
+					<a search_key="<?=$search_key?>" href="javascript:"><?=$search_name?></a>
+				</li>
+		<? endforeach; ?>
+	</ul>
 </form>
-<ul class="search_name">
-	<? if($tpl['tab']) foreach($tpl['tab'] as $search_key=>$search_name): ?>
-		<? if(($search_key = substr($search_key, strlen($conf['db']['prefix']))) && empty($search_name)) continue; ?>
-		<li style="float:left;" class="<?=($_GET['search_key'] == $search_key ? "active" : "")?>">
-			<a href="/<?=$arg['modname']?>/search_block_num:<?=(int)$tpl['search']['num']?>/search_key:<?=$search_key?>/<?=$tpl['search']['search']?>"><?=$search_name?></a>
-		</li>
-	<? endforeach; ?>
-</ul>
 <div style="text-align:center; margin-bottom:20px;">
 	<!-- [settings:<?=$arg['modname']?>_title] -->
 </div>
 <span><?=$tpl['mpager']?></span>
-<div>
+<div style="overflow:hidden;">
 	<? if($tpl['param']['tab']): ?>
 	<div class="tab" style="width:180px; float:right;">
 		<script>
@@ -63,7 +73,7 @@
 		<div><input type="button" value="Уточнить"></div>
 	</div>
 	<? endif; ?>
-	<div style="margin-right:200px;">
+	<div style="margin-right:<?=($tpl['param']['tab'] ? "200" : "0")?>px;">
 		<? if($tpl['result']): ?>
 			<? foreach($tpl['result'] as $k=>$v): ?>
 				<div style="margin: 15px 3px 3px 3px; overflow:hidden;">

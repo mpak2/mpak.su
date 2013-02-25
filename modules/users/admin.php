@@ -17,12 +17,16 @@
 
 $conf['settings'] += array(
 	"{$arg['modpath']}"=>$conf['modules'][ $arg['modname'] ]['name'],
-		"users_=>title"=>"img,name,pass,last_time,email",
+		"{$arg['modpath']}_=>title"=>"img,name,pass,last_time,email,geoname_id",
 	"{$arg['modpath']}_event"=>"События",
 		"{$arg['modpath']}_event=>order"=>"time DESC",
-		"{$arg['modpath']}_event=>title"=>"time,uid,count,name,log",
+		"{$arg['modpath']}_event=>title"=>"time,uid,count,name,limit,log",
 	"{$arg['modpath']}_event_logs"=>"Журнал",
+		"{$arg['modpath']}_event_logs=>title"=>"time,uid,own,description,event_id",
 	"{$arg['modpath']}_event_mess"=>"Сообщения",
+	"{$arg['modpath']}_event_notice"=>"Уведомления",
+		"{$arg['modpath']}_event_notice=>title"=>"time,count,name,grp_id,log,type",
+
 	"{$arg['modpath']}_grp"=>"Группы",
 	"{$arg['modpath']}_mem"=>"Участники",
 	"{$arg['modpath']}_type"=>"Авторизация",
@@ -30,6 +34,7 @@ $conf['settings'] += array(
 	"{$arg['modpath']}_anket"=>"Анкеты",
 	"{$arg['modpath']}_anket_type"=>"ТипАнкет",
 	"{$arg['modpath']}_anket_data"=>"Данные",
+	"{$arg['modpath']}_geoname"=>"География",
 
 	"{$arg['modpath']}_lang"=>"Языки",
 	"{$arg['modpath']}_lang_translation"=>"ЯзПереводы",
@@ -42,7 +47,14 @@ foreach(mpql(mpqw("SHOW TABLES WHERE Tables_in_{$conf['db']['name']} LIKE \"{$co
 } mpmenu($m); if(!$_GET['r']) $_GET['r'] = array_shift(array_keys($m));
 
 $tn = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"), strlen($_GET['r']));
-$etitle = $shablon = array();
+$etitle = $shablon = $spisok = array();
+
+if(!empty($conf['settings'][ $s = $arg['modpath']. "=>spisok" ]) && ($fn = explode(",", $conf['settings'][ $s ]))){
+	foreach($fn as $f){
+		$spisok += array("{$f}_id" => array("*"=>array("")+spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$f}")));
+	}
+};// mpre($spisok);
+
 foreach($m as $table=>$v){
 	$columns = mpqn(mpqw("SHOW COLUMNS FROM ". mpquot($table). ""), 'Field');
 	foreach($columns as $f=>$fields){
@@ -63,8 +75,8 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 	}else if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}"){
 		$shablon += array(
 			"name"=>array("*"=>"<a href=\"/{$arg['modname']}/{f:id}\">{f:{f}}</a>"),
-			'mem'=>array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[uid]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[uid]=', r.id, '>', COUNT(*), '_грп</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$arg['modpath']}_mem AS fn WHERE r.id=fn.uid GROUP BY r.id"),
-		);
+			'mem'=>array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[uid]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[users]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_mem&where[uid]=', r.id, '>', COUNT(*), '_грп</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$arg['modpath']}_mem AS fn WHERE r.id=fn.uid GROUP BY r.id"),
+		);// mpre($shablon);
 	}else if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_event_mess"){
 	}// mpre($shablon);
 
@@ -91,8 +103,8 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
 			'title' => (!empty($conf['settings']["{$arg['modpath']}_{$tn}=>title"]) ? explode(",", $conf['settings']["{$arg['modpath']}_{$tn}=>title"]) : null), # Название полей
-			'etitle'=> array('time'=>'Время', 'up'=>'Обновление', 'uid'=>'Пользователь', 'count'=>'Количество', 'level'=>'Уровень', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'hide'=>'Видим', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'duration'=>'Длительность', 'pass'=>'Пароль', 'reg_time'=>'Регистрация', 'last_time'=>'Вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', "users_sity"=>'Город', 'log'=>'Лог', 'max'=>'Макс', 'min'=>'Мин', 'own'=>'Владелец', 'return'=>'Возврат', 'zam'=>'Замена', 'log_last'=>'Последний', 'description'=>'Описание', 'text'=>'Текст') + $etitle,
-			'type' => array('time'=>'timestamp', 'last_time'=>'timestamp', 'up'=>'timestamp', 'sort'=>'sort', 'img'=>'file', 'duration'=>'timecount', 'description'=>'textarea', 'text'=>'wysiwyg'), # Тип полей
+			'etitle'=> array('time'=>'Время', 'up'=>'Обновление', 'uid'=>'Пользователь', 'count'=>'Количество', 'level'=>'Уровень', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'hide'=>'Видим', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'duration'=>'Длительность', 'pass'=>'Пароль', 'reg_time'=>'Регистрация', 'last_time'=>'Вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'type'=>"Тип", 'login'=>"Логин", 'birth'=>"Дата рождения", 'country_id'=>'Страна', 'status'=>'Статус', 'geoname_id'=>'География', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', "users_sity"=>'Город', 'limit'=>"Лимит", 'log'=>'Лог', 'max'=>'Макс', 'min'=>'Мин', 'own'=>'Владелец', 'mem'=>"Участник", 'return'=>'Возврат', 'zam'=>'Замена', 'log_last'=>'Последний', 'description'=>'Описание', 'text'=>'Текст') + $etitle,
+			'type' => array('time'=>'timestamp', 'last_time'=>'timestamp', 'birth'=>"timestamp", 'up'=>'timestamp', 'sort'=>'sort', 'img'=>'file', 'duration'=>'timecount', 'description'=>'textarea', 'zam'=>'textarea', 'text'=>'wysiwyg'), # Тип полей
 			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('orderby'=>$orderby), # Значение которое всегда будет присвоено полю. Исключает любое изменение
 			'shablon' => $shablon + array(
@@ -107,17 +119,19 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 			), # Шаблон вывода в замене участвуют только поля запроса имеен приоритет перед полем set
 //			'disable' => array('orderby'), # Выключенные для записи поля
 //			'hidden' => array('name', 'enabled'), # Скрытые поля
-			'spisok' => array( # Список для отображения и редактирования
+			'spisok' => $spisok += array( # Список для отображения и редактирования
 				'uid' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
 				'own' => array('*'=>array('')+spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
-				($fn = "grp"). "_id" => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
+				($fn = "grp"). "_id" => array('*'=>array("Владельцу")+spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
+				($fn = "geoname"). "_id" => array('*'=>array('')+spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
 				($fn = "anket_type"). "_id" => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
 
-				($fn = "lang_words"). "_id" => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
-				($fn = "lang"). "_id" => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
+//				($fn = "lang_words"). "_id" => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
+//				($fn = "lang"). "_id" => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
 				($fn = "modules")=>array('*'=>spisok("SELECT folder, name FROM {$conf['db']['prefix']}modules")),
 
 				(($tn = "users"). $fn = "_geoname") => array('*'=>spisok("SELECT id, CONCAT(name, ' (', countryName, ')') FROM {$conf['db']['prefix']}{$tn}{$fn}")),
+//				($fn = "type"). "_id" => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
 //				'metro_id' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_metro")),
 //				'kuzov_type_id' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_kuzov_type")),
 //				'zagruzka_type_id' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_zagruzka_type")),
@@ -128,6 +142,7 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 				'reg'=>array('*'=>array(0=>"Везде", 1=>"Регистрация", 2=>"Кабинет")),
 				'border'=>array('*'=>array(-1=>'Нижний', 0=>'Нет', 1=>'Верхний')),
 				'required'=>array('*'=>array(1=>'Обязательное', 0=>'')),
+				'type'=>array('*'=>array(''=>'', 'email'=>'ЭльПочта', 'smtp'=>"smtp", 'skype'=>'Скайп', 'xmpp'=>'XMPP')),
 			),
 			'default' => array(
 				'uid'=>array('*'=>$conf['user']['uid']),
