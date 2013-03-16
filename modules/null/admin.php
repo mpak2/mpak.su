@@ -34,7 +34,7 @@ if(!empty($conf['settings'][ $s = $arg['modpath']. "=>spisok" ]) && ($fn = explo
 } if(!empty($conf['settings'][ $s = $arg['modpath']. "=>espisok" ]) && ($fn = explode(",", $conf['settings'][ $s ]))){
 	foreach($fn as $v){
 		$spisok += array(
-			(($tn = array_shift(explode("_", $v))). $fn = "_". implode("_", array_slice(explode("_", $v), 1))) => array('*'=>array("")+spisok("SELECT id, CONCAT('<a href=\"/?m[{$tn}]=admin&r={$conf['db']['prefix']}{$tn}{$fn}&where[id]=', id, '\">', CONCAT('<span style=color:blue;>#', id, '</span>'), '</a>&nbsp;', CONVERT(`name` USING UTF8)) AS name FROM {$conf['db']['prefix']}{$tn}{$fn}")),
+			(($t = array_shift(explode("_", $v))). $fn = "_". implode("_", array_slice(explode("_", $v), 1))) => array('*'=>array("")+spisok("SELECT id, CONCAT('<a href=\"/?m[{$t}]=admin&r={$conf['db']['prefix']}{$t}{$fn}&where[id]=', id, '\">', CONCAT('<span style=color:blue;>#', id, '</span>'), '</a>&nbsp;', CONVERT(`name` USING UTF8)) AS name FROM {$conf['db']['prefix']}{$t}{$fn}")),
 		);
 		if($conf['settings'][ $v ]){
 			$etitle[ $v ] = $conf['settings'][ $v ];
@@ -44,7 +44,9 @@ if(!empty($conf['settings'][ $s = $arg['modpath']. "=>spisok" ]) && ($fn = explo
 	}
 } foreach($m as $table=>$v){
 	$columns = mpqn(mpqw("SHOW COLUMNS FROM ". mpquot($table). ""), 'Field');
-	foreach($columns as $f=>$fields){
+	if(!empty($columns['sort']) && empty($conf['settings'][ "{$arg['modpath']}_{$tn}=>order" ])){
+		$conf['settings'][ "{$arg['modpath']}_{$tn}=>order" ] = "sort";
+	} foreach($columns as $f=>$fields){
 		if((substr($f, -3, 3) == "_id") && (substr($f, 0, -3) == $tn)){
 			$fn = substr($table, strlen("{$conf['db']['prefix']}{$arg['modpath']}_"), strlen($table));
 			$etitle += array($fn=>$conf['settings'][ "{$arg['modpath']}_{$fn}" ]);

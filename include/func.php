@@ -207,9 +207,10 @@ mpre($_GET); exit;
 		if((substr($_fields, -3, 3) == "_id") && ($f = substr($_fields, 0, -3)) && !empty($conf['settings']["{$arg['modpath']}_{$f}"])){
 			$table['etitle'][ $_fields ] = $conf['settings']["{$arg['modpath']}_{$f}"];
 			if(substr($conf['settings'][ substr($_GET['r'], strlen($conf['db']['prefix']), 999) ], 0, 1) == '.'){
-				if(empty($table['spisok'][ $_fields ]))
+				if(empty($table['spisok'][ $_fields ])){
 					$table['spisok'][ $_fields ] = array('*'=>array('')+spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$f} ORDER BY name"));
-				$table['shablon'][ $_fields ] = array("*"=>"<a href=\"/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$f}&where[id]={f:{f}}\">{spisok:{f}}</a>");
+					$table['shablon'][ $_fields ] = array("*"=>"<a href=\"/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$f}&where[id]={f:{f}}\">{spisok:{f}}</a>");
+				}
 			}
 		}
 	}

@@ -266,6 +266,12 @@ function mpevent($name, $description = null, $own = null){
 
 		if(!empty($event['log']) && $event['log']){
 			mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event_logs SET time=". time(). ", event_id=". (int)$event['id']. ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", description=\"". mpquot($description). "\", own=". /*mpquot(is_array($own) ? var_export($own, true) : $own)*/ (int)$func_get_args[2]['id']. ", `return`=\"". mpquot($return). "\", zam=\"". mpquot(!empty($zam) ? var_export($zam, true) : ""). "\"");
+			if($event['limit']){
+				$remove = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event_logs WHERE event_id=". (int)$event['id']. " AND uid". ($conf['user']['uid'] > 0 ? "=". (int)$conf['user']['uid'] : "<0"). " ORDER BY id DESC LIMIT ". (int)$event['limit']. ",2"));
+				if($remove){ # Удаляем все с журнала пользователя
+					mpqw($sql = "DELETE FROM {$conf['db']['prefix']}users_event_logs WHERE id IN (". implode(",", array_keys($remove)). ")");
+				}
+			}
 		}
 
 		if($notice){
@@ -508,7 +514,7 @@ function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'ima
 			if(($ufn = mpopendir('include/images')) && copy($file['tmp_name'], "$ufn/$f")){
 				mpqw($sql = "UPDATE {$tn} SET `". mpquot($fn). "`=\"". mpquot($return = "images/$f"). "\" WHERE id=". (int)$img_id);
 				chown("$ufn/$f", "www-data");
-				mpevent("Загрузка внешнего файла", $href, $conf['user']['uid'], func_get_args());
+				mpevent("Загрузка внешнего файла", $href, (!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0), func_get_args());
 			}else{
 				if($img_id != $id){
 					mpqw("DELETE FROM {$tn} WHERE id=". (int)$img_id);

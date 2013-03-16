@@ -20,6 +20,7 @@ $count = mpql(mpqw("SELECT FOUND_ROWS() AS count"), 0, 'count');
 
 $logo = array(
 	"Mediapartners-Google.png"=>"Mediapartners-Google",
+	"C-T bot"=>"c-t_bot.png",
 	"statdom.png"=>"statdom",
 	"ezooms.png"=>"ezooms",
 	"ahrefs.png"=>"ahrefs",

@@ -32,7 +32,7 @@ jQuery.fn.klesh = function(action, callbackFnk, select){
 			$(this).find("select").focus();
 		}else{
 			text = $(this).html()
-			input = $("<input type='text' onkeydown='if((event||window.event).keyCode == 13) $(this).change();'>").css("width", "80%").attr("old", text).val(text);
+			input = $("<input type='text' onkeydown='if((event||window.event).keyCode == 13) $(this).change();'>").attr("old", text).val(text);
 			$(this)
 //				.html($("<input type='button'>").addClass("fnok").val("ok").css("float", "right").css("width", "50px"))
 				.html($("<div>")/*.css("margin-right", "60px")*/.html(input));
@@ -44,18 +44,19 @@ jQuery.fn.klesh = function(action, callbackFnk, select){
 			$(klesh).attr("val", val);
 
 			var attr = {old:old};
-			for(var i=0;i<(attrs = $(this).parent().parent()[0].attributes).length;i++) {
+			for(var i=0;i<(attrs = klesh.attributes).length;i++) {
 				attr[attrs[i].nodeName] = attrs[i].nodeValue;
-			}
+			}// console.log($(this).parent().parent()[0]);
 			if(val != old){
-				$.post(action, attr, function(data){
-					if(isNaN(data)/* && (typeof callbackFnk != 'function')*/){
-						alert(data);
+				$.post(action, attr, $.proxy(function(data){
+					if(isNaN(data)/* && (typeof callbackFnk != 'function')*/){ alert(data); }else{
+						var id = $(klesh).attr("id");
+						if(typeof(id) != "undefined"){
+							$(klesh).attr("id", klesh.id = data);
+						} if(typeof callbackFnk == "function"){ callbackFnk.call(klesh); }
 					}
-				});
-			};
-			if(typeof callbackFnk == "function"){
-				callbackFnk.call(klesh);
+				}, this));
+			}else{
 			} $(this).parent().parent().attr("old", select ? select[val].name : val).html(select ? select[val].name : val).bind("click", f);
 		});
 	}).css("padding-left", "15px")

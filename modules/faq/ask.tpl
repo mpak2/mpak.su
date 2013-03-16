@@ -1,6 +1,6 @@
 <script>
 	$(function(){
-		$("#faq_ask_btn").on(function(){
+		$("#faq_ask").on("click", "#faq_ask_btn", function(){
 			$(this).parents("#faq_ask").find("#faq_fm").toggle();
 		});
 		$("#faq_fm_btn").click(function(){
@@ -24,7 +24,7 @@
 				</div>
 			<? endif; ?>
 			<div style="text-align:center;">
-				<a id="faq_ask_btn" href="javascript: return false;">
+				<a id="faq_ask_btn" href="javascript:">
 					<div>Задать вопрос</div>
 					<div><img src="/<?=$arg['modname']?>:img/w:60/h:60/null/featured_faq.jpg"></div>
 				</a>

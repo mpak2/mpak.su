@@ -70,7 +70,7 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 		if($fn = mpfn("{$conf['db']['prefix']}{$arg['modpath']}", "img", $conf['user']['uid'])){
 			mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']} SET img=\"". mpquot($fn). "\" WHERE id=". (int)$conf['user']['uid']);
 		} exit($conf['user']['uid']);
-	}elseif($arg['access'] > 3 && ($geoname = $_POST['geoname'])){
+	}elseif($geoname = $_POST['geoname']){
 		$geoname_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_geoname", array("geonameId"=>$geoname['geonameId']), $geoname, $geoname);
 		$user_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}", array("id"=>$arg['uid']), null, array("uid"=>$arg['uid'], "time"=>time())+array("geoname_id"=>$geoname_id));
 		exit($geoname_id);
