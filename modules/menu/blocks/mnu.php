@@ -26,7 +26,7 @@ if ((int)$arg['confnum']){
 }
 $param = unserialize(mpql(mpqw($sql = "SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 
-$menu = mpqn(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE rid=". (int)(is_numeric($param) ? $param : $param['menu'])." ORDER BY orderby"), 'pid', 'id');
+$menu = mpqn(mpqw($sql = "SELECT *, href AS link FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE region_id=". (int)(is_numeric($param) ? $param : $param['menu'])." ORDER BY sort"), 'index_id', 'id');
 
 if($param['tpl']){ include mpopendir("themes/{$conf['settings']['theme']}/{$param['tpl']}"); return; }
 
@@ -34,16 +34,16 @@ if($param['tpl']){ include mpopendir("themes/{$conf['settings']['theme']}/{$para
 <ul class="menu_<?=$arg['blocknum']?>">
 	<? foreach($menu[0] as $k=>$t): ?>
 		<li>
-			<? if($t['link']): ?><a href="<?=$t['link']?>"><? endif; ?>
+			<? if($t['href']): ?><a href="<?=$t['href']?>"><? endif; ?>
 				<?=$t['name']?>
-			<? if($t['link']): ?></a><? endif; ?>
+			<? if($t['href']): ?></a><? endif; ?>
 			<? if($menu[ $t['id'] ]): ?>
 				<ul class="submenu_<?=$arg['blocknum']?>">
 					<? foreach($menu[ $t['id'] ] as $v): ?>
 						<li>
-							<? if($v['link']): ?><a href="<?=$v['link']?>"><? endif; ?>
+							<? if($v['href']): ?><a href="<?=$v['href']?>"><? endif; ?>
 								<?=$v['name']?>
-							<? if($v['link']): ?></a><? endif; ?>
+							<? if($v['href']): ?></a><? endif; ?>
 						</li>
 					<? endforeach; ?>
 				</ul>

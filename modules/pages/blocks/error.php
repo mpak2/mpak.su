@@ -48,19 +48,43 @@ if ((int)$arg['confnum']){
 
 }//$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
-//if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
+if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
+	$error_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_error", null, $_POST);
+	exit($error_id);
+};
 
 $dat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} LIMIT 10"));
 
 ?>
+<script src="/include/jquery/jquery.selection.js"></script>
 <script>
 	$(function(){
+/*		function getSelection(){
+			console.log(document.selection);
+			return (!!document.getSelection) ? document.getSelection() :
+				(!!window.getSelection)	? window.getSelection() : document.selection.createRange().text;
+		}*/
+		function getXPath(element){
+			var xpath = '';
+			for ( ; element && element.nodeType == 1; element = element.parentNode )
+			{
+				var id = $(element.parentNode).children(element.tagName).index(element) + 1;
+				id > 1 ? (id = '[' + id + ']') : (id = '');
+				xpath = '/' + element.tagName.toLowerCase() + id + xpath;
+			}
+			return xpath;
+		}
 		$("body").keypress(function(e){
 			if(e.ctrlKey && e.keyCode == 13){
-				alert("Ошибка на сайте")
+//				var selection = getSelection();
+				var html = $.selection().get().html; console.log(html);
+				$.post("/blocks/<?=$arg['blocknum']?>/null", {"name":html, "href":"<?=$_SERVER['REQUEST_URI']?>"}, function(data){
+					if(isNaN(data)){ alert(data) }else{
+						alert("Выделеный ошибочный текст:\n\"" + html + "\"\nИнформация сохранена. Спасибо за помощь.");
+					}
+				});
 			}
 		});
 	});
 </script>
-<div id="dialog" style="display:none;">123</div>
 <p>Если вы нашли ошибку, выделите фрагмент текста и нажмите Ctrl+Enter.</p>

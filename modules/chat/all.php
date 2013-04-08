@@ -9,6 +9,7 @@ if($_POST['text'] && ($arg['access'] > 1)){
 	$text = preg_replace( '/(?<!S)((http(s?):\/\/)|(www\.[A-Za-zА-Яа-яЁё0-9-_]+\.))+([A-Za-zА-Яа-яЁё0-9\/*+-_?&;:%=.,#]+)/u', '<a href="http$3://$4$5" target="_blank" rel="nofollow">http$3://$4$5</a>', htmlspecialchars($_POST['text']));
 	$text = preg_replace ( '/(?<!S)([A-Za-zА-Яа-яЁё0-9_.\-]+\@{1}[A-Za-zА-Яа-яЁё0-9\.|-|_]*[.]{1}[a-z-а-я]{2,5})/u', '<a href="mailto:$1">$1</a>', $text );
 	mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_index SET time=". time(). ", uid=". (int)$conf['user']['uid']. ", usr=". (int)$_POST['usr']. ", uname=\"". mpquot($_POST['uname']). "\", host=\"". mpquot($IDN->decode($_POST['host'])). "\", text=\"". mpquot($text). "\"");
+	mpevent("Сообщение в чате", $_POST['text'], $conf['user']['uid']);
 }
 
 if(array_key_exists('null', $_GET) && array_key_exists('chat', $_GET)){

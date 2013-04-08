@@ -117,7 +117,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_event_
   `uid` int(11) NOT NULL,
   `grp_id` int(11) NOT NULL,
   `type` varchar(255) NOT NULL,
-  `login` varchar(255) NOT NULL,
+  `event_id` int(11) NOT NULL,
   `log` int(11) NOT NULL,
   `count` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,

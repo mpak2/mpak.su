@@ -1,4 +1,4 @@
-jQuery.fn.at = function(keys, addr, func){
+jQuery.fn.at = function(keys, addr, callbackFnk){
 	var post = {};
 	$.each(keys, $.proxy(function(key, val){
 		if(key == "id"){
@@ -26,7 +26,7 @@ jQuery.fn.at = function(keys, addr, func){
 				$(this).parents("["+key+"]").attr(key, val);
 			}
 		}else{
-			console.log(".at(not_exists):", key);
+			console.log(".at(not_exists):", post[key] = val);
 		}// console.log(key, val);
 	}, this));
 	if(addr != null){
@@ -38,8 +38,10 @@ jQuery.fn.at = function(keys, addr, func){
 					$(this).at(option);
 				}else if($(this).is("[id]")){
 					$(this).attr("id", data);
+				} if(typeof callbackFnk == "function"){
+					callbackFnk.call(post);
 				}
 			}
-		}, this))
-	} console.log("post:", post); return post;
+		}, this));
+	} /*console.log("post:", post);*/ return post;
 }

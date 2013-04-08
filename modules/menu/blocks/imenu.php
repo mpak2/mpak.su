@@ -53,10 +53,10 @@ echo <<<EOF
 EOF;
 
 echo '<div class="jimgMenu"><ul>';
-foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE rid=".(int)$param." ORDER BY orderby LIMIT 5")) as $k=>$v){
+foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE region_id=".(int)$param." ORDER BY sort LIMIT 5")) as $k=>$v){
 	echo <<<EOF
 	<li class="urban">
-		<a href="{$v['link']}" style="background: url(/{$arg['modpath']}:img/{$v['id']}/w:320/h:200/c:1/null/img.jpg) repeat scroll 0%;">{$v['name']}</a>
+		<a href="{$v['href']}" style="background: url(/{$arg['modpath']}:img/{$v['id']}/w:320/h:200/c:1/null/img.jpg) repeat scroll 0%;">{$v['name']}</a>
 	</li>
 EOF;
 }

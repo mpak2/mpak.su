@@ -1,7 +1,7 @@
 <? die;
 
 $conf['modversion']=array(
-	'name'=>'Вложенные файлы',
+	'name'=>'Файлы',
 	'author'=>'mpak',
 	'contact'=>'mpak@surguttel.ru',
 	'version'=>'1.0016',

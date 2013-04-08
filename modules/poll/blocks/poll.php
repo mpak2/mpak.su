@@ -1,76 +1,99 @@
-<? die; # Опрос
+<? die; # Нуль
+
+$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id=". (int)max($arg['blocknum'], $arg['confnum'])), 0, 'param'));
+if($klesh = array(
+	/* ($f = "Ширина")=>($param[ $f ] = $param[ $f ] ?: 200),
+		($f = "Высота")=>($param[ $f ] = $param[ $f ] ?: 200),
+		"Список"=>array(
+		1=>"Одын",
+		2=>"Два",
+	),*/
+	"Опрос"=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_index ORDER BY id DESC"),
+//	"Таблица" => array(),
+));
 
 if ((int)$arg['confnum']){
-	if (isset($_POST['poll'])){
-		$sql = "UPDATE {$conf['db']['prefix']}blocks SET param = {$_POST['poll']} WHERE id = {$arg['confnum']}";
-		mpqw($sql);
-		$param = $_POST['poll'];
-	}elseif (count($res = mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}")))){
-		$param = $res[0]['param'];
-	}
 
-	$polls = spisok("SELECT p.id, p.poll FROM {$conf['db']['prefix']}poll as p, {$conf['db']['prefix']}poll_value as v WHERE p.id = v.pid");
-	echo "<form action='{$_SERVER['REQUEST_URI']}' method='post'>";
-	echo "Текущий опрос: <font color=blue>{$polls[$param]}</font><p>";
-	echo "<select name='poll'><option value='0'></option>";
-	foreach($polls as $k=>$v){
-		echo "<option value='$k'".($k == $param ? ' selected' : '').">$v</option>";
-	}
-	echo "</select><input type='submit' value='Применить'></form>";
-	return;
-}
-
-foreach($conf['user']['gid'] as $k=>$v)
-	$uslov .= " OR p.gid = $k";
-
-$uslov = "AND (p.gid = (SELECT id FROM {$conf['db']['prefix']}users_grp WHERE name = '{$conf['settings']['default_grp']}') $uslov)";
-
-# Выборка опроса и его свойств
-$poll = mpql(mpqw("SELECT p.id as pid, p.poll, p.mult, p.golos_time, v.result, v.id as vid, v.value, v.color FROM {$conf['db']['prefix']}poll as p, {$conf['db']['prefix']}poll_value as v, {$conf['db']['prefix']}blocks as b WHERE b.id = {$arg['blocknum']} AND p.id = v.pid AND p.id = b.param $uslov"));
-
-if (count($poll)){
-	$sql = "SELECT ps.time FROM {$conf['db']['prefix']}poll_post as ps, {$conf['db']['prefix']}poll as p, {$conf['db']['prefix']}blocks as b WHERE ps.poll = p.id AND p.id = b.param AND b.id = {$arg['blocknum']} AND ps.ip = '{$_SERVER['REMOTE_ADDR']}' AND ps.uid = '{$conf['user']['uid']}' AND ps.time + {$poll[0]['golos_time']} > ".time();
-	$last = mpql(mpqw($sql));
-	if (!count($last) && isset($_POST['poll'])){
-		if ($poll[0]['mult']){
-			foreach($poll as $k=>$v){
-				if (isset($_POST['poll'][ $v['pid'] ][ $v['vid'] ])){
-					$sql = "UPDATE {$conf['db']['prefix']}poll_value as v, {$conf['db']['prefix']}poll as p, {$conf['db']['prefix']}blocks as b SET v.result = v.result + 1 WHERE v.pid = p.id AND p.id = b.param AND b.id = {$arg['blocknum']} AND v.id = ".(int)$_POST['poll'][ $v['pid'] ][ $v['vid'] ];
-					mpqw($sql);
-					$sql = "INSERT INTO {$conf['db']['prefix']}poll_post (uid, time, ip, poll, result) VALUE ('{$conf['user']['uid']}', '".time()."', '{$_SERVER['REMOTE_ADDR']}', '{$poll[0]['pid']}', '".(int)$_POST['poll'][ $v['pid'] ][ $v['vid'] ]."')";
-					mpqw($sql);
-						$last[] = true;
-				}
-			}
-		}else{
-			$sql = "UPDATE {$conf['db']['prefix']}poll_value as v, {$conf['db']['prefix']}poll as p, {$conf['db']['prefix']}blocks as b SET v.result = v.result + 1 WHERE v.pid = p.id AND p.id = b.param AND b.id = {$arg['blocknum']} AND v.id = ".(int)$_POST['poll'][ $poll[0]['pid'] ];
-			mpqw($sql);
-			$sql = "INSERT INTO {$conf['db']['prefix']}poll_post (uid, time, ip, poll, result) VALUE ('{$conf['user']['uid']}', '".time()."', '{$_SERVER['REMOTE_ADDR']}', '{$poll[0]['pid']}', '".(int)$_POST['poll'][ $poll[0]['pid'] ]."')";
-			mpqw($sql);
-			$last[] = true;
+	if(array_key_exists("Таблица", $klesh)){ # Если есть таблица то загружаем список таблиц
+		foreach(ql("SHOW TABLES") as $v){
+			$f = array_shift($v);
+			$klesh["Таблица"][ implode("_", array_slice(explode("_", $f), 1)) ] = $f;
 		}
-		$poll = mpql(mpqw("SELECT p.id as pid, p.poll, p.mult, p.golos_time, v.result, v.id as vid, v.value, v.color FROM {$conf['db']['prefix']}poll as p, {$conf['db']['prefix']}poll_value as v, {$conf['db']['prefix']}blocks as b WHERE b.id = {$arg['blocknum']} AND p.id = v.pid AND p.id = b.param"));
 	}
 
-	if (count($last)){ # Если уже голосовал
-		$res_count = 0;
-		foreach($poll as $k=>$v){
-			if($v['result'] > $max) $max = $v['result'];
-			$res_count += $v['result'];
-		}
-		foreach($poll as $k=>$v){
-			$w = (int)($v['result'] / (!$max ? 1 : $max)  * 100);
-			$qw .= "<div style='padding:3px;'>{$v['value']}: {$v['result']} (".(int)($v['result'] / (!$res_count ? 1 : $res_count) * 100)."%)</div>";
-			$qw .= "<div style='border:1px solid gray;'><div style='width:".($v['result'] / (!$max ? 1 : $max) * 100)."%; background-color:{$v['color']}; height:15px;'></div></div>";
-		}
-		echo "<b>{$v['poll']}</b><br>$qw";
-	}else{ # Если не голосовал
-		foreach($poll as $k=>$v)
-			$qw .= "<br><input type='".($v['mult'] ? 'checkbox' : 'radio')."' name='poll[{$v['pid']}]".($v['mult'] ? "[{$v['vid']}]" : '')."' value='{$v['vid']}'> <font color='{$v['color']}'>{$v['value']}</font>";
-		echo "<b>{$v['poll']}</b><br><form action='{$_SERVER['REQUEST_URI']}' method='post'>$qw<p><input type='submit' value='Выбрать'></form>";
-	}
-}else{
-	if ($conf['user']['gname'] == $conf['settings']['admin_grp']) echo "Опрос недоступен";
-}
+	if ($_POST){
+		$param = array($_POST['param']=>$_POST['val'])+(array)$param;
+		mpqw("UPDATE {$conf['db']['prefix']}blocks SET param = '".serialize($param)."' WHERE id = {$arg['confnum']}");
+	} if(array_key_exists("null", $_GET)) exit;
 
 ?>
+<!-- Настройки блока -->
+<script src="/include/jquery/my/jquery.klesh.select.js"></script>
+<script>
+	$(function(){
+		<? foreach($klesh as $k=>$v): ?>
+			<? if(gettype($v) == 'array'): ?>
+				$(".klesh_<?=strtr(md5($k), array("="=>''))?>").klesh("/?m[blocks]=admin&r=mp_blocks&null&conf=<?=$arg['confnum']?>", function(){
+				}, <?=json_encode($v)?>);
+			<? else: ?>
+			$(".klesh_<?=strtr(md5($k), array("="=>''))?>").klesh("/?m[blocks]=admin&r=mp_blocks&null&conf=<?=$arg['confnum']?>");
+			<? endif; ?>
+		<? endforeach; ?>
+	});
+</script>
+
+<div style="margin-top:10px;">
+<? foreach($klesh as $k=>$v): ?>
+	<div style="overflow:hidden;">
+	<div style="width:200px; float:left; padding:5px; text-align:right; font-weight:bold;"><?=$k?> :</div>
+	<? if(gettype($v) == 'array'): ?>
+		<div class="klesh_<?=strtr(md5($k), array("="=>''))?>" param="<?=$k?>"><?=$v[ $param[$k] ]?></div>
+			<? else: ?>
+				<div class="klesh_<?=strtr(md5($k), array("="=>''))?>" param="<?=$k?>"><?=($param[$k] ?: $v)?></div>
+			<? endif; ?>
+		</div>
+	<? endforeach; ?>
+</div>
+<? return;}// mpre($param);
+################################# php код #################################
+
+//if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
+
+$index = ql("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE id=". (int)$param['Опрос'], 0);
+
+$value = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index_value WHERE index_id=". (int)$index['id']);
+
+$voice = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index_voice WHERE index_value_id IN (". implode(",", array_keys($value) ?: array(0)). ") AND uid=". (int)$conf['user']['uid'], "index_value_id");
+
+################################# верстка ################################# ?>
+<div class="blocknum_<?=$arg['blocknum']?>">
+	<script>
+		$(function(){
+			<? if($voice): ?>
+				$(".blocknum_<?=$arg['blocknum']?> input[type=radio]").attr("disabled", true);
+			<? endif; ?>
+			$(".blocknum_<?=$arg['blocknum']?> input[type=button]").click(function(){
+				(post = {}).index_value_id = $(".blocknum_<?=$arg['blocknum']?> ul li input[type=radio]:checked").attr("index_value_id");
+				post.index_id = $(".blocknum_<?=$arg['blocknum']?> [index_id]").attr("index_id");
+console.log(post);
+				$.post("/<?=$arg['modpath']?>:ajax/class:index_voice", post, function(data){
+					if(isNaN(data)){ alert(data) }else{
+						$(".blocknum_<?=$arg['blocknum']?> [type=radio]").attr("disabled", true);
+						alert("Спасибо за участие в опросе");
+					}
+				});
+			});
+		});
+	</script>
+	<h4><?=$index['name']?></h4>
+	<ul index_id="<?=$index['id']?>">
+		<? foreach($value as $v): ?>
+			<li>
+				<span><input type="radio" name="value[<?=$index['id']?>]" index_value_id="<?=$v['id']?>" value="<?=$v['id']?>" <?=(!empty($voice[ $v['id'] ]) ? "checked" : "")?>></span>
+				<span><?=$v['name']?></span>
+				<div style="color:gray;"><?=$v['description']?></div>
+			</li>
+		<? endforeach; ?>
+	</ul>
+	<div><input type="button" value="Голосовать"></div>
+</form>

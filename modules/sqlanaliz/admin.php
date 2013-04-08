@@ -135,7 +135,7 @@ EOF;
 }elseif ($m[(int)$_GET['r']] == 'Структура'){
 	if(empty($_REQUEST['tab'])){
 		if(!empty($_GET['new'])){
-			echo $sql = "CREATE TABLE `".($_REQUEST['tab'] =  $_GET['new'])."` (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT) CHARACTER SET cp1251 COLLATE cp1251_general_ci ENGINE = InnoDB";
+			echo $sql = "CREATE TABLE `".($_REQUEST['tab'] =  $_GET['new'])."` (`id` INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT, `name` varchar(255) NOT NULL, `description` text NOT NULL) CHARACTER SET cp1251 COLLATE cp1251_general_ci ENGINE = InnoDB";
 			mpqw($sql);
 		}else{
 			echo "<div style='margin:10px;'><input type=\"text\" id=\"new\"> <input type=\"button\" value=\"Создать\" onClick=\"javascript: location.href='/?m[sqlanaliz]=admin&r=1&new='+document.getElementById('new').value\"></div>";

@@ -19,7 +19,7 @@ if ((int)$arg['confnum']){
 $param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 
 $gname = array_flip($conf['user']['gid']);
-$menu = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE rid=".(int)$param." ORDER BY orderby"));
+$menu = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE region_id=".(int)$param." ORDER BY sort"));
 
 ?>
 
@@ -27,15 +27,15 @@ $menu = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE 
 	<? foreach($menu as $k=>$v): if($v['pid']) continue; ?>
 		<li style="text-align:center;">
 			<div><img src="/menu:img/<?=$v['id']?>/w:180/h:180/c:1/null/img.jpg"></div>
-			<? if($v['link']): ?><a class="menu" href='<?=$v['link']?>' title='<?=$v['description']?>'><? endif; ?>
+			<? if($v['href']): ?><a class="menu" href='<?=$v['href']?>' title='<?=$v['description']?>'><? endif; ?>
 				<?=$v['name']?>
-			<? if($v['link']): ?></a><? endif; ?>
+			<? if($v['href']): ?></a><? endif; ?>
 			<div style="font-size:70%;line-height: 12px; text-align:center; margin:5px 0;"><?=$v['description']?></div>
 		</li>
 		<ul>
 			<? foreach($menu as $n=>$z): if($v['id'] !=$z['pid']) continue; ?>
 				<li>
-					<a class="submenu" href='<?=$z['link']?>' title='<?=$z['description']?>'>
+					<a class="submenu" href='<?=$z['href']?>' title='<?=$z['description']?>'>
 						<?=$z['name']?>
 					</a>
 				</li>

@@ -17,7 +17,11 @@ EOF;*/
 $d = mpql(mpqw("SELECT COUNT(*) AS cnt FROM {$conf['db']['prefix']}users WHERE reg_time>". (time()-60*60*24)), 0, 'cnt');
 $w = mpql(mpqw("SELECT COUNT(*) AS cnt FROM {$conf['db']['prefix']}users WHERE reg_time>". (time()-60*60*24*7)), 0, 'cnt');
 $m = mpql(mpqw("SELECT COUNT(*) AS cnt FROM {$conf['db']['prefix']}users WHERE reg_time>". (time()-60*60*24*30)), 0, 'cnt');
-$users = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users ORDER BY id DESC LIMIT 10"));
+$users = mpql(mpqw("SELECT u.*, g.name AS geoname
+	FROM {$conf['db']['prefix']}users AS u
+	LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_geoname AS g ON (g.id=u.geoname_id)
+	ORDER BY u.id DESC LIMIT 10
+"));// mpre($users);
 
 ?>
 <div>
@@ -35,7 +39,10 @@ $users = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users ORDER BY id DESC 
 						<?=$v['name']?>
 					</a>
 				</span>
-				<span style="float:right;"><?=date('Y.m.d H:i:s', $v['reg_time'])?></span>
+				<span style="float:right;">
+					<span style="font-weight:bold;"><?=$v['geoname']?></span>
+					<?=date('Y.m.d H:i:s', $v['reg_time'])?>
+				</span>
 			</div>
 		<? endforeach; ?>
 	</div>

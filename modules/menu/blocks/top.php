@@ -26,7 +26,7 @@ if ((int)$arg['confnum']){
 }
 $param = unserialize(mpql(mpqw($sql = "SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 
-$menu = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE rid=". (int)(is_numeric($param) ? $param : $param['menu'])." ORDER BY orderby"));
+$menu = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE region_id=". (int)(is_numeric($param) ? $param : $param['menu'])." ORDER BY sort"));
 
 if($param['tpl']){
 	$tpl = !is_numeric($param['tpl']) ? $param['tpl'] : "{$arg['fn']}.tpl";
@@ -38,14 +38,14 @@ if($param['tpl']){
 <ul style="list-style:none;">
 	<? foreach($menu as $k=>$v): if($v['pid']) continue; ?>
 		<li>
-			<? if($v['link']): ?><a class="menu" href='<?=$v['link']?>' title='<?=$v['description']?>'><? endif; ?>
+			<? if($v['href']): ?><a class="menu" href='<?=$v['href']?>' title='<?=$v['description']?>'><? endif; ?>
 				<?=$v['name']?>
-			<? if($v['link']): ?></a><? endif; ?>
+			<? if($v['href']): ?></a><? endif; ?>
 		</li>
 		<ul>
 			<? foreach($menu as $n=>$z): if($v['id'] !=$z['pid']) continue; ?>
 				<li>
-					<a class="submenu" href='<?=$z['link']?>' title='<?=$z['description']?>'>
+					<a class="submenu" href='<?=$z['href']?>' title='<?=$z['description']?>'>
 						<?=$z['name']?>
 					</a>
 				</li>

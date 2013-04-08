@@ -70,12 +70,13 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 		$shablon += array(
 			"name" => spisok("SELECT o.id, od.name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$t} AS o LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_{$t}_data AS od ON (o.id=od.{$t}_id AND {$t}_fields_id=1)")
 		);*/
-	} stable(
+	}  $t = implode("_", array_slice(explode("_", $_GET['r']), 1));
+	stable(
 		array(
 //			'dbconn' => $conf['db']['conn'],
 			'url' => "/?m[{$arg['modpath']}]=admin&r={$_GET['r']}", # Ссылка для редактирования
 			'name' => $_GET['r'], # Имя таблицы базы данных
-//			'where' => '', # Условия отбора содержимого
+			'where' => (empty($_GET['where']) && $conf['settings']["{$t}=>where_empty"] ? $conf['settings']["{$t}=>where_empty"] : $conf['settings']["{$t}=>where"]), # Условия отбора содержимого
 			'order' => ($conf['settings'][substr($_GET['r'], strlen($conf['db']['prefix'])). "=>order"] ?: 'id DESC'), # Сортировка вывода таблицы
 //			'debug' => false, # Вывод всех SQL запросов
 			'acess' => array( # Разрешение записи на таблицу
@@ -113,7 +114,7 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 //			'disable' => array('orderby'), # Выключенные для записи поля
 //			'hidden' => array('name', 'enabled'), # Скрытые поля
 			'spisok' => $spisok += array( # Список для отображения и редактирования
-				'uid' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
+				'uid' => array('*'=>array("")+spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
 //				($fn = "staff")=>array("*"=>array("")+spisok("SELECT id,name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
 //				($fn = "data_id")=>array("*"=>array("")+spisok("SELECT s.id ,d.name FROM {$conf['db']['prefix']}{$arg['modpath']}_". substr($fn, 0, -3). " AS s LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_". substr($fn, 0, -3). "_data AS d ON (s.id=d.{$fn} AND d.". substr($fn, 0, -3). "_fields_id=1)")),
 //				(($tn = "users"). $fn = "_sity") => array('*'=>array("")+spisok("SELECT id, name FROM {$conf['db']['prefix']}{$tn}{$fn}")),

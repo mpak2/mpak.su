@@ -25,7 +25,7 @@ $conf['settings'] += array(
 		"{$arg['modpath']}_event_logs=>title"=>"time,uid,own,description,event_id",
 	"{$arg['modpath']}_event_mess"=>"Сообщения",
 	"{$arg['modpath']}_event_notice"=>"Уведомления",
-		"{$arg['modpath']}_event_notice=>title"=>"time,count,name,grp_id,log,type",
+		"{$arg['modpath']}_event_notice=>title"=>"event_id,count,name,grp_id,log,type",
 
 	"{$arg['modpath']}_grp"=>"Группы",
 	"{$arg['modpath']}_mem"=>"Участники",
@@ -66,7 +66,7 @@ foreach($m as $table=>$v){
 	}
 }
 
-if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo "<div style=float:right;color:#bbb;>{$_GET['r']}:". __LINE__. "</div>";
+if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo "<div style=float:right;color:#bbb;><a href=\"/?m[sqlanaliz]=admin&r=1&tab={$_GET['r']}\">{$_GET['r']}</a>:". __LINE__. "</div>";
 	if (($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}") && $_POST['name'] && $_POST['pass']){
 		$usr = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE id=". (int)$_POST['id']), 0);
 		if($usr['pass'] != $_POST['pass']){
