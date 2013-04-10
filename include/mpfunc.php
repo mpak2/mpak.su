@@ -169,18 +169,18 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 	}
 }
 
-function mprb($arr, $key = 'id', $num = false){
-	foreach($arr as $k=>$v){
-		if(empty($ar[ $v[$key] ])){
-			foreach($v as $n=>$z){
-				if($v[$key] == $num) return $v;
-				$ar[ $z[$key] ] = $z;
-			}
-		}else{
-			mpre($v);
-			$ar[ $v[$key] ] = $v;
-		}
-	} return $num ? $ar[$num] : $ar;
+function mprb($arr, $key = 'id'){
+	$return = array();
+	$slice = array_slice(func_get_args(), 1);
+	if($arr){
+		foreach($arr as $v){
+			$n = &$return;
+			foreach($slice as $s){
+				if(empty($n[ $v[$s] ])) $n[ $v[$s] ] = array();
+				$n = &$n[ $v[$s] ];
+			} $n = $v;
+		} /*mpre($return);*/
+	} return $return;
 }
 
 function mpde($string) { 

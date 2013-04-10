@@ -45,7 +45,16 @@ jQuery.fn.klesh = function(action, callbackFnk, select){
 
 			var attr = {old:old};
 			for(var i=0;i<(attrs = klesh.attributes).length;i++) {
-				attr[attrs[i].nodeName] = attrs[i].nodeValue;
+				if(attrs[i].nodeName == "id"){
+					var parents = $(this).parents("["+attrs[i].nodeValue+"]");
+					if($(parents).length){
+						attr[attrs[i].nodeName] = $(parents).attr(attrs[i].nodeValue);
+					}else{
+						attr[attrs[i].nodeName] = attrs[i].nodeValue;
+					}
+				}else{
+					attr[attrs[i].nodeName] = attrs[i].nodeValue;
+				}
 			}// console.log($(this).parent().parent()[0]);
 			if(val != old){
 				$.post(action, attr, $.proxy(function(data){
