@@ -17,9 +17,11 @@
 
 $conf['settings'] += array(
 	"{$arg['modpath']}_index"=>$conf['modules'][ $arg['modname'] ]['name'],
+	"{$arg['modpath']}_index=>where_empty"=>"index_id=0",
+	"{$arg['modpath']}_index"=>"Ссылки",
 	"{$arg['modpath']}_cat"=>"Категории",
-	"{$arg['modpath']}"=>"Меню",
-	"{$arg['modpath']}_region"=>"Регионы",
+	"{$arg['modpath']}"=>"Ссылки",
+	"{$arg['modpath']}_region"=>"Меню",
 );
 
 if(empty($conf['settings']['menu=>spisok'])) $conf['settings']['menu=>spisok'] = "region,index";
@@ -55,7 +57,7 @@ if(!empty($conf['settings'][ $s = $arg['modpath']. "=>spisok" ]) && ($fn = explo
 			$fn = substr($table, strlen("{$conf['db']['prefix']}{$arg['modpath']}_"), strlen($table));
 			$etitle += array($fn=>$conf['settings'][ "{$arg['modpath']}_{$fn}" ]);
 			if($fn == "index"){
-				$shablon[ $fn ] = array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}". ($fn ? "_{$fn}" : ""). "&where[". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "_id]={f:id}&where[region_id]={f:region_id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}". ($fn ? "_{$fn}" : ""). "&where[". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "{$prx}_id]=', r.id, '&where[region_id]=', fn.region_id, '>', COUNT(*), '". ($fn ? "_" : ""). ($conf['settings']["{$arg['modpath']}_{$fn}"] ?: $fn). "</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$arg['modpath']}". ($fn ? "_{$fn}" : ""). " AS fn WHERE r.id=fn.". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "{$prx}_id GROUP BY r.id");
+				$shablon[ $fn ] = array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}". ($fn ? "_{$fn}" : ""). "&where[". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "_id]={f:id}&where[region_id]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}". ($fn ? "_{$fn}" : ""). "&where[". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "{$prx}_id]=', r.id, '&where[region_id]=', fn.region_id, '>', COUNT(*), '". ($fn ? "_" : ""). ($conf['settings']["{$arg['modpath']}_{$fn}"] ?: $fn). "</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$arg['modpath']}". ($fn ? "_{$fn}" : ""). " AS fn WHERE r.id=fn.". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "{$prx}_id GROUP BY r.id");
 			}else{
 				$shablon[ $fn ] = array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}". ($fn ? "_{$fn}" : ""). "&where[". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "_id]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}". ($fn ? "_{$fn}" : ""). "&where[". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "{$prx}_id]=', r.id, '>', COUNT(*), '". ($fn ? "_" : ""). ($conf['settings']["{$arg['modpath']}_{$fn}"] ?: $fn). "</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$arg['modpath']}". ($fn ? "_{$fn}" : ""). " AS fn WHERE r.id=fn.". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "{$prx}_id GROUP BY r.id");
 			}
@@ -94,7 +96,7 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 				'cp' => array('*'=>true), # Копирование
 			),
 			'edit'=>'title',
-//			'count_rows' => 12, # Количество записей в таблице
+			'count_rows' => 100, # Количество записей в таблице
 //			'page_links' => 10, # Количество ссылок на страницы в обе стороны
 
 //			'top' => array('tr'=>'<tr>', 'td'=>'<td>', 'result'=>'<b><center>{result}</center></b>'), # Формат заголовка таблицы
@@ -137,6 +139,7 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 			'default' => array(
 				'uid'=>array('*'=>$conf['user']['uid']),
 				'time'=>array('*'=>date('Y.m.d H:i:s')),
+				"href"=>array("*"=>"/"),
 //				($f = 'type_id')=>array('*'=>max($_GET['where'][$f], $_POST[$f])),
 			), # Значение полей по умолчанию
 			'maxsize' => array('description'=>150, 'text'=>250), # Максимальное количество символов в поле

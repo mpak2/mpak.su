@@ -113,8 +113,8 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 //			'disable' => array('orderby'), # Выключенные для записи поля
 //			'hidden' => array('name', 'enabled'), # Скрытые поля
 			'spisok' => $spisok += array( # Список для отображения и редактирования
-				'uid' => array('*'=>array("")+spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
-				'usr' => array('*'=>array("")+spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
+				'uid' => array('*'=>array("")+spisok("SELECT id, CONCAT('<a href=/?m[utree]=admin&r=mp_utree_index&where[usr]={f:uid}>', name, '</a>') FROM {$conf['db']['prefix']}users")),
+				'usr' => array('*'=>array("")+spisok("SELECT id, CONCAT('<a href=/?m[utree]=admin&r=mp_utree_index&where[uid]={f:usr}>', name, '</a>') FROM {$conf['db']['prefix']}users")),
 //				($fn = "staff")=>array("*"=>array("")+spisok("SELECT id,name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
 //				($fn = "data_id")=>array("*"=>array("")+spisok("SELECT s.id ,d.name FROM {$conf['db']['prefix']}{$arg['modpath']}_". substr($fn, 0, -3). " AS s LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_". substr($fn, 0, -3). "_data AS d ON (s.id=d.{$fn} AND d.". substr($fn, 0, -3). "_fields_id=1)")),
 //				(($tn = "users"). $fn = "_sity") => array('*'=>array("")+spisok("SELECT id, name FROM {$conf['db']['prefix']}{$tn}{$fn}")),

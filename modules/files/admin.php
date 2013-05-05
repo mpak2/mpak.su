@@ -19,7 +19,7 @@ $conf['settings'] += array(
 	"{$arg['modpath']}_index"=>$conf['modules'][ $arg['modname'] ]['name'],
 	"{$arg['modpath']}_cat"=>"Категории",
 	"{$arg['modpath']}_files"=>"Файлы",
-		"{$arg['modpath']}_files=>title"=>"uid,cat_id,name,w,h,c,activ",
+		"{$arg['modpath']}_files=>title"=>"uid,cat_id,logo,name,description,w,h,c,activ",
 	"{$arg['modpath']}_ext"=>".Расширение",
 	"{$arg['modpath']}_type"=>"Тип",
 );
@@ -67,6 +67,7 @@ if(!empty($conf['settings'][ $s = $arg['modpath']. "=>spisok" ]) && ($fn = explo
 if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo "<div style=float:right;color:#bbb;><a href=\"/?m[sqlanaliz]=admin&r=1&tab={$_GET['r']}\">{$_GET['r']}</a>:". __LINE__. "</div>";
 	if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_files"){
 		$shablon += array(
+			"logo"=>array("*"=>"<img src=\"/{$arg['modname']}/{f:id}/w:120/h:120/null/img.png\" title=\"{f:name}\">"),
 			'name'=>array('*'=>"<a href=\"/{$arg['modpath']}/{f:id}/null/img.png\">/{$arg['modpath']}/{f:id}/null/img.png</a>"),
 /*			"name"=>array("*"=>"<a href=\"/{$arg['modname']}/{f:id}\">{f:{f}}</a>"),
 			($fn = 'img2')=>array('*'=>"<img src='/{$arg['modpath']}:img/{f:id}/tn:". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "/fn:{$fn}/w:120/h:100/null/img.jpg' title='{f:{f}}' alt='{f:{f}}'>"),*/

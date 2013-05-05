@@ -29,7 +29,7 @@
 			.ta {height:160px;}
 			input:disabled, textarea:disabled {background-color:#eee; color:#444;}
 		</style>
-		<div style="margin:10px 0; padding:10px; border-radius:10px; border:1px solid #ddd; overflow:hidden;">
+		<div class="forms form_<?=$conf['tpl']['index'][ $_GET['id'] ]['id']?>" style="margin:10px 0; padding:10px; border-radius:10px; border:1px solid #ddd; overflow:hidden;">
 			<div style="padding:20px; text-align:center;"><?=$conf['tpl']['index'][ $_GET['id'] ]['description']?></div>
 			<? if($conf['settings']["{$arg['modpath']}_user_view"]): ?>
 				<div style="overflow:hidden;">

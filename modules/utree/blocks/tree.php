@@ -52,7 +52,7 @@ if ((int)$arg['confnum']){
 
 $tpl['tree'] = mpqn(mpqw("SELECT id.*, id.usr AS id, u.fm, u.im, u.name AS uname FROM {$conf['db']['prefix']}{$arg['modpath']}_index AS id LEFT JOIN {$conf['db']['prefix']}users AS u ON (id.usr=u.id)"), 'uid', 'id');
 
-$tree = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE usr=". $arg['uid']), 0);
+$tree = ql($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE usr=". $arg['uid'], 0);
 
 ?>
 <? if($u = $tpl['tree'][ $tree['uid'] ][ $tree['usr'] ]): ?>

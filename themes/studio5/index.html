@@ -7,6 +7,14 @@
 	<link rel="stylesheet" href="style.css" type="text/css" />
 	<script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
 <!--	<script type="text/javascript" src="/include/jquery/jquery.url.js"></script>-->
+	<script>
+		$(function(){
+			$("a.toggle").click(function(){
+				var toggle = $(this).attr("toggle");
+				$(toggle).slideToggle();
+			});
+		});
+	</script>
 </head>
 <body>
 	<div id="content">

@@ -62,7 +62,7 @@ jQuery.fn.klesh = function(action, callbackFnk, select){
 						var id = $(klesh).attr("id");
 						if(typeof(id) != "undefined"){
 							$(klesh).attr("id", klesh.id = data);
-						} if(typeof callbackFnk == "function"){ callbackFnk.call(klesh); }
+						} if(typeof(callbackFnk) == "function"){ callbackFnk.call(klesh); }
 					}
 				}, this));
 			}else{

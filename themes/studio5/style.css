@@ -12,13 +12,13 @@ h1 { font: normal 2.8em Georgia, "Times New Roman", Arial; color: #444; }
 h2 { font: normal 1.7em Georgia, "Times New Roman", Arial; margin: 0 0 10px; padding: 0 0 3px; color: #333; border-bottom: 1px solid #eee; }
 img { border: 0; }
 #content { width: 930px; margin: 25px auto; }
-#logo { margin: 10px 0 20px 0; width: 340px; float: left; }
+#logo { margin: 10px 0 20px 0; /*width: 250px;*/ float: left; }
 	#logo p { margin: 0; }
 #menu { float: right; padding: 40px 0 0; margin: 0 0 38px; }
 	#menu li { font-size: 1.1em; display: inline; }
-	#menu li a { float: left; width: 87px; padding: 2px 0 7px; text-align: center; margin: 0 0 0 10px; color: #636365;  }
+	#menu li a { float: left; width: 100px; padding: 2px 0 7px; text-align: center; margin: 0 0 0 2px; color: #636365;  }
 	#menu li a.current { background: #fff url(images/button.gif) no-repeat; color: #fff; }
-	#menu li a:hover { text-decoration: none; color: #000; background: #fff url(images/button_grey.gif) no-repeat; }
+	#menu li a:hover, #menu li a.hover { text-decoration: none; color: #000; background: #fff url(images/button_grey.gif) no-repeat; }
 .clear { clear: both; }
 .caption { background: #fff url(images/title.gif) no-repeat; padding: 2px 0 0 18px; height: 35px; color: #fff;  }
 	.caption p { margin: 0; }

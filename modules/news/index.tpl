@@ -9,9 +9,10 @@
 <? foreach($conf['tpl']['news'] as $k=>$news): ?>
 	<div style="overflow:hidden;">
 		<div class="news_name" style="margin-top: 20px; padding: 5px;">
+			<?=aedit("/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_post&where[id]={$news['id']}")?>
 			<b>
 				<?=date('Y.m.d H.i.s', $news['time'])?>
-				<? if(!$_GET['id']): ?><a href="/news/<?=$news['id']?>"><? endif; ?><?=$news['name']?><? if(!$_GET['id']): ?></a><? endif; ?>
+				<? if(!$_GET['id']): ?><h6><a href="/news/<?=$news['id']?>"><? endif; ?><?=$news['name']?><? if(!$_GET['id']): ?></a></h6><? endif; ?>
 			</b>
 		</div>
 		<div class="news_img" style="padding: 5px;">

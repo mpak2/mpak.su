@@ -9,7 +9,7 @@
 }
 
 .treeview .hitarea {
-	background: url(images/treeview-default.gif) -64px -25px no-repeat;
+	background: url(/include/jquery/treeview/images/treeview-default.gif) -64px -25px no-repeat;
 	height: 16px;
 	width: 16px;
 	margin-left: -16px;

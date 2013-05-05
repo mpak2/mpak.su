@@ -16,8 +16,13 @@ if ((int)$arg['confnum']){
 	}
 	echo "</select><br />";
 	echo "<br /><select name=\"tpl\"><option value=''></option>";
-	foreach(mpreaddir($fn = "themes/{$block['theme']}", 1) as $k=>$v){ if(substr($v, -4) != '.tpl') continue;
-		echo "<option value=\"$v\"".($v == $param['tpl'] ? " selected=\"selected\"" : '').">$v</option>";
+	foreach(mpreaddir($fn = "themes", 1) as $t){
+		$theme = mpopendir("themes/{$t}");
+		if(strpos($theme, $_SERVER['HTTP_HOST'])){
+			foreach(mpreaddir($fn = "themes/". basename($theme), 1) as $k=>$v){ if(substr($v, -4) != '.tpl') continue;
+				echo "<option value=\"$v\"".($v == $param['tpl'] ? " selected=\"selected\"" : '').">{$t}/{$v}</option>";
+			}// mpre(basename($theme));
+		}
 	}
 	echo "</select><br /><br /><input type=\"submit\" value=\"Изменить\"></form></div>";
 
