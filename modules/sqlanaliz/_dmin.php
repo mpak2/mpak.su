@@ -142,8 +142,8 @@ EOF;
 		}
 	}
 	if($_POST){
-		foreach(ql("SHOW FULL COLUMNS FROM {$_REQUEST['tab']}") as $k=>$v){
-			$old = $v+array('After'=>'', "Comment"=>'', "Collation"=>"", "Privileges"=>"");
+		foreach(mpql(mpqw("DESC {$_REQUEST['tab']}")) as $k=>$v){
+			$old = $v+array('After'=>'');
 			$edit = $_POST['fields'][$k];
 			if(array_intersect_key($old, $edit) != $edit){
 				if($edit['After'] == '_'){
@@ -152,12 +152,14 @@ EOF;
 					$after = " AFTER `{$edit['After']}`";
 				}
 				if($old['Field'] == 'id'){
-					echo "DROP TABLE `{$_POST['tab']}`";
+					echo $sql = "DROP TABLE `{$_POST['tab']}`";
 				}elseif(empty($edit['Field'])){
 					echo $sql = "ALTER TABLE `{$_POST['tab']}` DROP `{$old['Field']}`";
 				}else{
-					$sql = "ALTER TABLE `{$_POST['tab']}` CHANGE `{$old['Field']}` `{$edit['Field']}` {$edit['Type']} ".($edit['Null'] == 'NO' ? ' NOT NULL' : '')." $after".(!empty($edit['Default']) ? " DEFAULT ". ($edit['Default'] == 'NULL' ? $edit['Default'] : "'{$edit['Default']}'") : ''	). "COMMENT '". mpquot($edit['Comment']). "'";
-				} mpqw($sql); echo mysql_error();
+					$sql = "ALTER TABLE `{$_POST['tab']}` CHANGE `{$old['Field']}` `{$edit['Field']}` {$edit['Type']} ".($edit['Null'] == 'NO' ? ' NOT NULL' : '')." $after".(!empty($edit['Default']) ? " DEFAULT ". ($edit['Default'] == 'NULL' ? $edit['Default'] : "'{$edit['Default']}'") : ''	);
+					echo "<div>{$sql}</div>";
+				}
+				mpqw($sql); echo mysql_error();
 			}
 		}
 	}
@@ -205,7 +207,8 @@ xyqHZLAVOjuS9Fetgw2JuQRRQQRwQRrHFGoREUaCqBoAD7ccccFDCf/Z'></a>";
 		echo "</div><div style='margin:10px;'>";
 	if(!empty($_REQUEST['tab'])){
 		$fields = array('varchar(255)'=>'Строка', 'smallint(6)'=>'МалИнт', 'int(11)'=>'Число', 'bigint(20)'=>'БЧисло', 'float'=>'Дробное', 'text'=>'Текст', 'mediumtext'=>'Текстище');
-		$stc = ql("SHOW FULL COLUMNS FROM {$_REQUEST['tab']}");
+		$stc = mpql(mpqw("DESC ".mpquot($_REQUEST['tab'])));
+//		mpre($stc);
 		$stc[] = array('Null'=>'NO');
 		echo "<form method=\"post\"><input type=\"hidden\" name=\"tab\" value=\"{$_REQUEST['tab']}\"><table>";
 		foreach($stc as $k=>$v){
@@ -226,8 +229,7 @@ xyqHZLAVOjuS9Fetgw2JuQRRQQRwQRrHFGoREUaCqBoAD7ccccFDCf/Z'></a>";
 			echo "<option value=\"\">NULL</option>";
 			echo "<option value=\"NO\"".($v['Null'] == 'NO' ? " selected" : '').">NOT NULL</option>";
 			echo "</select></td>";
-			echo "<td><input type=\"text\" name=\"fields[$k][Default]\" value=\"{$v['Default']}\" style=\"width:40px;\"></td>";
-			echo "<td><input type=\"text\" name=\"fields[$k][Comment]\" value=\"{$v['Comment']}\" style=\"width:220px;\"></td>";
+			echo "<td><input type=\"text\" name=\"fields[$k][Default]\" value=\"{$v['Default']}\" style=\"width:80px;\"></td>";
 			echo "<td><input type=\"checkbox\" name=\"keys[{$v['Field']}]\"". ($keys[ $v['Field'] ] ? " checked" : ''). ($keys[ $v['Field'] ] == 'PRIMARY' ? " disabled><input type=\"hidden\" name=\"keys[{$v['Field']}]\" value=\"PRIMARY\"" : ''). "></td>";
 			echo "<td>{$v['Key']}</td>";
 			echo "<td>{$v['Extra']}</td>";
