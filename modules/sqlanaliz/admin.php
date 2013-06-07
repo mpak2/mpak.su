@@ -152,7 +152,7 @@ EOF;
 					$after = " AFTER `{$edit['After']}`";
 				}
 				if($old['Field'] == 'id'){
-					echo "DROP TABLE `{$_POST['tab']}`";
+					echo $sql = "DROP TABLE `{$_POST['tab']}`";
 				}elseif(empty($edit['Field'])){
 					echo $sql = "ALTER TABLE `{$_POST['tab']}` DROP `{$old['Field']}`";
 				}else{
@@ -162,6 +162,7 @@ EOF;
 		}
 	}
 
+//	if(qn("SHOW FIELDS FROM `{$_POST['tab']}`")){
 	if($_REQUEST['tab']){
 		foreach(mpql(mpqw("SHOW KEYS FROM ".mpquot($_REQUEST['tab']))) as $n=>$m){
 			$keys[$m['Column_name']] = 'on';

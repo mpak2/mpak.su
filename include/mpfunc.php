@@ -206,7 +206,7 @@ function rb($arr, $key = 'id'){
 				$r = array();
 			} $return = $r;// mpre($r);
 		}
-	} return $field ? $return[ $field ] : $return;
+	} return !empty($field) ? $return[ $field ] : $return;
 }
 
 function mpde($string) { 
@@ -390,7 +390,7 @@ function mpsettings($name, $value = null){
 	global $conf, $arg;
 	if($value === null){
 		return mpql(mpqw($sql = "SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"". mpquot($name). "\""), 0, "value");
-	}elseif($conf['settings'][$name] != $value){
+	}elseif(array_key_exists("settings", $conf) && !empty($value) && ($conf['settings'][$name] != $value)){
 		if(mpql(mpqw($sql = "SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"". mpquot($name). "\""), 0)){
 			mpqw($sql = "UPDATE {$conf['db']['prefix']}settings SET value=\"". mpquot($value). "\" WHERE name=\"". mpquot($name). "\"");
 		}else{
@@ -1117,7 +1117,7 @@ function mpqw($sql, $info = null, $conn = null){
 			),*/
 		);
 		if($error){
-			mpevent("Ошибка в структуре базы данных", $error, $conf['user']['uid']);
+			mpevent("Ошибка в структуре базы данных", $error, !empty($conf['user']['uid']) ?: 0);
 			if($init = $check[ $error ]){
 				mpevent("Таблица исправлений структуры базы даных", $sql, $conf['user']['uid'], $init);
 				foreach($init as $r=>$q){

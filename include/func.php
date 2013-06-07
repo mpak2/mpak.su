@@ -166,7 +166,7 @@ function stable($table){
 			if (strlen($table['_where'])) $sql .= " AND {$table['_where']}";
 			if ($table['debug']) mpre($sql);
 			$result = mpql(mpqw($sql), 0);
-			if(array_key_exists('img', $result) && ($file_name = mpopendir("include/{$result['img']}"))){
+			if(!empty($result['img']) && /*array_key_exists('img', $result) &&*/ ($file_name = mpopendir("include/{$result['img']}"))){
 				@mkdir("/tmp/del/", true);
 				copy($file_name, "/tmp/del/". basename($file_name));
 				unlink($file_name);

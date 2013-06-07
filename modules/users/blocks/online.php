@@ -36,6 +36,7 @@ $logo = array(
 	"begun.png"=>"Begun",
 	"majestic12.png"=>"majestic12",
 	"mail.ru.png"=>"Mail.RU",
+	"picsearch.png"=>"picsearch",
 	"bot.png"=>"bot",
 );// mpre($logo);
 

@@ -112,7 +112,7 @@ $sess['access'] = $arg['access'];// mpqw("UPDATE {$conf['db']['prefix']}blocks S
 			<input class="getscript" type="button" value="Обновить">
 		</div>
 		<div>
-			<span style="float:right;"><a class="stat" href="/domens:stat/2891">Статистика</a></span>
+			<span style="float:right;"><a class="stat" href="http://mpak.su/domens:stat/2891">Статистика</a></span>
 			<span>Пользоваель: <a class="usr" href="http://mpak.su"></a></span>
 		</div>
 	</div>
