@@ -156,7 +156,7 @@ EOF;
 				}elseif(empty($edit['Field'])){
 					echo $sql = "ALTER TABLE `{$_POST['tab']}` DROP `{$old['Field']}`";
 				}else{
-					$sql = "ALTER TABLE `{$_POST['tab']}` CHANGE `{$old['Field']}` `{$edit['Field']}` {$edit['Type']} ".($edit['Null'] == 'NO' ? ' NOT NULL' : '')." $after".(!empty($edit['Default']) ? " DEFAULT ". ($edit['Default'] == 'NULL' ? $edit['Default'] : "'{$edit['Default']}'") : ''	). "COMMENT '". mpquot($edit['Comment']). "'";
+					$sql = "ALTER TABLE `{$_POST['tab']}` CHANGE `{$old['Field']}` `{$edit['Field']}` {$edit['Type']} ".($edit['Null'] == 'NO' ? ' NOT NULL' : '')." $after".(!empty($edit['Default']) ? " DEFAULT ". ($edit['Default'] == 'NULL' ? $edit['Default'] : "'{$edit['Default']}'") : ''	). " COMMENT '". mpquot($edit['Comment']). "'";
 				} mpqw($sql); echo mysql_error();
 			}
 		}
