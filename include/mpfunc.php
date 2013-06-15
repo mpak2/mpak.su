@@ -168,6 +168,42 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 	}
 }
 
+/*function rb($arr, $key = 'id'){
+	$purpose = $keys = $return = array();
+	foreach(array_slice(func_get_args(), 1) as $a){
+		if(is_numeric($a) || (gettype($a) == "array") || $a == null){
+			$purpose[] = $a;
+		}else{
+			if(!empty($purpose)){
+				$field = $a;
+			}else{
+				$keys[] = $a;
+			}
+		}
+	} / *mpre($purpose); mpre($keys); mpre($field);* / foreach($arr as $v){
+		$n = &$return;
+		foreach($keys as $s){
+			if(empty($n[ $v[$s] ])) $n[ $v[$s] ] = array();
+			$n = &$n[ $v[$s] ];
+		} $n = $v;
+	} foreach($purpose as $v){
+		if(is_numeric($v)){
+			$return = (array)$return[ $v ];
+		}else{
+			$r = array();
+			if($v){
+				foreach(array_keys($v) as $k){
+					if(!empty($return[ $k ])){
+						$r += $return[ $k ];
+					}
+				}
+			}else{
+				$r = array();
+			} $return = $r;// mpre($r);
+		}
+	} return !empty($field) ? $return[ $field ] : $return;
+}*/
+
 function rb($arr, $key = 'id'){
 	$purpose = $keys = $return = array();
 	foreach(array_slice(func_get_args(), 1) as $a){
@@ -180,31 +216,33 @@ function rb($arr, $key = 'id'){
 				$keys[] = $a;
 			}
 		}
-	} /*mpre($purpose); mpre($keys); mpre($field);*/ foreach($arr as $v){
-		$n = &$return;
-		foreach($keys as $s){
-			if(empty($n[ $v[$s] ])) $n[ $v[$s] ] = array();
-			$n = &$n[ $v[$s] ];
-		} $n = $v;
-	} foreach($purpose as $v){
+	} if($keys){
+		foreach($arr as $v){
+			$n = &$return;
+			foreach($keys as $s){
+				if(empty($n[ $v[$s] ])){
+					$n[ $v[$s] ] = array();
+				} $n = &$n[ $v[$s] ];
+			} $n = $v;
+		}
+	}else{ $return = $arr; }
+	foreach($purpose as $v){
 		if(is_numeric($v)){
 			$return = (array)$return[ $v ];
 		}else{
 			$r = array();
-			/*if($v == null){
-				foreach($return as $n){
-					$r += $n;
-				}
-			}else*/
 			if($v){
 				foreach(array_keys($v) as $k){
 					if(!empty($return[ $k ])){
 						$r += $return[ $k ];
 					}
 				}
-			}else{
-				$r = array();
-			} $return = $r;// mpre($r);
+			}else if($v === null){
+				$inc = 0;
+				foreach($return as $k){
+					$r[ $inc++ ] = $k;
+				}
+			} $return = $r;
 		}
 	} return !empty($field) ? $return[ $field ] : $return;
 }
@@ -390,13 +428,13 @@ function mpsettings($name, $value = null){
 	global $conf, $arg;
 	if($value === null){
 		return mpql(mpqw($sql = "SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"". mpquot($name). "\""), 0, "value");
-	}elseif(array_key_exists("settings", $conf) && !empty($value) && ($conf['settings'][$name] != $value)){
+	}elseif(!empty($value) && ($conf['settings'][$name] != $value)){
 		if(mpql(mpqw($sql = "SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"". mpquot($name). "\""), 0)){
 			mpqw($sql = "UPDATE {$conf['db']['prefix']}settings SET value=\"". mpquot($value). "\" WHERE name=\"". mpquot($name). "\"");
 		}else{
 			mpqw($sql = "INSERT INTO {$conf['db']['prefix']}settings SET modpath=\"". mpquot(array_shift(explode("_", $name))). "\", aid=5, name=\"". mpquot($name). "\", value=\"". mpquot($value). "\"");
 		} return $value;
-	} return $conf['settings'][$name];
+	} return !empty($name) && !empty($conf['settings'][$name]) ? $conf['settings'][$name] : null;
 }
 
 function mpgt($REQUEST_URI, $get = array()){
@@ -772,11 +810,21 @@ function mpqw($sql, $info = null, $conn = null){
 			echo "<p>$sql<br><div color=red>".mysql_error()."</div>";
 		}
 		$check = array(
-			"" => array(
-				"" => array(
-					"",
+			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_city' doesn't exist" => array(
+				"SHOW COLUMNS FROM" => array(
+					"CREATE TABLE `{$conf['db']['prefix']}users_city` (`id` int(11) NOT NULL AUTO_INCREMENT, `country` varchar(255) NOT NULL, `regions_id` int(11) NOT NULL, `name` varchar(255) NOT NULL, `lat` float NOT NULL, `lng` float NOT NULL, `description` text NOT NULL, PRIMARY KEY (`id`), KEY `name` (`name`), KEY `regions_id` (`regions_id`)) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
 				),
-				""
+			),
+			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_region' doesn't exist" => array(
+				"SHOW COLUMNS FROM" => array(
+					"CREATE TABLE `{$conf['db']['prefix']}users_region` (`id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `description` text NOT NULL, PRIMARY KEY (`id`), KEY `name` (`name`)) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
+				),
+			),
+			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}sess_city' doesn't exist" => array(
+				"SHOW COLUMNS FROM `{$conf['db']['name']}sess_city`" => array(
+					"CREATE TABLE `{$conf['db']['prefix']}users_city` (`id` INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT, `name` varchar(255) NOT NULL, `description` text NOT NULL) ENGINE = InnoDB",
+					"ALTER TABLE `{$conf['db']['prefix']}users_city` ADD INDEX (`name`)",
+				),
 			),
 			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}menu_index' doesn't exist" => array(
 				"SELECT *, href AS link FROM {$conf['db']['prefix']}menu_index WHERE" => array(
@@ -789,12 +837,11 @@ function mpqw($sql, $info = null, $conn = null){
 					"ALTER TABLE `{$conf['db']['prefix']}menu_index` ADD INDEX (`sort`)",
 					"ALTER TABLE `{$conf['db']['prefix']}menu_index` CHANGE `link` `href` varchar(255) NOT NULL ",
 				),
-				""
 			),
 			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}search_index' doesn't exist" => array(
 				"INSERT INTO {$conf['db']['prefix']}search_index" => array(
 					"CREATE TABLE `{$conf['db']['prefix']}search_index` (`id` int(11) NOT NULL AUTO_INCREMENT,`uid` int(11) NOT NULL,`time` int(11) NOT NULL,`num` int(11) NOT NULL,`name` varchar(255) NOT NULL,`count` int(11) NOT NULL,`pages` int(11) NOT NULL,`ip` varchar(255) NOT NULL,PRIMARY KEY (`id`),KEY `uid` (`uid`),KEY `num` (`num`),KEY `uid_2` (`uid`),KEY `time` (`time`)) ENGINE=MyISAM DEFAULT CHARSET=cp1251",
-				)
+				),
 			),
 			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_geoname' doesn't exist" => array(
 				"SELECT id, CONCAT(name, ' (', countryName, ')') FROM {$conf['db']['prefix']}users_geoname" => array(

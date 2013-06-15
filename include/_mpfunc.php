@@ -12,9 +12,9 @@ function mpie($url, $decode = false){
 	}
 }
 
-function aedit($href, $float = false){
+function aedit($href){
 	global $arg;
-	if($arg['access'] > 3) echo "<span style=\"float:". ($float ?: "right"). "; margin-left:5px;\"><a href=\"{$href}\"><img src=\"/img/aedit.png\"></a></span>";
+	if($arg['access'] > 3) echo "<span style=\"float:right; margin-left:5px;\"><a href=\"{$href}\"><img src=\"/img/aedit.png\"></a></span>";
 }
 
 function mptс($time = null, $format = 0){
@@ -390,7 +390,7 @@ function mpsettings($name, $value = null){
 	global $conf, $arg;
 	if($value === null){
 		return mpql(mpqw($sql = "SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"". mpquot($name). "\""), 0, "value");
-	}elseif($conf['settings'][$name] != $value){
+	}elseif(array_key_exists("settings", $conf) && !empty($value) && ($conf['settings'][$name] != $value)){
 		if(mpql(mpqw($sql = "SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"". mpquot($name). "\""), 0)){
 			mpqw($sql = "UPDATE {$conf['db']['prefix']}settings SET value=\"". mpquot($value). "\" WHERE name=\"". mpquot($name). "\"");
 		}else{
@@ -1117,7 +1117,7 @@ function mpqw($sql, $info = null, $conn = null){
 			),*/
 		);
 		if($error){
-			mpevent("Ошибка в структуре базы данных", $error, $conf['user']['uid']);
+			mpevent("Ошибка в структуре базы данных", $error, !empty($conf['user']['uid']) ?: 0);
 			if($init = $check[ $error ]){
 				mpevent("Таблица исправлений структуры базы даных", $sql, $conf['user']['uid'], $init);
 				foreach($init as $r=>$q){
