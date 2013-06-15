@@ -85,9 +85,10 @@ if(!array_key_exists("geo", $conf['user'])){ # Поле координат в т
 	)): ?>
 	<script>
 		$(function(){
-			$(document).ready( function() {
-				$.get("http://smart-ip.net/geoip-json?lang=ru", function(smart){
-				console.log(smart);
+			$.ajax({
+				dataType: "jsonp",
+				url: "http://smart-ip.net/geoip-json?lang=ru",
+				jsonpCallback: function(smart){
 					$.getJSON("http://ws.geonames.org/searchJSON?country=RU&maxRows=10&name_startsWith="+smart.city, function(geoname){ console.log("geoname:", geoname);
 						$.post("/blocks/<?=$arg['blocknum']?>/null", {smart:smart, geoname:geoname.geonames[0]}, function(data){
 							if(html = $("<div>").html(data).find(".geoip_<?=$arg['blocknum']?>").html()){
@@ -95,7 +96,19 @@ if(!array_key_exists("geo", $conf['user'])){ # Поле координат в т
 							}else{ alert(data) }
 						});
 					});
+				},
+				jsonp:function(){
+					console.log("jsonp");
+				},
+/*			$.getJSON("http://smart-ip.net/geoip-json?lang=ru", function(smart){
+				$.getJSON("http://ws.geonames.org/searchJSON?country=RU&maxRows=10&name_startsWith="+smart.city, function(geoname){ console.log("geoname:", geoname);
+					$.post("/blocks/<?=$arg['blocknum']?>/null", {smart:smart, geoname:geoname.geonames[0]}, function(data){
+						if(html = $("<div>").html(data).find(".geoip_<?=$arg['blocknum']?>").html()){
+							$(".geoip_<?=$arg['blocknum']?>").append(html);
+						}else{ alert(data) }
+					});
 				});
+			});*/
 			});
 		});
 	</script>
