@@ -53,7 +53,18 @@ if(!empty($conf['settings'][ $s = $arg['modpath']. "=>spisok" ]) && ($fn = explo
 	foreach($fn as $f){
 		$spisok += array("{$f}_id" => array("*"=>array("")+spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$f}")));
 	}
-};// mpre($spisok);
+} if(!empty($conf['settings'][ $s = $arg['modpath']. "=>espisok" ]) && ($fn = explode(",", $conf['settings'][ $s ]))){
+	foreach($fn as $v){
+		$spisok += array(
+			(($t = array_shift(explode("_", $v))). $fn = "_". implode("_", array_slice(explode("_", $v), 1))) => array('*'=>array("")+spisok("SELECT id, CONCAT('<a href=\"/?m[{$t}]=admin&r={$conf['db']['prefix']}{$t}{$fn}&where[id]=', id, '\">', CONCAT('<span style=color:blue;>#', id, '</span>'), '</a>&nbsp;', CONVERT(`name` USING UTF8)) AS name FROM {$conf['db']['prefix']}{$t}{$fn}")),
+		);
+		if($conf['settings'][ $v ]){
+			$etitle[ $v ] = $conf['settings'][ $v ];
+		}else if(implode("_", array_slice(explode("_", $v), 1)) == "index"){
+			$etitle[ $v ] = $conf['modules'][ array_shift(explode("_", $v)) ]["name"];
+		}
+	}
+}// mpre($etitle);
 
 foreach($m as $table=>$v){
 	$columns = mpqn(mpqw("SHOW COLUMNS FROM ". mpquot($table). ""), 'Field');
@@ -115,7 +126,8 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 //				($fn = 'file')=>array('*'=>"<a href='/{$arg['modpath']}:{$fn}/{f:id}/tn:". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "/fn:{$fn}/null/{f:tmp_name}' title='{f:{f}}' alt='{f:{f}}'>{f:{f}}</a>"),
 //				($fn = "link"). "_id"=>array('*'=>"<a href='/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[id]={f:{f}}'>{f:{f}}</a>"),
 //				(($fn = 'cnt'). ($prx = ''))=>array('*'=>"<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "_id]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$fn}&where[". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "{$prx}_id]=', r.id, '>', COUNT(*), '_". ($conf['settings']["{$arg['modpath']}_{$fn}"] ?: $fn). "</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$arg['modpath']}". ($fn ? "_{$fn}" : ""). " AS fn WHERE r.id=fn.". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "{$prx}_id GROUP BY r.id"),
-//				(($t = "utree"). ($fn = '_index'). ($prx = ''))=>array('*'=>"<a href=/?m[{$t}]=admin&r={$conf['db']['prefix']}{$t}{$fn}&where[uid]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$t}]=admin&r={$conf['db']['prefix']}{$t}{$fn}&where[uid]=', r.id, '>', COUNT(*), '". ($conf['settings']["{$t}{$fn}"] ?: $fn). "</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$t}{$fn} AS fn WHERE r.id=fn.usr GROUP BY r.id"),
+
+				(($t = "invest"). ($fn = '_user'). ($prx = ''))=>array('*'=>"<a href=/?m[{$t}]=admin&r={$conf['db']['prefix']}{$t}{$fn}&where[uid]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$t}]=admin&r={$conf['db']['prefix']}{$t}{$fn}&where[uid]=', r.id, '>', COUNT(*), '_". ($conf['settings']["{$t}{$fn}"] ?: $fn). "</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$t}{$fn} AS fn WHERE r.id=fn.uid GROUP BY r.id"),
 			), # Шаблон вывода в замене участвуют только поля запроса имеен приоритет перед полем set
 //			'disable' => array('orderby'), # Выключенные для записи поля
 //			'hidden' => array('name', 'enabled'), # Скрытые поля

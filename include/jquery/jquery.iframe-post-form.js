@@ -23,14 +23,14 @@
 			$('body').append('<iframe id="' + options.iframeID + '" name="' + options.iframeID + '" style="display:none" />');
 		}
 		return $(this).each(function (){
-			element = $(this);
+			var element = $(this);
 			// Target the iframe.
 			element.attr('target', options.iframeID);
 			// Submit listener.
 			element.submit(function ()
 			{
 				// If status is false then abort.
-				status = options.post.apply(this);
+				status = options.post.apply(element);
 				if (status === false){
 					return status;
 				}
@@ -41,7 +41,7 @@
 					}else{
 						returnReponse = response.html();
 					}
-					options.complete.apply(this, [returnReponse]);
+					options.complete.apply(element, [returnReponse]);
 					iframe.unbind('load');
 					setTimeout(function ()
 					{

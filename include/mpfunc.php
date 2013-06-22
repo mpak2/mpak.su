@@ -168,7 +168,7 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 	}
 }
 
-/*function rb($arr, $key = 'id'){
+function rb($arr, $key = 'id'){
 	$purpose = $keys = $return = array();
 	foreach(array_slice(func_get_args(), 1) as $a){
 		if(is_numeric($a) || (gettype($a) == "array") || $a == null){
@@ -180,7 +180,7 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 				$keys[] = $a;
 			}
 		}
-	} / *mpre($purpose); mpre($keys); mpre($field);* / foreach($arr as $v){
+	} /*mpre($purpose); mpre($keys); mpre($field);*/ foreach($arr as $v){
 		$n = &$return;
 		foreach($keys as $s){
 			if(empty($n[ $v[$s] ])) $n[ $v[$s] ] = array();
@@ -202,9 +202,9 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 			} $return = $r;// mpre($r);
 		}
 	} return !empty($field) ? $return[ $field ] : $return;
-}*/
+}
 
-function rb($arr, $key = 'id'){
+/*function rb($arr, $key = 'id'){
 	$purpose = $keys = $return = array();
 	foreach(array_slice(func_get_args(), 1) as $a){
 		if(is_numeric($a) || (gettype($a) == "array") || $a == null){
@@ -245,7 +245,7 @@ function rb($arr, $key = 'id'){
 			} $return = $r;
 		}
 	} return !empty($field) ? $return[ $field ] : $return;
-}
+}*/
 
 function mpde($string) { 
 	static $list = array('utf-8', 'windows-1251');

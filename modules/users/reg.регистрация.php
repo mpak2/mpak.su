@@ -22,10 +22,9 @@ if (isset($_POST['add']) && strlen($_POST['name']) && strlen($_POST['pass']) && 
 		echo "<p><p><center><font color=red>Такое имя уже зарегистрировано. Выбирите другое</font>";
 		echo " <a href='/{$arg['modname']}:{$arg['fe']}'>Вернуться</a></center>";
 	}else{
-//		mpre($_POST);
 		if(($pass = $conf['settings']['users_activation']. mphash($_POST['name'], $_POST['pass'])) && ($tpl['mysql_insert_id'] = mpfdk($tn = "{$conf['db']['prefix']}users", $w = array("name"=>$_POST['name']), $w += array("type_id"=>"1", "pass"=>$pass, "reg_time"=>time(), "last_time"=>time(), "email"=>$_POST['email'], "ref"=>$conf['user']['sess']['ref'], "refer"=>$conf['user']['sess']['refer'])))){
-			if($tpl['users_activation'] = $conf['settings']['users_activation']){ # Для регистрации нужна активация аккаунта
-//				mpqw("UPDATE {$conf['db']['prefix']}users SET pass=\"". mpquot(. $pass). "\" WHERE id=". (int)$tpl['mysql_insert_id']);
+			if($conf['settings']['users_activation']){ # Для регистрации нужна активация аккаунта
+				mpmail($_POST['email'], "Регистрация на сайте ", "Добрый день. Для дальнейшей регистрации Вам необходимо подтвердить корректность указанного при регистрации адреса электронного ящика. Для этого кликните по следующей ссылке <a href='http://{$_SERVER['HTTP_HOST']}/users:activation/uid:{$tpl['mysql_insert_id']}/activation:". substr($pass, strlen($conf['settings']['users_activation']), 6). "'>Подтвердить</a>");
 			}else{ # Автоподключение а аккаунту
 				mpqw("UPDATE {$conf['db']['prefix']}sess SET uid=". (int)$tpl['mysql_insert_id']. " WHERE id=". (int)$conf['user']['sess']['id']);
 			}
@@ -36,12 +35,14 @@ if (isset($_POST['add']) && strlen($_POST['name']) && strlen($_POST['pass']) && 
 
 			$gg = mpql(mpqw($sql = "SELECT id FROM {$conf['db']['prefix']}users_grp WHERE name = \"". $conf['settings']['user_grp']. "\""), 0);// echo $sql;
 			mpqw($sql = "INSERT INTO {$conf['db']['prefix']}users_mem SET uid=".(int)$tpl['mysql_insert_id'].", grp_id=".(int)$gg['id']);
-
-			if($conf['settings']['users_reg_redirect']){ # Перенаправление на страницу с настроек
-				header("Location: {$conf['settings']['users_reg_redirect']}");
-			}else{
-				header("Location: /");
-			}$conf['tpl']['reg'] = 1;
+			if(!$conf['settings']['users_activation']){
+				if($conf['settings']['users_reg_redirect']){ # Перенаправление на страницу с настроек
+					header("Location: {$conf['settings']['users_reg_redirect']}");
+				}else{
+					header("Location: /");
+				}
+			}
+			$conf['tpl']['reg'] = 1;
 		}
 	}
 }elseif($_POST['add']){

@@ -31,8 +31,14 @@ if(!empty($conf['settings'][ $s = $arg['modpath']. "=>spisok" ]) && ($fn = explo
 	foreach($fn as $f){# Загрузка всех справочников
 		$spisok += array("{$f}_id" => array("*"=>array("")+spisok("SELECT id, CONCAT('<a href=\"/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$f}&where[id]=', id, '\">', CONVERT(`name` USING UTF8), '</a>') FROM {$conf['db']['prefix']}{$arg['modpath']}_{$f}")));
 	}
+}else if(!empty($conf['settings'][$s = "{$arg['modpath']}_tmp_exceptions"]) && ($exceptions = explode(",", $conf['settings'][ $s ]))){
+	foreach($m as $table=>$v){
+		$f = substr($table, strlen("{$conf['db']['prefix']}{$arg['modpath']}_"), strlen($_GET['r']));
+			$spisok += array("{$f}_id" => array("*"=>array("")+spisok("SELECT id, CONCAT('<a href=\"/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$f}&where[id]=', id, '\">',". (qn("SHOW COLUMNS FROM $table WHERE Field=\"name\"", "Field") ? " CONVERT(`name` USING UTF8)" : "CONCAT('#', id)"). ", '</a>') FROM $table")));
+	}
 } if(!empty($conf['settings'][ $s = $arg['modpath']. "=>espisok" ]) && ($fn = explode(",", $conf['settings'][ $s ]))){
 	foreach($fn as $v){
+		$etitle += array($v=>$conf['settings'][$v]);
 		$spisok += array(
 			(($t = array_shift(explode("_", $v))). $fn = "_". implode("_", array_slice(explode("_", $v), 1))) => array('*'=>array("")+spisok("SELECT id, CONCAT('<a href=\"/?m[{$t}]=admin&r={$conf['db']['prefix']}{$t}{$fn}&where[id]=', id, '\">', CONCAT('<span style=color:blue;>#', id, '</span>'), '</a>&nbsp;', CONVERT(`name` USING UTF8)) AS name FROM {$conf['db']['prefix']}{$t}{$fn}")),
 		);
