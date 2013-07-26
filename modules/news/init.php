@@ -1,19 +1,19 @@
 <? die;
 
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_kat` (
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_cat` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `parent` int(11) NOT NULL,
+  `cat_id` int(11) NOT NULL,
   `img` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
   `description` text NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `parent` (`parent`)
+  KEY `parent` (`cat_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_post` (
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `kat_id` int(11) NOT NULL,
+  `cat_id` int(11) NOT NULL,
   `uid` int(11) NOT NULL,
   `count` smallint(6) NOT NULL,
   `time` int(11) NOT NULL,
@@ -22,7 +22,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_post` 
   `text` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `time` (`time`),
-  KEY `kid` (`kat_id`),
+  KEY `kid` (`cat_id`),
   KEY `uid` (`uid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);

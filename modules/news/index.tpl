@@ -1,3 +1,4 @@
+<!-- [settings:foto_lightbox] -->
 <? if($n = $tpl['index'][ $_GET['id'] ]): ?>
 		<div style="overflow:hidden;">
 			<div class="news_name" style="margin-top: 20px; padding: 5px;">

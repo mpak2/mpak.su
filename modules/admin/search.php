@@ -55,7 +55,7 @@ if (strlen(trim($_REQUEST['search']))){
 				$conf['tpl']['result'][] = array(
 					'name' => $param['search_name'][$k],
 					'text' => $lstring,
-					'link' => $conf['tpl']['http_host']. strtr($param['search_query'][$k], $zamena),
+					'link' => /*$conf['tpl']['http_host']. */strtr($param['search_query'][$k], $zamena),
 				);
 			}
 		}

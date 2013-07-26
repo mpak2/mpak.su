@@ -25,7 +25,7 @@ if ((int)$arg['confnum']){
 if (count($res = mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"))))
 	$param = @unserialize($res[0]['param']);
 
-$news = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_post"));
+$news = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index"));
 
 ?>
 <ul>

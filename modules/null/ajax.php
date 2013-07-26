@@ -4,7 +4,7 @@ if(!empty($_REQUEST['class']) && $class = explode(" ", $_REQUEST['class'])){ # k
 //mpre($_REQUEST);
 //mpre($_REQUEST['id']);
 	if($arg['access'] > 1){
-		mpevent("Аякс запрос {$arg['modpath']}", $_REQUEST['class'], $conf['user']['uid'], $_REQUEST);
+		mpevent("Аякс запрос /{$arg['modpath']}:{$class[0]}", $conf['user']['uid'], $_REQUEST);
 		if($class[1] == "debug") mpre($_REQUEST);
 		if(($_REQUEST['id'] < 0) && ($arg['access'] > 2)){
 			mpqw($sql = "DELETE FROM {$conf['db']['prefix']}{$arg['modpath']}_{$class[0]} WHERE 1". ($arg['access'] > 3 ? "" : " AND uid=". $conf['user']['uid']). " AND id=". (int)($_REQUEST['id']*-1)); exit($_REQUEST['id']);

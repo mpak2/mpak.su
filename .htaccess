@@ -1,3 +1,14 @@
+#Header unset Pragma
+#FileETag None
+#Header unset ETag
+
+# BEGIN Cache-Control Headers
+#<IfModule mod_headers.c>
+#  <FilesMatch "\.(ico|jpg|png|gif|swf)$">
+#    Header set Cache-Control "max-age=2592000, public"
+#  </FilesMatch>
+#</IfModule>
+
 <IfModule mod_rewrite.c>
 	php_value file_uploads 1
 	php_value upload_max_filesize 200M

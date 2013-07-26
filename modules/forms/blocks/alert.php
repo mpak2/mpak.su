@@ -94,7 +94,9 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 						<a class="del" href="javascript:"><img src="/img/del.png"></a>
 					<? endif; ?>
 				</span>
-				<span title="<?=$v['description']?>"><?=$v['name']?></span>
+				<span title="<?=$v['description']?>">
+					<a href="/?m[<?=(array_shift(array_slice(explode("_", $form['tn']), 1, 1)))?>]=admin&r=<?=$form['tn']?>&edit=<?=$v['id']?>"><?=$v['name']?></a>
+				</span>
 			</li>
 		<? endforeach; ?>
 	</ul>

@@ -56,7 +56,7 @@ if ($m[(int)$_GET['r']] == 'Ключ'){
 						one = $("select[name=one] option:selected").val();
 						two = $("select[name=two] option:selected").val();
 						f = $("select.f option:selected").val();
-						sql = "ALTER TABLE `"+two+"` ADD FOREIGN KEY (`"+f+"`) REFERENCES `"+one+"` (`id`) ON DELETE CASCADE";
+						sql = "ALTER TABLE `"+two+"` ADD FOREIGN KEY (`"+f+"`) REFERENCES `"+one+"` (`id`) ON DELETE CASCADE -- ON DELETE RESTRICT";
 						$("textarea[name=sql]").text(sql);
 					});
 				});
@@ -183,6 +183,9 @@ EOF;
 		if($new['After'] == '_'){ $after = " FIRST"; }elseif(!empty($new['After'])){ $after = " AFTER `{$new['After']}`"; }
 		echo $sql = "ALTER TABLE `{$_POST['tab']}` ADD `{$new['Field']}` {$new['Type']}".($new['Null'] == 'NO' ? ' NOT NULL' : '')." $after".(!empty($new['Default']) ? " DEFAULT ". ($new['Default'] == 'NULL' ? $new['Default'] : "'{$new['Default']}'") : ''	);
 		mpqw($sql);
+		if(($new['Field'] == "sort") && ($new['Type'] == "int(11)")){
+			mpqw("UPDATE `{$_POST['tab']}` SET sort=id"); # Устанока уникальных значений в таблицу сортировки
+		}
 	}
 		echo "<div style='margin:10px;'>";
 		echo "<div style=\"color:red;\">". mysql_error(). "</div>";

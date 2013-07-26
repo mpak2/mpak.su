@@ -18,9 +18,7 @@
 		});
 	</script>
 	<style>
-		.wt {
-			width:100%;
-		}
+		.wt { width:95%; }
 	</style>
 	<center><b>Регистрация нового пользователя</b></center><br>
 	<form id="reg" method='post'>
@@ -55,17 +53,16 @@
 			<div style="width:100%; height:250px; padding:5px; border:2px solid #ddd;overflow:auto;">
 				<?=$conf['tpl']['users_reg_page']['text']?>
 			</div>
+<!--			<a target="blank" href="/pages/<?=$conf['tpl']['users_reg_page']['id']?>"><?=$conf['tpl']['users_reg_page']['name']?></a>-->
 <!--			<iframe src="<?=$conf['settings']['users_reg_page']?>" style="width:100%;"></iframe>-->
 			<div style="margin-top:10px;">
 				<script>
 					$(function(){
-						$("form#reg").find("input[name=add]").attr("disabled", "disabled");
-						$("#users_reg_page").change(function(){
-							checked = $(this).is(":checked");// alert(checked);
-							if(checked){
-								$("form#reg").find("input[name=add]").removeAttr("disabled");
-							}else{
-								$("form#reg").find("input[name=add]").attr("disabled", "disabled");
+						$("form#reg").on("click", "input[name=add]", function(){
+							var checked = $("#users_reg_page").is(":checked");
+							if(!checked){
+								alert("Для продолжения регистрации необходимо согласиться с условиями соглашения");
+								return false;
 							}
 						});
 					});

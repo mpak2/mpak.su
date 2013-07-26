@@ -219,6 +219,7 @@ mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`,
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_field_name', 'Логин доступа', '1', 'Дополнительное поле')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_log', '', '0', 'Логирование событий')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'user_reg_fields', '', '1', 'Добавочные поля для регистрации через запятую')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'user_diff_fields', '', '1', 'Добавочные скрываемые в лк')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_reg_redirect', '/', '1', 'Страница перенаправления после регистрации')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_event_memcache_get', 'Использован созданный ранее memcache', '1', 'Событие')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_event_memcache_set', 'Сформирован новый memcache', '1', 'Событие')");

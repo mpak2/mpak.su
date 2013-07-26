@@ -5,7 +5,7 @@ if($_POST['email']){
 		$cod = substr($conf['tpl']['user']['pass'], 0, 12);
 		$uri = "/{$arg['modpath']}:{$arg['fn']}/{$conf['tpl']['user']['id']}/resque:$cod";
 		mpmail($conf['tpl']['user']['email'], "Восстановление пароля", "Для продолжения необходимо пройти по ссылке<br /><br /><a href=\"http://{$_SERVER['HTTP_HOST']}{$uri}\">". mpidn($_SERVER['HTTP_HOST']). "{$uri}</a>");
-		mpevent("Запрос сообщения для восстановления пароля", $conf['user']['uid']);
+		mpevent("Запрос сообщения для восстановления пароля", $conf['user']['uid'], $uri);
 	}
 }elseif($_GET['resque'] && $_GET['id']){
 	if($user = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE id=". (int)$_GET['id']), 0)){

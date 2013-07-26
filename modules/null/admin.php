@@ -31,7 +31,7 @@ if(!empty($conf['settings'][ $s = $arg['modpath']. "=>spisok" ]) && ($fn = explo
 	foreach($fn as $f){# Загрузка всех справочников
 		$spisok += array("{$f}_id" => array("*"=>array("")+spisok("SELECT id, CONCAT('<a href=\"/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$f}&where[id]=', id, '\">', CONVERT(`name` USING UTF8), '</a>') FROM {$conf['db']['prefix']}{$arg['modpath']}_{$f}")));
 	}
-}else if(!empty($conf['settings'][$s = "{$arg['modpath']}_tmp_exceptions"]) && ($exceptions = explode(",", $conf['settings'][ $s ]))){
+}else if(!empty($conf['settings'][$s = "{$arg['modpath']}_tpl_exceptions"]) && ($exceptions = explode(",", $conf['settings'][ $s ]))){
 	foreach($m as $table=>$v){
 		$f = substr($table, strlen("{$conf['db']['prefix']}{$arg['modpath']}_"), strlen($_GET['r']));
 			$spisok += array("{$f}_id" => array("*"=>array("")+spisok("SELECT id, CONCAT('<a href=\"/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$f}&where[id]=', id, '\">',". (qn("SHOW COLUMNS FROM $table WHERE Field=\"name\"", "Field") ? " CONVERT(`name` USING UTF8)" : "CONCAT('#', id)"). ", '</a>') FROM $table")));
@@ -41,6 +41,18 @@ if(!empty($conf['settings'][ $s = $arg['modpath']. "=>spisok" ]) && ($fn = explo
 		$etitle += array($v=>$conf['settings'][$v]);
 		$spisok += array(
 			(($t = array_shift(explode("_", $v))). $fn = "_". implode("_", array_slice(explode("_", $v), 1))) => array('*'=>array("")+spisok("SELECT id, CONCAT('<a href=\"/?m[{$t}]=admin&r={$conf['db']['prefix']}{$t}{$fn}&where[id]=', id, '\">', CONCAT('<span style=color:blue;>#', id, '</span>'), '</a>&nbsp;', CONVERT(`name` USING UTF8)) AS name FROM {$conf['db']['prefix']}{$t}{$fn}")),
+		);
+		if($conf['settings'][ $v ]){
+			$etitle[ $v ] = $conf['settings'][ $v ];
+		}else if(implode("_", array_slice(explode("_", $v), 1)) == "index"){
+			$etitle[ $v ] = $conf['modules'][ array_shift(explode("_", $v)) ]["name"];
+		}
+	}
+}  if(!empty($conf['settings'][ $s = "{$arg['modpath']}_{$tn}=>ecounter" ]) && ($fn = explode(",", $conf['settings'][ $s ]))){
+	foreach($fn as $v){
+//		$etitle += array($v=>$conf['settings'][$v]);
+		$shablon += array(
+			(($t = array_shift(explode("_", $v))). ($fn = "_". implode("_", array_slice(explode("_", $v), 1))). ($prx = ''))=>array('*'=>"<a href=/?m[{$t}]=admin&r={$conf['db']['prefix']}{$t}{$fn}&where[". substr($_GET['r'], strlen("{$conf['db']['prefix']}")). "]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$t}]=admin&r={$conf['db']['prefix']}{$t}{$fn}&where[". substr($_GET['r'], strlen("{$conf['db']['prefix']}")). "]=', r.id, '>', COUNT(*), '_". ($conf['settings']["{$t}{$fn}"] ?: $fn). "</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$t}{$fn} AS fn WHERE r.id=fn.". ($t ? $arg['modpath']. "_" : ""). substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). ($t ? "" : "_id")." GROUP BY r.id"),
 		);
 		if($conf['settings'][ $v ]){
 			$etitle[ $v ] = $conf['settings'][ $v ];
@@ -140,12 +152,17 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 			)
 		);
 	}else{
+		$name = substr($_GET['r'], strlen($conf['db']['prefix']));
 		echo <<<EOF
 	<script>
 		$(function(){
 			if(confirm("Таблицы '{$_GET['r']}' не существует создать?")){
 				$.get("/?m[sqlanaliz]=admin&r=1&new={$_GET['r']}", function(){
-					document.location.reload(true);
+					if(tablename = prompt("Укажите имя таблицы")){
+						$.post("/?m[settings]=admin", {modpath:"{$arg['modpath']}", name:"{$name}", value:tablename, aid:4, add:'добавить'}, function(){
+							document.location.reload(true);
+						});
+					} document.location.reload(true);
 				});
 			}else{ document.location.href = "/?m[{$arg['modpath']}]=admin";}
 		});

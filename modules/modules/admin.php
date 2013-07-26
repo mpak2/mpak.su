@@ -57,7 +57,7 @@ if ($m[(int)$_GET['r']] == 'Модули'){ # Добавление модуля
 //						echo "<br />modules/$file_name/info.php";
 						mpct("modules/$file_name/info.php", array('modpath'=>$file_name));
 					}// mpre($conf['modversion']);
-					$modlist[] = "<a title=\"{$conf['modversion']['description']}\" alt=\"{$conf['modversion']['description']}\" href='?m[modules]=admin".($_GET['r'] ? "&r={$_GET['r']}" : '')."&install=$file_name'>{$conf['modversion']['name']}</a>";
+					$modlist[] = "<a title=\"{$conf['modversion']['description']}\" alt=\"{$conf['modversion']['description']}\" href='/?m[modules]=admin".($_GET['r'] ? "&r={$_GET['r']}" : '')."&install=$file_name'>{$conf['modversion']['name']}</a>";
 				}
 				if ($_GET['install'] == $file_name){
 					if (file_exists( mpopendir($infofile = "modules/$file_name/info.php") ) ){
@@ -131,7 +131,7 @@ if ($m[(int)$_GET['r']] == 'Модули'){ # Добавление модуля
 	stable(
 		array(
 			'dbconn' => $conf['db']['conn'],
-			'url' => "?m[modules]=admin&r={$_GET['r']}", # Ссылка для редактирования
+			'url' => "/?m[modules]=admin&r={$_GET['r']}", # Ссылка для редактирования
 			'name' => "{$conf['db']['prefix']}{$arg['modpath']}_gaccess", # Имя таблицы базы данных
 //			'where' => '', # Условия отбора содержимого
 //			'order' => 'id', # Сортировка вывода таблицы
@@ -173,7 +173,7 @@ if ($m[(int)$_GET['r']] == 'Модули'){ # Добавление модуля
 	stable(
 		array(
 			'dbconn' => $conf['db']['conn'],
-			'url' => "?m[modules]=admin&r={$_GET['r']}", # Ссылка для редактирования
+			'url' => "/?m[modules]=admin&r={$_GET['r']}", # Ссылка для редактирования
 			'name' => "{$conf['db']['prefix']}modules_uaccess", # Имя таблицы базы данных
 //			'where' => '', # Условия отбора содержимого
 //			'order' => 'id', # Сортировка вывода таблицы

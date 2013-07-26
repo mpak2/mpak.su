@@ -50,7 +50,10 @@ if ((int)$arg['confnum']){
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 //if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
 
-$diff = array('id', 'name', 'pass', 'param', 'flush', 'refer', 'type_id', 'img', 'ref', 'reg_time', 'last_time', 'uid', 'sess', 'gid', 'uname', 'time');
+$diff = array_merge(
+	array('id', 'name', 'pass', 'param', 'flush', 'refer', 'type_id', 'img', 'ref', 'reg_time', 'last_time', 'uid', 'sess', 'gid', 'uname', 'time'),
+	explode(",", $conf['settings']['user_diff_fields'])
+);
 
 foreach(range(1, 31) as $v){
 	$day[$v] = array("id"=>$v, "name"=>$v);

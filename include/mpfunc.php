@@ -1,5 +1,13 @@
 <?
 
+function in($ar, $flip = false){
+	if(gettype($ar) != "array"){
+		$ar = array(0);
+	}else if($flip){
+		 $ar = array_flip($ar);
+	} return implode(",", array_keys($ar) ?: array(0));
+}
+
 function mpie($url, $decode = false){
 	if($decode){
 		if (!is_string($url)) return null;
@@ -168,7 +176,82 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 	}
 }
 
+function dt($arr, $filter, $name = false){
+	$m = $arr; $inc = 0;
+	foreach($filter as $k=>$v){
+		$n = array();
+		if($m) foreach($m as $key=>$val){
+			if(is_numeric($k) || empty($k)){
+				$n[ $inc++ ] = $val;
+			}else{
+				$n[ $val[$k] ][ $val["id"] ] = $val;
+			}
+		} if(is_numeric($k) && $k && !$v && (count($m) > 1)){
+			echo "<span style=color:red;>Ошибка. Множественные данные!!!</span>";
+		} if(gettype($v) == "array"){
+			$m = array_reduce(array_intersect_key($n, $v), function($v = array(), $w = array()){
+				return gettype($v) == "NULL" ? $w : ($v += $w);
+			});
+		}else{
+			$m = $n[ $v ];
+		}
+	} if($name !== false){
+		return $m[ $name ];
+	}else{
+		return $m;
+	}
+}
+
 function rb($arr, $key = 'id'){
+	$purpose = $keys = $return = array();
+	foreach(array_slice(func_get_args(), 1) as $a){
+		if(is_numeric($a) || (gettype($a) == "array") || $a === true || empty($a)){
+			$purpose[] = $a;
+		}else{
+			if(!empty($purpose)){
+				$field = $a;
+			}else{
+				$keys[] = $a;
+			}
+		}
+	} /*mpre($purpose); mpre($keys); mpre($field);*/ if($keys){
+		if(!empty($arr)){
+			foreach($arr as $v){
+				$n = &$return;
+				foreach($keys as $s){
+					if(empty($n[ $v[$s] ])){
+						$n[ $v[$s] ] = array();
+					} $n = &$n[ $v[$s] ];
+				} $n = $v;
+			}
+		}else{
+			$n = array();
+		}
+	}else{ $return = $arr; }
+	foreach($purpose as $v){
+		if(is_numeric($v)){
+			$return = (array)$return[ $v ];
+		}else{
+			$r = array();
+			if($v === true){
+				$inc = 0;
+				foreach($return as $k){
+					$r[ $inc++ ] = $k;
+				}
+			}else if($v !== true){
+				if(gettype($v) == "array"){
+					foreach(array_keys($v) as $k){
+						if(!empty($return[ $k ])){
+							$r += $return[ $k ];
+						}
+					}
+				}else{ $r = array(); }
+			} $return = $r;
+		}
+	} return !empty($field) ? $return[ $field ] : $return;
+}
+
+/*function rb($arr, $key = 'id'){
 	$purpose = $keys = $return = array();
 	foreach(array_slice(func_get_args(), 1) as $a){
 		if(is_numeric($a) || (gettype($a) == "array") || $a == null){
@@ -180,7 +263,7 @@ function rb($arr, $key = 'id'){
 				$keys[] = $a;
 			}
 		}
-	} /*mpre($purpose); mpre($keys); mpre($field);*/ foreach($arr as $v){
+	} foreach($arr as $v){
 		$n = &$return;
 		foreach($keys as $s){
 			if(empty($n[ $v[$s] ])) $n[ $v[$s] ] = array();
@@ -202,7 +285,7 @@ function rb($arr, $key = 'id'){
 			} $return = $r;// mpre($r);
 		}
 	} return !empty($field) ? $return[ $field ] : $return;
-}
+}*/
 
 /*function rb($arr, $key = 'id'){
 	$purpose = $keys = $return = array();
@@ -453,17 +536,6 @@ function mpgt($REQUEST_URI, $get = array()){
 	}
 	if(!empty($part[2]) && $part[2] != ''){
 		foreach($tpl = explode('/', $part[2]) as $k=>$v){
-/*			if($param = explode(':', $v, 2)){
-				if(!empty($param[0]) && !empty($param[1])){
-					if(is_numeric($param[0])){
-						$get["id"][ $param[0] ] = $param[1];
-					}else{
-						$get += array(@urldecode($param[0])=>@urldecode($param[1]));
-					}
-				}else if(is_numeric($param[0])){
-					$get += array('id'=>$param[0]);
-				}
-			}*/
 			if($param = explode(':', $v, 2)){
 				if(!empty($param[0]) && !is_numeric($param[0])){
 					$get += array(@urldecode($param[0])=>@urldecode($param[1]));
@@ -642,6 +714,7 @@ function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.pn
 
 function mpdbf($tn, $post = null, $and = false){
 	global $conf;
+	$fields = $f = array();
 	if(!isset($post)) $post = $_POST;
 	foreach(mpql(mpqw("SHOW COLUMNS FROM `$tn`")) as $k=>$v){
 		$fields[$v['Field']] = $v['Type'];
@@ -812,7 +885,7 @@ function mpqw($sql, $info = null, $conn = null){
 		$check = array(
 			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_city' doesn't exist" => array(
 				"SHOW COLUMNS FROM" => array(
-					"CREATE TABLE `{$conf['db']['prefix']}users_city` (`id` int(11) NOT NULL AUTO_INCREMENT, `country` varchar(255) NOT NULL, `regions_id` int(11) NOT NULL, `name` varchar(255) NOT NULL, `lat` float NOT NULL, `lng` float NOT NULL, `description` text NOT NULL, PRIMARY KEY (`id`), KEY `name` (`name`), KEY `regions_id` (`regions_id`)) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
+					"CREATE TABLE `{$conf['db']['prefix']}users_city` (`id` int(11) NOT NULL AUTO_INCREMENT, `country` varchar(255) NOT NULL, `region_id` int(11) NOT NULL, `name` varchar(255) NOT NULL, `lat` float NOT NULL, `lng` float NOT NULL, `description` text NOT NULL, PRIMARY KEY (`id`), KEY `name` (`name`), KEY `region_id` (`region_id`)) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
 				),
 			),
 			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_region' doesn't exist" => array(
@@ -1287,7 +1360,7 @@ EOF;
 	}
 	echo '<ul class="nl tabs">';
 	foreach($m as $k=>$v){
-		if ($v[0] == '.') continue;
+		if (($v[0] == '.') && ($_GET['r'] != $k)) continue;
 		echo "<li class=\"$k\"><a href=\"/?m[{$modname}]=admin". ($k ? "&r=$k" : ''). "\">$v</a></li>";
 	}
 	echo '</ul>';
@@ -1460,13 +1533,13 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 		mpevent("Формирование изображения", $fl_name, $conf['user']['uid']);
 		return $content;
 	}else{
-		$src = imagecreate (50, 30);
+		$src = imagecreate (65, 65);
 		$bgc = imagecolorallocate ($src, 255, 255, 255);
 		$tc = imagecolorallocate ($src, 0, 0, 0);
 		imagefilledrectangle ($src, 0, 0, 150, 30, $bgc);
 		header("Content-type: image/jpeg");
 		mpevent("Ошибка открытия изображения", $file_name, $conf['user']['uid']);
-		imagestring ($src, 1, 5, 5, "NoIMAGE", $tc);
+		imagestring ($src, 1, 5, 30, "HeTKapmuHku", $tc);
 		return ImageJpeg($src);
 	}
 }

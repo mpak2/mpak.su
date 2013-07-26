@@ -1,15 +1,18 @@
-<? if($$arg['fn'] = $tpl[ $arg['fn'] ][ $_GET['id'] ]): ?>
-	<div style="overflow:hidden;">
-		<div style="float:right;">
-			<img src="/<?=$arg['modname']?>:img/<?=$v['id']?>/tn:<?=$arg['fn']?>/w:220/h:200/null/img.jpg">
-		</div>
-		<h1><?=$v['name']?></h1>
-		<div style="margin-top:15px;"><?=$v['description']?></div>
-		<div><?=$v['text']?></div>
+<? if($$arg['fe'] = $tpl[ $arg['fe'] ][ $_GET['id'] ]): ?>
+	<span style="float:right;"><?=aedit("/?m[{$arg['modname']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']}&where[id]={${$arg['fn']}['id']}")?></span>
+	<span style="float:right;">
+		<a href="/<?=$arg['modname']?>:<?=$arg['fe']?>">Весь список</a>
+	</span>
+	<div>
+		<h2><?=${$arg['fe']}['name']?></h2>
 	</div>
-	<!-- [settings:comments'] -->
+	<div>
+		<?=${$arg['fe']}['description']?>
+	</div>
 <? else: ?>
-	<? foreach($conf['tpl'][ $arg['fn'] ] as $$arg['fn']): ?>
-		<div><a href="/<?=$arg['modname']?><?=($arg['fn'] != 'index' ? ":{$arg['fn']}" : "")?>/<?=$v['id']?>"><?=$v['name']?></a></div>
+	<div><?=$tpl['mpager']?></div>
+	<? foreach($tpl[ $arg['fe'] ] as $$arg['fe']): ?>
+		<div><a href="/<?=$arg['modname']?>:<?=$arg['fe']?>/<?=${$arg['fe']}['id']?>"><?=${$arg['fe']}['name']?></a></div>	
 	<? endforeach; ?>
+	<div><?=$tpl['mpager']?></div>
 <? endif; ?>
