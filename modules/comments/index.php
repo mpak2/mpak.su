@@ -33,5 +33,3 @@ if(array_key_exists("null", $_GET)){
 	$tpl['comments'] = mpql(mpqw($sql = "SELECT SQL_CALC_FOUND_ROWS txt.*, url.name AS url FROM {$conf['db']['prefix']}{$arg['modpath']}_txt AS txt LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_url AS url ON txt.url_id=url.id ORDER BY txt.id DESC LIMIT ". ($_GET['p']*20). ",20"));
 	$tpl['mpager'] = mpager(mpql(mpqw("SELECT FOUND_ROWS()/20 AS cnt"), 0, 'cnt'));
 }
-
-?>

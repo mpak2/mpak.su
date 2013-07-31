@@ -1,6 +1,12 @@
- <?php
+<?
 
-$p = new Phar('mpak.phar', 0, 'mpak.phar');
+try {
+	$p = new Phar($f = "mpak.phar", 0, $f);
+} catch (UnexpectedValueException $e) {
+    die("Could not open {$f}");
+} catch (BadMethodCallException $e) {
+    echo 'technically, this cannot happen';
+}
 
 function apr($folder){
 	if(is_dir($folder)){
