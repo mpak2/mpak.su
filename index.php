@@ -282,6 +282,9 @@ if (!function_exists('mcont')){
 				}else if(mpopendir("modules/{$mod['link']}/$v.js")){
 					if(array_key_exists("null", $_GET)) header("Content-type: application/x-javascript");
 					mp_require_once("modules/{$mod['link']}/$v.js");
+				}else if(mpopendir("modules/{$mod['link']}/$v.css")){
+					if(array_key_exists("null", $_GET)) header("Content-type: text/css");
+					mp_require_once("modules/{$mod['link']}/$v.css");
 				}else{# Дефолтный файл
 					mp_require_once("modules/{$mod['link']}/$fn.tpl");
 				} $content .= ob_get_contents(); ob_end_clean();
