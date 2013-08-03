@@ -51,7 +51,7 @@ function mb_ord($char){
     return html_entity_decode('&#' . intval($string) . ';', ENT_COMPAT, 'UTF-8');
 }
 
-function mpcurl($href, $post = null, $temp = "/tmp/cookie.txt", $referer = null, $headers = array(), $proxy = null){
+function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $headers = array(), $proxy = null){
 	$ch = curl_init();
 	if($proxy){
 		curl_setopt($ch, CURLOPT_PROXY, $proxy); //если нужен прокси
