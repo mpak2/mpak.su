@@ -37,6 +37,6 @@ img { border: 0; }
 
 .login {width:90%;}
 
-div.table {display:table; width:100%; vertical-align:top;}
+div.table {display:table; width:100%;}
 div.table > div {display:table-row;}
-div.table > div > span {display:table-cell;}
+div.table > div > span {display:table-cell; vertical-align:top;}
