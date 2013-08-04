@@ -132,7 +132,7 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 				), # Шаблон вывода в замене участвуют только поля запроса имеен приоритет перед полем set
 	//			'disable' => array('orderby'), # Выключенные для записи поля
 	//			'hidden' => array('name', 'enabled'), # Скрытые поля
-				'spisok' => $spisok += array( # Список для отображения и редактирования
+				'spisok' => array( # Список для отображения и редактирования
 					'uid' => array('*'=>array("")+spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
 	//				($fn = "staff")=>array("*"=>array("")+spisok("SELECT id,name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
 	//				($fn = "data_id")=>array("*"=>array("")+spisok("SELECT s.id ,d.name FROM {$conf['db']['prefix']}{$arg['modpath']}_". substr($fn, 0, -3). " AS s LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_". substr($fn, 0, -3). "_data AS d ON (s.id=d.{$fn} AND d.". substr($fn, 0, -3). "_fields_id=1)")),
@@ -142,7 +142,7 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 	//				'zagruzka_type_id' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_zagruzka_type")),
 	//				'vygruzka_type_id' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_vygruzka_type")),
 					'hide'=>array('*'=>array(1=>'Скрыто', 0=>'Доступно')),
-				),
+				) + $spisok,
 				'default' => array(
 					'uid'=>array('*'=>$conf['user']['uid']),
 					'time'=>array('*'=>date('Y.m.d H:i:s')),
