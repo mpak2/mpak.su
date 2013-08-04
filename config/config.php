@@ -14,5 +14,3 @@ $conf['db']['host'] = 'localhost';
 $conf['db']['login'] = 'mpak.cms';
 $conf['db']['name'] = 'mpak.cms';
 $conf['db']['pass'] = 'password';
-
-?>
