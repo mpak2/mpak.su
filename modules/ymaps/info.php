@@ -1,15 +1,15 @@
 <? die;
 
 $conf['modversion']=array(
-	'name'=>'Яндекс карты',
+	'name'=>'Я.Карты',
 	'author'=>'mpak',
-	'contact'=>'mpak@surguttel.ru',
-	'version'=>'0.9008',
-	'description'=>'API Яндекс.Карт на своём сайте',
+	'contact'=>'cms@mpak.su',
+	'version'=>'0,9006',
+	'description'=>'Яндекс карты',
 	'enabled'=>'2',
 	'access'=>'1',
-	'admin'=>'0',
-	'md5'=>'b940c624eb22d4f63c710f73fe9d2eed',
+	'admin'=>'3',
+	'md5'=>'1e21159b34a9e0494e4caf4804b94087',
 );
 
 ?>

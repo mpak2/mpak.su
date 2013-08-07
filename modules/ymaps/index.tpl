@@ -1,78 +1,34 @@
-    <script src="http://api-maps.yandex.ru/1.1/index.xml?key=<?=$conf['settings']['ymaps_key']?>" type="text/javascript"></script>
-
-    <script type="text/javascript">
-        window.onload = function () {
-			var map = new YMaps.Map(document.getElementById("YMapsID"));
-			var zoom = new YMaps.Zoom({
-				customTips: [{ index: 1, value: "Мелко" },{ index: 9, value: "Средне" },{ index: 16, value: "Крупно" }]
-			}); map.addControl(zoom);
-			var coords = new YMaps.GeoPoint(<?=$conf['settings']["{$arg['modpath']}_startx"]?>, <?=$conf['settings']["{$arg['modpath']}_starty"]?>);
-
-			<? if($_GET['drive']): ?>
-				var coords = new YMaps.GeoPoint(<?=$conf['tpl']['sity']['x']?>, <?=$conf['tpl']['sity']['y']?>);
-				var coords = new YMaps.GeoPoint(<?=$conf['tpl']['placemark'][0]['x']?>, <?=$conf['tpl']['placemark'][0]['y']?>);
-				var placemark = new YMaps.Placemark(coords, {draggable: true});// Создает и добавляет метку на карту
-				placemark.setIconContent("Таскайте меня!!!");
-				placemark.name = "Определите место на карте";
-				placemark.description = "<a href=\"/\">Вернуться на карту</a>";
-				map.addOverlay(placemark);
-				var distance = 0, prev;// Обнуляет переменные, содержащие общее расстояние, пройденное меткой и предыдущую точку пути
-				YMaps.Events.observe(placemark, placemark.Events.DragStart, function (obj) {// Прикрепляет обработчики событий метки
-					prev = obj.getGeoPoint().copy();
-				});
-				YMaps.Events.observe(placemark, placemark.Events.Drag, function (obj) {
-					var current = obj.getGeoPoint().copy();// Расчитывает общее расстояние, пройденное меткой при перетаскивании (в метрах)
-					distance += current.distance(prev);
-					prev = current;
-					obj.setIconContent("Пробег: " + YMaps.humanDistance(distance));
-				});
-				YMaps.Events.observe(placemark, placemark.Events.DragEnd, function (obj) {// Устанавливает содержимое балуна
-					var pnt = placemark.getGeoPoint();
-					$.post('/<?=$arg["modpath"]?>/<?=$_GET["drive"]?>', {"x": pnt.getX(), "y": pnt.getY()}, function(data) {
-//						$(".result").html(data);
-					});
-					placemark.name = "Координаты сохранены";
-					placemark.description = "<a href=\"/\">Вернуться на карту</a>";
-
-			$('#basic-modal').click(function(){
-				alert('modal');
-				$('#basic-modal-content').modal();
-				return false;
+<? if($$arg['fe'] = $tpl[ $arg['fe'] ][ $_GET['id'] ]): ?>
+	<?=aedit("/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_index&where[id]={$index['id']}")?>
+	<h1><?=$index['name']?></h1>
+	<script src="http://api-maps.yandex.ru/2.0-stable/?load=package.standard&lang=ru-RU" type="text/javascript"></script>
+	<script type="text/javascript">
+		ymaps.ready(init);
+		var myMap;
+		function init(){     
+			myMap = new ymaps.Map ("map", {
+				center: [<?=$index['latitude']?>, <?=$index['longitude']?>],
+				zoom: <?=$index['zoom']?>,
 			});
-
-//					placemark.description = "положение: " + pnt;
-					placemark.openBalloon();
-					obj.setIconContent(null);// Стирает содержимое метки и обнуляет расстояние
-					obj.update();
-				});
-//				alert('Определите место обьявления на карте...');
-			<? else: ?>
-				<? foreach((array)$conf['tpl']['placemark'] as $k=>$v): ?>
-					var s = new YMaps.Style();
-					<? if($v['img']): ?>
-						s.iconStyle = new YMaps.IconStyle();
-						s.iconStyle.href = "/<?=$arg['modpath']?>:img/<?=$v['drive']?>/tn:placemark/w:30/h:30/c:1/null/img.jpg";
-						s.iconStyle.size = new YMaps.Point(30, 30);
-						s.iconStyle.offset = new YMaps.Point(-1, -1);
-					<? endif; ?>
-					var placemark = new YMaps.Placemark(new YMaps.GeoPoint(<?=$v['x']?>, <?=$v['y']?>), {style: s});
-					placemark.name = "<?=$v['name']?>";
-					placemark.description = "<?=$v['description']?> <b><?=$v['price']?></b>";
-					placemark.setIconContent("<?=$v['content']?>");
-					map.addOverlay(placemark);
-				<? endforeach; ?>
-			<? endif; ?>
-			map.setCenter(coords, <?=(int)$conf['settings']["{$arg['modpath']}_zoom"]?>);
-			<? if($_GET['addr']): ?>
-
-				var geocoder = new YMaps.Geocoder("<?=$_GET['addr']?>");
-				YMaps.Events.observe(geocoder, geocoder.Events.Load, function (geocoder) {
-					map.addOverlay(geocoder.get(0));
-					map.setBounds(geocoder.get(0).getBounds());
-				});
-
-			<? endif; ?>
-        }
+			myMap.controls.add(new ymaps.control.ZoomControl());
+			<? foreach(rb($tpl['placemark'], "index_id", "id", $index['id']) as $placemark): ?>
+				myMap.geoObjects.add(new ymaps.Placemark([<?=$placemark['latitude']?>, <?=$placemark['longitude']?>], {
+					iconContent: "<?=$placemark['name']?>",
+					balloonContentHeader: "<?=$placemark['name']?>",
+					balloonContentBody: "<?=$placemark['text']?>",
+					balloonContentFooter: "<?=$placemark['description']?>"
+				}, {
+					preset: 'twirl#blueStretchyIcon' // иконка растягивается под контент
+				}));
+            <? endforeach; ?>
+		}
 	</script>
-	<div style="float:left;" class="result"></div>
-	<div id="YMapsID" style="width:100%;height:500px"></div>
+	<div id="map" style="width:<?=($index['width'] ?: "100%")?>; height:<?=($index['height'] ?: "500px")?>; float:right;"></div>
+	<div><?=$index['text']?></div>
+<? else: ?>
+	<div><?=$tpl['mpager']?></div>
+	<? foreach($tpl[ $arg['fe'] ] as $$arg['fe']): ?>
+		<div><a href="/<?=$arg['modname']?>:<?=$arg['fe']?>/<?=${$arg['fe']}['id']?>"><?=${$arg['fe']}['name']?></a></div>	
+	<? endforeach; ?>
+	<div><?=$tpl['mpager']?></div>
+<? endif; ?>
