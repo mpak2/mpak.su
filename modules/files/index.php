@@ -15,7 +15,6 @@
 // ----------------------------------------------------------------------
 
 if($_FILES && ($arg['access'] > 1)){
-//	mpre(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_files"), 0));
 	mpre($_FILES);
 }elseif($_GET['id'] || $_GET['cat_id']){
 	$img = array('jpg', 'jpeg', 'gif', 'png');
