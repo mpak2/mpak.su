@@ -14,7 +14,6 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index`
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `time` int(11) NOT NULL,
   `uid` int(11) NOT NULL,
-  `usr` int(11) NOT NULL,
   `cat_id` int(11) NOT NULL,
   `hide` int(11) NOT NULL,
   `sort` int(11) NOT NULL,
@@ -25,11 +24,12 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index`
   KEY `cat_id` (`cat_id`),
   KEY `hide` (`hide`),
   KEY `time` (`time`),
-  KEY `uid` (`uid`),
-  KEY `usr` (`usr`)
+  KEY `uid` (`uid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('faq', 'faq', '<script>\$(function(){uid=\$(\"#faq\").parents(\"[uid]\").attr(\"uid\");\$(\"#faq\").load(\"/faq:ask\"+(uid?\"/uid:\"+uid:\'\')+\"/null\")})</script><div id=\"faq\"></div>', '1', 'Установка кода часто задаваемых вопросов на сайт.')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('faq', 'faq_tpl_exceptions', '1', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('faq', 'faq_index=>title', 'time,uid,cat_id,hide,sort,qw', '4', '')");
 
 ?>

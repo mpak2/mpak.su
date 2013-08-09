@@ -7,6 +7,7 @@ if($_GET['id']){
 	$conf['tpl']['faq'] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE `hide`=0 AND uid=". (int)$_GET['uid']. " ORDER BY `sort`"));
 }else{
 	$conf['tpl']['cat'] = mpqn(mpqw("SELECT cat.*, COUNT(*) AS cnt FROM {$conf['db']['prefix']}{$arg['modpath']}_cat AS cat INNER JOIN {$conf['db']['prefix']}{$arg['modpath']}_index AS faq ON cat.id=faq.cat_id GROUP BY cat.id"));
+	$tpl['index'] = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index");
 }
 
 ?>

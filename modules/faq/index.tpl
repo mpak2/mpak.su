@@ -1,8 +1,9 @@
 <style>
+	.faq h2 {margin:20px 0;}
 	.qw{
 		padding:5px;
 		border-top: 1px solid gray;
-		border-bottom: 1px solid gray;
+/*		border-bottom: 1px solid gray;*/
 	}
 	.qw, .ans{ margin:10px; }
 	.ans { margin-left:50px; }
@@ -31,9 +32,17 @@
 	<? endforeach; ?>
 	<div><!-- [settings:comments] --></div>
 <? else: ?>
-	<ul>
+	<ul class="faq">
 		<? foreach($conf['tpl']['cat'] as $k=>$v): ?>
-		<li><a href="/<?=$arg['modpath']?>/<?=$v['id']?>"><?=$v['name']?> [<?=$v['cnt']?>]</a></li>
+			<li>
+				<h2><a href="/<?=$arg['modpath']?>/<?=$v['id']?>"><?=$v['name']?> [<?=$v['cnt']?>]</a></h2>
+				<ul>
+					<? foreach(rb($tpl['index'], "cat_id", "id", $v['id']) as $index): ?>
+						<div class="qw"><?=$index['qw']?></div>
+						<div class="ans"><?=$index['ans']?></div>
+					<? endforeach; ?>
+				</ul>
+			</li>
 		<? endforeach; ?>
 	</ul>
 <? endif; ?>
