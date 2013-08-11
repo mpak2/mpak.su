@@ -9,7 +9,7 @@
 	.ans { margin-left:50px; }
 	.href { padding-left:50px; text-align:right; white-space:nowrap; overflow:hidden;}
 </style>
-<? if($conf['tpl']['faq']): ?>
+<? if($faq = $tpl['faq'][ $_GET['id'] ]): ?>
 	<? if($v = $conf['tpl']['user']): ?>
 		<div style="overflow:hidden;">
 			<div style="float:right; text-align:center;">
@@ -33,11 +33,11 @@
 	<div><!-- [settings:comments] --></div>
 <? else: ?>
 	<ul class="faq">
-		<? foreach($conf['tpl']['cat'] as $k=>$v): ?>
+		<? foreach($conf['tpl']['cat'] as $cat): ?>
 			<li>
-				<h2><a href="/<?=$arg['modpath']?>/<?=$v['id']?>"><?=$v['name']?> [<?=$v['cnt']?>]</a></h2>
+				<h2><a href="/<?=$arg['modpath']?>/<?=$cat['id']?>"><?=$cat['name']?> [<?=count(rb($tpl['index'], "cat_id", "id", $cat['id']))?>]</a></h2>
 				<ul>
-					<? foreach(rb($tpl['index'], "cat_id", "id", $v['id']) as $index): ?>
+					<? foreach(rb($tpl['index'], "cat_id", "id", $cat['id']) as $index): ?>
 						<div class="qw"><?=$index['qw']?></div>
 						<div class="ans"><?=$index['ans']?></div>
 					<? endforeach; ?>

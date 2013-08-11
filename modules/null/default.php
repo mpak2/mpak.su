@@ -11,4 +11,4 @@ foreach(mpql(mpqw("SHOW TABLES WHERE Tables_in_{$conf['db']['name']} LIKE \"{$co
 	}
 } // mpre(array_keys($tpl));
 
-//$tpl['uid'] = qn("SELECT * FROM {$conf['db']['prefix']}users WHERE id IN (". implode(",", array_keys(rb($tpl['index'], "uid")) ?: array(0)). ")");
+//$tpl['uid'] = qn("SELECT * FROM {$conf['db']['prefix']}users WHERE id IN (". in(rb($tpl['index'], "uid")). ")");

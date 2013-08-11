@@ -1,13 +1,16 @@
 <? die;
 
-if($_GET['id']){
-	$conf['tpl']['faq'] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE `hide`=0 AND cat_id=".(int)$_GET['id']. " ORDER BY `sort`"));
-}elseif($_GET['uid']){
-	$conf['tpl']['user'] = mpql(mpqw("SELECT id, name FROM {$conf['db']['prefix']}users WHERE id=". (int)$_GET['uid']), 0);
-	$conf['tpl']['faq'] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE `hide`=0 AND uid=". (int)$_GET['uid']. " ORDER BY `sort`"));
-}else{
-	$conf['tpl']['cat'] = mpqn(mpqw("SELECT cat.*, COUNT(*) AS cnt FROM {$conf['db']['prefix']}{$arg['modpath']}_cat AS cat INNER JOIN {$conf['db']['prefix']}{$arg['modpath']}_index AS faq ON cat.id=faq.cat_id GROUP BY cat.id"));
-	$tpl['index'] = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index");
-}
+//$tpl[ $arg['fe'] ] = qn("SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fe']}". ($_GET['id'] ? " WHERE id=". (int)$_GET['id'] : " LIMIT ". ($_GET['p']*20). ",20"));
+//$tpl['mpager'] = mpager(ql("SELECT FOUND_ROWS()/20 AS cnt", 0, 'cnt'));
 
-?>
+$tpl['cat'] = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_cat ORDER BY sort");
+
+foreach(mpql(mpqw("SHOW TABLES WHERE Tables_in_{$conf['db']['name']} LIKE \"{$conf['db']['prefix']}{$arg['modpath']}\_%\"")) as $k=>$v){
+	$t = implode("_", array_slice(explode("_", $v["Tables_in_{$conf['db']['name']}"]), 2));
+	if((empty($conf['settings']["{$arg['modpath']}_tmp_exceptions"]) && !array_key_exists($t, (array)$tpl)) ||
+		((!empty($conf['settings']["{$arg['modpath']}_tmp_exceptions"]) && (array_search($t, explode(",", $conf['settings']["{$arg['modpath']}_tmp_exceptions"])) === false)) && !array_key_exists($t, (array)$tpl))){
+		$tpl[ $t ] = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$t}"));
+	}
+} // mpre(array_keys($tpl));
+
+$tpl['uid'] = qn("SELECT * FROM {$conf['db']['prefix']}users WHERE id IN (". in(rb($tpl['index'], "uid")). ")");
