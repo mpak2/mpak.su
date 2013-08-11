@@ -10,6 +10,7 @@
 // Original Author of file: Krivoshlykov Evgeniy (mpak) +7 929 1140042
 // ----------------------------------------------------------------------
 
+ini_set('display_errors', 1); error_reporting(E_ALL ^ E_NOTICE);
 
 if(!function_exists('mp_require_once')){
 	function mp_require_once($link){
@@ -47,7 +48,6 @@ if (strlen($conf['db']['error'] = mysql_error())){
 } unset($conf['db']['pass']); $conf['db']['sql'] = array();
 
 header('Content-Type: text/html;charset=UTF-8');
-ini_set('display_errors', 1); error_reporting(E_ALL ^ E_NOTICE);
 
 if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(mpql(mpqw("SHOW TABLES", 'Проверка работы базы')))){ echo mpct('include/install.php'); die; }
 
