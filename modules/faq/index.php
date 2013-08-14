@@ -4,6 +4,7 @@
 //$tpl['mpager'] = mpager(ql("SELECT FOUND_ROWS()/20 AS cnt", 0, 'cnt'));
 
 $tpl['cat'] = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_cat ORDER BY sort");
+$tpl['index'] = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index ORDER BY sort");
 
 foreach(mpql(mpqw("SHOW TABLES WHERE Tables_in_{$conf['db']['name']} LIKE \"{$conf['db']['prefix']}{$arg['modpath']}\_%\"")) as $k=>$v){
 	$t = implode("_", array_slice(explode("_", $v["Tables_in_{$conf['db']['name']}"]), 2));
