@@ -9,6 +9,17 @@
 			Данная страница не найдена на сайте.<br />Возможно она была удалена.
 		</div>
 	<? endif; ?>
+<? elseif($cat = rb($tpl['cat'], "id", $_GET['cat_id'])): ?>
+	<div>
+		<h1><?=$cat['name']?></h1>
+		<ul>
+			<? foreach(rb($tpl['index'], "cat_id", "id", $cat['id']) as $index): ?>
+				<li>
+					<a href="/<?=$arg['modname']?>/<?=$index['id']?>"><?=$index['name']?></a>
+				</li>
+			<? endforeach; ?>
+		</ul>
+	</div>
 <? else: ?>
 	<ul>
 		<? foreach($tpl['pages'] as $cat_id=>$cats): ?>
