@@ -1,9 +1,3 @@
-<? if($conf['user']['uid'] > 0): ?>
-	<div style="margin:100px; text-align:center;">
-		<div>Добро пожаловать: <?=$conf['user']['name']?></div>
-		<div>Перейти в <a href="/users">кабинет</a></div>
-	</div>
-<? else: ?>
 	<div style="text-align:center; margin:100px;">
 		<form method="post" action="">
 			<table border="0">
@@ -15,4 +9,3 @@
 			</tbody></table>
 		</form>
 	</div>
-<? endif; ?>
