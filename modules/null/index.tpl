@@ -6,9 +6,8 @@
 	<div>
 		<h2><?=${$arg['fe']}['name']?></h2>
 	</div>
-	<div>
-		<?=${$arg['fe']}['description']?>
-	</div>
+	<div style="font-weight:bold; margin:20px 0;"><?=${$arg['fe']}['description']?></div>
+	<div><?=${$arg['fe']}['text']?></div>
 <? else: ?>
 	<div><?=$tpl['mpager']?></div>
 	<? foreach($tpl[ $arg['fe'] ] as $$arg['fe']): ?>
