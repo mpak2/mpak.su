@@ -1,6 +1,29 @@
 <? if(empty($_POST)): ?>
+	<script src="/include/jquery/jquery.validate.js"></script>
 	<script>
 		$(function(){
+			$("#reg").validate({
+				rules:{
+					name:"required",
+					email:{
+						required:true,
+						email:true,
+					},
+					tel:"required",
+					pass:"required",
+					pass2:"required",
+				},
+				messages:{
+					name:"Поле обязательно для заполнения",
+					email:{
+						required:"Введите адрес электронной почты",
+						email:"Адрес электронной почты не корректен"
+					},
+					tel:"Обязательное для заполнения поле",
+					pass:"Введите пароль",
+					pass2:"Повторите введенный пароль",
+				}
+			});
 			$("select[name=country_id]").change(function(){
 				if(country_id = $(this).find("option:selected").val()){
 					$("select[name=sity_id]").find("option").each(function(key, val){
