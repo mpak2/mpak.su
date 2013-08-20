@@ -33,6 +33,7 @@ $param = unserialize(mpql(mpqw($sql = "SELECT param FROM {$conf['db']['prefix']}
 
 $menu = mpqn(mpqw($sql = "SELECT *, href AS link FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE region_id=". (int)(is_numeric($param) ? $param : $param['menu'])." ORDER BY sort"), 'index_id', 'id');
 
+echo aedit("/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_index&where[region_id]=". (is_numeric($param) ? $param : $param['menu']));
 if($param['tpl']){ include mpopendir("themes/{$conf['settings']['theme']}/{$param['tpl']}"); return; }
 
 ?>
