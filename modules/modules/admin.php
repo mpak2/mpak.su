@@ -57,7 +57,7 @@ if ($m[(int)$_GET['r']] == 'Модули'){ # Добавление модуля
 //						echo "<br />modules/$file_name/info.php";
 						mpct("modules/$file_name/info.php", array('modpath'=>$file_name));
 					}// mpre($conf['modversion']);
-					$modlist[] = "<a title=\"{$conf['modversion']['description']}\" alt=\"{$conf['modversion']['description']}\" href='/?m[modules]=admin".($_GET['r'] ? "&r={$_GET['r']}" : '')."&install=$file_name'>{$conf['modversion']['name']}</a>";
+					$modlist[] = "<a title=\"{$conf['modversion']['description']}\" alt=\"{$conf['modversion']['description']}\" href='/?m[modules]=admin".($_GET['r'] ? "&r={$_GET['r']}" : '')."&install=$file_name'>". ($conf['modversion']['name'] ?: $file_name). "</a>";
 				}
 				if ($_GET['install'] == $file_name){
 					if (file_exists( mpopendir($infofile = "modules/$file_name/info.php") ) ){
@@ -68,7 +68,7 @@ if ($m[(int)$_GET['r']] == 'Модули'){ # Добавление модуля
 						echo "<p>Информация о версии не найдена";
 					}
 					echo "<p><font color=red>Добавлен модуль</font>: {$conf['modversion']['name']} [$file_name]<br>";
-					mpfdk("{$conf['db']['prefix']}modules", null, $w = $conf['modversion']+array('folder'=>$file_name));
+					mpfdk("{$conf['db']['prefix']}modules", null, $w = (array)$conf['modversion']+array('folder'=>$file_name));
 					if(mpopendir("modules/$file_name/init.php")){
 						echo mpct("modules/$file_name/init.php", array('modpath'=>$file_name));
 					}
