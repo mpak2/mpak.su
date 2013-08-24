@@ -1,6 +1,7 @@
 <!-- [settings:foto_lightbox] -->
 <? if($n = $tpl['index'][ $_GET['id'] ]): ?>
 		<div style="overflow:hidden;">
+			<?=aedit("/?m[news]=admin&r={$conf['db']['prefix']}{$arg['modpath']}index&where[id]={$index['id']}")?>
 			<div class="news_name" style="margin-top: 20px; padding: 5px;">
 				<?=aedit("/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_index&where[id]={$n['id']}")?>
 				<?=date('d.m.Y H:i', $n['time'])?>
@@ -13,9 +14,9 @@
 							<img src="/news:img/<?=$n['id']?>/tn:index/fn:img/w:150/h:120/null/img.png" />
 						</a>
 					</div>
-					<div><?=$n['text']?></div>
 				</div>
 			<? endif; ?>
+			<div><?=$n['text']?></div>
 			<div style="padding: 5px;">
 				<span style="float:right;"><a href="/news<?=($_GET['p'] ? "/p:{$_GET['p']}" : '')?>" class="new_smore">К списку новостей</a></span>
 				Категория: <a href="/<?=$arg['modname']?>/cat_id:<?=$n['cat_id']?>"><?=$tpl['cat'][ $n['cat_id'] ]['name']?></a>; Просмотров: <?=$n['count']?>
