@@ -21,7 +21,7 @@ if ((int)$_GET['id']){
 $tpl['cat'] = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_cat");
 $tpl['index'] = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index ORDER BY time DESC");
 
-if($n = $tpl['index'][ $_GET['id'] ]){
+if($n = $tpl['index'][ $_GET['id'] ] && !empty($n['count'])){
 	mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']}_index SET count=count+1 WHERE id=". (int)$n['id']);
 }
 

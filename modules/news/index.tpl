@@ -1,11 +1,10 @@
 <!-- [settings:foto_lightbox] -->
 <? if($n = $tpl['index'][ $_GET['id'] ]): ?>
-		<div style="overflow:hidden;">
-			<?=aedit("/?m[news]=admin&r={$conf['db']['prefix']}{$arg['modpath']}index&where[id]={$index['id']}")?>
+		<div>
 			<div class="news_name" style="margin-top: 20px; padding: 5px;">
 				<?=aedit("/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_index&where[id]={$n['id']}")?>
 				<?=date('d.m.Y H:i', $n['time'])?>
-				<h6><?=$n['name']?></h6>
+				<h1><?=$n['name']?></h1>
 			</div>
 			<? if($n['img']): ?>
 				<div class="news_img" style="padding: 5px;">
@@ -19,7 +18,12 @@
 			<div><?=$n['text']?></div>
 			<div style="padding: 5px;">
 				<span style="float:right;"><a href="/news<?=($_GET['p'] ? "/p:{$_GET['p']}" : '')?>" class="new_smore">К списку новостей</a></span>
-				Категория: <a href="/<?=$arg['modname']?>/cat_id:<?=$n['cat_id']?>"><?=$tpl['cat'][ $n['cat_id'] ]['name']?></a>; Просмотров: <?=$n['count']?>
+				<? if($cat = $tpl['cat'][ $n['cat_id'] ]): ?>
+					Категория: <a href="/<?=$arg['modname']?>/cat_id:<?=$cat['id']?>"><?=$cat['name']?></a>
+				<? endif; ?>
+				<? if($n['count']): ?>
+					Просмотров: <?=$n['count']?>
+				<? endif; ?>
 			</div>
 		</div>
 		<div><!-- [settings:comments] --></div>
@@ -42,7 +46,12 @@
 					<?=mb_substr(strip_tags($n['text']), 0, 500)?>
 					<div><a href="/news/<?=$n['id']?><?=($_GET['p'] ? "/p:{$_GET['p']}" : '')?>" class="news_more">Подробнее</a></div>
 			<div style="padding: 5px;">
-				Категория: <a href="/<?=$arg['modname']?>/cat_id:<?=$n['cat_id']?>"><?=$tpl['cat'][ $n['cat_id'] ]['name']?></a>; Просмотров: <?=$n['count']?>
+				<? if($cat = $tpl['cat'][ $n['cat_id'] ]): ?>
+					Категория: <a href="/<?=$arg['modname']?>/cat_id:<?=$cat['id']?>"><?=$cat['name']?></a>
+				<? endif; ?>
+				<? if($n['count']): ?>
+					Просмотров: <?=$n['count']?>
+				<? endif; ?>
 			</div>
 		</div>
 	<? endforeach; ?>
