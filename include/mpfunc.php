@@ -467,10 +467,14 @@ function mpevent($name, $description = null, $own = null){
 									$event_notice_id = mpfdk("{$conf['db']['prefix']}users_event_mess", null, array("event_notice_id"=>$v['id'], "dst"=>$m['email'], "name"=>$name, "text"=>$text, "response"=>$response));
 								}
 							}
-						break;# Скайп уведомление
-						case "skype":
-						break;# Уведомление по джаббер протоколу
-						case "xmpp":
+						break;
+						case "sms.ru":# Сервис смс уведомление sms.ru
+							include mpopendir("include/class/smsru.php");
+							
+						break;
+						case "skype":# Скайп уведомление
+						break;
+						case "xmpp":# Уведомление по джаббер протоколу
 							if(preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $m['xmpp'])){
 								ini_set("include_path", ini_get("include_path"). ":". "/srv/www/vhosts/mpak.cms/include");
 
