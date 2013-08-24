@@ -266,7 +266,7 @@ if ($m[(int)$_GET['r']] == 'Модули'){ # Добавление модуля
 			}
 			$init .= "\nmpqw(\"INSERT INTO `{\$conf['db']['prefix']}settings` (".implode(', ', $fields).") VALUES (".implode(', ', $values).")\");";
 		}
-		if (count($settings)) $del .= "\n\nmpqw(\"DELETE FROM `{\$conf['db']['prefix']}settings` WHERE `modpath`='{$v['folder']}'\");";
+		if (count($settings)) $del .= "\n\nmpqw(\"DELETE FROM `{\$conf['db']['prefix']}settings` WHERE `modpath`='{\$arg['modpath']}'\");";
 
 		$info .= "\n\n\$conf['modversion']=array(";
 		foreach($v as $n=>$z){
