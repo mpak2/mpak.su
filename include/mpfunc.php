@@ -470,7 +470,8 @@ function mpevent($name, $description = null, $own = null){
 						break;
 						case "sms.ru":# Сервис смс уведомление sms.ru
 							include mpopendir("include/class/smsru.php");
-							
+							$smsru = new \Zelenin\smsru($v['login']);
+							$response = $smsru->sms_send($m['tel'], $text);
 						break;
 						case "skype":# Скайп уведомление
 						break;
