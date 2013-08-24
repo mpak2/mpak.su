@@ -154,7 +154,7 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 				'reg'=>array('*'=>array(0=>"Везде", 1=>"Регистрация", 2=>"Кабинет")),
 				'border'=>array('*'=>array(-1=>'Нижний', 0=>'Нет', 1=>'Верхний')),
 				'required'=>array('*'=>array(1=>'Обязательное', 0=>'')),
-				'type'=>array('*'=>array(''=>'', 'email'=>'ЭльПочта', 'smtp'=>"smtp", 'skype'=>'Скайп', 'xmpp'=>'XMPP')),
+				'type'=>array('*'=>array(''=>'', 'email'=>'ЭльПочта', 'smtp'=>"smtp", 'sms.ru'=>'sms.ru', 'skype'=>'Скайп', 'xmpp'=>'XMPP')),
 			),
 			'default' => array(
 				'uid'=>array('*'=>$conf['user']['uid']),
