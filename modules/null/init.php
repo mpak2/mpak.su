@@ -11,5 +11,3 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index`
 mpqw($sql);
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$conf['db']['prefix']}', '{$conf['db']['prefix']}_tpl_exceptions', '1', '4', '')");
-
-?>

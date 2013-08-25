@@ -11,5 +11,3 @@ $conf['modversion']=array(
 	'admin'=>'3',
 	'md5'=>'1e21159b34a9e0494e4caf4804b94087',
 );
-
-?>
