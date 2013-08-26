@@ -22,7 +22,7 @@ function mpie($url, $decode = false){
 
 function aedit($href, $title = null){
 	global $arg;
-	if($arg['access'] > 3) echo "<div style=\"position:relative; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\"></a></span></div>";
+	if($arg['access'] > 3) echo "<div style=\"position:relative; left:-20px; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\"></a></span></div>";
 }
 
 function mptс($time = null, $format = 0){
