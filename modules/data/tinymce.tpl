@@ -2,7 +2,7 @@
 <script>
 	$(function(){
 		$("#data").iframePostForm({
-			complete:function(){
+			complete:function(data){
 				
 			}
 		})
