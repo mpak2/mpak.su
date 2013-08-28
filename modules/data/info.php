@@ -1,7 +1,7 @@
 <? die;
 
 $conf['modversion']=array(
-	'name'=>'Нуль модуль',
+	'name'=>'Данные',
 	'author'=>'mpak',
 	'contact'=>'cms@mpak.su',
 	'version'=>'0,9006',
