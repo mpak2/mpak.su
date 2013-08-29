@@ -1,7 +1,6 @@
 <? die;
 
 if(!empty($_REQUEST['class']) && $class = explode(" ", $_REQUEST['class'])){ # klesh запросы
-mpre($_FILES);
 //mpre($_REQUEST['id']);
 	if($arg['access'] > 1){
 		mpevent("Аякс запрос /{$arg['modpath']}:{$class[0]}", $conf['user']['uid'], $_REQUEST);
