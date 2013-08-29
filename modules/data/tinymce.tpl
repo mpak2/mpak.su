@@ -20,7 +20,7 @@
 	})
 </script>
 <style>
-	.data_index > span {display:inline-block; position:relative; min-height:80px; min-width:80px;}
+	.data_index > span {display:inline-block; position:relative; min-height:80px; min-width:80px; vertical-align:bottom;}
 	.data_index > span .del {position:absolute; top:5px; right:5px; width:13px; height:13px; background-image:url(/img/del.png); background-color:white;}
 </style>
 <div class="data_index"></div>
