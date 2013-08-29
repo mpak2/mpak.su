@@ -9,11 +9,11 @@
 			}
 		});
 		$(".data_index").on("img", function(event, index_id){
-			console.log(index_id);
-			div = $("<img>").attr("src", "/<?=$arg['modname']?>:img/"+index_id+"/tn:index/fn:img/w:80/h:80/null/img.png")
-				.wrap("<div>");
-			console.log($(div).html());
-		})
+			$("<img>").attr("src", "/<?=$arg['modname']?>:img/"+index_id+"/tn:index/fn:img/w:80/h:80/null/img.png").appendTo(".data_index");
+		});
+		$(<?=json_encode($tpl['index'])?>, function(){
+			$(".data_index").trigger("img", this.id);
+		});
 	})
 </script>
 <div class="data_index">
