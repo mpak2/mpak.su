@@ -1,4 +1,5 @@
 <script src="/include/jquery/jquery.iframe-post-form.js"></script>
+<!-- [settings:foto_lightbox] -->
 <script>
 	$(function(){
 		$("#data_index").iframePostForm({
@@ -10,8 +11,9 @@
 		});
 		$(".data_index").on("img", function(event, index_id){
 			var img = $("<img>").attr("src", "/<?=$arg['modname']?>:img/"+index_id+"/tn:index/fn:img/w:80/h:80/null/img.png");
+			var a = $("<a>").attr("href", "/<?=$arg['modname']?>:img/"+index_id+"/tn:index/fn:img/w:800/h:600/null/img.png").append(img).lightBox();
 			var del = $("<a>").addClass("del").attr("href", "javascript:");
-			var span = $("<span>").append(img).append(del);
+			var span = $("<span>").append(a).append(del);
 			$(".data_index").append(span);
 		});
 		$.each(<?=json_encode($tpl['index'])?>, function(){
