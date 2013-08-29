@@ -3,7 +3,9 @@
 	$(function(){
 		$("#data").iframePostForm({
 			complete:function(data){
-				
+				if(isNaN(data)){ alert(data) }else{
+					
+				}
 			}
 		})
 	})
