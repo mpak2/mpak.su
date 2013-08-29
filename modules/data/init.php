@@ -37,8 +37,8 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_type` 
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('data', '{$conf['db']['prefix']}data_type', 'Типы', '4', '')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('data', '{$conf['db']['prefix']}data_index=>title', 'cat_id,img,file,hide,name,type_id,w,h,c', '4', '')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('data', '{$conf['db']['prefix']}data_tpl_exceptions', '1', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_type', 'Типы', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_index=>title', 'cat_id,img,file,hide,name,type_id,w,h,c', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_tpl_exceptions', '1', '4', '')");
 
 ?>
