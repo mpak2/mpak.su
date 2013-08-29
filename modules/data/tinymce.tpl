@@ -10,11 +10,21 @@
 			}
 		});
 		$(".data_index").on("img", function(event, index_id){
-			var img = $("<img>").attr("src", "/<?=$arg['modname']?>:img/"+index_id+"/tn:index/fn:img/w:80/h:80/null/img.png");
-			var a = $("<a>").attr("href", "/<?=$arg['modname']?>:img/"+index_id+"/tn:index/fn:img/w:800/h:600/null/img.png").append(img).lightBox();
+			var img = $("<img>").attr("src", "/<?=$arg['modname']?>:img/"+index_id+"/tn:index/fn:img/w:70/h:70/null/img.png");
+			var a = $("<a>").attr("target", "blank").attr("href", "/<?=$arg['modname']?>:img/"+index_id+"/tn:index/fn:img/w:800/h:600/null/img.png").append(img)/*.lightBox()*/;
 			var del = $("<a>").addClass("del").attr("href", "javascript:");
-			var span = $("<span>").append(a).append(del);
+			var span = $("<span>").attr("index_id", index_id).append(a).append(del);
 			$(".data_index").append(span);
+		}).on("click", "a.del", function(){
+			if(confirm("Удалить изображение?")){
+				var index_id = $(this).parents("[index_id]").attr("index_id");
+				console.log("index_id", index_id);
+				$.post("/data:ajax/class:index", {id:-index_id}, $.proxy(function(data){
+					if(isNaN(data)){ alert(data) }else{
+						$(this).parents("[index_id]").remove();
+					}
+				}, this));
+			}
 		});
 		$.each(<?=json_encode($tpl['index'])?>, function(){
 			$(".data_index").trigger("img", this.id);
@@ -22,7 +32,7 @@
 	})
 </script>
 <style>
-	.data_index > span {display:inline-block; position:relative; min-height:80px; min-width:80px; vertical-align:bottom;}
+	.data_index > span {display:inline-block; position:relative; min-height:80px; min-width:80px; vertical-align:bottom; text-align:right;}
 	.data_index > span .del {position:absolute; top:5px; right:5px; width:13px; height:13px; background-image:url(/img/del.png); background-color:white;}
 </style>
 <div class="data_index"></div>

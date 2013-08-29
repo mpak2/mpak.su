@@ -10,8 +10,8 @@
 			ed.addCommand('mceGallery', function(){
 				ed.windowManager.open({
 					file : url + '/dialog.htm',
-					width:600,
-					height:400,
+					width:1000,
+					height:800,
 //					width : 600 + parseInt(ed.getLang('example.delta_width', 0)),
 //					height : 400 + parseInt(ed.getLang('example.delta_height', 0)),
 					inline : 1
