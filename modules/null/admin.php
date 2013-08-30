@@ -81,7 +81,7 @@ if(!empty($conf['settings'][ $s = $arg['modpath']. "=>spisok" ]) && ($fn = explo
 if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo "<div style=float:right;color:#bbb;><a href=\"/?m[sqlanaliz]=admin&r=1&tab={$_GET['r']}\">{$_GET['r']}</a>:". __LINE__. "</div>";
 	if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_". ($f = "index")){
 		$shablon += array(
-			"name"=>array("*"=>"<a href=\"/{$arg['modname']}:{$f}/{f:id}\">{f:{f}}</a>"),
+			"name"=>array("*"=>"<a href=\"/{$arg['modname']}". ($f != "index" ?: ":{$f}"). "/{f:id}\">{f:{f}}</a>"),
 //			"file"=>array("*"=>"<a href=\"/{$arg['modpath']}:file/{f:id}/tn:{$f}/fn:{f}/null\">{f:{f}}</a>"),
 //			($fn = 'img2')=>array('*'=>"<img src='/{$arg['modpath']}:img/{f:id}/tn:". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "/fn:{$fn}/w:120/h:100/null/img.png' title='{f:{f}}' alt='{f:{f}}'>"),
 		);
