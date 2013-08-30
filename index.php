@@ -141,7 +141,9 @@ if ($conf['settings']['start_mod'] && !$_GET['m']){
 	}else{
 		$_GET = mpgt($_SERVER['REQUEST_URI'] = $conf['settings']['start_mod']);
 	}
-}// $content = ($init = mpopendir("include/init.php") ? mpct($init, array()) : ""); # Установка предварительных переменных
+} $content = (($init = mpopendir("include/init.php")) ? mpct($init, array()) : ""); # Установка предварительных переменных
+
+mpre($content);
 
 foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE enabled = 2", 'Информация о модулях')) as $k=>$v){
 	if (array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) $v['access'] = 5; # Права суперпользователя
