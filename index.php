@@ -331,7 +331,7 @@ if (is_numeric($conf['settings']['theme'])){
 	$theme = mpql(mpqw($sql, 'Запрос темы'), 0);
 	$tc = $theme['theme'];
 }else{
-	$tc = file_get_contents(mpopendir("themes/{$conf['settings']['theme']}/index.html"));
+	$tc = file_get_contents(mpopendir("themes/{$conf['settings']['theme']}/". ($_GET['index'] ? basename($_GET['index']) : "index"). ".html"));
 }// $tpl = array(1);
 
 if (!array_key_exists('null', $_GET) || !empty($_GET['m']['users'])){

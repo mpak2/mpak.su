@@ -10,6 +10,7 @@
 // Original Author of file: Krivoshlykov Evgeniy (mpak) +7 929 1140042
 // ----------------------------------------------------------------------
 
+ini_set('display_errors', 1); error_reporting(E_ALL ^ E_NOTICE);
 
 if(!function_exists('mp_require_once')){
 	function mp_require_once($link){
@@ -47,14 +48,13 @@ if (strlen($conf['db']['error'] = mysql_error())){
 } unset($conf['db']['pass']); $conf['db']['sql'] = array();
 
 header('Content-Type: text/html;charset=UTF-8');
-ini_set('display_errors', 1); error_reporting(E_ALL ^ E_NOTICE);
 
 if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(mpql(mpqw("SHOW TABLES", 'Проверка работы базы')))){ echo mpct('include/install.php'); die; }
 
 if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) && array_key_exists('null', $_GET)){
 	if(empty($_GET['theme'])){
 		$_GET['theme'] = mpql(mpqw("SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"theme\""), 0, 'value');
-	} $ex = array('otf'=>'font/opentype', 'css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', '.svg'=>'font/svg+xml', '.tpl'=>'text/html');
+	} $ex = array('otf'=>'font/opentype', 'css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', 'woff'=>'application/x-font-woff', 'svg'=>'font/svg+xml', 'tpl'=>'text/html');
 	$fn = "themes/{$_GET['theme']}/{$_GET['']}";
 	$ext = array_pop(explode('.', $fn));
 	header("Content-type: ". ($ex[$ext] ?: "image/$ext"));
@@ -110,7 +110,7 @@ if ($conf['settings']['del_sess'] && ($conf['settings']['del_sess'] != 3 || $_SE
 if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аутентификация' && $uid = mpql(mpqw("SELECT id FROM {$conf['db']['prefix']}users WHERE type_id=1 AND name = \"".mpquot($_POST['name'])."\" AND pass='".mphash($_POST['name'], $_POST['pass'])."'", 'Проверка существования пользователя'), 0, 'id')){
 	mpqw($sql = "UPDATE {$conf['db']['prefix']}sess SET uid=".($sess['uid'] = $uid)." WHERE id=". (int)$sess['id']);// echo $sql;
 	mpqw("UPDATE {$conf['db']['prefix']}users SET last_time=". time(). " WHERE id=".(int)$uid);
-	header("Location: ". $_SERVER['REQUEST_URI']); exit;
+//	header("Location: ". $_SERVER['REQUEST_URI']); exit;
 }elseif(isset($_GET['logoff'])){ # Если пользователь покидает сайт
 	mpqw("UPDATE {$conf['db']['prefix']}sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
 	if(!empty($_SERVER['HTTP_REFERER'])){
@@ -141,7 +141,7 @@ if ($conf['settings']['start_mod'] && !$_GET['m']){
 	}else{
 		$_GET = mpgt($_SERVER['REQUEST_URI'] = $conf['settings']['start_mod']);
 	}
-} $content = mpct(mpopendir("include/init.php"), array()); # Установка предварительных переменных
+} $content = (($init = mpopendir("include/init.php")) ? mpct($init, $arg = array("access"=>(array_search($conf['settings']['admin_grp'], $conf['user']['gid']) ? 5 : 1))) : ""); # Установка предварительных переменных
 
 foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE enabled = 2", 'Информация о модулях')) as $k=>$v){
 	if (array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) $v['access'] = 5; # Права суперпользователя
@@ -282,6 +282,9 @@ if (!function_exists('mcont')){
 				}else if(mpopendir("modules/{$mod['link']}/$v.js")){
 					if(array_key_exists("null", $_GET)) header("Content-type: application/x-javascript");
 					mp_require_once("modules/{$mod['link']}/$v.js");
+				}else if(mpopendir("modules/{$mod['link']}/$v.css")){
+					if(array_key_exists("null", $_GET)) header("Content-type: text/css");
+					mp_require_once("modules/{$mod['link']}/$v.css");
 				}else{# Дефолтный файл
 					mp_require_once("modules/{$mod['link']}/$fn.tpl");
 				} $content .= ob_get_contents(); ob_end_clean();
@@ -293,7 +296,7 @@ if (!function_exists('mcont')){
 					if(!array_key_exists('null', $_GET) && ($_SERVER['REQUEST_URI'] != "/admin")){
 						header('HTTP/1.0 404 Unauthorized');
 //						echo "<div style='margin:100px 0;text-align:center'>Доступ запрещен</div>";
-						header("Location: /admin");
+						header("Location: /themes:404");// header("Location: /admin");
 					}
 				}
 			}
