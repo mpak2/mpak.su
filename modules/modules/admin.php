@@ -74,7 +74,7 @@ if ($m[(int)$_GET['r']] == 'Модули'){ # Добавление модуля
 					}
 					if(mpopendir("modules/$file_name/sql.php")){
 						echo mpct("modules/$file_name/sql.php", array('modpath'=>$file_name));
-					}
+					} header("Location: /?m[{$arg['modpath']}]=admin");
 				}
 			}
 		}
