@@ -190,10 +190,10 @@ mpre($_GET); exit;
 		}elseif(count($_GET['inc']) || count($_GET['dec'])){
 			$m = ($_GET['dec'] > $_GET['inc'] ? 'dec' : 'inc');
 			list($k) = each($_GET[$m]);
-			$sql = "SELECT id, $k FROM {$table['name']} WHERE $k ".($m == 'inc' ? '>=' : '<=')." (SELECT $k FROM {$table['name']} WHERE id = {$_GET[$m][$k]})";
+			$sql = "SELECT id, $k FROM {$table['name']} WHERE $k ".($m == 'inc' ? '>=' : '<=')." (SELECT `$k` FROM {$table['name']} WHERE id=". (int)$_GET[$m][$k]. ")";
 			if (strlen($table['where'])) $sql .= " AND ".mpquot($table['where']);
 			if (strlen($table['_where'])) $sql .= " AND {$table['_where']}";
-			$sql .= " ORDER BY `$k".($m == 'dec' ? '  DESC' : '')."` LIMIT 2";
+			$sql .= " ORDER BY $k".($m == 'dec' ? '  DESC' : '')." LIMIT 2";
 			if ((((int)$_GET['inc'] || (int)$_GET['dec']) && count($res = mpql(mpqw($sql))) > 1)) {
 				mpqw("UPDATE {$table['name']} SET $k = {$res['1'][$k]} WHERE id = ".(int)$res['0']['id']);
 				mpqw("UPDATE {$table['name']} SET $k = {$res['0'][$k]} WHERE id = ".(int)$res['1']['id']);
@@ -248,7 +248,7 @@ mpre($_GET); exit;
 		$sql .= " WHERE ".mpquot($table['where'])."{$table['_where']}";
 	}
 //	if (isset($table['_fields'][ strtr($_GET['order'], array(' DESC'=>'')) ]) && !isset($table['spisok'][ strtr($_GET['order'], array(' DESC'=>'')) ]['*'])) $sql .= " ORDER BY {$_GET['order']}";
-	if (isset($table['_fields'][ strtr($_GET['order'], array(' DESC'=>'', ' desc'=>'')) ]) || !count(array_diff(explode(',', $_GET['order']), array_flip((array)$table['title'])))) $sql .= " ORDER BY {$_GET['order']}";
+	if (isset($table['_fields'][ strtr($_GET['order'], array(' DESC'=>'', ' desc'=>'')) ]) || !count(array_diff(explode(',', $_GET['order']), array_flip((array)$table['title'])))) $sql .= " ORDER BY `{$_GET['order']}`";
 	$sql .= " LIMIT ".($_GET['p'] * $table['count_rows']).", {$table['count_rows']}";
 	if ($table['debug']) mpre($sql);
 	$result = mpqw($sql);
