@@ -193,7 +193,7 @@ mpre($_GET); exit;
 			$sql = "SELECT id, $k FROM {$table['name']} WHERE $k ".($m == 'inc' ? '>=' : '<=')." (SELECT $k FROM {$table['name']} WHERE id = {$_GET[$m][$k]})";
 			if (strlen($table['where'])) $sql .= " AND ".mpquot($table['where']);
 			if (strlen($table['_where'])) $sql .= " AND {$table['_where']}";
-			$sql .= " ORDER BY $k".($m == 'dec' ? '  DESC' : '')." LIMIT 2";
+			$sql .= " ORDER BY `$k".($m == 'dec' ? '  DESC' : '')."` LIMIT 2";
 			if ((((int)$_GET['inc'] || (int)$_GET['dec']) && count($res = mpql(mpqw($sql))) > 1)) {
 				mpqw("UPDATE {$table['name']} SET $k = {$res['1'][$k]} WHERE id = ".(int)$res['0']['id']);
 				mpqw("UPDATE {$table['name']} SET $k = {$res['0'][$k]} WHERE id = ".(int)$res['1']['id']);
