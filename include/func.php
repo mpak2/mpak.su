@@ -248,7 +248,7 @@ mpre($_GET); exit;
 		$sql .= " WHERE ".mpquot($table['where'])."{$table['_where']}";
 	}
 //	if (isset($table['_fields'][ strtr($_GET['order'], array(' DESC'=>'')) ]) && !isset($table['spisok'][ strtr($_GET['order'], array(' DESC'=>'')) ]['*'])) $sql .= " ORDER BY {$_GET['order']}";
-	if (isset($table['_fields'][ strtr($_GET['order'], array(' DESC'=>'', ' desc'=>'')) ]) || !count(array_diff(explode(',', $_GET['order']), array_flip((array)$table['title'])))) $sql .= " ORDER BY `{$_GET['order']}`";
+	if (isset($table['_fields'][ strtr($_GET['order'], array(' DESC'=>'', ' desc'=>'')) ]) || !count(array_diff(explode(',', $_GET['order']), array_flip((array)$table['title'])))) $sql .= " ORDER BY {$_GET['order']}";
 	$sql .= " LIMIT ".($_GET['p'] * $table['count_rows']).", {$table['count_rows']}";
 	if ($table['debug']) mpre($sql);
 	$result = mpqw($sql);
