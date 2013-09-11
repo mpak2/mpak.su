@@ -543,9 +543,9 @@ function mpgt($REQUEST_URI, $get = array()){
 		foreach($tpl = explode('/', $part[2]) as $k=>$v){
 			if($param = explode(':', $v, 2)){
 				if(!empty($param[0]) && !is_numeric($param[0])){
-					$get += array(@urldecode($param[0])=>@urldecode($param[1]));
+					$get = array(@urldecode($param[0])=>@urldecode($param[1])) + $get;
 				}elseif(is_numeric($param[0])){
-					$get += array('id'=>$param[0]);
+					$get = array('id'=>$param[0]) + $get;
 				}
 			}
 		}

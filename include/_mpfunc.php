@@ -5,7 +5,7 @@ function in($ar, $flip = false){
 		$ar = array(0);
 	}else if($flip){
 		 $ar = array_flip($ar);
-	} return implode(",", array_keys($ar) ?: array(0));
+	} return implode(",", array_keys($ar) ? array_keys($ar) : array(0));
 }
 
 function mpie($url, $decode = false){
@@ -20,9 +20,9 @@ function mpie($url, $decode = false){
 	}
 }
 
-function aedit($href){
+function aedit($href, $title = null){
 	global $arg;
-	if($arg['access'] > 3) echo "<span style=\"float:right; margin-left:5px;\"><a href=\"{$href}\"><img src=\"/img/aedit.png\"></a></span>";
+	if($arg['access'] > 3) echo "<div style=\"position:relative; left:-20px; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\"></a></span></div>";
 }
 
 function mptс($time = null, $format = 0){
@@ -125,7 +125,7 @@ function mpsmtp($to, $obj, $text, $login = null){
 	include_once("PEAR.php");
 	include_once("Mail.php");
 
-	$param = explode("@", $login ?: $conf['settings']['smtp']);
+	$param = explode("@", $login ? $login : $conf['settings']['smtp']);
 	$host = explode(":", array_pop($param));
 	$auth = explode(":", implode("@", $param));
 
@@ -176,7 +176,7 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 	}
 }
 
-function dt($arr, $filter, $name = false){
+/*function dt($arr, $filter, $name = false){
 	$m = $arr; $inc = 0;
 	foreach($filter as $k=>$v){
 		$n = array();
@@ -200,7 +200,7 @@ function dt($arr, $filter, $name = false){
 	}else{
 		return $m;
 	}
-}
+}*/
 
 function rb($arr, $key = 'id'){
 	$purpose = $keys = $return = array();
@@ -448,7 +448,7 @@ function mpevent($name, $description = null, $own = null){
 					$grp = array($func_get_args[2]['id']=>$func_get_args[2]);
 				} /*mpre($grp);*/ foreach($grp as $m){
 					mpqw($sql = "UPDATE {$conf['db']['prefix']}users_event_notice SET count=count+1 WHERE id=". (int)$v['id']);
-					$name = strtr(($v['name'] ?: $event['name']), $zam);
+					$name = strtr(($v['name'] ? $v['name'] : $event['name']), $zam);
 					require_once(mpopendir('include/idna_convert.class.inc')); $IDN = new idna_convert();
 					$text = (strip_tags($v['text']) ? strtr(strip_tags($v['text']), $zam) : $event['name']);
 					switch($v['type']){
@@ -467,10 +467,15 @@ function mpevent($name, $description = null, $own = null){
 									$event_notice_id = mpfdk("{$conf['db']['prefix']}users_event_mess", null, array("event_notice_id"=>$v['id'], "dst"=>$m['email'], "name"=>$name, "text"=>$text, "response"=>$response));
 								}
 							}
-						break;# Скайп уведомление
-						case "skype":
-						break;# Уведомление по джаббер протоколу
-						case "xmpp":
+						break;
+						case "sms.ru":# Сервис смс уведомление sms.ru
+							include mpopendir("include/class/smsru.php");
+							$smsru = new \Zelenin\smsru($v['login']);
+							$response = $smsru->sms_send($m['tel'], $text);
+						break;
+						case "skype":# Скайп уведомление
+						break;
+						case "xmpp":# Уведомление по джаббер протоколу
 							if(preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $m['xmpp'])){
 								ini_set("include_path", ini_get("include_path"). ":". "/srv/www/vhosts/mpak.cms/include");
 
@@ -479,7 +484,7 @@ function mpevent($name, $description = null, $own = null){
 								$auth = explode(":", implode("@", $param));// mpre($auth);
 
 								include_once(mpopendir("include/webi/xmpp.class.php"));
-								$webi = new XMPP(array('user'=>$auth[0], 'pass'=>$auth[1], 'host'=>$host[0], 'port'=>($host[1] ?: 5222), 'domain'=>"ya.ru", 'logtxt'=>false,'tls_off'=>0,));
+								$webi = new XMPP(array('user'=>$auth[0], 'pass'=>$auth[1], 'host'=>$host[0], 'port'=>($host[1] ? $host[1] : 5222), 'domain'=>"ya.ru", 'logtxt'=>false,'tls_off'=>0,));
 
 								if($webi->connect()){// установка соединения...
 									$webi->sendStatus('text status','chat',3); // установка статуса
@@ -706,7 +711,7 @@ function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.pn
 		}else{
 			echo " <span style='color:red;'>{$file['type']}</span>";
 		} mpevent("Загрузка файла", $_SERVER['REQUEST_URI'], $conf['user']['uid'], $file);
-		return $return ?: false;
+		return $return ? $return : false;
 	}elseif(empty($file)){
 		return "error not null";
 	} return null;
@@ -877,7 +882,7 @@ function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 function mpqw($sql, $info = null, $conn = null){
 	global $conf;
 	$mt = microtime(true);
-	$result = mysql_query($sql, ($conn ?: $conf['db']['conn']));
+	$result = mysql_query($sql, ($conn ? $conn : $conf['db']['conn']));
 	if ($error = mysql_error()){// mpre($conf['user']);
 		if(!empty($conf['modules']['sqlanaliz']['access']) && (array_search($conf['user']['uname'], explode(",", $conf['settings']['admin_usr'])) !== false)){
 			echo "<p>$sql<br><div color=red>".mysql_error()."</div>";
@@ -1237,7 +1242,7 @@ function mpqw($sql, $info = null, $conn = null){
 			),*/
 		);
 		if($error){
-			mpevent("Ошибка в структуре базы данных", $error, !empty($conf['user']['uid']) ?: 0);
+			mpevent("Ошибка в структуре базы данных", $error, !empty($conf['user']['uid']) ? $conf['user']['uid'] : 0);
 			if($init = $check[ $error ]){
 				mpevent("Таблица исправлений структуры базы даных", $sql, $conf['user']['uid'], $init);
 				foreach($init as $r=>$q){
@@ -1404,7 +1409,7 @@ function mpqwt($result){
 	echo "</table>";
 }
 
-function mptree($ar, $func, $top = array("id"=>0), $level = 0, $line = 0){
+/*function mptree($ar, $func, $top = array("id"=>0), $level = 0, $line = 0){
 	global $arg, $conf;
 	$tree = function($p, $tree, $func, $level, $line) use($ar, $conf, $arg){
  		if($level) $func($p, $ar, $line);
@@ -1414,7 +1419,7 @@ function mptree($ar, $func, $top = array("id"=>0), $level = 0, $line = 0){
 			}
 		} if(!$level) $func($p, $ar, $line);
 	}; $tree($top, $tree, $func, $level, $line);
-}
+}*/
 
 function mpquot($text){
 	$text = stripslashes($text);
@@ -1453,7 +1458,7 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 		'gif' => 'imagegif',
 	);
 	$ext = array_pop(explode('.', $file_name));
-	$cache_name = (ini_get('upload_tmp_dir') ?: "/tmp"). "/images";
+	$cache_name = (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/images";
 	$host_name = strpos('www.', $_SERVER['SERVER_NAME']) === 0 ? substr($_SERVER['SERVER_NAME'], 4) : $_SERVER['SERVER_NAME'];
 	$fl_name = (int)$max_width. "x". (int)$max_height. "x". (int)$crop. "_" .basename($file_name);
 	$prx = basename(dirname($file_name));
