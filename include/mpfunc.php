@@ -545,7 +545,8 @@ function mpgt($REQUEST_URI, $get = array()){
 				if(!empty($param[0]) && !is_numeric($param[0])){
 					$get = array(@urldecode($param[0])=>@urldecode($param[1])) + $get;
 				}elseif(is_numeric($param[0])){
-					$get = array('id'=>$param[0]) + $get;
+					$get += array('id'=>$param[0]); # Первый вариант верный
+//					$get = array('id'=>$param[0]) + $get; # Каждый последующий имеет приоритет
 				}
 			}
 		}
