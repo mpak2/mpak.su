@@ -22,7 +22,6 @@ if ($_REQUEST['search_block_num'] || empty($_GET['tabs_id'])){
 			WHERE kt.id=". (int)$_GET['tabs_id']
 		), 0);// mpre($tpl['search']);
 
-
 		$tpl['http_host'] = mpidn($_SERVER['HTTP_HOST']);
 		$conf['settings']['title'] .= " : ". $tpl['search']['name'];
 		mpevent("Поиск по сайту", $tpl['search']['name'], $conf['user']['uid']);
