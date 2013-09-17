@@ -79,18 +79,17 @@ if(!empty($conf['settings'][ $s = $arg['modpath']. "=>spisok" ]) && ($fn = explo
 }// mpre($title);
 
 if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo "<div style=float:right;color:#bbb;><a href=\"/?m[sqlanaliz]=admin&r=1&tab={$_GET['r']}\">{$_GET['r']}</a>:". __LINE__. "</div>";
-	if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_". ($f = "index")){
-		$shablon += array(
-			"name"=>array("*"=>"<a href=\"/{$arg['modname']}". ($f != "index" ?: ":{$f}"). "/{f:id}\">{f:{f}}</a>"),
-//			"file"=>array("*"=>"<a href=\"/{$arg['modpath']}:file/{f:id}/tn:{$f}/fn:{f}/null\">{f:{f}}</a>"),
-//			($fn = 'img2')=>array('*'=>"<img src='/{$arg['modpath']}:img/{f:id}/tn:". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "/fn:{$fn}/w:120/h:100/null/img.png' title='{f:{f}}' alt='{f:{f}}'>"),
+	if(($t = array_pop(explode("_", $_GET['r'])))){
+		$shablon += array( # Настройки для всех
+			"name"=>array("*"=>"<a href=\"/{$arg['modname']}". ($t == "index" ? "" : ":{$t}"). "/{f:id}\">{f:{f}}</a>"),
 		);
-/*	}else if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_". ($t = "staff")){
-		$shablon += array(
-			"name" => spisok("SELECT o.id, od.name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$t} AS o LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_{$t}_data AS od ON (o.id=od.{$t}_id AND {$t}_fields_id=1)")
-		);*/
-	}  $t = implode("_", array_slice(explode("_", $_GET['r']), 1));
-	if(qn("SHOW TABLES LIKE '{$_GET['r']}'")){
+		if($t == "index"){ # Индивидуальные настройки для каждой из таблицы
+			$shablon += array(
+//				"file"=>array("*"=>"<a href=\"/{$arg['modpath']}:file/{f:id}/tn:{$t}/fn:{f}/null\">{f:{f}}</a>"),
+//				($fn = 'img2')=>array('*'=>"<img src='/{$arg['modpath']}:img/{f:id}/tn:". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "/fn:{$fn}/w:120/h:100/null/img.png' title='{f:{f}}' alt='{f:{f}}'>"),
+			);
+		}
+	} if(qn("SHOW TABLES LIKE '{$_GET['r']}'")){
 		stable(
 			array(
 	//			'dbconn' => $conf['db']['conn'],
