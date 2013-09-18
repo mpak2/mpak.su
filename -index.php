@@ -25,6 +25,7 @@ require_once("config/config.php"); # Конфигурация
 
 mp_require_once("config/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
+
 $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI'], $_GET);
 
 if (!isset($index) && file_exists($index = array_shift(explode(':', $conf['fs']['path'], 2)). '/index.php')){
@@ -56,7 +57,7 @@ if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) 
 	} $ex = array('otf'=>'font/opentype', 'css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', 'woff'=>'application/x-font-woff', 'svg'=>'font/svg+xml', 'tpl'=>'text/html');
 	$fn = "themes/{$_GET['theme']}/{$_GET['']}";
 	$ext = array_pop(explode('.', $fn));
-	header("Content-type: ". ($ex[$ext] ? $ex[$ext] : "image/$ext"));
+	header("Content-type: ". ($ex[$ext] ?: "image/$ext"));
 	if($ex[$ext]){
 		readfile(mpopendir($fn));
 	}else{
@@ -113,7 +114,7 @@ if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аут
 }elseif(isset($_GET['logoff'])){ # Если пользователь покидает сайт
 	mpqw("UPDATE {$conf['db']['prefix']}sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
 	if(!empty($_SERVER['HTTP_REFERER'])){
-		header("Location: ". ($conf['settings']['users_logoff_location'] ? $conf['settings']['users_logoff_location'] : $_SERVER['HTTP_REFERER'])); exit;
+		header("Location: ". ($conf['settings']['users_logoff_location'] ?: $_SERVER['HTTP_REFERER'])); exit;
 	}// if($conf['settings']['del_sess'] == 0){ # Стираем просроченные сессии
 	mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление сессий');
 	mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess_post WHERE time < ".(time() - $conf['settings']['sess_time']), 'Удаление данных сессии');
@@ -163,7 +164,7 @@ if(!array_key_exists("null", $_GET) && $conf['modules']['seo']){
 list($m, $f) = (array)each($_GET['m']); # Отображение меню с выбором раздела для модуля администратора
 
 $conf['settings']['modpath'] = $conf['modules'][ array_shift(array_keys($_GET['m'])) ]['folder'];
-$conf['settings']['fn'] = array_shift(array_values($_GET['m'])) ? array_shift(array_values($_GET['m'])) : "index";
+$conf['settings']['fn'] = array_shift(array_values($_GET['m'])) ?: "index";
 
 //print_r(array_shift(array_keys($_GET['m'])));
 if($_GET['id'] && $conf['settings']['modules_default'] && empty($conf['modules'][ ($mp = array_shift(array_keys($_GET['m']))) ])){
@@ -180,7 +181,7 @@ foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_uaccess O
 		$conf['modules'][ $v['mid'] ]['access'] = $v['access'];
 }
 
-if(!function_exists('bcont')){
+if (!function_exists('bcont')){
 	function bcont($bid = null){# Загружаем список блоков и прав доступа
 		global $theme, $conf;
 		$conf['db']['info'] = "Выборка шаблонов блоков";
@@ -189,7 +190,7 @@ if(!function_exists('bcont')){
 		foreach($_GET['m'] as $k=>$v){
 			if($conf['modules'][ $k ]['id']){
 				$mid[ $conf['modules'][ $k ]['id'] ] = $v;
-				$sid[] = "r.mid=". (int)$conf['modules'][ $k ]['id']. " AND (r.fn=\"". mpquot($v ? $v : "index"). "\" OR r.fn=\"\")";
+				$sid[] = "r.mid=". (int)$conf['modules'][ $k ]['id']. " AND (r.fn=\"". mpquot($v ?: "index"). "\" OR r.fn=\"\")";
 			}
 		} $sid[] = "r.mid=0";
 		$sid[] = "r.mid=". (int)$conf['modules']['blocks']['id']. " AND r.fn=\"index\"";
@@ -222,7 +223,7 @@ if(!function_exists('bcont')){
 			$modname = $mod['modname'];
 			if ($conf['blocks']['info'][ $v['id'] ]['access'] && strlen($cb = mpeval("modules/{$v['file']}", $arg = array('blocknum'=>$v['id'], 'modpath'=>$modpath, 'modname'=>$modname, 'fn'=>basename(array_shift(explode('.', $v['file']))), 'uid'=>$uid, 'access'=>$conf['blocks']['info'][ $v['id'] ]['access']) ))){
 				if($bid){ $result = $cb; }else{
-					if (!is_numeric($v['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($v['shablon'] ? ("themes/{$conf['settings']['theme']}/". $v['shablon']) : "block.html")))){
+					if (!is_numeric($v['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($v['shablon'] ?: "block.html")))){
 						$shablon[ $v['shablon'] ] = file_get_contents($file_name);
 					}
 					$cb = str_replace('<!-- [block:content] -->', $cb, $shablon[ $v['shablon'] ]);
@@ -312,9 +313,9 @@ if (!empty($conf['settings']["theme/*:$f"])) $conf['settings']['theme'] = $conf[
 if (!empty($conf['settings']["theme/$m:*"])) $conf['settings']['theme'] = $conf['settings']["theme/$m:*"];
 if (!empty($conf['settings']["theme/$m:$f"])) $conf['settings']['theme'] = $conf['settings']["theme/$m:$f"];
 
-//if (!empty($conf['settings']["theme/*:". $conf['modules'][$f]['modpath'] ])) $conf['settings']['theme'] = $conf['settings']["theme/*:". $conf['modules'][$f]['modpath']];
-//if (!empty($conf['settings']["theme/". $conf['modules'][$f]['modpath']. ":*"])) $conf['settings']['theme'] = $conf['settings']["theme/". $conf['modules'][$f]['modpath']. ":*"];
-//if (!empty($conf['settings']["theme/". $conf['modules'][$f]['modpath']. ":$f"])) $conf['settings']['theme'] = $conf['settings']["theme/". $conf['modules'][$f]['modpath']. ":$f"];
+/*if (!empty($conf['settings']["theme/*:". $conf['modules'][$f]['modpath'] ])) $conf['settings']['theme'] = $conf['settings']["theme/*:". $conf['modules'][$f]['modpath']];
+if (!empty($conf['settings']["theme/". $conf['modules'][$f]['modpath']. ":*"])) $conf['settings']['theme'] = $conf['settings']["theme/". $conf['modules'][$f]['modpath']. ":*"];
+if (!empty($conf['settings']["theme/". $conf['modules'][$f]['modpath']. ":$f"])) $conf['settings']['theme'] = $conf['settings']["theme/". $conf['modules'][$f]['modpath']. ":$f"];*/
 
 if ((strpos($f, "admin") === 0) && $conf['settings']["theme/*:admin"])
 	$conf['settings']['theme'] = $conf['settings']["theme/*:admin"];
