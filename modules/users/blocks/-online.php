@@ -70,12 +70,12 @@ foreach($online as $k=>$v){
 	if($img = strpos_array($v['agent'], $logo)){
 		$online[$k]['image'] = "/{$arg['modpath']}:img/w:40/h:40/null/{$img}";
 		$online[$k]['bot'] = 1;
-		$on[ $img ][ 1 ][] = $online[$k];
+		$on[ $img ][] = $online[$k];
 	}else{
 		$online[$k]['os'] = strpos_array($v['agent'], $os);
 		$uid = $v['name'] == $conf['settings']['default_usr'] ? "-1" : $v['id'];
 		$online[$k]['image'] = "/{$arg['modpath']}:img/". (int)$uid. "/tn:index/w:40/h:40/c:1/null/img.jpg";
-		$on[ $uid ][ $online[$k]['os'] ][] = $online[$k];
+		$on[ $uid ][] = $online[$k];
 	}
 }// mpre($on);
 
@@ -84,29 +84,25 @@ $guest = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE name=\"". m
 ?>
 <div style="overflow:hidden;">
 	<div style="clear:both;">на сайте <b><?=$count?></b> <?=mpfm($count, 'посетитель', 'посетителя', 'посетителей')?></div>
-	<? foreach($on as $os): ?>
-		<? foreach($os as $s=>$o): $v = array_shift(array_slice($o, 0, 1)); ?>
-			<div style="float:left; margin:1px; border:1px solid #ddd; position:relative;" title="<?=($v['bot'] ? $v['agent'] : $v['name']. ($v['name'] != $conf['settings']['default_usr'] ? "" : "-{$v['sid']}"). (!empty($v['ref']) && ($arg['access'] > 3) ? " {$v['count']}/{$v['cnull']} ({$v['ref']})" : ""))?>">
-				<? if($v['id'] != $guest['id']): ?>
-					<a href="/<?=$arg['modname']?>/<?=$v['id']?>">
-				<? elseif($arg['access'] > 3): ?>
-					<a href="/?m[sess]=admin&where[id]=<?=$v['sid']?>">
-				<? else: ?>
-					<a href="/<?=$arg['modname']?>/<?=$guest['id']?>">
+	<? foreach($on as $o): $v = array_shift(array_slice($o, 0, 1)); ?>
+		<div style="float:left; margin:1px; border:1px solid #ddd; position:relative;" title="<?=($v['bot'] ? $v['agent'] : $v['name']. ($v['name'] != $conf['settings']['default_usr'] ? "" : "-{$v['sid']}"). (!empty($v['ref']) && ($arg['access'] > 3) ? " {$v['count']}/{$v['cnull']} ({$v['ref']})" : ""))?>">
+			<? if($v['id'] != $guest['id']): ?>
+				<a href="/<?=$arg['modname']?>/<?=$v['id']?>">
+			<? elseif($arg['access'] > 3): ?>
+				<a href="/?m[sess]=admin&where[id]=<?=$v['sid']?>">
+			<? else: ?>
+				<a href="/<?=$arg['modname']?>/<?=$guest['id']?>">
+			<? endif; ?>
+				<? if($v['bot']): ?>
+					<div style="position:absolute; top:1px; left:1px; opacity:0.8;"><?=count($o)?></div>
+					<div style="position:absolute; top:1px; right:1px; opacity:0.8;"><img src="/<?=$arg['modname']?>:img/w:15/h:15/null/bot.png"></div>
+				<? elseif($v['os']): ?>
+					<div style="position:absolute; top:1px; left:1px; opacity:0.8; background-color:white; width:15px; height:15px;"><?=count($o)?></div>
+					<div style="position:absolute; top:1px; right:1px; opacity:0.8;"><img src="/<?=$arg['modname']?>:img/w:15/h:15/null/<?=$v['os']?>"></div>
 				<? endif; ?>
-					<? if($v['bot']): ?>
-						<div style="position:absolute; top:1px; left:1px; opacity:0.8;"><?=count($o)?></div>
-						<div style="position:absolute; top:1px; right:1px; opacity:0.8;"><img src="/<?=$arg['modname']?>:img/w:15/h:15/null/bot.png"></div>
-					<? elseif($v['os']): ?>
-						<?// if(($cnt = count($o)) > 1): ?>
-							<div style="position:absolute; top:1px; left:1px; opacity:0.8; background-color:white; width:15px; height:15px;"><?=count($o)?></div>
-						<?// endif; ?>
-						<div style="position:absolute; top:1px; right:1px; opacity:0.8;"><img src="/<?=$arg['modname']?>:img/w:15/h:15/null/<?=$v['os']?>"></div>
-					<? endif; ?>
-					<img src="<?=$v['image']?>">
-				</a>
-			</div>
-		<? endforeach; ?>
+				<img src="<?=$v['image']?>">
+			</a>
+		</div>
 	<? endforeach; ?>
 	<? if($count > count($online)): ?>
 	<? endif; ?>
