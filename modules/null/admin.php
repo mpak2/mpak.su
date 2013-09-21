@@ -95,7 +95,7 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 	//			'dbconn' => $conf['db']['conn'],
 				'url' => "/?m[{$arg['modpath']}]=admin&r={$_GET['r']}", # Ссылка для редактирования
 				'name' => $_GET['r'], # Имя таблицы базы данных
-				'where' => (empty($_GET['where']) && $conf['settings']["{$t}=>where_empty"] ? $conf['settings']["{$t}=>where_empty"] : $conf['settings']["{$t}=>where"]), # Условия отбора содержимого
+				'where' => ((empty($_GET['where']) && $conf['settings']["{$arg['modpath']}_{$t}=>where:empty"]) ? $conf['settings']["{$arg['modpath']}_{$t}=>where:empty"] : $conf['settings']["{$arg['modpath']}_{$t}=>where"]), # Условия отбора содержимого
 				'order' => ($conf['settings'][substr($_GET['r'], strlen($conf['db']['prefix'])). "=>order"] ?: 'id DESC'), # Сортировка вывода таблицы
 	//			'debug' => false, # Вывод всех SQL запросов
 				'acess' => array( # Разрешение записи на таблицу
