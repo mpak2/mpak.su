@@ -206,7 +206,7 @@ EOF;
 		foreach($stc as $k=>$v){// mpre($v);
 			echo "<tr>";
 			echo "<td><input type=\"text\" name=\"fields[$k][Field]\" value=\"{$v['Field']}\"></td>";
-			echo "<td><select name=\"fields[$k][Type]\"><option>{$v['Type']}</option>";
+			echo "<td><select name=\"fields[$k][Type]\" style=\"min-width:100px;\"><option value=\"\">{$v['Type']}</option>";
 			foreach($fields as $n=>$z){
 				echo "<option value=\"$n\"".($n == $v['Type'] ? ' selected' : '').">$z</option>";
 			}
