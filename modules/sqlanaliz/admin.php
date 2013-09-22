@@ -133,6 +133,7 @@ EOF;
 		}
 	}
 }elseif ($m[(int)$_GET['r']] == 'Структура'){
+	$fields = array('varchar(255)'=>'Строка', 'smallint(6)'=>'МалИнт', 'int(11)'=>'Число', 'bigint(20)'=>'БЧисло', 'float'=>'Дробное', 'text'=>'Текст', 'mediumtext'=>'Текстище');
 	if(empty($_REQUEST['tab'])){
 		if(!empty($_GET['new'])){
 			echo $sql = "CREATE TABLE `".($_REQUEST['tab'] =  $_GET['new'])."` (`id` INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT, `name` varchar(255) NOT NULL, `description` text NOT NULL) CHARACTER SET cp1251 COLLATE cp1251_general_ci ENGINE = InnoDB";
@@ -155,8 +156,10 @@ EOF;
 					echo $sql = "DROP TABLE `{$_POST['tab']}`";
 				}elseif(empty($edit['Field'])){
 					echo $sql = "ALTER TABLE `{$_POST['tab']}` DROP `{$old['Field']}`";
-				}else{
+				}elseif($fields[ $edit['Type'] ]){
 					$sql = "ALTER TABLE `{$_POST['tab']}` CHANGE `{$old['Field']}` `{$edit['Field']}` {$edit['Type']} ".($edit['Null'] == 'NO' ? ' NOT NULL' : '')." $after".(!empty($edit['Default']) ? " DEFAULT ". ($edit['Default'] == 'NULL' ? $edit['Default'] : "'{$edit['Default']}'") : ''	). " COMMENT '". mpquot($edit['Comment']). "'";
+				}else{
+					echo "Неизвестный тип {$edit['Type']}";
 				} mpqw($sql); echo mysql_error();
 			}
 		}
@@ -208,7 +211,6 @@ MAwGyfb4HxrjmHbSanKMRsRgquFqB1B0f2UU86/lGI49kFBNS3G2U7Cd0eSRI1WRiGB+oDfeu/3x
 xyqHZLAVOjuS9Fetgw2JuQRRQQRwQRrHFGoREUaCqBoAD7ccccFDCf/Z'></a>";
 		echo "</div><div style='margin:10px;'>";
 	if(!empty($_REQUEST['tab'])){
-		$fields = array('varchar(255)'=>'Строка', 'smallint(6)'=>'МалИнт', 'int(11)'=>'Число', 'bigint(20)'=>'БЧисло', 'float'=>'Дробное', 'text'=>'Текст', 'mediumtext'=>'Текстище');
 		$stc = ql("SHOW FULL COLUMNS FROM {$_REQUEST['tab']}");
 		$stc[] = array('Null'=>'NO');
 		echo "<form method=\"post\"><input type=\"hidden\" name=\"tab\" value=\"{$_REQUEST['tab']}\"><table>";
