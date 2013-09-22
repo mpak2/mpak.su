@@ -159,7 +159,7 @@ EOF;
 				}elseif($fields[ $edit['Type'] ]){
 					$sql = "ALTER TABLE `{$_POST['tab']}` CHANGE `{$old['Field']}` `{$edit['Field']}` {$edit['Type']} ".($edit['Null'] == 'NO' ? ' NOT NULL' : '')." $after".(!empty($edit['Default']) ? " DEFAULT ". ($edit['Default'] == 'NULL' ? $edit['Default'] : "'{$edit['Default']}'") : ''	). " COMMENT '". mpquot($edit['Comment']). "'";
 				}else{
-					echo "Неизвестный тип {$edit['Type']}";
+					echo "Неизвестный тип {$old['Field']} ({$edit['Type']})";
 				} mpqw($sql); echo mysql_error();
 			}
 		}
@@ -197,27 +197,16 @@ EOF;
 			$tab = array_pop($v);
 			echo "<option value=\"value\"".($tab == $_REQUEST['tab'] ? " selected" : '').">$tab</option>";
 		}
-		echo "</select> <a href=''><img src='data:image/jpeg;base64,
-/9j/4AAQSkZJRgABAQEASABIAAD//gATQ3JlYXRlZCB3aXRoIEdJTVD/2wBDAAUDBAQEAwUEBAQF
-BQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBD
-AQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4e
-Hh4eHh4eHh7/wAARCAAUABQDASIAAhEBAxEB/8QAGQABAQEAAwAAAAAAAAAAAAAAAAcFBAYI/8QA
-JhAAAgEEAgIBBAMAAAAAAAAAAQIDBAUGEQAhBxIxMlFhcRQkQf/EABgBAAIDAAAAAAAAAAAAAAAA
-AAMGAAEF/8QAHhEAAgICAwEBAAAAAAAAAAAAAQIAAwQRIjFRkSH/2gAMAwEAAhEDEQA/ALz5D8mQ
-WTJYrbRSLL/EO6kb6ZiPoJ/G+beHZleL1ElTU4xUxUMmvSqjPWj/AL6nsj8jf65wfJWF4GaSe83q
-y1CqzlqmqoVf3Tfy7KnevudH52eQPN/JlbQ3e3xeOsgvkVvoaJKV2q2VkmKFvUiMjrSkLvQ36jrr
-ZYsbEqzKQlFfIdk9fRFnIyLsLIay+3ielGt/CPPJ7BHHJ14au2dZBg8F3yGS3JPUSM0H9Yhmh0Ar
-MAwGyfb4HxrjmHbSanKMRsRgquFqB1B0f2UU86/lGI49kFBNS3G2U7Cd0eSRI1WRiGB+oDfeu/3x
-xyqHZLAVOjuS9Fetgw2JuQRRQQRwQRrHFGoREUaCqBoAD7ccccFDCf/Z'></a>";
+		echo "</select> <a href=''><img src='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD//gATQ3JlYXRlZCB3aXRoIEdJTVD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAAUABQDASIAAhEBAxEB/8QAGQABAQEAAwAAAAAAAAAAAAAAAAcFBAYI/8QAJhAAAgEEAgIBBAMAAAAAAAAAAQIDBAUGEQAhBxIxMlFhcRQkQf/EABgBAAIDAAAAAAAAAAAAAAAAAAMGAAEF/8QAHhEAAgICAwEBAAAAAAAAAAAAAQIAAwQRIjFRkSH/2gAMAwEAAhEDEQA/ALz5D8mQWTJYrbRSLL/EO6kb6ZiPoJ/G+beHZleL1ElTU4xUxUMmvSqjPWj/AL6nsj8jf65wfJWF4GaSe83qy1CqzlqmqoVf3Tfy7KnevudH52eQPN/JlbQ3e3xeOsgvkVvoaJKV2q2VkmKFvUiMjrSkLvQ36jrrZYsbEqzKQlFfIdk9fRFnIyLsLIay+3ielGt/CPPJ7BHHJ14au2dZBg8F3yGS3JPUSM0H9Yhmh0ArMAwGyfb4HxrjmHbSanKMRsRgquFqB1B0f2UU86/lGI49kFBNS3G2U7Cd0eSRI1WRiGB+oDfeu/3xxyqHZLAVOjuS9Fetgw2JuQRRQQRwQRrHFGoREUaCqBoAD7ccccFDCf/Z'></a>";
 		echo "</div><div style='margin:10px;'>";
 	if(!empty($_REQUEST['tab'])){
 		$stc = ql("SHOW FULL COLUMNS FROM {$_REQUEST['tab']}");
 		$stc[] = array('Null'=>'NO');
 		echo "<form method=\"post\"><input type=\"hidden\" name=\"tab\" value=\"{$_REQUEST['tab']}\"><table>";
-		foreach($stc as $k=>$v){
+		foreach($stc as $k=>$v){// mpre($v);
 			echo "<tr>";
 			echo "<td><input type=\"text\" name=\"fields[$k][Field]\" value=\"{$v['Field']}\"></td>";
-			echo "<td><select name=\"fields[$k][Type]\">";
+			echo "<td><select name=\"fields[$k][Type]\"><option>{$v['Type']}</option>";
 			foreach($fields as $n=>$z){
 				echo "<option value=\"$n\"".($n == $v['Type'] ? ' selected' : '').">$z</option>";
 			}
