@@ -136,7 +136,7 @@ EOF;
 	$fields = array('varchar(255)'=>'Строка', 'smallint(6)'=>'МалИнт', 'int(11)'=>'Число', 'bigint(20)'=>'БЧисло', 'float'=>'Дробное', 'text'=>'Текст', 'mediumtext'=>'Текстище');
 	if(empty($_REQUEST['tab'])){
 		if(!empty($_GET['new'])){
-			echo $sql = "CREATE TABLE `".($_REQUEST['tab'] =  $_GET['new'])."` (`id` INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT, `name` varchar(255) NOT NULL, `description` text NOT NULL) CHARACTER SET cp1251 COLLATE cp1251_general_ci ENGINE = InnoDB";
+			echo "<br />". ($sql = "CREATE TABLE `".($_REQUEST['tab'] =  $_GET['new'])."` (`id` INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT, `name` varchar(255) NOT NULL, `description` text NOT NULL) CHARACTER SET cp1251 COLLATE cp1251_general_ci ENGINE = InnoDB");
 			mpqw($sql);
 		}else{
 			echo "<div style='margin:10px;'><input type=\"text\" id=\"new\"> <input type=\"button\" value=\"Создать\" onClick=\"javascript: location.href='/?m[sqlanaliz]=admin&r=1&new='+document.getElementById('new').value\"></div>";
@@ -153,11 +153,11 @@ EOF;
 					$after = " AFTER `{$edit['After']}`";
 				}
 				if($old['Field'] == 'id'){
-					echo $sql = "DROP TABLE `{$_POST['tab']}`";
+					echo "<br />". $sql = "DROP TABLE `{$_POST['tab']}`";
 				}elseif(empty($edit['Field'])){
-					echo $sql = "ALTER TABLE `{$_POST['tab']}` DROP `{$old['Field']}`";
+					echo "<br />". $sql = "ALTER TABLE `{$_POST['tab']}` DROP `{$old['Field']}`";
 				}elseif($fields[ $edit['Type'] ]){
-					$sql = "ALTER TABLE `{$_POST['tab']}` CHANGE `{$old['Field']}` `{$edit['Field']}` {$edit['Type']} ".($edit['Null'] == 'NO' ? ' NOT NULL' : '')." $after".(!empty($edit['Default']) ? " DEFAULT ". ($edit['Default'] == 'NULL' ? $edit['Default'] : "'{$edit['Default']}'") : ''	). " COMMENT '". mpquot($edit['Comment']). "'";
+					echo "<br />". $sql = "ALTER TABLE `{$_POST['tab']}` CHANGE `{$old['Field']}` `{$edit['Field']}` {$edit['Type']} ". ($edit['Null'] == 'NO' ? ' NOT NULL' : '').(!empty($edit['Default']) ? " DEFAULT ". ($edit['Default'] == 'NULL' ? $edit['Default'] : "'{$edit['Default']}'") : ''	). " COMMENT '". mpquot($edit['Comment']). "' $after";
 				}else{
 					echo "Неизвестный тип {$old['Field']} ({$edit['Type']})";
 				} mpqw($sql); echo mysql_error();
@@ -184,7 +184,7 @@ EOF;
 
 	if(($new = $_POST['fields'][++$k]) && $new['Field']){
 		if($new['After'] == '_'){ $after = " FIRST"; }elseif(!empty($new['After'])){ $after = " AFTER `{$new['After']}`"; }
-		echo $sql = "ALTER TABLE `{$_POST['tab']}` ADD `{$new['Field']}` {$new['Type']}".($new['Null'] == 'NO' ? ' NOT NULL' : '')." $after".(!empty($new['Default']) ? " DEFAULT ". ($new['Default'] == 'NULL' ? $new['Default'] : "'{$new['Default']}'") : ''	);
+		echo "<br />". $sql = "ALTER TABLE `{$_POST['tab']}` ADD `{$new['Field']}` {$new['Type']}".($new['Null'] == 'NO' ? ' NOT NULL' : '')." $after".(!empty($new['Default']) ? " DEFAULT ". ($new['Default'] == 'NULL' ? $new['Default'] : "'{$new['Default']}'") : ''	);
 		mpqw($sql);
 		if(($new['Field'] == "sort") && ($new['Type'] == "int(11)")){
 			mpqw("UPDATE `{$_POST['tab']}` SET sort=id"); # Устанока уникальных значений в таблицу сортировки
