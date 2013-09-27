@@ -223,7 +223,6 @@ if (!function_exists('bcont')){
 			$modname = $mod['modname'];
 			if ($conf['blocks']['info'][ $v['id'] ]['access'] && strlen($cb = mpeval("modules/{$v['file']}", $arg = array('blocknum'=>$v['id'], 'modpath'=>$modpath, 'modname'=>$modname, 'fn'=>basename(array_shift(explode('.', $v['file']))), 'uid'=>$uid, 'access'=>$conf['blocks']['info'][ $v['id'] ]['access']) ))){
 				if($bid){ $result = $cb; }else{
-					$v += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn']);
 					if (!is_numeric($v['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($v['shablon'] ?: "block.html")))){
 						$shablon[ $v['shablon'] ] = file_get_contents($file_name);
 					}
@@ -234,7 +233,8 @@ if (!function_exists('bcont')){
 						'<!-- [block:fn] -->'=>$arg['fn'],
 						'<!-- [block:title] -->'=>$v['name']
 					));
-					$result["<!-- [blocks:{$v['rid']}] -->"] .= strtr($conf['settings']['blocks_start'], $v). $cb. strtr($conf['settings']['blocks_stop'], $v);
+					$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
+					$result["<!-- [blocks:{$v['rid']}] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
 //					if($v['reg_id']) $result["<!-- [blocks:{$v['reg_id']}] -->"] .= str_replace('<!-- [block:title] -->', $v['name'], $cb);
 				}
 			}
