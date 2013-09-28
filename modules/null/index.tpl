@@ -11,7 +11,7 @@
 <? else: ?>
 	<div><?=$tpl['mpager']?></div>
 	<? foreach($tpl[ $arg['fe'] ] as $$arg['fe']): ?>
-		<div><a href="/<?=$arg['modname']?>:<?=$arg['fe']?>/<?=${$arg['fe']}['id']?>"><?=${$arg['fe']}['name']?></a></div>	
+		<div><a href="/<?=$arg['modname']?><?=($arg['fe'] == "index" ? "" : ":{$arg['fe']}")?>/<?=${$arg['fe']}['id']?>"><?=${$arg['fe']}['name']?></a></div>	
 	<? endforeach; ?>
 	<div><?=$tpl['mpager']?></div>
 <? endif; ?>
