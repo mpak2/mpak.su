@@ -45,6 +45,20 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_reg` (
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_reg_modules` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sort` int(11) NOT NULL,
+  `reg_id` int(11) NOT NULL,
+  `modules_index` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `theme` varchar(255) NOT NULL,
+  `uri` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `sort` (`sort`),
+  KEY `modules_index` (`modules_index`)
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+mpqw($sql);
+
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_shablon` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
@@ -65,5 +79,8 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_uacces
 mpqw($sql);
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('blocks', 'block_edit', '1', '1', 'Скрытие блоков')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('blocks', 'blocks_start', '<section id=\"{id}\" modname=\"{modpath}\" fn=\"{fn}\">', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('blocks', 'blocks_stop', '</section>', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('blocks', 'blocks_reg_modules', 'Модули', '4', '')");
 
 ?>
