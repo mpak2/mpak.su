@@ -312,7 +312,7 @@ echo '<p /><font style="color:red;">'. $query_error."</font>";
 			echo "<tr><td>$k</td>";
 			foreach($v as $n=>$z){
 				if (!$hide[$n]) continue;
-				echo "<td>".($n=='Name' ? "<a href=/?m[{$arg['modpath']}]=admin&r=3&id=$k>$z</a>" : $z)."</td>";
+				echo "<td>".($n=='Name' ? "<a href=/?m[{$arg['modpath']}]=admin&r=5&id=$k>$z</a>" : $z)."</td>";
 			}
 			echo "</tr>";
 		}
