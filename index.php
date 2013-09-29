@@ -216,7 +216,6 @@ if (!function_exists('bcont')){
 		foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}blocks_uaccess ORDER BY id", 'Права доступа пользователя к блоку')) as $k=>$v)
 			if ($conf['user']['uid'] == $v['uid'] || (!$v['uid'] && ($conf['user']['uid'] == $uid)))
 				$conf['blocks']['info'][ $v['bid'] ]['access'] = $v['access'];
-
 		foreach($blocks as $k=>$v){
 			$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
 			$mod = $conf['modules'][ $modpath = basename(dirname(dirname($v['file']))) ];
