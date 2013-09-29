@@ -543,9 +543,10 @@ function mpgt($REQUEST_URI, $get = array()){
 		foreach($tpl = explode('/', $part[2]) as $k=>$v){
 			if($param = explode(':', $v, 2)){
 				if(!empty($param[0]) && !is_numeric($param[0])){
-					$get += array(@urldecode($param[0])=>@urldecode($param[1]));
+					$get = array(@urldecode($param[0])=>@urldecode($param[1])) + $get;
 				}elseif(is_numeric($param[0])){
-					$get += array('id'=>$param[0]);
+					$get += array('id'=>$param[0]); # Первый вариант верный
+//					$get = array('id'=>$param[0]) + $get; # Каждый последующий имеет приоритет
 				}
 			}
 		}
@@ -1546,6 +1547,34 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 		mpevent("Ошибка открытия изображения", $file_name, $conf['user']['uid']);
 		imagestring ($src, 1, 5, 30, "HeTKapmuHku", $tc);
 		return ImageJpeg($src);
+	}
+}
+
+if(!function_exists("array_column")){
+	function array_column(array $input, $columnKey, $indexKey = null) {
+		$result = array();
+		if(null === $indexKey){
+			if (null === $columnKey){
+				// trigger_error('What are you doing? Use array_values() instead!', E_USER_NOTICE);
+				$result = array_values($input);
+			}
+			else {
+				foreach ($input as $row){
+					$result[] = $row[$columnKey];
+				}
+			}
+		}else{
+			if (null === $columnKey){
+				foreach ($input as $row){
+					$result[$row[$indexKey]] = $row;
+				}
+			}
+			else {
+				foreach ($input as $row){
+					$result[$row[$indexKey]] = $row[$columnKey];
+				}
+			}
+		} return $result;
 	}
 }
 
