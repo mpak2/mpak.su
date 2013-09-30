@@ -36,11 +36,11 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 						}
 					});
 				}).on("click", "a", function(){
-					$("#right").hide();
+//					$("#right").hide();
 				});
 			});
 		</script>
 		<input type="button" value="Обновить">
-		<a>Скрыть</a>
+		<a href="/modules:admin_update">Страница</a>
 	</div>
 </div>
