@@ -892,7 +892,7 @@ function mpqw($sql, $info = null, $conn = null){
 			"Table '{$conf['db']['name']}.mp_blocks_reg_modules' doesn't exist" => array(
 				"SELECT * FROM {$conf['db']['prefix']}blocks_reg_modules" => array(
 					"CREATE TABLE `{$conf['db']['prefix']}blocks_reg_modules` ( `id` int(11) NOT NULL AUTO_INCREMENT, `sort` int(11) NOT NULL, `reg_id` int(11) NOT NULL, `modules_index` int(11) NOT NULL, `name` varchar(255) NOT NULL, `theme` varchar(255) NOT NULL, `uri` varchar(255) NOT NULL, PRIMARY KEY (`id`), KEY `sort` (`sort`), KEY `modules_index` (`modules_index`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
-					"INSERT INTO `{$conf['db']['prefix']}blocks` (`id`, `file` ,`name` ,`theme` ,`shablon` ,`access` ,`rid` ,`orderby` ,`param` ,`enabled`) VALUES (999, 'modules/blocks/update.php' ,'Обновление блоков' ,'!zhiraf' ,'' ,'0' ,'2' ,'0' ,'' ,'1');",
+					"INSERT INTO `{$conf['db']['prefix']}blocks` (`id`, `file` ,`name` ,`theme` ,`shablon` ,`access` ,`rid` ,`orderby` ,`param` ,`enabled`) VALUES (999, 'modules/blocks/update.php' ,'Обновление блоков' ,'!zhiraf' ,'' ,'0' ,'-1' ,'0' ,'' ,'1');",
  					"INSERT INTO `{$conf['db']['prefix']}blocks_gaccess` (`bid` ,`gid` ,`access` ,`description`) VALUES (999 , (SELECT id FROM mp_users_grp WHERE name='Администратор'),'1' ,'')",
 				),
 			),

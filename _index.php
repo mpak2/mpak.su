@@ -216,7 +216,6 @@ if (!function_exists('bcont')){
 		foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}blocks_uaccess ORDER BY id", 'Права доступа пользователя к блоку')) as $k=>$v)
 			if ($conf['user']['uid'] == $v['uid'] || (!$v['uid'] && ($conf['user']['uid'] == $uid)))
 				$conf['blocks']['info'][ $v['bid'] ]['access'] = $v['access'];
-
 		foreach($blocks as $k=>$v){
 			$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
 			$mod = $conf['modules'][ $modpath = basename(dirname(dirname($v['file']))) ];
@@ -226,12 +225,16 @@ if (!function_exists('bcont')){
 					if (!is_numeric($v['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($v['shablon'] ?: "block.html")))){
 						$shablon[ $v['shablon'] ] = file_get_contents($file_name);
 					}
-					$cb = str_replace('<!-- [block:content] -->', $cb, $shablon[ $v['shablon'] ]);
-					$cb = str_replace('<!-- [block:id] -->', $v['id'], $cb);
-					$cb = str_replace('<!-- [block:modpath] -->', $arg['modpath'], $cb);
-					$cb = str_replace('<!-- [block:fn] -->', $arg['fn'], $cb);
-					$result["<!-- [blocks:{$v['rid']}] -->"] .= str_replace('<!-- [block:title] -->', $v['name'], $cb);
-					if($v['reg_id']) $result["<!-- [blocks:{$v['reg_id']}] -->"] .= str_replace('<!-- [block:title] -->', $v['name'], $cb);
+					$cb = strtr($shablon[ $v['shablon'] ], array(
+						'<!-- [block:content] -->'=>$cb,
+						'<!-- [block:id] -->'=>$v['id'],
+						'<!-- [block:modpath] -->'=>$arg['modpath'],
+						'<!-- [block:fn] -->'=>$arg['fn'],
+						'<!-- [block:title] -->'=>$v['name']
+					));
+					$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
+					$result["<!-- [blocks:{$v['rid']}] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
+//					if($v['reg_id']) $result["<!-- [blocks:{$v['reg_id']}] -->"] .= str_replace('<!-- [block:title] -->', $v['name'], $cb);
 				}
 			}
 		} return $result;
@@ -331,7 +334,7 @@ if (is_numeric($conf['settings']['theme'])){
 	$theme = mpql(mpqw($sql, 'Запрос темы'), 0);
 	$tc = $theme['theme'];
 }else{
-	$tc = file_get_contents(mpopendir("themes/{$conf['settings']['theme']}/index.html"));
+	$tc = file_get_contents(mpopendir("themes/{$conf['settings']['theme']}/". ($_GET['index'] ? basename($_GET['index']) : "index"). ".html"));
 }// $tpl = array(1);
 
 if (!array_key_exists('null', $_GET) || !empty($_GET['m']['users'])){
