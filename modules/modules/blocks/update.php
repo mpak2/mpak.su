@@ -13,10 +13,8 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 		}
 	}
 	if(empty($tpl['reg'][-1])){
-		mpqw("INSERT INTO mp_blocks_reg SET id=-1, term=1, description='Админ', reg_id=1");
 		mpqw("INSERT INTO mp_blocks_reg_modules SET reg_id=-1, theme='zhiraf'");
 	} if(empty($tpl['reg'][-2])){
-		mpqw("INSERT INTO mp_blocks_reg SET id=-2, term=1, description='Админ', reg_id=2");
 		mpqw("INSERT INTO mp_blocks_reg_modules SET reg_id=-2, theme='zhiraf'");
 	}
 	mpqw("UPDATE mp_blocks SET rid=-1 WHERE file='admin/blocks/modlist.php'");
