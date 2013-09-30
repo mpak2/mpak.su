@@ -1477,10 +1477,13 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 //	header("Cache-Control: maxage=". ($expires = 60*60*24));
 //	header('Expires: ' . gmdate('D, d M Y H:i:s', time()+$expires) . ' GMT');
 
-	if (!array_key_exists('nologo', $_GET) && file_exists("$cache_name/$host_name/$prx/$fl_name") && (filectime("$cache_name/$host_name/$prx/$fl_name") > ($filectime = filectime($file_name)))){ // 
-		if(!($mc = mpmc($key = "{$_SERVER['HTTP_HOST']}/{$fl_name}/filectime:{$filectime}/{$conf['event']['Формирование изображения']['count']}", null, false, 0, false))){
-			echo $mc = file_get_contents("$cache_name/$host_name/$prx/$fl_name");
-			mpmc($key, $mc, false, 86400, false);
+	if (!array_key_exists('nologo', $_GET) && file_exists("$cache_name/$host_name/$prx/$fl_name") && (filectime("$cache_name/$host_name/$prx/$fl_name") > (file_exists($file_name) && ($filectime = filectime($file_name))))){ // 
+	
+		if(!function_exists("mpmc") || !($mc = mpmc($key = "{$_SERVER['HTTP_HOST']}/{$fl_name}/filectime:". (!empty($filectime) ? $filectime : ""). "/{$conf['event']['Формирование изображения']['count']}", null, false, 0, false))){
+			$mc = file_get_contents("$cache_name/$host_name/$prx/$fl_name");
+			if(function_exists("mpmc")){
+				mpmc($key, $mc, false, 86400, false);
+			}
 		} /*echo $key;*/ return $mc;
 	}elseif ($src = @imagecreatefromstring(file_get_contents($file_name))){
 		$width = imagesx($src);
@@ -1505,7 +1508,7 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 					$tn_width = ceil($y_ratio * $width);
 					$tn_height = $max_height;
 				}
-				$irs = array(6=>$tn_width, $tn_height, $width, $height,);
+				$irs = array(4=>0, 5=>0, $tn_width, $tn_height, $width, $height,);
 				$cdst = array($tn_width, $tn_height);
 			}
 			$dst = imagecreatetruecolor($cdst[0], $cdst[1]);
@@ -1527,26 +1530,27 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 				imagecopyresampled($dst, $logo, ($w < 0 ? imagesx($dst)-imagesx($logo)+$w : $w), ($h < 0 ? imagesy($dst)-imagesy($logo)+$h : $h), 0, 0, imagesx($logo), imagesy($logo), imagesx($logo), imagesy($logo));
 			}
 			ob_start();
-			if ($rext){
-				$func[$rext]($dst, null, -1);
-			}else{
+//			if (!empty($rext) && $rext){
+//				$func[$rext]($dst, null, -1);
+//			}else{
 				$func[ strtolower(array_pop(explode('.', $file_name))) ]($dst, null, -1);
-			}
+//			}
 			$content = ob_get_contents();
 			ob_end_clean();
 			ImageDestroy($src);
 			ImageDestroy($dst);
 		}
 		if(!file_exists("$cache_name/$host_name/$prx")){
-			require_once(mpopendir('include/idna_convert.class.inc'));
+			require_once('includes/idna_convert.class.inc');
 			$IDN = new idna_convert();
 			mkdir("$cache_name/$host_name/$prx", 0755, 1);
 			if($host_name != $IDN->decode($host_name) && !file_exists("$cache_name/". $IDN->decode($host_name))){
 				symlink("$cache_name/$host_name", "$cache_name/". $IDN->decode($host_name));
 			}
 		} file_put_contents("$cache_name/$host_name/$prx/$fl_name", $content);
-		mpevent("Формирование изображения", $fl_name, $conf['user']['uid']);
-		return $content;
+		if(function_exists("mpevent")){
+			mpevent("Формирование изображения", $fl_name, $conf['user']['uid']);
+		} return $content;
 	}else{
 		$src = imagecreate (65, 65);
 		$bgc = imagecolorallocate ($src, 255, 255, 255);
