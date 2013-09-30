@@ -212,7 +212,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}blocks"){ #Блоки
 //			'middle' => array('tr'=>'<tr>', 'td'=>'<td>', 'shablon'=>"<tr><td>{sql:name}</td><td>&nbsp;{sql:img}</td><td>&nbsp;{sql:description}</td><td align='right'>{config:row-edit}</td></tr>"), # Формат записей таблицы
 //			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
-			'title' => array('term'=>"Условие", 'mid'=>'Модуль', 'fn'=>'Файл', 'reg'=>"Вложений", '.name'=>'Метка', 'count'=>'Блоков', 'sort'=>'Сорт', 'reg_id'=>"Родитель", "reg_modules"=>"Модули", 'description'=>'Описание'), # Название полей
+			'title' => array('term'=>"Условие", 'reg'=>"Вложений", '.name'=>'Метка', 'count'=>'Блоков', 'sort'=>'Сорт', 'reg_id'=>"Родитель", "reg_modules"=>"Модули", 'description'=>'Описание'), # Название полей
 			'type' => array('sort'=>'sort'), # Тип полей
 //			'ext' => array('img'=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')),
 //			'set' => array('name'=>'kanal'), # Значение которое всегда будет присвоено полю. Исключает любое изменение
