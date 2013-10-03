@@ -1541,7 +1541,9 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 			ImageDestroy($dst);
 		}
 		if(!file_exists("$cache_name/$host_name/$prx")){
-			require_once('includes/idna_convert.class.inc');
+			if($idna = mpopendir('include/idna_convert.class.inc')){
+				require_once($idna);
+			}
 			$IDN = new idna_convert();
 			mkdir("$cache_name/$host_name/$prx", 0755, 1);
 			if($host_name != $IDN->decode($host_name) && !file_exists("$cache_name/". $IDN->decode($host_name))){
