@@ -2,9 +2,9 @@
 
 $users = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE folder=\"users\""), 0);
 
-mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_reg` (`id`, `reg_id`, `mid`, `fn`, `description`) VALUES ('1', '0', '0', '', 'Общая Лево'), ('2', '0', '0', '', 'Общая Право'), ('3', '0', '0', '', 'Верх'), ('4', '0', '0', '', 'АдминШапка'), ('5', '0', '0', '', 'Лево'), ('6', '0', '0', '', 'Право'), ('7', '5', '{$users['id']}', 'index', 'Кабинет'), ('8', '6', '{$users['id']}', 'index', 'Кабинет')");
-
-mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_shablon` (`id`, `name`, `description`, `shablon`) VALUES ('1', 'Основной', 'Блок по умолчанию', '<table width=240px cellspacing=0 cellpadding=5 border=0> <tr> <td align=center bgcolor=<!-- [settings:theme_block_color] -->><b><!-- [block:title] --></b></td> </tr> <tr> <td><!-- [block:content] --></td> </tr> </table>'), ('2', 'БезТитла', 'Блок без заголовка', '<!-- Блок <!-- [block:modpath] -->:<!-- [block:fn] -->:<!-- [block:id] --> --><!-- [block:content] --><!-- Блок конец <!-- [block:modpath] -->:<!-- [block:fn] -->:<!-- [block:id] --> -->')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_reg` (`id`, `term`, `reg_id`, `mid`, `fn`, `description`) VALUES ('-1', 1, '1', '0', '', 'Админ'), ('2', 1, '-2', '0', '', 'Админ'), ('1', 0, '0', '0', '', 'Общая Лево'), ('2', 0, '0', '0', '', 'Общая Право'), ('3', 0, '0', '0', '', 'Верх'), ('4', 0, '0', '0', '', 'АдминШапка'), ('5', 0, '0', '0', '', 'Лево'), ('6', 0, '0', '0', '', 'Право'), ('7', 0, '5', '{$users['id']}', 'index', 'Кабинет'), ('8', 0, '6', '{$users['id']}', 'index', 'Кабинет')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_shablon` (`id`, `name`, `description`, `shablon`) VALUES ('1', 'Основной', 'Блок по умолчанию', '<table width=240px cellspacing=0 cellpadding=5 border=0> <tr> <td align=center bgcolor=<!-- [settings:theme_block_color] -->><b><!-- [block:title] --></b></td> </tr> <tr> <td><!-- [block:content] --></td> </tr> </table>'), ('2', 'БезТитла', 'Блок без заголовка', '<!-- [block:content] -->')");
+mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_reg_modules (`id` ,`sort` ,`reg_id` ,`modules_index` ,`name` ,`theme` ,`uri`) VALUES (NULL ,'0' ,'-1' ,'0' ,'' ,'zhiraf' ,'')");
 
 $amenu = <<<EOF
 <ul>
@@ -27,7 +27,6 @@ $spt = <<<EOF
 EOF;
 
 $menu = array(
-//	array('id'=>'0', 'theme'=>'!zhiraf', 'file'=>'themes/blocks/theme.php', 'name'=>'Выбор темы', 'access'=>'0', 'rid'=>'1', 'enabled'=>'1', ),
 	array('id'=>'11', 'theme'=>'!zhiraf', 'file'=>'admin/blocks/host.php', 'name'=>'Оплата хостинга', 'access'=>'-1', 'rid'=>'1', 'enabled'=>'1',),
 
 	array('id'=>'1', 'theme'=>'!zhiraf', 'file'=>'../include/blocks/login.php', 'name'=>'Авторизация', 'access'=>'1', 'rid'=>'1', 'enabled'=>'1', ),
@@ -36,15 +35,10 @@ $menu = array(
 	array('id'=>'4', 'theme'=>'!zhiraf', 'file'=>'../include/blocks/htmlcod.php', 'name'=>'Админменю', 'access'=>'0', 'rid'=>'1', 'param'=>$amenu, 'enabled'=>'1',),
 	array('id'=>'5', 'theme'=>'!zhiraf', 'file'=>'messages/blocks/messages.php', 'name'=>'Сообщения', 'access'=>'1', 'rid'=>'1', 'enabled'=>'1', ),
 	array('id'=>'6', 'theme'=>'!zhiraf', 'file'=>'../include/blocks/htmlcod.php', 'name'=>'Поддержка', 'access'=>'0', 'rid'=>'1', 'param'=>$spt, 'enabled'=>'1',),
-
 	array('id'=>'7', 'theme'=>'zhiraf', 'file'=>'admin/blocks/top.php', 'name'=>'АдминШапка', 'access'=>'0', 'rid'=>'4', 'enabled'=>'1',),
-	array('id'=>'8', 'theme'=>'zhiraf', 'file'=>'admin/blocks/modlist.php', 'name'=>'СписокМодулей', 'access'=>'0', 'rid'=>'1', 'enabled'=>'1',),
-
+	array('id'=>'8', 'theme'=>'zhiraf', 'file'=>'admin/blocks/modlist.php', 'name'=>'СписокМодулей', 'access'=>'0', 'rid'=>'-1', 'enabled'=>'1',),
 	array('id'=>'9', 'theme'=>'!zhiraf', 'file'=>'users/blocks/user.php', 'name'=>'Свойства пользователя', 'access'=>'1', 'rid'=>'7', 'enabled'=>'1',),
-
 	array('id'=>'10', 'theme'=>'!zhiraf', 'file'=>'chat/blocks/all.php', 'name'=>'Чат', 'access'=>'2', 'rid'=>'8', 'enabled'=>'1',),
-
-//	array('id'=>'11', 'theme'=>'!zhiraf', 'file'=>'foto/blocks/img.php', 'name'=>'Мои фото', 'access'=>'1', 'rid'=>'7', 'enabled'=>'1',),
 	array('id'=>'12', 'theme'=>'!zhiraf', 'file'=>'pages/blocks/my.php', 'name'=>'Мои статьи', 'access'=>'1', 'rid'=>'7', 'enabled'=>'1',),
 );
 
