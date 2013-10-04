@@ -201,7 +201,6 @@ if (!function_exists('bcont')){
 				$reg[ $r['id'] ] = $r;
 			}else{
 				$br = array_shift($brm = rb($blocks_reg_modules, "reg_id", "id", $r['id']));
-
 				if($br['name']){ # Если стоит страница
 					$br = array_shift($brm = rb($brm, "name", "id", array_flip($md)));
 				} if($br['modules_index']){
@@ -215,7 +214,7 @@ if (!function_exists('bcont')){
 					$reg[ $r['id'] ] = $r;
 				}
 			} # Условие исключая не срабатывает
-		}// mpre($reg);
+		}
 
 		$gt = mpgt(urldecode(array_pop(explode("/{$_SERVER['HTTP_HOST']}", $_SERVER['HTTP_REFERER']))));
 		$uid = array_key_exists('blocks', $_GET['m']) ? $gt['id'] : $_GET['id'];
@@ -252,7 +251,7 @@ if (!function_exists('bcont')){
 						'<!-- [block:fn] -->'=>$arg['fn'],
 						'<!-- [block:title] -->'=>$v['name']
 					));
-					$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
+					$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$arg['name'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
 					$result["<!-- [blocks:". (int)$v['rid'] . "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
 					$result["<!-- [blocks:". (int)$reg[ $v['rid'] ]['reg_id']. "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
 				}
