@@ -62,6 +62,7 @@ if($_FILES && ($arg['access'] > 1)){
 		'txt' => 'text/plain',
 		'xml' => 'text/xml',
 		'swf'=>'application/x-shockwave-flash',
+		'xls'=>'application/vnd.ms-excel',
 	);
 	if($v = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_files WHERE activ=1". ($_GET['cat_id'] ? " AND cat_id=". (int)$_GET['cat_id']. " ORDER BY RAND() LIMIT 1" : ""). ($_GET['id'] ? " AND id=".(int)$_GET['id'] : "")), 0)){
 			mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']}_files SET count=count+1 WHERE id=".(int)$v['id']);
