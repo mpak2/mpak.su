@@ -319,7 +319,7 @@ if (!function_exists('mcont')){
 					if(!array_key_exists('null', $_GET) && ($_SERVER['REQUEST_URI'] != "/admin")){
 						header('HTTP/1.0 404 Unauthorized');
 //						echo "<div style='margin:100px 0;text-align:center'>Доступ запрещен</div>";
-						header("Location: /themes:404");// header("Location: /admin");
+						header("Location: /themes:404{$_SERVER['REQUEST_URI']}");// header("Location: /admin");
 					}
 				}
 			}
