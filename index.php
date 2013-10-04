@@ -244,14 +244,15 @@ if (!function_exists('bcont')){
 					if (!is_numeric($v['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($v['shablon'] ?: "block.html")))){
 						$shablon[ $v['shablon'] ] = file_get_contents($file_name);
 					}
-					$cb = strtr($shablon[ $v['shablon'] ], array(
+					$cb = strtr($shablon[ $v['shablon'] ], $w = array(
 						'<!-- [block:content] -->'=>$cb,
 						'<!-- [block:id] -->'=>$v['id'],
+						'<!-- [block:name] -->'=>$v['name'],
 						'<!-- [block:modpath] -->'=>$arg['modpath'],
 						'<!-- [block:fn] -->'=>$arg['fn'],
 						'<!-- [block:title] -->'=>$v['name']
-					));
-					$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$arg['name'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
+					)); /*mpre($w);*/
+					$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$v['name'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
 					$result["<!-- [blocks:". (int)$v['rid'] . "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
 					$result["<!-- [blocks:". (int)$reg[ $v['rid'] ]['reg_id']. "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
 				}
