@@ -8,6 +8,9 @@ $tpl['index'] = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index
 ################################# верстка ################################# ?>
 <script src="/<?=$arg['modname']?>:jquery.nivo.slider/null/script.js"></script>
 <link href="/<?=$arg['modname']?>:nivo-slider/null/style.css" type="text/css" rel="stylesheet" />
+<style>
+/*	.nivo_index .nivoNav {display:none;}*/
+</style>
 <script>
 	$(function(){
 		$('.nivo_index').nivoSlider({nav:false});
