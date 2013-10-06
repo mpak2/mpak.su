@@ -10,7 +10,7 @@ $tpl['index'] = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index
 <link href="/<?=$arg['modname']?>:nivo-slider/null/style.css" type="text/css" rel="stylesheet" />
 <script>
 	$(function(){
-		$('.nivo_index').nivoSlider();
+		$('.nivo_index').nivoSlider({nav:false});
 	});
 </script>
 <div class="nivo_index" style="width:700px; height:400px;">
