@@ -44,10 +44,13 @@
 <style>
 	.paralax [imgs_id], .paralax [text_id] {position:absolute; opacity:0;}
 </style>
-<div class="paralax" style="position:relative;">
+<h1>&nbsp;</h1>
+<div class="paralax" style="position:relative; overflow:hide;">
 	<? foreach($tpl['index'] as $index): ?>
 		<? foreach(rb($tpl['imgs'], "index_id", "id", $index['id']) as $imgs): ?>
-			<div imgs_id="<?=$imgs['id']?>" class="index_imgs"><img src="/paralax:img/<?=$imgs['id']?>/tn:imgs/fn:img/w:<?=$imgs['width']?>/h:<?=$imgs['height']?>/null/img.png" title="<?=$imgs['name']?>"></div>
+			<div imgs_id="<?=$imgs['id']?>" class="index_imgs">
+				<img src="/paralax:img/<?=$imgs['id']?>/tn:imgs/fn:img/w:<?=$imgs['width']?>/h:<?=$imgs['height']?>/null/img.png" title="<?=$imgs['name']?>">
+			</div>
 		<? endforeach; ?>
 		<? foreach($tpl['text'] as $text): ?>
 			<div text_id="<?=$text['id']?>" class="index_text" style="<?=($text['font-size'] ? "font-size:{$text['font-size']}px;" : "")?><?=($text['color'] ? "color:{$text['color']};" : "")?>"><?=$text['name']?></div>
