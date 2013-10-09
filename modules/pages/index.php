@@ -7,5 +7,9 @@ $tpl['index'] = qn("SELECT *
 );// mpre($tpl['index']);
 
 if($index = $tpl['index'][ $_GET['id'] ]){
-	$conf['settings']['title'] = $index['name'];
+	if($index['keywords']){
+		$conf['settings']['keywords'] = $index['keywords'];
+	} if($index['description']){
+		$conf['settings']['description'] = $index['description'];
+	} $conf['settings']['title'] = $index['name'];
 }
