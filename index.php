@@ -11,6 +11,7 @@
 // ----------------------------------------------------------------------
 
 ini_set('display_errors', 1); error_reporting(E_ALL ^ E_NOTICE);
+header('Content-Type: text/html;charset=UTF-8');
 
 if(!function_exists('mp_require_once')){
 	function mp_require_once($link){
@@ -47,7 +48,6 @@ if (strlen($conf['db']['error'] = mysql_error())){
 	mpqw("SET NAMES 'utf8'");
 } unset($conf['db']['pass']); $conf['db']['sql'] = array();
 
-header('Content-Type: text/html;charset=UTF-8');
 
 if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(mpql(mpqw("SHOW TABLES", 'Проверка работы базы')))){ echo mpct('include/install.php'); die; }
 
