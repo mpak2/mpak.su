@@ -1,8 +1,8 @@
 <? if($$arg['fe'] = $tpl[ $arg['fe'] ][ $_GET['id'] ]): ?>
-	<span style="float:right;"><?=aedit("/?m[{$arg['modname']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']}&where[id]={${$arg['fn']}['id']}")?></span>
 	<span style="float:right;">
 		<a href="/<?=$arg['modname']?><?=($arg['fe'] == "index" ? "" : ":{$arg['fe']}")?>">Весь список</a>
 	</span>
+	<span style="float:right;"><?=aedit("/?m[{$arg['modname']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']}&where[id]={${$arg['fn']}['id']}")?></span>
 	<div>
 		<h2><?=${$arg['fe']}['name']?></h2>
 	</div>
