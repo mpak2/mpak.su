@@ -20,7 +20,7 @@ $conf['settings'] += array(
 	"{$arg['modpath']}_cat"=>"Категории",
 );
 
-foreach(mpql(mpqw("SHOW TABLES WHERE Tables_in_{$conf['db']['name']} LIKE \"{$conf['db']['prefix']}{$arg['modpath']}\_%\"")) as $k=>$v){
+foreach(mpql(mpqw("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modpath']}\_%\"")) as $k=>$v){
 	$val = ($conf['settings'][$fn = substr($v["Tables_in_{$conf['db']['name']}"], strlen($conf['db']['prefix']))] ?: $fn);
 	$m["{$conf['db']['prefix']}". $fn] = $val;
 } mpmenu($m); if(!$_GET['r']) $_GET['r'] = array_shift(array_keys($m));
