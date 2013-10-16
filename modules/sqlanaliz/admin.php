@@ -292,7 +292,7 @@ echo '<p /><font style="color:red;">'. $query_error."</font>";
 			$rows = $val = '';
 			foreach($v as $n=>$z){
 				$rows .= ($rows ? ' ,' : '')."`$n`";
-				$val .= ($val ? ' ,' : '')."'".strtr(htmlspecialchars($z), array("'"=>"\'"))."'";
+				$val .= ($val ? ' ,' : '')."\"".mpquot(htmlspecialchars($z))."\"";
 			}
 			echo "\nINSERT INTO {$data[(int)$_GET['id']]['Name']} ($rows) VALUES ($val);";
 		}
