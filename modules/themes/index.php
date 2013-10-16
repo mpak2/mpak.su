@@ -23,17 +23,9 @@ if (isset($_GET['q'])){
 			}
 		}
 	}
-/*}else{
+}else{
+	header("HTTP/1.0 404 Not Found");
 	mpevent("Не найден ресурс в теме", $res_name);
-	$dn = dirname($_SERVER['REQUEST_URI'])."/";
-	echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">\n<html>\n<head>\n<title>Index of /{$_GET['q']}</title>\n</head>\n <body>\n<h1>Index of /{$_GET['q']}</h1>\n<ul><li><a href=\"$dn\"> Parent Directory</a></li>";
-	$tn = "themes/". basename($_GET['null'] ? $_GET['null'] : $conf['settings']['theme']);
-	$dn = $tn. "/". strtr($_GET['q'], array('..'=>''));
-	foreach(mpreaddir($dn) as $k=>$v){
-		if(is_dir(mpopendir("$dn/$v"))) $v = "$v/";
-		echo "<li><a href=\"$v\"> $v</a></li>";
-	}
-	echo "\n</ul>\n</body></html>";*/
 }else if($_GET['id']){
 	$theme = mpql(mpqw("SELECT theme FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE id=".(int)$_GET['id']), 0, 'theme');
 	if (isset($_GET['null'])){
@@ -55,5 +47,3 @@ if (isset($_GET['q'])){
 }else{
 	header("Location: /{$arg['modpath']}:404");
 }
-
-?>
