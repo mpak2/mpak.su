@@ -29,7 +29,8 @@ $tn = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"), st
 $etitle = $shablon = $spisok = array();
 if(!empty($conf['settings'][ $s = $arg['modpath']. "=>spisok" ]) && ($fn = explode(",", $conf['settings'][ $s ]))){
 	foreach($fn as $f){# Загрузка всех справочников
-		$spisok += array("{$f}_id" => array("*"=>array("")+spisok("SELECT id, CONCAT('<a href=\"/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$f}&where[id]=', id, '\">', CONVERT(`name` USING UTF8), '</a>') FROM {$conf['db']['prefix']}{$arg['modpath']}_{$f}")));
+		$exists = qn("SHOW COLUMNS FROM {$conf['db']['prefix']}{$arg['modpath']}_{$f}", "Field");
+		$spisok += array("{$f}_id" => array("*"=>array("")+spisok("SELECT id, CONCAT('<a href=\"/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$f}&where[id]=', id, '\">', CONVERT(`name` USING UTF8), '</a>') FROM {$conf['db']['prefix']}{$arg['modpath']}_{$f}". ($exists['name'] ? " ORDER BY name" : ""))));
 	}
 }else if(!empty($conf['settings'][$s = "{$arg['modpath']}_tpl_exceptions"]) && ($exceptions = explode(",", $conf['settings'][ $s ]))){
 	foreach($m as $table=>$v){
