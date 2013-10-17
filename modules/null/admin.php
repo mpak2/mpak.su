@@ -41,7 +41,7 @@ if(!empty($conf['settings'][ $s = $arg['modpath']. "=>spisok" ]) && ($fn = explo
 	foreach($fn as $v){
 		$etitle += array($v=>$conf['settings'][$v]);
 		$spisok += array(
-			(($t = array_shift(explode("_", $v))). $fn = "_". implode("_", array_slice(explode("_", $v), 1))) => array('*'=>array("")+spisok("SELECT id, CONCAT('<a href=\"/?m[{$t}]=admin&r={$conf['db']['prefix']}{$t}{$fn}&where[id]=', id, '\">', CONCAT('<span style=color:blue;>#', id, '</span>'), '</a>&nbsp;', CONVERT(`name` USING UTF8)) AS name FROM {$conf['db']['prefix']}{$t}{$fn}")),
+			(($t = array_shift(explode("_", $v))). $fn = "_". implode("_", array_slice(explode("_", $v), 1))) => array('*'=>array("")+spisok("SELECT id, CONCAT('<a href=\"/?m[{$t}]=admin&r={$conf['db']['prefix']}{$t}{$fn}&where[id]=', id, '\">', CONCAT('<span style=color:blue;>', id, '</span>'), '</a>&nbsp;', CONVERT(`name` USING UTF8)) AS name, name AS orderby FROM {$conf['db']['prefix']}{$t}{$fn} ORDER BY orderby")),
 		);
 		if($conf['settings'][ $v ]){
 			$etitle[ $v ] = $conf['settings'][ $v ];
