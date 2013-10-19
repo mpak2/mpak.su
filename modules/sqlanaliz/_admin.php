@@ -100,7 +100,6 @@ EOF;
 		<span><select name="fields" style="margin:5px 10px 0;"></select></span>
 		<span><select name="field" style="margin:5px 10px 0;"><option></select></span>
 		<span><input name="val" type="text" value="{$_POST['val']}"></span>
-		<span><input type="checkbox" name="strip_tags">&nbsp;Вырезать теги</span>
 	</div>
 	<div>
 		<script>
@@ -130,8 +129,7 @@ EOF;
 
 	if($_POST['fields'] && $_POST['data']){
 		foreach(explode("\n", $_POST['data']) as $dat){
-			echo "<br />". $sql = "INSERT INTO `". mpquot($_POST['table']). "` SET `". mpquot($_POST['fields']). "`=\"". mpquot($_POST['strip_tags'] ? strip_tags($dat) : $dat). "\"". ($_POST['field'] ? ", `{$_POST['field']}`=\"". trim($_POST['val']). "\"" : "");
-			mpqw($sql);
+			echo "<br />". $sql = "INSERT INTO `". mpquot($_POST['table']). "` SET `". mpquot($_POST['fields']). "`=\"". mpquot($dat). "\"". ($_POST['field'] ? ", `{$_POST['field']}`=\"". trim(mpquot($_POST['val'])). "\"" : ""); mpqw($sql);
 		}
 	}
 }elseif ($m[(int)$_GET['r']] == 'Структура'){
