@@ -187,7 +187,8 @@ if (!function_exists('bcont')){
 		$conf['db']['info'] = "Выборка шаблонов блоков";
 		$shablon = spisok("SELECT id, shablon FROM {$conf['db']['prefix']}blocks_shablon");
 
-		$blocks = qn("SELECT * FROM {$conf['db']['prefix']}blocks WHERE enabled=1". ($bid ? " AND id=". (int)$bid : " ORDER BY orderby"));
+		$blocks = qn("SELECT * FROM {$conf['db']['prefix']}blocks WHERE enabled=1 ORDER BY orderby");
+//mpre($blocks);
 		$blocks_reg = qn("SELECT * FROM {$conf['db']['prefix']}blocks_reg");
 		$blocks_reg_modules = qn("SELECT * FROM {$conf['db']['prefix']}blocks_reg_modules ORDER BY sort");
 
