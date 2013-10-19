@@ -100,7 +100,8 @@ EOF;
 		<span><select name="fields" style="margin:5px 10px 0;"></select></span>
 		<span><select name="field" style="margin:5px 10px 0;"><option></select></span>
 		<span><input name="val" type="text" value="{$_POST['val']}"></span>
-		<span><input type="checkbox" name="strip_tags">&nbsp;Вырезать теги</span>
+		<span><input type="checkbox" name="strip_tags" checked>&nbsp;Вырезать теги</span>
+		<span><input type="checkbox" name="replace" checked>&nbsp;Перенос строк</span>
 	</div>
 	<div>
 		<script>
@@ -129,8 +130,12 @@ EOF;
 EOF;
 
 	if($_POST['fields'] && $_POST['data']){
-		foreach(explode("\n", $_POST['data']) as $dat){
-			echo "<br />". $sql = "INSERT INTO `". mpquot($_POST['table']). "` SET `". mpquot($_POST['fields']). "`=\"". mpquot($_POST['strip_tags'] ? strip_tags($dat) : $dat). "\"". ($_POST['field'] ? ", `{$_POST['field']}`=\"". trim($_POST['val']). "\"" : "");
+		if($_POST['replace']){
+			$_POST['data'] = str_replace("><", ">\n<", $_POST['data']);
+		} foreach(explode("\n", $_POST['data']) as $dat){
+			$val = $_POST['strip_tags'] ? strip_tags($dat) : $dat;
+			if(empty($val)) continue;
+			echo "<br />". $sql = "INSERT INTO `". mpquot($_POST['table']). "` SET `". mpquot($_POST['fields']). "`=\"". mpquot($val). "\"". ($_POST['field'] ? ", `{$_POST['field']}`=\"". trim($_POST['val']). "\"" : "");
 			mpqw($sql);
 		}
 	}
