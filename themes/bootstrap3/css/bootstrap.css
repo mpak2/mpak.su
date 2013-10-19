@@ -1,3 +1,7 @@
+div.table {display:table; width:100%;}
+div.table > div {display:table-row;}
+div.table > div > span {display:table-cell; vertical-align:top;}
+
 /*!
  * Bootstrap v3.0.0
  *
