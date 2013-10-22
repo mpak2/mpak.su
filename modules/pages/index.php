@@ -7,11 +7,12 @@ $tpl['index'] = qn("SELECT *
 );// mpre($tpl['index']);
 
 if($index = $tpl['index'][ $_GET['id'] ]){
-	if($index['title']){
-		$conf['settings']['title'] = $index['title'];
+	$conf['settings']['title'] = $index['name'];
+	if($index['description']){
+		$conf['settings']['description'] = $index['description'];
 	} if($index['keywords']){
 		$conf['settings']['keywords'] = $index['keywords'];
-	} if($index['description']){
-		$conf['settings']['description'] = $index['description'];
-	} $conf['settings']['title'] = $index['name'];
+	} if($index['title']){
+		$conf['settings']['title'] = $index['title'];
+	}
 }
