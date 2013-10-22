@@ -31,13 +31,7 @@ if ((int)$arg['confnum']){
 }
 $param = unserialize(mpql(mpqw($sql = "SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 
-$menu = qn($sql = "SELECT *, href AS link FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE region_id=". (int)(is_numeric($param) ? $param : $param['menu'])." ORDER BY sort");
-if($conf['modules']['seo']){
-	$redirect = qn("SELECT * FROM {$conf['db']['prefix']}seo_redirect");
-	foreach(array_intersect_key(rb($menu, "href"), rb($redirect, "to")) as $m){
-		$menu[ $m['id'] ]['href'] = rb($redirect, "to", array_flip(array($m['href'])), "from");
-	}
-} $menu = rb($menu, "index_id", "id");
+$menu = mpqn(mpqw($sql = "SELECT *, href AS link FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE region_id=". (int)(is_numeric($param) ? $param : $param['menu'])." ORDER BY sort"), 'index_id', 'id');
 
 echo aedit("/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_index&where[region_id]=". (is_numeric($param) ? $param : $param['menu']));
 if($param['tpl']){ include mpopendir("themes/{$conf['settings']['theme']}/{$param['tpl']}"); return; }
