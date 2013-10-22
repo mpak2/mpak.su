@@ -11,6 +11,7 @@
 // ----------------------------------------------------------------------
 
 ini_set('display_errors', 1); error_reporting(E_ALL ^ E_NOTICE);
+header('Content-Type: text/html;charset=UTF-8');
 
 if(!function_exists('mp_require_once')){
 	function mp_require_once($link){
@@ -47,7 +48,6 @@ if (strlen($conf['db']['error'] = mysql_error())){
 	mpqw("SET NAMES 'utf8'");
 } unset($conf['db']['pass']); $conf['db']['sql'] = array();
 
-header('Content-Type: text/html;charset=UTF-8');
 
 if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(mpql(mpqw("SHOW TABLES", 'Проверка работы базы')))){ echo mpct('include/install.php'); die; }
 
@@ -187,36 +187,54 @@ if (!function_exists('bcont')){
 		$conf['db']['info'] = "Выборка шаблонов блоков";
 		$shablon = spisok("SELECT id, shablon FROM {$conf['db']['prefix']}blocks_shablon");
 
-		foreach($_GET['m'] as $k=>$v){
-			if($conf['modules'][ $k ]['id']){
-				$mid[ $conf['modules'][ $k ]['id'] ] = $v;
-				$sid[] = "r.mid=". (int)$conf['modules'][ $k ]['id']. " AND (r.fn=\"". mpquot($v ?: "index"). "\" OR r.fn=\"\")";
-			}
-		} $sid[] = "r.mid=0";
-		$sid[] = "r.mid=". (int)$conf['modules']['blocks']['id']. " AND r.fn=\"index\"";
-		
-		$regions = mpqn(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}blocks_reg AS r WHERE r.reg_id=0 AND ((term=0 AND ((". implode(') OR (', $sid). "))) OR (term=-1 AND NOT ((". implode(') OR (', $sid). "))))"));
+		$blocks = qn("SELECT * FROM {$conf['db']['prefix']}blocks WHERE enabled=1". ($bid ? " AND id=". (int)$bid : " ORDER BY orderby"));
+		$blocks_reg = qn("SELECT * FROM {$conf['db']['prefix']}blocks_reg");
+		$blocks_reg_modules = qn("SELECT * FROM {$conf['db']['prefix']}blocks_reg_modules ORDER BY sort");
 
-		$blocks = mpql(mpqw($sql = "SELECT b.*, r.reg_id FROM {$conf['db']['prefix']}blocks_reg AS r INNER JOIN {$conf['db']['prefix']}blocks AS b ON r.id=b.rid WHERE b.enabled=1 AND (b.theme = \"". mpquot($conf['settings']['theme']). "\" OR b.theme='*' OR b.theme='' OR (SUBSTR(b.theme, 1, 1)='!' AND b.theme<>\"!". mpquot($conf['settings']['theme']). "\")) ". ($bid ? " AND b.id=". (int)$bid : " AND ((r.id IN (". implode(',', array_keys($regions)). ") OR r.reg_id IN (". implode(',', array_keys($regions)). ")) AND (". implode(') OR (', $sid). "))"). " ORDER BY b.`orderby`", 'Информация о блоках'));// mpre($sql);
+		foreach($_GET['m'] as $k=>$v){
+			$md[ $k ] = $v ?: "index";
+		}
+
+		foreach($blocks_reg as $r){
+			if($r["term"] == 0){ # Условия выключены
+				$reg[ $r['id'] ] = $r;
+			}else{
+				$br = array_shift($brm = rb($blocks_reg_modules, "reg_id", "id", $r['id']));
+				if($br['name']){ # Если стоит страница
+					$br = array_shift($brm = rb($brm, "name", "id", array_flip($md)));
+				} if($br['modules_index']){
+					$br = array_shift($brm = rb($brm, "modules_index", "id", rb($conf['modules'], "folder", "id", $md)));
+				} if($br['theme']){ # Условие на тему
+					$br = array_shift($brm = rb($brm, "theme", "id", array_flip(array($conf['settings']['theme']))));
+				}// mpre(array_flip($md)); mpre($br);
+				if(!empty($brm) && ($r["term"] > 0)){ # Условие только
+					$reg[ $r['id'] ] = $r;
+				}elseif(empty($brm) && ($r["term"] < 0)){ # Исключающее условие
+					$reg[ $r['id'] ] = $r;
+				}
+			} # Условие исключая не срабатывает
+		}
 
 		$gt = mpgt(urldecode(array_pop(explode("/{$_SERVER['HTTP_HOST']}", $_SERVER['HTTP_REFERER']))));
 		$uid = array_key_exists('blocks', $_GET['m']) ? $gt['id'] : $_GET['id'];
 		$uid = (array_intersect_key(array($conf['modules']['users']['folder']=>1, $conf['modules']['users']['modname']=>2), (array_key_exists('blocks', $_GET['m']) ? (array)$gt['m'] : array())+$_GET['m']) && $uid) ? $uid : $conf['user']['uid'];
 
-		foreach($blocks as $k=>$v){
+
+		foreach(rb($blocks, "rid", "id", $reg) as $k=>$v){
 			$conf['blocks']['info'][$v['id']] = $v;
 			if(($v['access'] < 0)){
-				$bac = (int)$conf['modules'][array_shift(explode('/', $v['file']))]['access'];
-				$conf['blocks']['info'][ $v['id'] ]['access'] = $bac;
+				$conf['blocks']['info'][ $v['id'] ]['access'] = (int)$conf['modules'][array_shift(explode('/', $v['file']))]['access'];
 			}
 		}
 
 		foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}blocks_gaccess ORDER BY id", 'Права доступа группы к блоку')) as $k=>$v)
 			if ($conf['user']['gid'][ $v['gid'] ]) $conf['blocks']['info'][ $v['bid'] ]['access'] = $v['access'];
+
 		foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}blocks_uaccess ORDER BY id", 'Права доступа пользователя к блоку')) as $k=>$v)
 			if ($conf['user']['uid'] == $v['uid'] || (!$v['uid'] && ($conf['user']['uid'] == $uid)))
 				$conf['blocks']['info'][ $v['bid'] ]['access'] = $v['access'];
-		foreach($blocks as $k=>$v){
+
+		foreach(rb($blocks, "rid", "id", $reg) as $k=>$v){
 			$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
 			$mod = $conf['modules'][ $modpath = basename(dirname(dirname($v['file']))) ];
 			$modname = $mod['modname'];
@@ -225,19 +243,20 @@ if (!function_exists('bcont')){
 					if (!is_numeric($v['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($v['shablon'] ?: "block.html")))){
 						$shablon[ $v['shablon'] ] = file_get_contents($file_name);
 					}
-					$cb = strtr($shablon[ $v['shablon'] ], array(
+					$cb = strtr($shablon[ $v['shablon'] ], $w = array(
 						'<!-- [block:content] -->'=>$cb,
 						'<!-- [block:id] -->'=>$v['id'],
+						'<!-- [block:name] -->'=>$v['name'],
 						'<!-- [block:modpath] -->'=>$arg['modpath'],
 						'<!-- [block:fn] -->'=>$arg['fn'],
 						'<!-- [block:title] -->'=>$v['name']
-					));
-					$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
-					$result["<!-- [blocks:{$v['rid']}] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
-//					if($v['reg_id']) $result["<!-- [blocks:{$v['reg_id']}] -->"] .= str_replace('<!-- [block:title] -->', $v['name'], $cb);
+					)); /*mpre($w);*/
+					$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$v['name'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
+					$result["<!-- [blocks:". (int)$v['rid'] . "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
+					$result["<!-- [blocks:". (int)$reg[ $v['rid'] ]['reg_id']. "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
 				}
 			}
-		} return $result;
+		} /*mpre($result["<!-- [blocks:2] -->"]);*/ return $result;
 	}
 }
 
@@ -299,7 +318,7 @@ if (!function_exists('mcont')){
 					if(!array_key_exists('null', $_GET) && ($_SERVER['REQUEST_URI'] != "/admin")){
 						header('HTTP/1.0 404 Unauthorized');
 //						echo "<div style='margin:100px 0;text-align:center'>Доступ запрещен</div>";
-						header("Location: /themes:404");// header("Location: /admin");
+						header("Location: /themes:404{$_SERVER['REQUEST_URI']}");// header("Location: /admin");
 					}
 				}
 			}

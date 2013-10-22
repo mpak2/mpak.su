@@ -206,6 +206,10 @@ if (!function_exists('bcont')){
 					$br = array_shift($brm = rb($brm, "modules_index", "id", rb($conf['modules'], "folder", "id", $md)));
 				} if($br['theme']){ # Условие на тему
 					$br = array_shift($brm = rb($brm, "theme", "id", array_flip(array($conf['settings']['theme']))));
+				} if($br['uri']){ # Адрес страницы в системе. Всегда не главная. (может быть не равен $_SERVER['REDIRECT_URL'])
+					$br = array_shift($brm = rb($brm, "uri", "id", array_flip(array($_SERVER['REQUEST_URI']))));
+				} if($br['url']){ # Адрес страницы из адресной строки браузера работает если нужно поставил условием главную страницу
+					$br = array_shift($brm = rb($brm, "url", "id", array_flip(array($_SERVER['REDIRECT_URL']))));
 				}// mpre(array_flip($md)); mpre($br);
 				if(!empty($brm) && ($r["term"] > 0)){ # Условие только
 					$reg[ $r['id'] ] = $r;
