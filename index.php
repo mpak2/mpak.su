@@ -10,7 +10,7 @@
 // Original Author of file: Krivoshlykov Evgeniy (mpak) +7 929 1140042
 // ----------------------------------------------------------------------
 
-ini_set('display_errors', 1); error_reporting(E_ALL ^ E_NOTICE);
+ini_set('display_errors', 1); error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT);
 header('Content-Type: text/html;charset=UTF-8');
 
 if(!function_exists('mp_require_once')){
