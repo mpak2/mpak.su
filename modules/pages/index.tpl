@@ -10,7 +10,13 @@
 			<? if($arg['access'] > 3): ?>
 				<script>
 					$(function(){
-						$.post("/pages/add:"+<?=$_GET['id']?>);
+						$("a.add").on("click", function(){
+							$.post("/<?=$arg['modname']?>/<?=$_GET['id']?>/null", {id:<?=$_GET['id']?>}, function(data){
+								if(isNaN(data)){ alert(data) }else{
+									document.location.reload(true);
+								}
+							});
+						});
 					});
 				</script>
 				<a class="add" href="javascript:">Создать</a>
