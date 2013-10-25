@@ -7,6 +7,14 @@
 	<? else: ?>
 		<div style="margin-top:150px; text-align:center;">
 			Данная страница не найдена на сайте.<br />Возможно она была удалена.
+			<? if($arg['access'] > 3): ?>
+				<script>
+					$(function(){
+						$.post("/pages/add:"+<?=$_GET['id']?>);
+					});
+				</script>
+				<a class="add" href="javascript:">Создать</a>
+			<? endif; ?>
 		</div>
 	<? endif; ?>
 <? elseif($cat = rb($tpl['cat'], "id", $_GET['cat_id'])): ?>
