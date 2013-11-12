@@ -83,7 +83,6 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 	if(($t = implode("_", array_slice(explode("_", $_GET['r']), 2)))){
 		$shablon += array( # Настройки для всех
 			"name"=>array("*"=>"<a href=\"/{$arg['modname']}". ($t == "index" ? "" : ":{$t}"). "/{f:id}\">{f:{f}}</a>"),
-//			"file"=>array("*"=>"<a onclick=\"javascript: if (confirm('Стереть файл?')){return obj.href;}else{return false;}\" href=\"/?m[{$arg['modpath']}]=admin&amp;r={$conf['db']['prefix']}{$arg['path']}_{$t}&amp;delfile={f:id}&amp;fil=file\"><img src=\"/img/del.png\" border=\"0\"></a>&nbsp;<a href=\"/{$arg['modname']}:file/{f:id}/tn:{$t}/fn:file/null/{f:{f}}\">{f:{f}}</a>"),
 		);
 		if($t == "index"){ # Индивидуальные настройки для каждой из таблицы
 			$shablon += array(

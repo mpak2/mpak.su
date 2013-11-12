@@ -10,7 +10,7 @@
 // Original Author of file: Krivoshlykov Evgeniy (mpak) +7 929 1140042
 // ----------------------------------------------------------------------
 
-ini_set('display_errors', 1); error_reporting(E_ALL ^ E_NOTICE);
+ini_set('display_errors', 1); error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT);
 header('Content-Type: text/html;charset=UTF-8');
 
 if(!function_exists('mp_require_once')){
@@ -23,7 +23,6 @@ if(!function_exists('mp_require_once')){
 	}
 }
 require_once("config/config.php"); # Конфигурация
-
 mp_require_once("config/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
 
@@ -206,6 +205,10 @@ if (!function_exists('bcont')){
 					$br = array_shift($brm = rb($brm, "modules_index", "id", rb($conf['modules'], "folder", "id", $md)));
 				} if($br['theme']){ # Условие на тему
 					$br = array_shift($brm = rb($brm, "theme", "id", array_flip(array($conf['settings']['theme']))));
+				} if($br['uri']){ # Адрес страницы в системе. Всегда не главная. (может быть не равен $_SERVER['REDIRECT_URL'])
+					$br = array_shift($brm = rb($brm, "uri", "id", array_flip(array($_SERVER['REQUEST_URI']))));
+				} if($br['url']){ # Адрес страницы из адресной строки браузера работает если нужно поставил условием главную страницу
+					$br = array_shift($brm = rb($brm, "url", "id", array_flip(array($_SERVER['REDIRECT_URL']))));
 				}// mpre(array_flip($md)); mpre($br);
 				if(!empty($brm) && ($r["term"] > 0)){ # Условие только
 					$reg[ $r['id'] ] = $r;

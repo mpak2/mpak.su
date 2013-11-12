@@ -69,7 +69,7 @@ if($_FILES && ($arg['access'] > 1)){
 			$ext = strtolower(array_pop(explode('.', $v['name'])));
 			header("Content-Type: ". ($defaultmimes[$ext] ? $defaultmimes[$ext] : "text/$ext"));
 			if(array_search($ext, $img) !== false){
-				echo mprs(mpopendir("include/". $v['name']), $_GET['w'] ?: $v['w'], $_GET['h'] ?: $v['h'], isset($_GET['c']) ? $_GET['c'] : $v['c']);
+				echo mprs(mpopendir("include/". $v['name']), $_GET['w'] ? $_GET['w'] : $v['w'], $_GET['h'] ? $_GET['h'] : $v['h'], isset($_GET['c']) ? $_GET['c'] : $v['c']);
 			}else{
 				readfile(mpopendir("include/". $v['name']));
 			}
