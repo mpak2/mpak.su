@@ -22,7 +22,7 @@ function mpie($url, $decode = false){
 
 function aedit($href, $title = null){
 	global $arg;
-	if($arg['access'] > 3) echo "<div style=\"position:relative; left:-20px; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\"></a></span></div>";
+	if($arg['access'] > 3) echo "<div class=\"aedit\" style=\"position:relative; left:-20px; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\"></a></span></div>";
 }
 
 function mptс($time = null, $format = 0){
@@ -889,6 +889,15 @@ function mpqw($sql, $info = null, $conn = null){
 			echo "<p>$sql<br><div color=red>".mysql_error()."</div>";
 		}
 		$check = array(
+			"Table '{$conf['db']['name']}.mp_blocks_reg_modules' doesn't exist" => array(
+				"SELECT * FROM {$conf['db']['prefix']}blocks_reg_modules" => array(
+					"CREATE TABLE `{$conf['db']['prefix']}blocks_reg_modules` ( `id` int(11) NOT NULL AUTO_INCREMENT, `sort` int(11) NOT NULL, `reg_id` int(11) NOT NULL, `modules_index` int(11) NOT NULL, `name` varchar(255) NOT NULL, `theme` varchar(255) NOT NULL, `uri` varchar(255) NOT NULL, PRIMARY KEY (`id`), KEY `sort` (`sort`), KEY `modules_index` (`modules_index`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
+					"INSERT INTO `{$conf['db']['prefix']}blocks` (`id`, `file` ,`name` ,`theme` ,`shablon` ,`access` ,`rid` ,`orderby` ,`param` ,`enabled`) VALUES (999, 'modules/blocks/update.php' ,'Обновление блоков' ,'zhiraf' ,'' ,'0' ,'-1' ,'0' ,'' ,'1');",
+ 					"INSERT INTO `{$conf['db']['prefix']}blocks_gaccess` (`bid` ,`gid` ,`access` ,`description`) VALUES (999 , (SELECT id FROM mp_users_grp WHERE name='Администратор'),'1' ,'')",
+					"INSERT INTO mp_blocks_reg SET id=-2, term=1, description='Админ', reg_id=2",
+					"INSERT INTO mp_blocks_reg SET id=-1, term=1, description='Админ', reg_id=1",
+				),
+			),
 			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_city' doesn't exist" => array(
 				"SHOW COLUMNS FROM" => array(
 					"CREATE TABLE `{$conf['db']['prefix']}users_city` (`id` int(11) NOT NULL AUTO_INCREMENT, `country` varchar(255) NOT NULL, `region_id` int(11) NOT NULL, `name` varchar(255) NOT NULL, `lat` float NOT NULL, `lng` float NOT NULL, `description` text NOT NULL, PRIMARY KEY (`id`), KEY `name` (`name`), KEY `region_id` (`region_id`)) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
@@ -1468,10 +1477,13 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 //	header("Cache-Control: maxage=". ($expires = 60*60*24));
 //	header('Expires: ' . gmdate('D, d M Y H:i:s', time()+$expires) . ' GMT');
 
-	if (!array_key_exists('nologo', $_GET) && file_exists("$cache_name/$host_name/$prx/$fl_name") && (filectime("$cache_name/$host_name/$prx/$fl_name") > ($filectime = filectime($file_name)))){ // 
-		if(!($mc = mpmc($key = "{$_SERVER['HTTP_HOST']}/{$fl_name}/filectime:{$filectime}/{$conf['event']['Формирование изображения']['count']}", null, false, 0, false))){
-			echo $mc = file_get_contents("$cache_name/$host_name/$prx/$fl_name");
-			mpmc($key, $mc, false, 86400, false);
+	if (!array_key_exists('nologo', $_GET) && file_exists("$cache_name/$host_name/$prx/$fl_name") && (filectime("$cache_name/$host_name/$prx/$fl_name") > (file_exists($file_name) && ($filectime = filectime($file_name))))){ // 
+	
+		if(!function_exists("mpmc") || !($mc = mpmc($key = "{$_SERVER['HTTP_HOST']}/{$fl_name}/filectime:". (!empty($filectime) ? $filectime : ""). "/{$conf['event']['Формирование изображения']['count']}", null, false, 0, false))){
+			$mc = file_get_contents("$cache_name/$host_name/$prx/$fl_name");
+			if(function_exists("mpmc")){
+				mpmc($key, $mc, false, 86400, false);
+			}
 		} /*echo $key;*/ return $mc;
 	}elseif ($src = @imagecreatefromstring(file_get_contents($file_name))){
 		$width = imagesx($src);
@@ -1496,7 +1508,7 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 					$tn_width = ceil($y_ratio * $width);
 					$tn_height = $max_height;
 				}
-				$irs = array(6=>$tn_width, $tn_height, $width, $height,);
+				$irs = array(4=>0, 5=>0, $tn_width, $tn_height, $width, $height,);
 				$cdst = array($tn_width, $tn_height);
 			}
 			$dst = imagecreatetruecolor($cdst[0], $cdst[1]);
@@ -1518,26 +1530,29 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 				imagecopyresampled($dst, $logo, ($w < 0 ? imagesx($dst)-imagesx($logo)+$w : $w), ($h < 0 ? imagesy($dst)-imagesy($logo)+$h : $h), 0, 0, imagesx($logo), imagesy($logo), imagesx($logo), imagesy($logo));
 			}
 			ob_start();
-			if ($rext){
-				$func[$rext]($dst, null, -1);
-			}else{
+//			if (!empty($rext) && $rext){
+//				$func[$rext]($dst, null, -1);
+//			}else{
 				$func[ strtolower(array_pop(explode('.', $file_name))) ]($dst, null, -1);
-			}
+//			}
 			$content = ob_get_contents();
 			ob_end_clean();
 			ImageDestroy($src);
 			ImageDestroy($dst);
 		}
 		if(!file_exists("$cache_name/$host_name/$prx")){
-			require_once(mpopendir('include/idna_convert.class.inc'));
+			if($idna = mpopendir('include/idna_convert.class.inc')){
+				require_once($idna);
+			}
 			$IDN = new idna_convert();
 			mkdir("$cache_name/$host_name/$prx", 0755, 1);
 			if($host_name != $IDN->decode($host_name) && !file_exists("$cache_name/". $IDN->decode($host_name))){
 				symlink("$cache_name/$host_name", "$cache_name/". $IDN->decode($host_name));
 			}
 		} file_put_contents("$cache_name/$host_name/$prx/$fl_name", $content);
-		mpevent("Формирование изображения", $fl_name, $conf['user']['uid']);
-		return $content;
+		if(function_exists("mpevent")){
+			mpevent("Формирование изображения", $fl_name, $conf['user']['uid']);
+		} return $content;
 	}else{
 		$src = imagecreate (65, 65);
 		$bgc = imagecolorallocate ($src, 255, 255, 255);

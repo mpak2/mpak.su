@@ -38,7 +38,7 @@ if(!empty($_GET['m']) && array_search('admin', (array)$_GET['m']))
 if(!function_exists('mysql_connect')){
 	echo "no function mysql"; die;
 }else if(empty($conf['db']['conn'])){ # При подключении копии файла повторное подключение базы даных не требуется
-	$conf['db']['conn'] = mysql_connect($conf['db']['host'], $conf['db']['login'], $conf['db']['pass']); # Соединение с базой данных
+	$conf['db']['conn'] = @mysql_connect($conf['db']['host'], $conf['db']['login'], $conf['db']['pass']); # Соединение с базой данных
 }
 if (strlen($conf['db']['error'] = mysql_error())){
 #	echo "Ошибка соединения с базой данных";
@@ -51,12 +51,13 @@ if (strlen($conf['db']['error'] = mysql_error())){
 if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(mpql(mpqw("SHOW TABLES", 'Проверка работы базы')))){ echo mpct('include/install.php'); die; }
 
 if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) && array_key_exists('null', $_GET)){
+//	if($_SERVER['HTTP_IF_MODIFIED_SINCE']) exit(header('HTTP/1.1 304 Not Modified'));
 	if(empty($_GET['theme'])){
 		$_GET['theme'] = mpql(mpqw("SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"theme\""), 0, 'value');
 	} $ex = array('otf'=>'font/opentype', 'css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', 'woff'=>'application/x-font-woff', 'svg'=>'font/svg+xml', 'tpl'=>'text/html');
 	$fn = "themes/{$_GET['theme']}/{$_GET['']}";
 	$ext = array_pop(explode('.', $fn));
-	header("Content-type: ". ($ex[$ext] ?: "image/$ext"));
+	header("Content-type: ". ($ex[$ext] ? $ex[$ext] : "image/$ext"));
 	if($ex[$ext]){
 		readfile(mpopendir($fn));
 	}else{
@@ -113,7 +114,7 @@ if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аут
 }elseif(isset($_GET['logoff'])){ # Если пользователь покидает сайт
 	mpqw("UPDATE {$conf['db']['prefix']}sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
 	if(!empty($_SERVER['HTTP_REFERER'])){
-		header("Location: ". ($conf['settings']['users_logoff_location'] ?: $_SERVER['HTTP_REFERER'])); exit;
+		header("Location: ". ($conf['settings']['users_logoff_location'] ? $conf['settings']['users_logoff_location'] : $_SERVER['HTTP_REFERER'])); exit;
 	}// if($conf['settings']['del_sess'] == 0){ # Стираем просроченные сессии
 	mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление сессий');
 	mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess_post WHERE time < ".(time() - $conf['settings']['sess_time']), 'Удаление данных сессии');
@@ -163,7 +164,7 @@ if(!array_key_exists("null", $_GET) && $conf['modules']['seo']){
 list($m, $f) = (array)each($_GET['m']); # Отображение меню с выбором раздела для модуля администратора
 
 $conf['settings']['modpath'] = $conf['modules'][ array_shift(array_keys($_GET['m'])) ]['folder'];
-$conf['settings']['fn'] = array_shift(array_values($_GET['m'])) ?: "index";
+$conf['settings']['fn'] = array_shift(array_values($_GET['m'])) ? array_shift(array_values($_GET['m'])) : "index";
 
 //print_r(array_shift(array_keys($_GET['m'])));
 if($_GET['id'] && $conf['settings']['modules_default'] && empty($conf['modules'][ ($mp = array_shift(array_keys($_GET['m']))) ])){
@@ -191,7 +192,7 @@ if (!function_exists('bcont')){
 		$blocks_reg_modules = qn("SELECT * FROM {$conf['db']['prefix']}blocks_reg_modules ORDER BY sort");
 
 		foreach($_GET['m'] as $k=>$v){
-			$md[ $k ] = $v ?: "index";
+			$md[ $k ] = $v ? $v : "index";
 		}
 
 		foreach($blocks_reg as $r){
@@ -243,7 +244,7 @@ if (!function_exists('bcont')){
 			$modname = $mod['modname'];
 			if ($conf['blocks']['info'][ $v['id'] ]['access'] && strlen($cb = mpeval("modules/{$v['file']}", $arg = array('blocknum'=>$v['id'], 'modpath'=>$modpath, 'modname'=>$modname, 'fn'=>basename(array_shift(explode('.', $v['file']))), 'uid'=>$uid, 'access'=>$conf['blocks']['info'][ $v['id'] ]['access']) ))){
 				if($bid){ $result = $cb; }else{
-					if (!is_numeric($v['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($v['shablon'] ?: "block.html")))){
+					if (!is_numeric($v['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($v['shablon'] ? $v['shablon'] : "block.html")))){
 						$shablon[ $v['shablon'] ] = file_get_contents($file_name);
 					}
 					$cb = strtr($shablon[ $v['shablon'] ], $w = array(
@@ -253,13 +254,13 @@ if (!function_exists('bcont')){
 						'<!-- [block:modpath] -->'=>$arg['modpath'],
 						'<!-- [block:fn] -->'=>$arg['fn'],
 						'<!-- [block:title] -->'=>$v['name']
-					)); /*mpre($w);*/
+					));
 					$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$v['name'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
 					$result["<!-- [blocks:". (int)$v['rid'] . "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
 					$result["<!-- [blocks:". (int)$reg[ $v['rid'] ]['reg_id']. "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
 				}
 			}
-		} /*mpre($result["<!-- [blocks:2] -->"]);*/ return $result;
+		} return $result;
 	}
 }
 
@@ -338,10 +339,6 @@ if (!empty($conf['settings']["theme/*:$f"])) $conf['settings']['theme'] = $conf[
 if (!empty($conf['settings']["theme/$m:*"])) $conf['settings']['theme'] = $conf['settings']["theme/$m:*"];
 if (!empty($conf['settings']["theme/$m:$f"])) $conf['settings']['theme'] = $conf['settings']["theme/$m:$f"];
 
-/*if (!empty($conf['settings']["theme/*:". $conf['modules'][$f]['modpath'] ])) $conf['settings']['theme'] = $conf['settings']["theme/*:". $conf['modules'][$f]['modpath']];
-if (!empty($conf['settings']["theme/". $conf['modules'][$f]['modpath']. ":*"])) $conf['settings']['theme'] = $conf['settings']["theme/". $conf['modules'][$f]['modpath']. ":*"];
-if (!empty($conf['settings']["theme/". $conf['modules'][$f]['modpath']. ":$f"])) $conf['settings']['theme'] = $conf['settings']["theme/". $conf['modules'][$f]['modpath']. ":$f"];*/
-
 if ((strpos($f, "admin") === 0) && $conf['settings']["theme/*:admin"])
 	$conf['settings']['theme'] = $conf['settings']["theme/*:admin"];
 
@@ -378,15 +375,4 @@ if ($conf['settings']['microtime']){
 $aid = spisok("SELECT id, aid FROM {$conf['db']['prefix']}settings");
 foreach($conf['settings'] as $k=>$v){
 	$content = str_replace("<!-- [settings:$k] -->", $v, $content);
-}
-/*if ($conf['settings']['settints_vcomments']){
-	$content = str_replace('<!--', '&lt;!--', $content);
-	$content = str_replace('-->', '--&gt;', $content);
-}*/
-/*if(preg_match_all("/search=(.*)/", $_SERVER['HTTP_REFERER'], $out, PREG_PATTERN_ORDER) && empty($_POST) && (array_search('admin', $_GET['m']) == null)){
-	$search = urldecode($out[1][0]);
-	$content = str_ireplace(" $search ", "<span style=background:yellow;>{$search}</span>", $content);
-}*/
-echo $content;
-
-?>
+} echo $content;

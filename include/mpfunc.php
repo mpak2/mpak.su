@@ -1472,20 +1472,22 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 	$host_name = strpos('www.', $_SERVER['SERVER_NAME']) === 0 ? substr($_SERVER['SERVER_NAME'], 4) : $_SERVER['SERVER_NAME'];
 	$fl_name = (int)$max_width. "x". (int)$max_height. "x". (int)$crop. "_" .basename($file_name);
 	$prx = basename(dirname($file_name));
-
-//	header("Pragma: public");
-//	header("Cache-Control: maxage=". ($expires = 60*60*24));
-//	header('Expires: ' . gmdate('D, d M Y H:i:s', time()+$expires) . ' GMT');
-
-	if (!array_key_exists('nologo', $_GET) && file_exists("$cache_name/$host_name/$prx/$fl_name") && (filectime("$cache_name/$host_name/$prx/$fl_name") > (file_exists($file_name) && ($filectime = filectime($file_name))))){ // 
-	
-		if(!function_exists("mpmc") || !($mc = mpmc($key = "{$_SERVER['HTTP_HOST']}/{$fl_name}/filectime:". (!empty($filectime) ? $filectime : ""). "/{$conf['event']['Формирование изображения']['count']}", null, false, 0, false))){
-			$mc = file_get_contents("$cache_name/$host_name/$prx/$fl_name");
-			if(function_exists("mpmc")){
-				mpmc($key, $mc, false, 86400, false);
-			}
-		} /*echo $key;*/ return $mc;
-	}elseif ($src = @imagecreatefromstring(file_get_contents($file_name))){
+	if(!array_key_exists('nologo', $_GET) && file_exists("$cache_name/$host_name/$prx/$fl_name") && (($filectime = filectime("$cache_name/$host_name/$prx/$fl_name")) > filectime($file_name))){
+		if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $filectime)){
+			header('HTTP/1.0 304 Not Modified');
+		}else{
+			echo file_get_contents("$cache_name/$host_name/$prx/$fl_name");
+		} header('Last-Modified: '. date("r", $filectime));
+//			header('HTTP/1.0 304 Not Modified');
+//		}else{
+//			if(!function_exists("mpmc") || !($mc = mpmc($key = "{$_SERVER['HTTP_HOST']}/{$fl_name}/filectime:". (!empty($filectime) ? $filectime : ""). "/{$conf['event']['Формирование изображения']['count']}", null, false, 0, false))){
+//				$mc = file_get_contents("$cache_name/$host_name/$prx/$fl_name");
+//				if(function_exists("mpmc")){
+//					mpmc($key, $mc, false, 86400, false);
+//				}
+//			} /*echo $key;*/ return $mc;
+//		}
+	}else if($src = @imagecreatefromstring(file_get_contents($file_name))){
 		$width = imagesx($src);
 		$height = imagesy($src);
 		if(empty($max_width) || empty($max_height) || (($width <= $max_width) && ($height <= $max_height))){
@@ -1530,12 +1532,8 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 				imagecopyresampled($dst, $logo, ($w < 0 ? imagesx($dst)-imagesx($logo)+$w : $w), ($h < 0 ? imagesy($dst)-imagesy($logo)+$h : $h), 0, 0, imagesx($logo), imagesy($logo), imagesx($logo), imagesy($logo));
 			}
 			ob_start();
-//			if (!empty($rext) && $rext){
-//				$func[$rext]($dst, null, -1);
-//			}else{
 				$func[ strtolower(array_pop(explode('.', $file_name))) ]($dst, null, -1);
-//			}
-			$content = ob_get_contents();
+				$content = ob_get_contents();
 			ob_end_clean();
 			ImageDestroy($src);
 			ImageDestroy($dst);
@@ -1549,7 +1547,7 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 			if($host_name != $IDN->decode($host_name) && !file_exists("$cache_name/". $IDN->decode($host_name))){
 				symlink("$cache_name/$host_name", "$cache_name/". $IDN->decode($host_name));
 			}
-		} file_put_contents("$cache_name/$host_name/$prx/$fl_name", $content);
+		}/* mpre("$cache_name/$host_name/$prx/$fl_name");*/ file_put_contents("$cache_name/$host_name/$prx/$fl_name", $content);
 		if(function_exists("mpevent")){
 			mpevent("Формирование изображения", $fl_name, $conf['user']['uid']);
 		} return $content;
@@ -1559,6 +1557,7 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 		$tc = imagecolorallocate ($src, 0, 0, 0);
 		imagefilledrectangle ($src, 0, 0, 150, 30, $bgc);
 		header("Content-type: image/jpeg");
+		header('Last-Modified: '. date("r"));
 		mpevent("Ошибка открытия изображения", $file_name, $conf['user']['uid']);
 		imagestring ($src, 1, 5, 30, "HeTKapmuHku", $tc);
 		return ImageJpeg($src);

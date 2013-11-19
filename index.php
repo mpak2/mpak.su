@@ -57,11 +57,14 @@ if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) 
 	$fn = "themes/{$_GET['theme']}/{$_GET['']}";
 	$ext = array_pop(explode('.', $fn));
 	header("Content-type: ". ($ex[$ext] ? $ex[$ext] : "image/$ext"));
-	if($ex[$ext]){
+	header('Last-Modified: '. date("r", filemtime(mpopendir($fn))));
+	if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= filemtime(mpopendir($fn)))){
+		header('HTTP/1.0 304 Not Modified');
+	}else if($ex[$ext]){
 		readfile(mpopendir($fn));
 	}else{
 		echo mprs(mpopendir($fn), $_GET['w'], $_GET['h'], $_GET['c']);
-	} die;
+	} exit();
 }
 
 $conf['db']['info'] = 'Загрузка свойств модулей';

@@ -8,7 +8,9 @@
 #    Header set Cache-Control "max-age=2592000, public"
 #  </FilesMatch>
 #</IfModule>
-
+#<FilesMatch ".(flv|gif|jpg|jpeg|png|ico|swf|js|css|pdf)$">
+#  Header set Cache-Control "max-age=2592000"
+#</FilesMatch>
 <IfModule mod_rewrite.c>
 	php_value file_uploads 1
 	php_value upload_max_filesize 200M
