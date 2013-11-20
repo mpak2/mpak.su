@@ -20,6 +20,8 @@ if (strlen($conf['db']['error'] = mysql_error())){
 	mpqw("SET NAMES 'utf8'");
 } unset($conf['db']['pass']); $conf['db']['sql'] = array();
 
+###################################################################################################################################################
+
 $html->load(mpde($data = mpcurl("http://ya.ru")));
 
 foreach($html->find("#id") as $e){
