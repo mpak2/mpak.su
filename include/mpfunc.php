@@ -22,7 +22,7 @@ function mpie($url, $decode = false){
 
 function aedit($href, $title = null){
 	global $arg;
-	if($arg['access'] > 3) echo "<div class=\"aedit\" style=\"position:relative; left:-20px; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\"></a></span></div>";
+	if($arg['access'] > 3) echo "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:999; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\"></a></span></div>";
 }
 
 function mptс($time = null, $format = 0){
@@ -251,85 +251,6 @@ function rb($arr, $key = 'id'){
 	} return !empty($field) ? $return[ $field ] : $return;
 }
 
-/*function rb($arr, $key = 'id'){
-	$purpose = $keys = $return = array();
-	foreach(array_slice(func_get_args(), 1) as $a){
-		if(is_numeric($a) || (gettype($a) == "array") || $a == null){
-			$purpose[] = $a;
-		}else{
-			if(!empty($purpose)){
-				$field = $a;
-			}else{
-				$keys[] = $a;
-			}
-		}
-	} foreach($arr as $v){
-		$n = &$return;
-		foreach($keys as $s){
-			if(empty($n[ $v[$s] ])) $n[ $v[$s] ] = array();
-			$n = &$n[ $v[$s] ];
-		} $n = $v;
-	} foreach($purpose as $v){
-		if(is_numeric($v)){
-			$return = (array)$return[ $v ];
-		}else{
-			$r = array();
-			if($v){
-				foreach(array_keys($v) as $k){
-					if(!empty($return[ $k ])){
-						$r += $return[ $k ];
-					}
-				}
-			}else{
-				$r = array();
-			} $return = $r;// mpre($r);
-		}
-	} return !empty($field) ? $return[ $field ] : $return;
-}*/
-
-/*function rb($arr, $key = 'id'){
-	$purpose = $keys = $return = array();
-	foreach(array_slice(func_get_args(), 1) as $a){
-		if(is_numeric($a) || (gettype($a) == "array") || $a == null){
-			$purpose[] = $a;
-		}else{
-			if(!empty($purpose)){
-				$field = $a;
-			}else{
-				$keys[] = $a;
-			}
-		}
-	} if($keys){
-		foreach($arr as $v){
-			$n = &$return;
-			foreach($keys as $s){
-				if(empty($n[ $v[$s] ])){
-					$n[ $v[$s] ] = array();
-				} $n = &$n[ $v[$s] ];
-			} $n = $v;
-		}
-	}else{ $return = $arr; }
-	foreach($purpose as $v){
-		if(is_numeric($v)){
-			$return = (array)$return[ $v ];
-		}else{
-			$r = array();
-			if($v){
-				foreach(array_keys($v) as $k){
-					if(!empty($return[ $k ])){
-						$r += $return[ $k ];
-					}
-				}
-			}else if($v === null){
-				$inc = 0;
-				foreach($return as $k){
-					$r[ $inc++ ] = $k;
-				}
-			} $return = $r;
-		}
-	} return !empty($field) ? $return[ $field ] : $return;
-}*/
-
 function mpde($string) { 
 	static $list = array('utf-8', 'windows-1251');
 	foreach ($list as $item) {
@@ -412,7 +333,7 @@ function mpevent($name, $description = null, $own = null){
 		} $notice = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event_notice WHERE event_id=". (int)$event['id']));
 
 		if((!empty($event['log']) && ($event['log'] > 1)) || $notice){
-			if(!is_numeric($func_get_args[2])){
+			if(!is_numeric($func_get_args[2]) && array_key_exists("pass", $func_get_args[2])){
 				unset($func_get_args[2]['pass']);
 			}
 			foreach($func_get_args as $k=>$v){
@@ -751,35 +672,18 @@ function mpager($count, $null=null, $cur=null, $url=null){
 	}
 	if(2 > $count = ceil($count)) return;
 	$return .=  "<div class=\"pager\">";
-	if($cur <= 0){
-		$return .= "<span>&#8592; назад</span>";
-		$mpager['prev'] = 'javascript:';
-	}else{
 		$return .= "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>";
-//		$mpager['prev'] = $url. ($cur > 1 ? "/{$p}:".($cur-1) : '');
 		$mpager['prev'] = $url. ($cur > 1 ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur-1) : "/{$p}:".($cur-1)) : '');
-	};
-	for($i = max(0, min($cur-5, $count-10)); $i < min($count, max($cur+5, 10)); $i++){
-		if($i == $cur){
-			$mpager[ ($i+1) ] = 'javascript:';
-			$return .= "&nbsp;<span>".($i+1)."</span>";
-		}else{
-			$mpager[ $i+1 ] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : "/{$p}:$i") : '');
-			$return .=  '&nbsp;'. ("<a href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : "/{$p}:$i") : '')."\">".($i+1)."</a>");
-		}
+	for($i = max(0, min($cur-5, $count-10)); $i < ($max = min($count, max($cur+5, 10))); $i++){
+		$mpager[ $i+1 ] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:$i") : '');
+		$return .=  '&nbsp;'. ("<a href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:$i") : ''). "\">".($i+1)."</a>");
 	}
 	$return .=  '&nbsp;';
-	if($cur+1 >= $count){
-		$return .=  "<span>вперед &#8594;</span>";
-		$mpager['next'] = 'javascript:';
-	}else{
-		$return .=  "<a rel=\"next\" href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : "/{$p}:".($cur+1)) : '')."\">вперед &#8594;</a>";
-		$mpager['next'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : "/{$p}:".($cur+1)) : '');
-	}// mpre($mpager);
+	$return .=  "<a rel=\"next\" href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : "/{$p}:".($cur+1)) : '')."\">вперед &#8594;</a>";
+	$mpager['next'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". min($max-1, $cur+1)) : '');
 	$return .= "</div>";
 	if($fn = mpopendir("themes/{$conf['settings']['theme']}/mpager.tpl")){
 		ob_start();
-//		mp_require_once($fn);
 		include($fn);
 		$return = ob_get_contents();
 		ob_end_clean();
@@ -1472,8 +1376,8 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 	$host_name = strpos('www.', $_SERVER['SERVER_NAME']) === 0 ? substr($_SERVER['SERVER_NAME'], 4) : $_SERVER['SERVER_NAME'];
 	$fl_name = (int)$max_width. "x". (int)$max_height. "x". (int)$crop. "_" .basename($file_name);
 	$prx = basename(dirname($file_name));
-	if(!array_key_exists('nologo', $_GET) && file_exists("$cache_name/$host_name/$prx/$fl_name") && (($filectime = filectime("$cache_name/$host_name/$prx/$fl_name")) > filectime($file_name))){
-		if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $filectime)){
+	if(!array_key_exists('nologo', $_GET) && file_exists("$cache_name/$host_name/$prx/$fl_name") && (($filectime = filectime("$cache_name/$host_name/$prx/$fl_name")) > ($sfilectime = filectime($file_name)))){
+		if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $filectime) && ($filectime >= $sfilectime)){
 			header('HTTP/1.0 304 Not Modified');
 		}else{
 			echo file_get_contents("$cache_name/$host_name/$prx/$fl_name");
@@ -1591,5 +1495,3 @@ if(!function_exists("array_column")){
 		} return $result;
 	}
 }
-
-?>

@@ -8,10 +8,9 @@ if($_POST['text']){
 if(array_key_exists('null', $_GET) && array_key_exists('chat', $_GET)){
 	mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_usr SET time=". time(). ", uid=". (int)$conf['user']['uid']. " ON DUPLICATE KEY UPDATE time=". time());
 
-	$tpl['usr'] = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_usr WHERE time>". (time()-$conf['settings']['chat_user_online']));
-	$tpl['index'] = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index ORDER BY id DESC LIMIT ". ((int)$_GET['cnt'] ?: 20));	
-	$tpl['uid'] = qn("SELECT * FROM {$conf['db']['prefix']}users WHERE id IN (". in(rb($tpl['usr'], "uid")). ") OR id IN (". in(rb($tpl['index'], "uid")). ")");
-	ksort($tpl['index']);
+	$conf['tpl']['data'] = mpql(mpqw("SELECT id.*, u.name FROM {$conf['db']['prefix']}{$arg['modpath']}_index AS id LEFT JOIN {$conf['db']['prefix']}users AS u ON id.uid=u.id ORDER BY id DESC LIMIT ". ((int)$_GET['cnt'] ?: 20)));
+	$conf['tpl']['users'] = spisok("SELECT cu.uid, u.name FROM {$conf['db']['prefix']}{$arg['modpath']}_usr AS cu LEFT JOIN {$conf['db']['prefix']}users AS u ON cu.uid=u.id WHERE time>". (time()-$conf['settings']['chat_user_online']. " ORDER BY u.id"));
+	krsort($conf['tpl']['data']);
 }
 
 ?>

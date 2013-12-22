@@ -1,5 +1,24 @@
 <? if($_GET['id']): ?>
 	<? if($index = $tpl['index'][ $_GET['id'] ]): ?>
+		<?/* if($menu_index = rb($tpl['menu_index'], "href", array_flip(array($_SERVER['REQUEST_URI'])))): ?>
+			<div class="navigation">
+				<? $function = function($menu_index) use(&$function, $tpl, $arg){ ?>
+					<? if($mi = $tpl['menu_index'][ $menu_index['index_id'] ]) $function($mi); ?>
+					 &raquo; <a href="<?=$menu_index['href']?>"><?=$menu_index['name']?></a>
+				<? }; $function($tpl['menu_index'][ $menu_index['index_id'] ]); ?>
+			</div>
+		<? endif;*/ ?>
+
+		<? if($cat = $tpl['cat'][ $index['cat_id'] ]): ?>
+			<div class="bradcrumbs">
+				<? $function = function($cat) use(&$function, $tpl, $arg){ ?>
+					<? if($c = $tpl['cat'][ $cat['cat_id'] ]): ?>
+						<? $function($c) ?>
+					<? endif; ?> &raquo; <a href="/<?=$arg['modname']?>:cat/<?=$cat['id']?>"><?=$cat['name']?></a>
+				<? }; $function($tpl['cat'][ $index['cat_id'] ]); ?> &raquo; <?=$index['name']?>
+			</div>
+		<? endif; ?>
+		
 		<div><?=aedit("/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_index&where[id]=". (int)$index['id'])?></div>
 		<h1><?=$index['name']?></h1>
 		<div><?=$index['text']?></div>
@@ -34,7 +53,7 @@
 			<? endforeach; ?>
 		</ul>
 	</div>
-<? else: ?>
+<? elseif($tpl['pages']): ?>
 	<ul>
 		<? foreach($tpl['pages'] as $cat_id=>$cats): ?>
 			<li>

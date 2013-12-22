@@ -7,14 +7,9 @@ if ((int)$arg['confnum']){
 		mpqw("UPDATE {$conf['db']['prefix']}blocks SET param = '".serialize($param)."' WHERE id = {$arg['confnum']}");
 	} if(array_key_exists("null", $_GET)) exit;
 
+	
 	$klesh = array(
-/*		"Количество символов"=>0,
-		"Курс доллара"=>30,
-		"Список"=>array(
-			1=>"Одын",
-			2=>"Два",
-		),*/
-		"Форма"=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_index ORDER BY name"),
+		"Таблица"=>array_combine($fields = array_column(ql("SHOW TABLES WHERE Tables_in_{$conf['db']['name']} LIKE \"{$conf['db']['prefix']}{$arg['modpath']}\_%\""), "Tables_in_{$conf['db']['name']}"), $fields),
 	);
 
 ?>
@@ -46,22 +41,19 @@ if ((int)$arg['confnum']){
 	</div>
 <? return;
 
-} $param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
+} $param = unserialize(ql("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}", 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 
-$form = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE id=". (int)$param["Форма"]), 0);
-if($tn = $form['tn']){
-	if($fields = mpqn(mpqw("SHOW FIELDS FROM `{$tn}`"), 'Field')){
-		$data = mpqn(mpqw("SELECT * FROM `{$tn}` WHERE 1". ($fields['hide'] ? " AND hide=0" : ""). " ORDER BY id DESC LIMIT 10"));
-	}
+if($fields = mpqn(mpqw("SHOW FIELDS FROM `{$param['Таблица']}`"), 'Field')){
+	$data = mpqn(mpqw("SELECT * FROM `{$param['Таблица']}` WHERE 1". ($fields['hide'] ? " AND hide=0" : ""). " ORDER BY id DESC LIMIT 10"));
 }
 
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
 	if(array_key_exists("hide", $data[ $_POST['hide'] ])){
 		if($arg['access'] > 3){
-			mpqw($sql = "UPDATE `{$tn}` SET hide=1 WHERE id=". (int)$_POST['hide']);
+			mpqw($sql = "UPDATE `{$param['Таблица']}` SET hide=1 WHERE id=". (int)$_POST['hide']);
 		}else if($data[ $_POST['hide'] ]['uid'] == $conf['user']['uid']){
-			mpqw($sql = "UPDATE `{$tn}` SET hide=1 WHERE uid=". (int)$conf['user']['uid']. " AND id=". (int)$_POST['hide']);
+			mpqw($sql = "UPDATE `{$param['Таблица']}` SET hide=1 WHERE uid=". (int)$conf['user']['uid']. " AND id=". (int)$_POST['hide']);
 		}else{
 			exit("Недостаточно прав доступа");
 		} exit($_POST['hide']);
@@ -95,7 +87,7 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 					<? endif; ?>
 				</span>
 				<span title="<?=$v['description']?>">
-					<a href="/?m[<?=(array_shift(array_slice(explode("_", $form['tn']), 1, 1)))?>]=admin&r=<?=$form['tn']?>&edit=<?=$v['id']?>"><?=$v['name']?></a>
+					<a href="/?m[<?=$arg['modpath']?>]=admin&r=<?=$param['Таблица']?>&where[id]=<?=$v['id']?>"><?=$v['name']?></a>
 				</span>
 			</li>
 		<? endforeach; ?>

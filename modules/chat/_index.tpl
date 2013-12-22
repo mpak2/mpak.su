@@ -1,25 +1,32 @@
 <? if (isset($_GET['chat'])): # Чат ?>
 	<table border=0 width=100% cellspacing="0" cellpadding="0"><tr><td><table width=100% cellspacing=0 cellpadding=0 border=0>
-		<? foreach($tpl['index'] as $index): ?>
+		<? foreach($conf['tpl']['data'] as $k=>$v): ?>
 			<tr valign=top>
 				<td width=1>
 					<nobr>
-						<div title="<?=date('d.m.Y', $index['time'])?>"><?=date('H:i', $index['time'])?></div>
+						<div title="<?=date('d.m.Y', $v['time'])?>"><?=date('H:i', $v['time'])?></div>
 					</nobr>
 				</td>
 				<td width=10>&nbsp;</td>
 				<td width=1>
-					<?=($index['uid'] > 0 ? "<nobr><a href=\"/users/{$index['uid']}\">". (/*$tpl['uid'][ $index['uid'] ]['chat_usr'] ?:*/ $tpl['uid'][ $index['uid'] ]['name']). "</a></nobr>" : $conf['settings']['default_usr']. $index['uid'])?>
+					<?=($v['uid'] > 0 ? "<nobr><a href=\"/users/{$v['uid']}\">{$v['name']}</a></nobr>" : $conf['settings']['default_usr']. "_".abs($v['uid']))?>
 				</td>
 				<td width=10>&nbsp;</td>
-				<td><?=htmlspecialchars($index['text'])?>
+				<td><?=htmlspecialchars($v['text'])?>
 				</td>
 			</tr>
+<!--			<div style="margin-top:5px;">
+				<span title="<?=date('d.m.Y', $v['time'])?>" style="font-weight:bold;"><?=date('H:i', $v['time'])?></span>
+				<?=($v['uid'] > 0 ? "<nobr><a href=\"/users/{$v['uid']}\">{$v['name']}</a></nobr>" : $conf['settings']['default_usr']. "_".abs($v['uid']))?>
+				<?=htmlspecialchars($v['text'])?>
+			</div> -->
 		<? endforeach; ?>
 	</table></td><td valign=top><table width=100% cellspacing=0 cellpadding=0 border=0>
-	<? foreach($tpl['usr'] as $usr): ?>
+	<? foreach($conf['tpl']['users'] as $k=>$v): ?>
 		<tr align=right>
-			<td><?=($usr['uid'] > 0 ? "<a href=\"/users/{$usr['uid']}\"><nobr>". (/*$tpl['uid'][ $usr['uid'] ]['chat_usr'] ?:*/ $tpl['uid'][ $usr['uid'] ]['name']). "</nobr></a>" : "гость". $usr['uid'])?></td>
+			<td>
+				<?=($k > 0 ? "<a href=\"/users/{$k}\"><nobr>$v</nobr></a>" : "гость_". abs($k))?>
+			</td>	
 		</tr>
 	<? endforeach; ?>
 	</table></td></tr></table>

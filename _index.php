@@ -51,18 +51,20 @@ if (strlen($conf['db']['error'] = mysql_error())){
 if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(mpql(mpqw("SHOW TABLES", 'Проверка работы базы')))){ echo mpct('include/install.php'); die; }
 
 if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) && array_key_exists('null', $_GET)){
-//	if($_SERVER['HTTP_IF_MODIFIED_SINCE']) exit(header('HTTP/1.1 304 Not Modified'));
 	if(empty($_GET['theme'])){
 		$_GET['theme'] = mpql(mpqw("SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"theme\""), 0, 'value');
 	} $ex = array('otf'=>'font/opentype', 'css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', 'woff'=>'application/x-font-woff', 'svg'=>'font/svg+xml', 'tpl'=>'text/html');
 	$fn = "themes/{$_GET['theme']}/{$_GET['']}";
 	$ext = array_pop(explode('.', $fn));
 	header("Content-type: ". ($ex[$ext] ? $ex[$ext] : "image/$ext"));
-	if($ex[$ext]){
+	header('Last-Modified: '. date("r", filemtime(mpopendir($fn))));
+	if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= filemtime(mpopendir($fn)))){
+		header('HTTP/1.0 304 Not Modified');
+	}else if($ex[$ext]){
 		readfile(mpopendir($fn));
 	}else{
 		echo mprs(mpopendir($fn), $_GET['w'], $_GET['h'], $_GET['c']);
-	} die;
+	} exit();
 }
 
 $conf['db']['info'] = 'Загрузка свойств модулей';
@@ -187,7 +189,7 @@ if (!function_exists('bcont')){
 		$conf['db']['info'] = "Выборка шаблонов блоков";
 		$shablon = spisok("SELECT id, shablon FROM {$conf['db']['prefix']}blocks_shablon");
 
-		$blocks = qn("SELECT * FROM {$conf['db']['prefix']}blocks WHERE enabled=1". ($bid ? " AND id=". (int)$bid : " ORDER BY orderby"));
+		$blocks = qn($sql = "SELECT * FROM {$conf['db']['prefix']}blocks WHERE enabled=1". ($bid ? " AND id=". (int)$bid : " ORDER BY orderby"));
 		$blocks_reg = qn("SELECT * FROM {$conf['db']['prefix']}blocks_reg");
 		$blocks_reg_modules = qn("SELECT * FROM {$conf['db']['prefix']}blocks_reg_modules ORDER BY sort");
 
@@ -217,14 +219,13 @@ if (!function_exists('bcont')){
 					$reg[ $r['id'] ] = $r;
 				}
 			} # Условие исключая не срабатывает
-		}
+		}// mpre($reg);
 
 		$gt = mpgt(urldecode(array_pop(explode("/{$_SERVER['HTTP_HOST']}", $_SERVER['HTTP_REFERER']))));
 		$uid = array_key_exists('blocks', $_GET['m']) ? $gt['id'] : $_GET['id'];
 		$uid = (array_intersect_key(array($conf['modules']['users']['folder']=>1, $conf['modules']['users']['modname']=>2), (array_key_exists('blocks', $_GET['m']) ? (array)$gt['m'] : array())+$_GET['m']) && $uid) ? $uid : $conf['user']['uid'];
 
-
-		foreach(rb($blocks, "rid", "id", $reg) as $k=>$v){
+		foreach($blocks = ($bid ? rb($blocks, "id", "id", $bid) : rb($blocks, "rid", "id", $reg)) as $k=>$v){
 			$conf['blocks']['info'][$v['id']] = $v;
 			if(($v['access'] < 0)){
 				$conf['blocks']['info'][ $v['id'] ]['access'] = (int)$conf['modules'][array_shift(explode('/', $v['file']))]['access'];
@@ -238,7 +239,8 @@ if (!function_exists('bcont')){
 			if ($conf['user']['uid'] == $v['uid'] || (!$v['uid'] && ($conf['user']['uid'] == $uid)))
 				$conf['blocks']['info'][ $v['bid'] ]['access'] = $v['access'];
 
-		foreach(rb($blocks, "rid", "id", $reg) as $k=>$v){
+		
+		foreach($blocks as $k=>$v){
 			$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
 			$mod = $conf['modules'][ $modpath = basename(dirname(dirname($v['file']))) ];
 			$modname = $mod['modname'];
@@ -253,9 +255,9 @@ if (!function_exists('bcont')){
 						'<!-- [block:name] -->'=>$v['name'],
 						'<!-- [block:modpath] -->'=>$arg['modpath'],
 						'<!-- [block:fn] -->'=>$arg['fn'],
-						'<!-- [block:title] -->'=>$v['name']
+						'<!-- [block:title] -->'=>$v['name'],
 					));
-					$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$v['name'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
+					$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$v['name'], "{fn}"=>$arg['fn'], "{id}"=>$v['id'], "{param}"=>$v['param']);
 					$result["<!-- [blocks:". (int)$v['rid'] . "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
 					$result["<!-- [blocks:". (int)$reg[ $v['rid'] ]['reg_id']. "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
 				}

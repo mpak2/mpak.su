@@ -44,7 +44,7 @@ foreach($m as $table=>$v){
 
 if($_GET['r'] == "{$conf['db']['prefix']}blocks"){ #Блоки
 	if ((int)$_GET['conf']){
-		$bl = mpql(mpqw("SELECT name, file FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE id = ".(int)$_GET['conf']));
+		$bl = mpql(mpqw("SELECT name, file FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE id=". (int)$_GET['conf']));
 		if(!array_key_exists("null", $_GET)) echo "<p>Свойства блока: <b>{$bl[0]['name']} [{$_GET['conf']}]</b><p><p>";
 		echo mpeval("modules/{$bl[0]['file']}", array('confnum'=>$_GET['conf'], 'modpath'=>basename(dirname(dirname($bl[0]['file'])))));
 	}else{

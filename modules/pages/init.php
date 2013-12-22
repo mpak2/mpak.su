@@ -2,10 +2,11 @@
 
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_cat` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `parent` int(11) NOT NULL,
+  `cat_id` int(11) NOT NULL,
   `prefix` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `cat_id` (`cat_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
@@ -16,10 +17,15 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index`
   `time` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `keywords` varchar(255) NOT NULL,
-  `description` varchar(255) NOT NULL,
+  `description` text NOT NULL,
   `text` text NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `cat_id` (`cat_id`),
+  KEY `uid` (`uid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);
+
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('pages', 'pages=>spisok', 'index,cat', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('pages', 'pages_index=>title', 'time,uid,cat_id,name,description', '4', '')");
 
 ?>

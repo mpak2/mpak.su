@@ -316,14 +316,15 @@ if (!function_exists('mcont')){
 				}else{# Дефолтный файл
 					mp_require_once("modules/{$mod['link']}/$fn.tpl");
 				} $content .= ob_get_contents(); ob_end_clean();
-
+			}else if(array_key_exists($k, $conf['modules']) && ($_SERVER['REQUEST_URI'] != "/admin")){
+				header("HTTP/1.0 403 Access Denied");
+				header("Location: /users:login");
 			}else{
 				if (file_exists(mpopendir("modules/{$mod['link']}/deny.php"))){
 					$content = mpct("modules/{$mod['link']}/deny.php", $conf['arg'] = array('modpath'=>$mod['folder']));
 				}else if(!array_key_exists("themes", $_GET)){
 					if(!array_key_exists('null', $_GET) && ($_SERVER['REQUEST_URI'] != "/admin")){
 						header('HTTP/1.0 404 Unauthorized');
-//						echo "<div style='margin:100px 0;text-align:center'>Доступ запрещен</div>";
 						header("Location: /themes:404{$_SERVER['REQUEST_URI']}");// header("Location: /admin");
 					}
 				}

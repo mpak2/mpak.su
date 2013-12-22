@@ -11,6 +11,9 @@ $tpl['index'] = qn("SELECT *
 	WHERE 1". ($_GET['id'] ? " AND id=". (int)$_GET['id'] : " LIMIT 100")
 );// mpre($tpl['index']);
 
+/** Запрос данных для построения хлебных крошек в соответствии с меню сайта **/
+//$tpl['menu_index'] = qn("SELECT * FROM {$conf['db']['prefix']}menu_index");
+
 if($index = $tpl['index'][ $_GET['id'] ]){
 	$conf['settings']['title'] = $index['name'];
 	if($index['description']){
