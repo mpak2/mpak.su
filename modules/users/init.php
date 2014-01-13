@@ -72,7 +72,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_event`
   `last` int(11) NOT NULL,
   `max` int(11) NOT NULL,
   `min` int(11) NOT NULL,
-  `log_last` int(11) NOT NULL,
+  `log_last` int(11) DEFAULT NULL,
   `description` varchar(255) NOT NULL,
   `subject` varchar(255) NOT NULL,
   `text` text NOT NULL,

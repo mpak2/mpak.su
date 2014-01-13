@@ -16,7 +16,7 @@ header('Content-Type: text/html;charset=UTF-8');
 if(!function_exists('mp_require_once')){
 	function mp_require_once($link){
 		global $conf, $arg, $tpl;
-		foreach(explode(':', $conf['fs']['path'], 2) as $k=>$v){
+		foreach(explode(':', ini_get("open_basedir")) as $k=>$v){
 			if (!file_exists($file_name = "$v/$link")) continue;
 			include_once($file_name); return;
 		}
@@ -28,7 +28,7 @@ mp_require_once("include/mpfunc.php"); # Функции системы
 
 $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI'], $_GET);
 
-if (!isset($index) && file_exists($index = array_shift(explode(':', $conf['fs']['path'], 2)). '/index.php')){
+if (!isset($index) && file_exists($index = array_shift(explode(':', ini_get("open_basedir"))). '/index.php')){
 	include($index); if($content) die;
 }
 
@@ -48,15 +48,17 @@ if (strlen($conf['db']['error'] = mysql_error())){
 } unset($conf['db']['pass']); $conf['db']['sql'] = array();
 
 
-if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(mpql(mpqw("SHOW TABLES", 'Проверка работы базы')))){ echo mpct('include/install.php'); die; }
+if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(mpql(mpqw("SHOW TABLES", 'Проверка работы базы')))){
+	exit(mpopendir('include/install.php') ? mpct('include/install.php') : "Файл установки не найден");
+}
 
 if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) && array_key_exists('null', $_GET)){
 	if(empty($_GET['theme'])){
 		$_GET['theme'] = mpql(mpqw("SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"theme\""), 0, 'value');
-	} $ex = array('otf'=>'font/opentype', 'css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', 'woff'=>'application/x-font-woff', 'svg'=>'font/svg+xml', 'tpl'=>'text/html');
+	} $ex = array('otf'=>'font/opentype', 'css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', 'woff'=>'application/x-font-woff', 'svg'=>'font/svg+xml', 'tpl'=>'text/html', 'ogg'=>'application/ogg', 'mp3'=>'application/mp3');
 	$fn = "themes/{$_GET['theme']}/{$_GET['']}";
 	$ext = array_pop(explode('.', $fn));
-	header("Content-type: ". ($ex[$ext] ? $ex[$ext] : "image/$ext"));
+	header("Content-type: ". ($ex[$ext] ? $ex[$ext] : "application/$ext"));
 	header('Last-Modified: '. date("r", filemtime(mpopendir($fn))));
 	if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= filemtime(mpopendir($fn)))){
 		header('HTTP/1.0 304 Not Modified');

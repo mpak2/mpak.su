@@ -26,7 +26,7 @@ $files_array = array(
 );
 
 # Устанавливаем права доступа к папке с файлами
-if (!file_exists($cf = array_shift(explode(':', $conf['fs']['path'], 2)). '/config/config.php') || !is_writable(mpopendir("include/images")) || !empty($conf['db']['error'])){
+if (!file_exists($cf = array_shift(explode(':', ini_get("open_basedir"))). '/config/config.php') || !is_writable(mpopendir("include/images")) || !empty($conf['db']['error'])){
 	echo "<table border=0 width=100% height=100%><tr><td align=center>";
 	echo "Создание необходимых файлов и установка прав доступа:<p>";
 	echo "<table cellspacing=0 cellpadding=3 border=0>";
@@ -100,15 +100,13 @@ EOF;
 				}else{
 					$('input:checkbox').attr('checked', 'checked');
 				}
-//				$('input:checkbox').attr('checked', 'checked');
-			});
+			}).change();
 		});
 	</script>
 	<form method=post style="padding:100px;">
 		<select id="sel" style="margin:10px;">
 			<option value="min">Минимальные установки</option>
-			<option value="rec" selected>Рекомендуемые</option>
-<!--			<option value="max">Максимальные возможные</option>  -->
+			<option value="rec">Рекомендуемые</option>
 		</select>
 		<input type='hidden' name='theme' value='{$_POST['theme']}'>
 		<div>

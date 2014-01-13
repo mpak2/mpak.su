@@ -6,12 +6,12 @@ include "/srv/www/vhosts/mpak.cms/include/func.php";
 
 include __DIR__. "/../../../config/config.php";
 $html = new simple_html_dom();
-$html2 = new simple_html_dom();
 
 $conf['db']['conn'] = mysql_connect($conf['db']['host'], $conf['db']['login'], $conf['db']['pass']); # Соединение с базой данных
 
 $arg['modpath'] = basename(dirname(dirname(__FILE__)));
 $conf['fs']['path'] = dirname(dirname(dirname(dirname(__FILE__))));
+chdir(dirname(__FILE__)); # Изменяем текущую директорию для запуска из крона
 
 if (strlen($conf['db']['error'] = mysql_error())){
 #		echo "Ошибка соединения с базой данных<p>";
@@ -22,7 +22,7 @@ if (strlen($conf['db']['error'] = mysql_error())){
 
 ###################################################################################################################################################
 
-$html->load(mpde($data = mpcurl("http://ya.ru")));
+$html->load($data = mpde(mpcurl("http://ya.ru")));
 
 foreach($html->find("#id") as $e){
 	echo "\n". $html = $e->outertext;

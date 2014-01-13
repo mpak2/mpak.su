@@ -360,10 +360,9 @@ function mpevent($name, $description = null, $own = null){
 
 		if($notice){
 			foreach($notice as $v){
-				if(empty($v['log'])){ # Сохраняем замещаемые значения
+				if(!empty($v['log']) && $v['log']){ # Сохраняем замещаемые значения
 					mpqw($sql = "UPDATE {$conf['db']['prefix']}users_event_notice SET zam=\"". mpquot(var_export($zam, true)). "\" WHERE id=". (int)$v['id']);
-				}
-				if($v['grp_id'] > 0){ # Рассылка на группу
+				} if($v['grp_id'] > 0){ # Рассылка на группу
 					$grp = mpqn(mpqw($sql = "SELECT u.* FROM {$conf['db']['prefix']}users_mem AS m LEFT JOIN {$conf['db']['prefix']}users AS u ON (m.uid=u.id) WHERE 1 AND grp_id=". (int)$v['grp_id']));
 				}else{ # Если рассылка владельцу то он нам уже известен
 					$grp = array($func_get_args[2]['id']=>$func_get_args[2]);
@@ -517,11 +516,9 @@ function mpmail($to = '', $subj='Проверка', $text = 'Проверка', 
 		return mpsmtp($to, $subj, $text);
 	} mpevent("Отправка сообщения", $to, $conf['user']['uid'], debug_backtrace());
 	if(empty($to)) return;
-	if(empty($from)) $from = "{$_SERVER['HTTP_HOST']}@mpak.su";
 
 	if($to){
-		$header = "Content-type: text/html; charset=UTF-8;"; //From: \"". mpidn($_SERVER['HTTP_HOST']). "\" <{$from}>; 
-//		'Subject' => '=?UTF-8?B?'.base64_encode($mess['subject']).'?=',
+		$header = "Content-type: text/html; charset=UTF-8;\r\nFrom: {$from}";
 		mail($to, $subj, $text, $header, "-f$from");
 		mpevent($conf['settings']['users_event_mail'], $to, $conf['user']['uid'], $subj, $text);
 		return true;
@@ -671,6 +668,7 @@ function mpager($count, $null=null, $cur=null, $url=null){
 		$url = strtr($url, array("/null"=>"", "&null"=>"", "?null"=>""));
 	}
 	if(2 > $count = ceil($count)) return;
+	$return .= "<script>//$(function(){ $(\".pager\").find(\"a[href='". urldecode($_SERVER['REQUEST_URI']). "']\").addClass(\"active\"); })</script>";
 	$return .=  "<div class=\"pager\">";
 		$return .= "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>";
 		$mpager['prev'] = $url. ($cur > 1 ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur-1) : "/{$p}:".($cur-1)) : '');
@@ -705,7 +703,7 @@ function mpget($name, $value = null){
 
 function mpct($file_name, $arg = array(), $vr = 1){
 	global $conf, $tpl;
-	foreach(explode(':', $conf['fs']['path'], 2) as $k=>$v)
+	foreach(explode(':', ini_get("open_basedir")) as $k=>$v)
 		if (file_exists($file = "$v/$file_name")) break;
 	if (!file_exists($file = "$v/$file_name")) return false;
 	$func_name = create_function('$arg', "global \$conf, \$tpl;\n". strtr(file_get_contents($file), $vr ? array('<? die;'=>'', '?>'=>'') : array()));
@@ -716,7 +714,7 @@ function mpct($file_name, $arg = array(), $vr = 1){
 
 function mpeval($file_name, $arg = array(), $vr = 1){
 	global $conf;
-	foreach(explode(':', $conf['fs']['path'], 2) as $k=>$v)
+	foreach(explode(':', ini_get("open_basedir")) as $k=>$v)
 		if (file_exists($file = "$v/$file_name")) break;
 	if (!file_exists($file = "$v/$file_name")) return "<div style=\"margin-top:100px; text-align:center;\"><span style=color:red;>Ошибка доступа к файлу</span> $v/$file_name</div>";
 
@@ -730,7 +728,7 @@ function mpeval($file_name, $arg = array(), $vr = 1){
 function mpreaddir($file_name, $merge=0){
 	global $conf;
 	$itog = array();
-	$prefix = $merge ? explode(':', $conf['fs']['path'], 2) : array('./');
+	$prefix = $merge ? explode(':', ini_get("open_basedir")) : array('./');
 	if ($merge < 0) krsort($prefix);
 	foreach($prefix as $k=>$v){
 		if (!is_dir("$v/$file_name")) continue;
@@ -747,7 +745,7 @@ function mpreaddir($file_name, $merge=0){
 
 function mpopendir($file_name, $merge=1){
 	global $conf;
-	$prefix = $merge ? explode(':', $conf['fs']['path'], 2) : array('./');
+	$prefix = $merge ? explode(':', ini_get("open_basedir")) : array('./');
 	if ($merge < 0) krsort($prefix);
 	foreach($prefix as $k=>$v){
 		$file = strtr("$v/$file_name", array('/modules/..'=>''));

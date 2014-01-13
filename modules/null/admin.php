@@ -86,10 +86,11 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 //			"file"=>array("*"=>"<a onclick=\"javascript: if (confirm('Стереть файл?')){return obj.href;}else{return false;}\" href=\"/?m[{$arg['modpath']}]=admin&amp;r={$conf['db']['prefix']}{$arg['path']}_{$t}&amp;delfile={f:id}&amp;fil=file\"><img src=\"/img/del.png\" border=\"0\"></a>&nbsp;<a href=\"/{$arg['modname']}:file/{f:id}/tn:{$t}/fn:file/null/{f:{f}}\">{f:{f}}</a>"),
 		);
 		if($t == "index"){ # Индивидуальные настройки для каждой из таблицы
-			$shablon += array(
+			$shablon = array(
+				"name"=>array("*"=>"<a href=\"/internet-magazin/katalog/{f:cat_id}/{f:id}\">{f:{f}}</a>"),
 //				"file"=>array("*"=>"<a href=\"/{$arg['modpath']}:file/{f:id}/tn:{$t}/fn:{f}/null\">{f:{f}}</a>"),
 //				($fn = 'img2')=>array('*'=>"<img src='/{$arg['modpath']}:img/{f:id}/tn:". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "/fn:{$fn}/w:120/h:100/null/img.png' title='{f:{f}}' alt='{f:{f}}'>"),
-			);
+			) + $shablon;
 		}
 	} if(qn("SHOW TABLES LIKE '{$_GET['r']}'")){
 		stable(

@@ -27,8 +27,36 @@
 	<div><?=$index['text']?></div>
 <? else: ?>
 	<div><?=$tpl['mpager']?></div>
+	<script src="http://api-maps.yandex.ru/2.0-stable/?load=package.standard&lang=ru-RU" type="text/javascript"></script>
 	<? foreach($tpl[ $arg['fe'] ] as $$arg['fe']): ?>
-		<div><a href="/<?=$arg['modname']?>:<?=$arg['fe']?>/<?=${$arg['fe']}['id']?>"><?=${$arg['fe']}['name']?></a></div>	
+		<div>
+			<div>
+				<script type="text/javascript">
+					ymaps.ready(init);
+					var myMap;
+					function init(){     
+						myMap = new ymaps.Map ("map", {
+							center: [<?=$index['latitude']?>, <?=$index['longitude']?>],
+							zoom: <?=$index['zoom']?>,
+						});
+						myMap.controls.add(new ymaps.control.ZoomControl());
+						<? foreach(rb($tpl['placemark'], "index_id", "id", $index['id']) as $placemark): ?>
+							myMap.geoObjects.add(new ymaps.Placemark([<?=$placemark['latitude']?>, <?=$placemark['longitude']?>], {
+								iconContent: "<?=$placemark['name']?>",
+								balloonContentHeader: "<?=$placemark['name']?>",
+								balloonContentBody: "<?=$placemark['text']?>",
+								balloonContentFooter: "<?=$placemark['description']?>"
+							}, {
+								preset: 'twirl#blueStretchyIcon' // иконка растягивается под контент
+							}));
+						<? endforeach; ?>
+					}
+				</script>
+				<div id="map" style="width:300px; height:200px; float:right;"></div>
+				<a href="/<?=$arg['modname']?>:<?=$arg['fe']?>/<?=${$arg['fe']}['id']?>"><?=${$arg['fe']}['name']?></a>
+				<div><?=$index['text']?></div>
+			</div>
+		</div>	<div style="clear:both;"></div>
 	<? endforeach; ?>
 	<div><?=$tpl['mpager']?></div>
 <? endif; ?>
