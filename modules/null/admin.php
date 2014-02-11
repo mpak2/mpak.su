@@ -87,7 +87,7 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 		);
 		if($t == "index"){ # Индивидуальные настройки для каждой из таблицы
 			$shablon = array(
-				"name"=>array("*"=>"<a href=\"/internet-magazin/katalog/{f:cat_id}/{f:id}\">{f:{f}}</a>"),
+				"name"=>array("*"=>"<a href=\"/{$arg['modname']}/{f:id}\">{f:{f}}</a>"),
 //				"file"=>array("*"=>"<a href=\"/{$arg['modpath']}:file/{f:id}/tn:{$t}/fn:{f}/null\">{f:{f}}</a>"),
 //				($fn = 'img2')=>array('*'=>"<img src='/{$arg['modpath']}:img/{f:id}/tn:". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "/fn:{$fn}/w:120/h:100/null/img.png' title='{f:{f}}' alt='{f:{f}}'>"),
 			) + $shablon;

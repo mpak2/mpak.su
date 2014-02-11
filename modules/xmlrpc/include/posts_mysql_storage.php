@@ -3,7 +3,7 @@
 class posts_mysql_storage{
 
   function __construct(){
-    $this->posts = "{$GLOBALS['conf']['db']['prefix']}pages_post";
+    $this->posts = "{$GLOBALS['conf']['db']['prefix']}pages_index";
     $this->storage = new mysql_storage();
   }
 

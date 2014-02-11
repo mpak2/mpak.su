@@ -59,6 +59,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_vopros
   `index_id` int(11) NOT NULL,
   `type_id` int(11) NOT NULL,
   `float` smallint(6) NOT NULL,
+  `required` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `alias` varchar(255) NOT NULL,
   `tn` varchar(255) NOT NULL,

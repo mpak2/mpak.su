@@ -1,5 +1,25 @@
 <?
 
+set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
+    $errortype = array (
+		1   =>  "Ошибка",
+		2   =>  "Предупреждение",
+		4   =>  "Ошибка синтаксического анализа",
+		8   =>  "Замечание",
+		16  =>  "Ошибка ядра",
+		32  =>  "Предупреждение ядра",
+		64  =>  "Ошибка компиляции",
+		128 =>  "Предупреждение компиляции",
+		256 =>  "Ошибка пользователя",
+		512 =>  "Предупреждение пользователя",
+		1024=>  "Замечание пользователя",
+		2048=> "Обратная совместимость",
+	);
+	if(!empty($conf['user']['uname']) && ($conf['user']['uname'] == "mpak")){
+		error_log($_SERVER['HTTP_HOST']. $_SERVER['REQUEST_URI']. " ". $filename.":".$linenum."($errno) $errmsg"/*. print_r($vars, true)*/, 0) or die("Ошибка записи сообщения об ошибке в файл");
+	}
+});
+
 function in($ar, $flip = false){
 	if(gettype($ar) != "array"){
 		$ar = array(0);
@@ -423,8 +443,9 @@ function mpevent($name, $description = null, $own = null){
 }
 
 function mpidn($value, $enc = 0){
-	require_once(mpopendir('include/idna_convert.class.inc'));
-	$IDN = new idna_convert();
+	if(!class_exists('idna_convert')){
+		require_once(mpopendir('include/idna_convert.class.inc'));
+	} $IDN = new idna_convert();
 	if($enc){
 		return $IDN->encode($value);
 	}else{

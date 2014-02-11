@@ -55,6 +55,8 @@
 									<textarea class="el enb ta" name="<?=$vid?>"><?=$conf['tpl']['result'][ $vid ][ 0 ]['val']?></textarea>
 								<? elseif($v['type'] == 'text'): ?>
 									<input class="el enb" type="text" name="<?=$vid?>" value="<?=$conf['tpl']['result'][ $vid ][ 0 ]['val']?>">
+								<? elseif($v['type'] == 'email'): ?>
+									<input class="el enb" type="email" name="<?=$vid?>" <?=($v['required'] ? "required" : "")?> value="<?=$conf['tpl']['result'][ $vid ][ 0 ]['val']?>">
 								<? elseif($v['type'] == 'map'): ?>
 									<!-- Этот блок кода нужно вставить в ту часть страницы, где вы хотите разместить карту (начало) -->
 									<input type="hidden" name="<?=$vid?>" value="">

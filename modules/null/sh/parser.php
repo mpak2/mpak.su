@@ -3,6 +3,7 @@
 include "/srv/www/vhosts/mpak.cms/include/parse/simple_html_dom.php";
 include "/srv/www/vhosts/mpak.cms/include/mpfunc.php";
 include "/srv/www/vhosts/mpak.cms/include/func.php";
+//require_once "/srv/www/vhosts/mpak.cms/include/idna_convert.class.inc";
 
 include __DIR__. "/../../../config/config.php";
 $html = new simple_html_dom();

@@ -70,7 +70,10 @@ if ($_REQUEST['search_block_num'] || empty($_GET['tabs_id'])){
 			foreach($v as $f=>$z){
 				$where[] = "($tab `$f` LIKE \"%". implode("%\" AND `$f` LIKE \"%", explode(' ', mpquot($tpl['search']['name']))). "%\")";
 				$fields[] = "`$f`";
-			} if($desc['uid']) $fields[] = "`uid`";
+			}
+			if($desc['uid']){
+				$fields[] = "`uid`";
+			} $fields[] = "`id`"; # Становится нужна если в адресе не используется id а к примеру из sku
 			mpql(mpqw($sql = "SELECT SQL_CALC_FOUND_ROWS ". implode(', ', $regs[1]).", ". implode(', ', $fields)." FROM $k WHERE 1 AND ". implode(" OR ", $where). " ORDER BY id DESC LIMIT ". ($_GET['p']*5). ",5"));
 			$tpl['page'] += mpql(mpqw("SELECT FOUND_ROWS() AS cnt"), 0, 'cnt');// echo $sql;
 

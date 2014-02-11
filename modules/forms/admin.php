@@ -102,7 +102,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 //			'disable' => array('img'), # Выключенные для записи поля
 //			'hidden' => array(), # Скрытые поля
 			'spisok' => array( # Список для отображения и редактирования
-				'type' => array('*'=> array('radio'=>'Радио', 'check'=>'Выбор', "spastic"=>"Бегунок", 'select'=>'Список', 'text'=>'Текст', 'textarea'=>'Поле', 'date'=>'Дата', 'file'=>'Файл', 'pass'=>'Пароль', 'map'=>'Карта')),
+				'type' => array('*'=> array('radio'=>'Радио', 'check'=>'Выбор', "spastic"=>"Бегунок", 'select'=>'Список', 'text'=>'Текст', 'email'=>'ЭльПочта', 'textarea'=>'Поле', 'date'=>'Дата', 'file'=>'Файл', 'pass'=>'Пароль', 'map'=>'Карта')),
 				'float' => array('*'=> array(0=>'Гориз', 1=>'Верт')),
 				'tn'=>array("*"=>array('')+array_combine($tn, $tn)),
 //				'oid' => array('*' => spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}", 30)),

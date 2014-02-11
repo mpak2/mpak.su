@@ -76,8 +76,8 @@ if (!file_exists($cf = array_shift(explode(':', ini_get("open_basedir"))). '/con
 	</form>
 EOF;
 }elseif(empty($_POST['modules'])){
-	$en = array(1=>'admin', 'modules', 'blocks', 'users', 'settings', 'sess', 'themes', 'menu', 'messages', 'pages', 'files', 'tinymce', 'chat');
-	$rec = array(1=>'services', 'develop', 'opros', 'faq', 'news', 'gbook', 'comments', 'chat', 'poll', 'sqlanaliz', 'search', 'foto', 'messages');
+	$en = array(1=>'admin', 'modules', 'blocks', 'users', 'settings', 'sess', 'themes', 'menu', 'messages', 'pages', 'files', 'tinymce');
+	$rec = array(1=>'services', 'develop', 'opros', 'faq', 'news', 'gbook', 'comments', 'poll', 'sqlanaliz', 'search', 'foto', 'messages');
 	foreach(mpreaddir($folder = 'modules', 1) as $k=>$file){
 		if($file == 'null') continue;
 		mpct("modules/$file/info.php");

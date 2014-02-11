@@ -92,11 +92,11 @@ class xmlrpc_server extends IXR_Server {
 		# Добавляем нужные поля
 //		$content_values = $args[3];
 		$content_values = array(
-			'kid' => (int)$args[0], #Категория в которую попадают статьи
+			'cat_id' => (int)$args[0], #Категория в которую попадают статьи
 			'uid' => $user_id, # Идентификатор пользователя. Указывается в интерфейсе лекса.
-			'title' => $args[3]['title'],
+			'name' => $args[3]['title'],
 			'text' => $args[3]['description'],
-			'date' => date('Y.m.d H:i:s'),
+			'time' => time(),
 		);
 //		$content_struct['title'] = iconv('UTF-8', 'CP1251', $content_struct['title']);
 //		unset($content_struct['description']);
@@ -127,8 +127,8 @@ class xmlrpc_server extends IXR_Server {
 			$resp = array(
 				'postid' => $post['id'],
 				'description' => $post['text'],
-				'title' => $post['title'],
-				'link' => "http://{$_SERVER['HTTP_HOST']}/pages/pid:{$post['id']}",
+				'name' => $post['title'],
+				'link' => "http://{$_SERVER['HTTP_HOST']}/pages/{$post['id']}",
 			);
             if(isset($post['post_category'])){
                 $resp['categories'] = split('\|', $post['post_category']);
@@ -152,9 +152,9 @@ class xmlrpc_server extends IXR_Server {
 		$content_values = array(
 //			'kid' => (int)$args[0], #Категория в которую попадают статьи
 			'uid' => $user_id, # Идентификатор пользователя. Указывается в интерфейсе лекса.
-			'title' => $args[3]['title'],
+			'name' => $args[3]['title'],
 			'text' => $args[3]['description'],
-			'date' => date('Y.m.d H:i:s'),
+			'time' => time(),
 		);
 
         try{

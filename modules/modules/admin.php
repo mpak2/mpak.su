@@ -272,8 +272,8 @@ if ($m[(int)$_GET['r']] == 'Модули'){ # Добавление модуля
 			if ($n == 'id' || $n == 'folder') continue;
 			$info .= "\n\t'$n'=>'$z',";
 		}
-		$info .= "\n);";
-		$init .= "\n\n?".chr(62); $del .= "\n\n?".chr(62);  $info .= "\n\n?".chr(62);
+		$info .= "\n);"; $init .= "\n"; $del .= "\n";  $info .= "\n";
+//		$init .= "\n\n?".chr(62); $del .= "\n\n?".chr(62);  $info .= "\n\n?".chr(62);
 
 		if (array_search($v['folder'], array('admin', 'modules', 'blocks', 'users', 'settings', 'sess', 'themes')) === false){
 			if (is_readable($fn = mpopendir($file_name = "$readdir/del.php"))){

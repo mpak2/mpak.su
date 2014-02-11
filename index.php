@@ -55,7 +55,7 @@ if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count
 if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) && array_key_exists('null', $_GET)){
 	if(empty($_GET['theme'])){
 		$_GET['theme'] = mpql(mpqw("SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"theme\""), 0, 'value');
-	} $ex = array('otf'=>'font/opentype', 'css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', 'woff'=>'application/x-font-woff', 'svg'=>'font/svg+xml', 'tpl'=>'text/html', 'ogg'=>'application/ogg', 'mp3'=>'application/mp3');
+	} $ex = array('png'=>'image/png', 'jpg'=>'image/jpg', 'gif'=>'image/gif', 'otf'=>'font/opentype', 'css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', 'woff'=>'application/x-font-woff', 'svg'=>'font/svg+xml', 'tpl'=>'text/html', 'ogg'=>'application/ogg', 'mp3'=>'application/mp3');
 	$fn = "themes/{$_GET['theme']}/{$_GET['']}";
 	$ext = array_pop(explode('.', $fn));
 	header("Content-type: ". ($ex[$ext] ? $ex[$ext] : "application/$ext"));
@@ -326,7 +326,7 @@ if (!function_exists('mcont')){
 					$content = mpct("modules/{$mod['link']}/deny.php", $conf['arg'] = array('modpath'=>$mod['folder']));
 				}else if(!array_key_exists("themes", $_GET)){
 					if(!array_key_exists('null', $_GET) && ($_SERVER['REQUEST_URI'] != "/admin")){
-						header('HTTP/1.0 404 Unauthorized');
+						header("HTTP/1.0 404 Not Found");
 						header("Location: /themes:404{$_SERVER['REQUEST_URI']}");// header("Location: /admin");
 					}
 				}

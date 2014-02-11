@@ -6,4 +6,6 @@
 //$tpl['index'] = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']}");
 
 ################################# верстка ################################# ?>
-<div>Верстка здесь</div>
+<div class="index">
+	
+</div>
