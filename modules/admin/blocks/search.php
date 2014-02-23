@@ -69,8 +69,8 @@ if ((int)$arg['confnum']){
 		<tr>
 		<td align='center'>
 			<input type='hidden' name='search_block_num' value='<?=$arg['blocknum']?>'>
-			<input type='text' name='search' style="width:100%" value='<?=$_REQUEST['search']?>' title="Поиск">
-			<input type='submit' value='Поиск'>
+			<input type='text' name='search' style="width:100%" value='<?=$_REQUEST['search']?>' title="Поиск" placeholder="Поиск по админке">
+			<input type='submit' value='Искать'>
 		</td>
 		</tr>
 	</table>

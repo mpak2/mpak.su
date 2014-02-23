@@ -25,7 +25,7 @@ $conf['tpl']['http_host'] = $IDN->decode($_SERVER['HTTP_HOST']);
 
 # Сохраняем историю поиска
 if ((int)$_REQUEST['search_block_num']){
-	mpqw("INSERT INTO {$conf['db']['prefix']}search_index (uid, time, num, search, ip) VALUE ('{$conf['user']['uid']}', '". time(). "', '".(int)$_REQUEST['search_block_num']."', \"".mpquot($_REQUEST['search'])."\", '{$_SERVER['REMOTE_ADDR']}')");
+	mpqw("INSERT INTO {$conf['db']['prefix']}search_index (uid, time, num, name, ip) VALUE ('{$conf['user']['uid']}', '". time(). "', '".(int)$_REQUEST['search_block_num']."', \"".mpquot($_REQUEST['search'])."\", '{$_SERVER['REMOTE_ADDR']}')");
 }
 
 $search_result = array();

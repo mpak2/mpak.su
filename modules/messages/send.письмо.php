@@ -3,7 +3,7 @@
 if($_POST){
 	if ($user = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}users WHERE name='".mpquot($_POST['uname']). "' OR id=". (int)$_POST['addr']), 0)){
 		require_once(mpopendir('include/idna_convert.class.inc')); $IDN = new idna_convert();
-		mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']} SET time=". time(). ", uid=".$conf['user']['uid']. ", addr=". (int)$user['id']. ", title='". mpquot($_POST['title'])."', text='". mpquot(htmlspecialchars($_POST['text']))."'");
+		mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']} SET time=". time(). ", uid=".(int)$conf['user']['uid']. ", addr=". (int)$user['id']. ", title='". mpquot($_POST['title'])."', text='". mpquot(htmlspecialchars($_POST['text']))."'");
 		mpevent("Новое личное сообщение", mysql_insert_id(), $user['id']);
 		$conf['tpl']['error'] = "Сообщение отправлено.";
 	}else{

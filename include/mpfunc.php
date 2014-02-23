@@ -689,7 +689,7 @@ function mpager($count, $null=null, $cur=null, $url=null){
 		$url = strtr($url, array("/null"=>"", "&null"=>"", "?null"=>""));
 	}
 	if(2 > $count = ceil($count)) return;
-	$return .= "<script>//$(function(){ $(\".pager\").find(\"a[href='". urldecode($_SERVER['REQUEST_URI']). "']\").addClass(\"active\"); })</script>";
+	$return .= "<script>$(function(){ $(\".pager\").find(\"a[href='". urldecode($_SERVER['REQUEST_URI']). "']\").addClass(\"active\").css(\"font-weight\", \"bold\"); })</script>";
 	$return .=  "<div class=\"pager\">";
 		$return .= "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>";
 		$mpager['prev'] = $url. ($cur > 1 ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur-1) : "/{$p}:".($cur-1)) : '');
