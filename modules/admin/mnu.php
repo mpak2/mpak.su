@@ -16,8 +16,13 @@ if ((int)$arg['confnum']){
 	}
 	echo "</select><br />";
 	echo "<br /><select name=\"tpl\"><option value=''></option>";
-	foreach(mpreaddir($fn = "themes/{$block['theme']}", 1) as $k=>$v){ if(substr($v, -4) != '.tpl') continue;
-		echo "<option value=\"$v\"".($v == $param['tpl'] ? " selected=\"selected\"" : '').">$v</option>";
+	foreach(mpreaddir($fn = "themes", 1) as $t){
+		$theme = mpopendir("themes/{$t}");
+		if(strpos($theme, $_SERVER['HTTP_HOST'])){
+			foreach(mpreaddir($fn = "themes/". basename($theme), 1) as $k=>$v){ if(substr($v, -4) != '.tpl') continue;
+				echo "<option value=\"$v\"".($v == $param['tpl'] ? " selected=\"selected\"" : '').">{$t}/{$v}</option>";
+			}// mpre(basename($theme));
+		}
 	}
 	echo "</select><br /><br /><input type=\"submit\" value=\"Изменить\"></form></div>";
 
@@ -26,22 +31,28 @@ if ((int)$arg['confnum']){
 }
 $param = unserialize(mpql(mpqw($sql = "SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 
-$menu = mpqn(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE region_id=". (int)(is_numeric($param) ? $param : $param['menu'])." ORDER BY sort"), 'index_id', 'id');
+$menu = qn($sql = "SELECT *, href AS link FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE region_id=". (int)(is_numeric($param) ? $param : $param['menu'])." ORDER BY sort");
+if($conf['modules']['seo']){
+	$redirect = qn("SELECT * FROM {$conf['db']['prefix']}seo_redirect");
+	foreach(array_intersect_key(rb($menu, "href"), rb($redirect, "to")) as $m){
+		$menu[ $m['id'] ]['href'] = rb($redirect, "to", array_flip(array($m['href'])), "from");
+	}
+} $menu = rb($menu, "index_id", "id");
 
 ?>
-<ul class="menu_<?=$arg['blocknum']?>" style="padding:5px;">
+<ul class="menu_<?=$arg['blocknum']?>">
 	<? foreach($menu[0] as $k=>$t): ?>
 		<li>
-			<? if($t['link']): ?><a href="<?=$t['link']?>"><? endif; ?>
+			<? if($t['href']): ?><a href="<?=$t['href']?>"><? endif; ?>
 				<?=$t['name']?>
-			<? if($t['link']): ?></a><? endif; ?>
+			<? if($t['href']): ?></a><? endif; ?>
 			<? if($menu[ $t['id'] ]): ?>
 				<ul class="submenu_<?=$arg['blocknum']?>">
 					<? foreach($menu[ $t['id'] ] as $v): ?>
 						<li>
-							<? if($v['link']): ?><a href="<?=$v['link']?>"><? endif; ?>
+							<? if($v['href']): ?><a href="<?=$v['href']?>"><? endif; ?>
 								<?=$v['name']?>
-							<? if($v['link']): ?></a><? endif; ?>
+							<? if($v['href']): ?></a><? endif; ?>
 						</li>
 					<? endforeach; ?>
 				</ul>

@@ -12,6 +12,7 @@
 
 ini_set('display_errors', 1); error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT);
 header('Content-Type: text/html;charset=UTF-8');
+//ini_set("open_basedir", dirname(__FILE__));
 
 if(!function_exists('mp_require_once')){
 	function mp_require_once($link){
@@ -358,7 +359,9 @@ if (is_numeric($conf['settings']['theme'])){
 	$theme = mpql(mpqw($sql, 'Запрос темы'), 0);
 	$tc = $theme['theme'];
 }else{
-	$tc = file_get_contents(mpopendir("themes/{$conf['settings']['theme']}/". ($_GET['index'] ? basename($_GET['index']) : "index"). ".html"));
+	if($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". ($_GET['index'] ? basename($_GET['index']) : "index"). ".html")){
+		$tc = file_get_contents($t);
+	}else{ die("Шаблон {$f} не найден"); }
 }// $tpl = array(1);
 
 if (!array_key_exists('null', $_GET) || !empty($_GET['m']['users'])){

@@ -598,11 +598,10 @@ function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.p
 
 function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf;
-	$file['tmp_name'] = tempnam("/tmp", "mphid_");
-	if(copy($href, $file['tmp_name'])){
+	if($data = file_get_contents($href)){
 		if (($ext = '.'. preg_replace("/[\W]+.*/", '', preg_replace("/.*?\./", '', $href))) && (array_search($ext, $exts) || isset($exts['*']))){
 			$f = "{$tn}_{$fn}_". (int)($img_id = mpfdk($tn, $w = array("id"=>$id), $w += array("time"=>time()), $w)). $ext;
-			if(($ufn = mpopendir('include/images')) && copy($file['tmp_name'], "$ufn/$f")){
+			if(($ufn = mpopendir('include/images')) && file_put_contents("$ufn/$f", $data) /*&& copy($file['tmp_name'], "$ufn/$f")*/){
 				mpqw($sql = "UPDATE {$tn} SET `". mpquot($fn). "`=\"". mpquot($return = "images/$f"). "\" WHERE id=". (int)$img_id);
 				chown("$ufn/$f", "www-data");
 				mpevent("Загрузка внешнего файла", $href, (!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0), func_get_args());
