@@ -45,10 +45,7 @@ $defaultmimes = array(
 	'xml' => 'text/xml',
 );
 
-$path = array_pop(explode(':', $conf['fs']['path'], 2)). '/'. $arg['modpath'];
-
-foreach($_GET as $k=>$v)
-	if($k != 'm' && $k != 'null' && $k[0] != '.') $path .= "/$k";
+$path = mpopendir("img/". array_pop(explode("/", $_SERVER['REQUEST_URI'])));
 
 if(($ext = strtolower(array_pop(explode('.', $path)))) && array_key_exists($ext, $defaultmimes) && file_exists($path)){
 	header("Content-type: {$defaultmimes[$ext]}");

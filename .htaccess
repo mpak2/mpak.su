@@ -12,6 +12,7 @@
 #  Header set Cache-Control "max-age=2592000"
 #</FilesMatch>
 <IfModule mod_rewrite.c>
+	AddType application/x-httpd-php .phar
 	php_value file_uploads 1
 	php_value upload_max_filesize 200M
 
@@ -27,7 +28,10 @@
 #	RewriteCond %{HTTP_HOST} ^www.{HTTP_HOST}(.*)
 #	RewriteRule ^(.*)$ http://{HTTP_HOST}/$1 [R=301,L]
 
-#	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{DOCUMENT_ROOT}/mpak.phar !-f
 	RewriteRule ^(.*)$ /index.php [L]
+
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteRule ^(.*)$ /mpak.phar [L]
 
 </IfModule>

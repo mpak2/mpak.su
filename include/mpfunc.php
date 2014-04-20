@@ -723,7 +723,7 @@ function mpget($name, $value = null){
 
 function mpct($file_name, $arg = array(), $vr = 1){
 	global $conf, $tpl;
-	foreach(explode(':', ini_get("open_basedir")) as $k=>$v)
+	foreach(explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) as $k=>$v)
 		if (file_exists($file = "$v/$file_name")) break;
 	if (!file_exists($file = "$v/$file_name")) return false;
 	$func_name = create_function('$arg', "global \$conf, \$tpl;\n". strtr(file_get_contents($file), $vr ? array('<? die;'=>'', '?>'=>'') : array()));
@@ -734,7 +734,7 @@ function mpct($file_name, $arg = array(), $vr = 1){
 
 function mpeval($file_name, $arg = array(), $vr = 1){
 	global $conf;
-	foreach(explode(':', ini_get("open_basedir")) as $k=>$v)
+	foreach(explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) as $k=>$v)
 		if (file_exists($file = "$v/$file_name")) break;
 	if (!file_exists($file = "$v/$file_name")) return "<div style=\"margin-top:100px; text-align:center;\"><span style=color:red;>Ошибка доступа к файлу</span> $v/$file_name</div>";
 
@@ -748,7 +748,7 @@ function mpeval($file_name, $arg = array(), $vr = 1){
 function mpreaddir($file_name, $merge=0){
 	global $conf;
 	$itog = array();
-	$prefix = $merge ? explode(':', ini_get("open_basedir")) : array('./');
+	$prefix = $merge ? explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) : array('./');
 	if ($merge < 0) krsort($prefix);
 	foreach($prefix as $k=>$v){
 		if (!is_dir("$v/$file_name")) continue;
@@ -765,7 +765,7 @@ function mpreaddir($file_name, $merge=0){
 
 function mpopendir($file_name, $merge=1){
 	global $conf;
-	$prefix = $merge ? explode(':', ini_get("open_basedir")) : array('./');
+	$prefix = $merge ? explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) : array('./');
 	if ($merge < 0) krsort($prefix);
 	foreach($prefix as $k=>$v){
 		$file = strtr("$v/$file_name", array('/modules/..'=>''));
@@ -1212,7 +1212,7 @@ function mpfile($filename, $description = null){
 		header("Content-Length: ".filesize("$file_name"));
 		header("Content-Disposition: attachment; filename=\"".($description ? "$description". (substr($description, strlen($ext)*-1) == $ext ? "" : ".". $ext) : basename($file_name))."\"");
 		header("Expires: ".date('r'));
-		header("Cache-Control: max-age=3600");
+		header('Cache-Control: max-age=28800');
 //		header("Cache-Control: max-age=3600, must-revalidate");
 //		header("Pragma: no-cache");
 //		readfile($file_name); exit;
@@ -1361,7 +1361,7 @@ function mpquot($text){
 	return $text;
 }
 
-function mpuf($name, $table, $field, $id, $ext){
+/*function mpuf($name, $table, $field, $id, $ext){
 	if ($_FILES[$name]){
 		if ($ext = $ext[ $_FILES[$name]['type'] ]){
 			$fname = "images/{$table}_{$field}_{$id}.$ext";
@@ -1379,7 +1379,7 @@ function mpuf($name, $table, $field, $id, $ext){
 		echo "3";
 		return false;
 	}
-}
+}*/
 
 function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 	global $conf;
@@ -1394,6 +1394,7 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 	$host_name = strpos('www.', $_SERVER['SERVER_NAME']) === 0 ? substr($_SERVER['SERVER_NAME'], 4) : $_SERVER['SERVER_NAME'];
 	$fl_name = (int)$max_width. "x". (int)$max_height. "x". (int)$crop. "_" .basename($file_name);
 	$prx = basename(dirname($file_name));
+		header('Cache-Control: max-age=28800');
 	if(!array_key_exists('nologo', $_GET) && file_exists("$cache_name/$host_name/$prx/$fl_name") && (($filectime = filectime("$cache_name/$host_name/$prx/$fl_name")) > ($sfilectime = filectime($file_name)))){
 		if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $filectime) && ($filectime >= $sfilectime)){
 			header('HTTP/1.0 304 Not Modified');
@@ -1409,7 +1410,9 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 //				}
 //			} /*echo $key;*/ return $mc;
 //		}
-	}else if($src = @imagecreatefromstring(file_get_contents($file_name))){
+	}else if($src = imagecreatefromstring(file_get_contents($file_name))){
+		header("Expires: ".gmdate("D, d M Y H:i:s", time() + 3600)." GMT");
+		header('Cache-Control: public,max-age=28800');
 		$width = imagesx($src);
 		$height = imagesy($src);
 		if(empty($max_width) || empty($max_height) || (($width <= $max_width) && ($height <= $max_height))){

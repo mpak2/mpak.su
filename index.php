@@ -17,7 +17,7 @@ header('Content-Type: text/html;charset=UTF-8');
 if(!function_exists('mp_require_once')){
 	function mp_require_once($link){
 		global $conf, $arg, $tpl;
-		foreach(explode(':', ini_get("open_basedir")) as $k=>$v){
+		foreach(explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) as $k=>$v){
 			if (!file_exists($file_name = "$v/$link")) continue;
 			include_once($file_name); return;
 		}
@@ -29,7 +29,7 @@ mp_require_once("include/mpfunc.php"); # Функции системы
 
 $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI'], $_GET);
 
-if (!isset($index) && file_exists($index = array_shift(explode(':', ini_get("open_basedir"))). '/index.php')){
+if (!isset($index) && file_exists($index = array_shift(explode(':', $conf["db"]["open_basedir"])). '/index.php')){
 	include($index); if($content) die;
 }
 
@@ -59,6 +59,8 @@ if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) 
 	} $ex = array('png'=>'image/png', 'jpg'=>'image/jpg', 'gif'=>'image/gif', 'otf'=>'font/opentype', 'css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', 'woff'=>'application/x-font-woff', 'svg'=>'image/svg+xml', 'tpl'=>'text/html', 'ogg'=>'application/ogg', 'mp3'=>'application/mp3');
 	$fn = "themes/{$_GET['theme']}/{$_GET['']}";
 	$ext = array_pop(explode('.', $fn));
+	header('Cache-Control: public,max-age=28800');
+	header("Expires: ".gmdate("D, d M Y H:i:s", time() + 3600)." GMT");
 	header("Content-type: ". ($ex[$ext] ? $ex[$ext] : "application/$ext"));
 	header('Last-Modified: '. date("r", filemtime(mpopendir($fn))));
 	if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= filemtime(mpopendir($fn)))){

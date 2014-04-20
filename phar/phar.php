@@ -1,7 +1,11 @@
 <?
 
+if(!file_exists($f = "mpak.phar")){
+	
+}
+
 try {
-	$p = new Phar($f = "mpak.phar", 0, $f);
+	$p = new Phar($f, 0, $f);
 } catch (UnexpectedValueException $e) {
     die("Could not open {$f}");
 } catch (BadMethodCallException $e) {
@@ -12,43 +16,55 @@ function apr($folder){
 	if(is_dir($folder)){
 		$dir = opendir($folder);
 		while($file = readdir($dir)){
-			if ($file[0] != '.') apr("$folder/$file");
+			if (($file[0] != '.') && ($f = "$folder/$file")){
+				apr($f);
+			}
 		}
 	}else{
-		copy("$folder", "phar://mpak.phar/$folder/$file");
+		if($f = "phar://mpak.phar/$folder"){
+			echo "$f\n";
+			copy("$folder", $f);
+		}
 	}
 }
 
-//copy("tmp/index.php", "phar://tmp/test.phar/index.php");
-//copy("tmp/mpfunc.php", "phar://tmp/test.phar/include/mpfunc.php");
 foreach( $dolders = array(
 	'index.php',
+	'phpinfo.php',
 	'include/func.php',
 	'include/mpfunc.php',
 	'include/install.php',
+	'include/idna_convert.class.inc',
+	'include/jquery/jquery.iframe-post-form.js',
 
 	'img',
 	'modules',
-	'themes/zhiraf',	'themes/wp20',	'themes/reddy', 'themes/grunge',
+	'themes/zhiraf', 'themes/bootstrap3',
 	'include/blocks',
+	'include/jquery/tiny_mce',
 	'include/dhonishow',
-	'include/image-menu-1',
-	'include/jquery',
+//	'include/image-menu-1',
 	'include/jquery-lightbox-0.5',
-	'include/jquery.rte',
-	'include/openid-php-openid-782224d',
-	'include/vkontakte',
+//	'include/jquery.rte',
+//	'include/openid-php-openid-782224d',
+//	'include/vkontakte',
 ) as $k=>$v){
-	echo "\nadded: $v";
+	echo "\nadded: $v\n\n";
 	apr("../$v");
+} if(file_exists($f = "./index.php")){
+	echo "$f\n";
+	copy($f, "phar://mpak.phar/index.php");
 }
 
 
 $p['/config/config.php'] = <<<EOF
 <?
 
-date_default_timezone_set('Europe/Moscow');
-\$conf['fs']['path'] =  substr(dirname(dirname(dirname(__FILE__))), 7). "/:". dirname(dirname(__FILE__));
+//echo date("d.m.Y H:i:s", filemtime(dirname(dirname(__FILE__)))). "<br>";
+
+#date_default_timezone_set('Europe/Moscow');
+\$conf['db']['open_basedir'] = strtr(dirname(dirname(dirname(__FILE__))), array("phar://"=>"")). ":". dirname(dirname(__FILE__)). ":". ini_get("open_basedir");
+#echo \$conf['db']['open_basedir']. "<br>";
 \$conf['db']['conn'] = null;
 \$conf['db']['type'] = 'mysql';
 \$conf['db']['prefix'] = 'mp_';
@@ -57,7 +73,6 @@ date_default_timezone_set('Europe/Moscow');
 \$conf['db']['name'] = 'name';
 \$conf['db']['pass'] = 'pass';
 
-?>
 EOF;
 
 $p->setStub('<?php Phar::mapPhar(); ini_set("include_path", "phar://". __FILE__); include "index.php"; __HALT_COMPILER(); ?>');
@@ -68,5 +83,3 @@ echo "\n\n". $folder;
 while($fn = readdir($dir)){
 	echo "\n". $fn;
 }
-
-?>

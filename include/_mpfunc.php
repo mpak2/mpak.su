@@ -1,5 +1,25 @@
 <?
 
+set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
+    $errortype = array (
+		1   =>  "Ошибка",
+		2   =>  "Предупреждение",
+		4   =>  "Ошибка синтаксического анализа",
+		8   =>  "Замечание",
+		16  =>  "Ошибка ядра",
+		32  =>  "Предупреждение ядра",
+		64  =>  "Ошибка компиляции",
+		128 =>  "Предупреждение компиляции",
+		256 =>  "Ошибка пользователя",
+		512 =>  "Предупреждение пользователя",
+		1024=>  "Замечание пользователя",
+		2048=> "Обратная совместимость",
+	);
+	if(!empty($conf['user']['uname']) && ($conf['user']['uname'] == "mpak")){
+		error_log($_SERVER['HTTP_HOST']. $_SERVER['REQUEST_URI']. " ". $filename.":".$linenum."($errno) $errmsg"/*. print_r($vars, true)*/, 0) or die("Ошибка записи сообщения об ошибке в файл");
+	}
+});
+
 function in($ar, $flip = false){
 	if(gettype($ar) != "array"){
 		$ar = array(0);
@@ -22,7 +42,7 @@ function mpie($url, $decode = false){
 
 function aedit($href, $title = null){
 	global $arg;
-	if($arg['access'] > 3) echo "<div class=\"aedit\" style=\"position:relative; left:-20px; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\"></a></span></div>";
+	if($arg['access'] > 3) echo "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:999; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\"></a></span></div>";
 }
 
 function mptс($time = null, $format = 0){
@@ -251,85 +271,6 @@ function rb($arr, $key = 'id'){
 	} return !empty($field) ? $return[ $field ] : $return;
 }
 
-/*function rb($arr, $key = 'id'){
-	$purpose = $keys = $return = array();
-	foreach(array_slice(func_get_args(), 1) as $a){
-		if(is_numeric($a) || (gettype($a) == "array") || $a == null){
-			$purpose[] = $a;
-		}else{
-			if(!empty($purpose)){
-				$field = $a;
-			}else{
-				$keys[] = $a;
-			}
-		}
-	} foreach($arr as $v){
-		$n = &$return;
-		foreach($keys as $s){
-			if(empty($n[ $v[$s] ])) $n[ $v[$s] ] = array();
-			$n = &$n[ $v[$s] ];
-		} $n = $v;
-	} foreach($purpose as $v){
-		if(is_numeric($v)){
-			$return = (array)$return[ $v ];
-		}else{
-			$r = array();
-			if($v){
-				foreach(array_keys($v) as $k){
-					if(!empty($return[ $k ])){
-						$r += $return[ $k ];
-					}
-				}
-			}else{
-				$r = array();
-			} $return = $r;// mpre($r);
-		}
-	} return !empty($field) ? $return[ $field ] : $return;
-}*/
-
-/*function rb($arr, $key = 'id'){
-	$purpose = $keys = $return = array();
-	foreach(array_slice(func_get_args(), 1) as $a){
-		if(is_numeric($a) || (gettype($a) == "array") || $a == null){
-			$purpose[] = $a;
-		}else{
-			if(!empty($purpose)){
-				$field = $a;
-			}else{
-				$keys[] = $a;
-			}
-		}
-	} if($keys){
-		foreach($arr as $v){
-			$n = &$return;
-			foreach($keys as $s){
-				if(empty($n[ $v[$s] ])){
-					$n[ $v[$s] ] = array();
-				} $n = &$n[ $v[$s] ];
-			} $n = $v;
-		}
-	}else{ $return = $arr; }
-	foreach($purpose as $v){
-		if(is_numeric($v)){
-			$return = (array)$return[ $v ];
-		}else{
-			$r = array();
-			if($v){
-				foreach(array_keys($v) as $k){
-					if(!empty($return[ $k ])){
-						$r += $return[ $k ];
-					}
-				}
-			}else if($v === null){
-				$inc = 0;
-				foreach($return as $k){
-					$r[ $inc++ ] = $k;
-				}
-			} $return = $r;
-		}
-	} return !empty($field) ? $return[ $field ] : $return;
-}*/
-
 function mpde($string) { 
 	static $list = array('utf-8', 'windows-1251');
 	foreach ($list as $item) {
@@ -412,7 +353,7 @@ function mpevent($name, $description = null, $own = null){
 		} $notice = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event_notice WHERE event_id=". (int)$event['id']));
 
 		if((!empty($event['log']) && ($event['log'] > 1)) || $notice){
-			if(!is_numeric($func_get_args[2])){
+			if(!is_numeric($func_get_args[2]) && array_key_exists("pass", $func_get_args[2])){
 				unset($func_get_args[2]['pass']);
 			}
 			foreach($func_get_args as $k=>$v){
@@ -439,10 +380,9 @@ function mpevent($name, $description = null, $own = null){
 
 		if($notice){
 			foreach($notice as $v){
-				if(empty($v['log'])){ # Сохраняем замещаемые значения
+				if(!empty($v['log']) && $v['log']){ # Сохраняем замещаемые значения
 					mpqw($sql = "UPDATE {$conf['db']['prefix']}users_event_notice SET zam=\"". mpquot(var_export($zam, true)). "\" WHERE id=". (int)$v['id']);
-				}
-				if($v['grp_id'] > 0){ # Рассылка на группу
+				} if($v['grp_id'] > 0){ # Рассылка на группу
 					$grp = mpqn(mpqw($sql = "SELECT u.* FROM {$conf['db']['prefix']}users_mem AS m LEFT JOIN {$conf['db']['prefix']}users AS u ON (m.uid=u.id) WHERE 1 AND grp_id=". (int)$v['grp_id']));
 				}else{ # Если рассылка владельцу то он нам уже известен
 					$grp = array($func_get_args[2]['id']=>$func_get_args[2]);
@@ -503,8 +443,9 @@ function mpevent($name, $description = null, $own = null){
 }
 
 function mpidn($value, $enc = 0){
-	require_once(mpopendir('include/idna_convert.class.inc'));
-	$IDN = new idna_convert();
+	if(!class_exists('idna_convert')){
+		require_once(mpopendir('include/idna_convert.class.inc'));
+	} $IDN = new idna_convert();
 	if($enc){
 		return $IDN->encode($value);
 	}else{
@@ -596,11 +537,9 @@ function mpmail($to = '', $subj='Проверка', $text = 'Проверка', 
 		return mpsmtp($to, $subj, $text);
 	} mpevent("Отправка сообщения", $to, $conf['user']['uid'], debug_backtrace());
 	if(empty($to)) return;
-	if(empty($from)) $from = "{$_SERVER['HTTP_HOST']}@mpak.su";
 
 	if($to){
-		$header = "Content-type: text/html; charset=UTF-8;"; //From: \"". mpidn($_SERVER['HTTP_HOST']). "\" <{$from}>; 
-//		'Subject' => '=?UTF-8?B?'.base64_encode($mess['subject']).'?=',
+		$header = "Content-type: text/html; charset=UTF-8;\r\nFrom: {$from}";
 		mail($to, $subj, $text, $header, "-f$from");
 		mpevent($conf['settings']['users_event_mail'], $to, $conf['user']['uid'], $subj, $text);
 		return true;
@@ -659,11 +598,10 @@ function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.p
 
 function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf;
-	$file['tmp_name'] = tempnam("/tmp", "mphid_");
-	if(copy($href, $file['tmp_name'])){
+	if($data = file_get_contents($href)){
 		if (($ext = '.'. preg_replace("/[\W]+.*/", '', preg_replace("/.*?\./", '', $href))) && (array_search($ext, $exts) || isset($exts['*']))){
 			$f = "{$tn}_{$fn}_". (int)($img_id = mpfdk($tn, $w = array("id"=>$id), $w += array("time"=>time()), $w)). $ext;
-			if(($ufn = mpopendir('include/images')) && copy($file['tmp_name'], "$ufn/$f")){
+			if(($ufn = mpopendir('include/images')) && file_put_contents("$ufn/$f", $data) /*&& copy($file['tmp_name'], "$ufn/$f")*/){
 				mpqw($sql = "UPDATE {$tn} SET `". mpquot($fn). "`=\"". mpquot($return = "images/$f"). "\" WHERE id=". (int)$img_id);
 				chown("$ufn/$f", "www-data");
 				mpevent("Загрузка внешнего файла", $href, (!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0), func_get_args());
@@ -750,36 +688,20 @@ function mpager($count, $null=null, $cur=null, $url=null){
 		$url = strtr($url, array("/null"=>"", "&null"=>"", "?null"=>""));
 	}
 	if(2 > $count = ceil($count)) return;
+	$return .= "<script>$(function(){ $(\".pager\").find(\"a[href='". urldecode($_SERVER['REQUEST_URI']). "']\").addClass(\"active\").css(\"font-weight\", \"bold\"); })</script>";
 	$return .=  "<div class=\"pager\">";
-	if($cur <= 0){
-		$return .= "<span>&#8592; назад</span>";
-		$mpager['prev'] = 'javascript:';
-	}else{
 		$return .= "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>";
-//		$mpager['prev'] = $url. ($cur > 1 ? "/{$p}:".($cur-1) : '');
 		$mpager['prev'] = $url. ($cur > 1 ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur-1) : "/{$p}:".($cur-1)) : '');
-	};
-	for($i = max(0, min($cur-5, $count-10)); $i < min($count, max($cur+5, 10)); $i++){
-		if($i == $cur){
-			$mpager[ ($i+1) ] = 'javascript:';
-			$return .= "&nbsp;<span>".($i+1)."</span>";
-		}else{
-			$mpager[ $i+1 ] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : "/{$p}:$i") : '');
-			$return .=  '&nbsp;'. ("<a href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : "/{$p}:$i") : '')."\">".($i+1)."</a>");
-		}
+	for($i = max(0, min($cur-5, $count-10)); $i < ($max = min($count, max($cur+5, 10))); $i++){
+		$mpager[ $i+1 ] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:$i") : '');
+		$return .=  '&nbsp;'. ("<a href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:$i") : ''). "\">".($i+1)."</a>");
 	}
 	$return .=  '&nbsp;';
-	if($cur+1 >= $count){
-		$return .=  "<span>вперед &#8594;</span>";
-		$mpager['next'] = 'javascript:';
-	}else{
-		$return .=  "<a rel=\"next\" href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : "/{$p}:".($cur+1)) : '')."\">вперед &#8594;</a>";
-		$mpager['next'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : "/{$p}:".($cur+1)) : '');
-	}// mpre($mpager);
+	$return .=  "<a rel=\"next\" href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : "/{$p}:".($cur+1)) : '')."\">вперед &#8594;</a>";
+	$mpager['next'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". min($max-1, $cur+1)) : '');
 	$return .= "</div>";
 	if($fn = mpopendir("themes/{$conf['settings']['theme']}/mpager.tpl")){
 		ob_start();
-//		mp_require_once($fn);
 		include($fn);
 		$return = ob_get_contents();
 		ob_end_clean();
@@ -801,7 +723,7 @@ function mpget($name, $value = null){
 
 function mpct($file_name, $arg = array(), $vr = 1){
 	global $conf, $tpl;
-	foreach(explode(':', $conf['fs']['path'], 2) as $k=>$v)
+	foreach(explode(':', $conf["db"]["open_basedir"]) as $k=>$v)
 		if (file_exists($file = "$v/$file_name")) break;
 	if (!file_exists($file = "$v/$file_name")) return false;
 	$func_name = create_function('$arg', "global \$conf, \$tpl;\n". strtr(file_get_contents($file), $vr ? array('<? die;'=>'', '?>'=>'') : array()));
@@ -812,7 +734,7 @@ function mpct($file_name, $arg = array(), $vr = 1){
 
 function mpeval($file_name, $arg = array(), $vr = 1){
 	global $conf;
-	foreach(explode(':', $conf['fs']['path'], 2) as $k=>$v)
+	foreach(explode(':', $conf["db"]["open_basedir"]) as $k=>$v)
 		if (file_exists($file = "$v/$file_name")) break;
 	if (!file_exists($file = "$v/$file_name")) return "<div style=\"margin-top:100px; text-align:center;\"><span style=color:red;>Ошибка доступа к файлу</span> $v/$file_name</div>";
 
@@ -826,7 +748,7 @@ function mpeval($file_name, $arg = array(), $vr = 1){
 function mpreaddir($file_name, $merge=0){
 	global $conf;
 	$itog = array();
-	$prefix = $merge ? explode(':', $conf['fs']['path'], 2) : array('./');
+	$prefix = $merge ? explode(':', $conf["db"]["open_basedir"]) : array('./');
 	if ($merge < 0) krsort($prefix);
 	foreach($prefix as $k=>$v){
 		if (!is_dir("$v/$file_name")) continue;
@@ -843,7 +765,7 @@ function mpreaddir($file_name, $merge=0){
 
 function mpopendir($file_name, $merge=1){
 	global $conf;
-	$prefix = $merge ? explode(':', $conf['fs']['path'], 2) : array('./');
+	$prefix = $merge ? explode(':', $conf["db"]["open_basedir"]) : array('./');
 	if ($merge < 0) krsort($prefix);
 	foreach($prefix as $k=>$v){
 		$file = strtr("$v/$file_name", array('/modules/..'=>''));
@@ -1290,7 +1212,7 @@ function mpfile($filename, $description = null){
 		header("Content-Length: ".filesize("$file_name"));
 		header("Content-Disposition: attachment; filename=\"".($description ? "$description". (substr($description, strlen($ext)*-1) == $ext ? "" : ".". $ext) : basename($file_name))."\"");
 		header("Expires: ".date('r'));
-		header("Cache-Control: max-age=3600");
+		header('Cache-Control: max-age=28800');
 //		header("Cache-Control: max-age=3600, must-revalidate");
 //		header("Pragma: no-cache");
 //		readfile($file_name); exit;
@@ -1472,20 +1394,25 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 	$host_name = strpos('www.', $_SERVER['SERVER_NAME']) === 0 ? substr($_SERVER['SERVER_NAME'], 4) : $_SERVER['SERVER_NAME'];
 	$fl_name = (int)$max_width. "x". (int)$max_height. "x". (int)$crop. "_" .basename($file_name);
 	$prx = basename(dirname($file_name));
-
-//	header("Pragma: public");
-//	header("Cache-Control: maxage=". ($expires = 60*60*24));
-//	header('Expires: ' . gmdate('D, d M Y H:i:s', time()+$expires) . ' GMT');
-
-	if (!array_key_exists('nologo', $_GET) && file_exists("$cache_name/$host_name/$prx/$fl_name") && (filectime("$cache_name/$host_name/$prx/$fl_name") > (file_exists($file_name) && ($filectime = filectime($file_name))))){ // 
-	
-		if(!function_exists("mpmc") || !($mc = mpmc($key = "{$_SERVER['HTTP_HOST']}/{$fl_name}/filectime:". (!empty($filectime) ? $filectime : ""). "/{$conf['event']['Формирование изображения']['count']}", null, false, 0, false))){
-			$mc = file_get_contents("$cache_name/$host_name/$prx/$fl_name");
-			if(function_exists("mpmc")){
-				mpmc($key, $mc, false, 86400, false);
-			}
-		} /*echo $key;*/ return $mc;
-	}elseif ($src = @imagecreatefromstring(file_get_contents($file_name))){
+		header('Cache-Control: max-age=28800');
+	if(!array_key_exists('nologo', $_GET) && file_exists("$cache_name/$host_name/$prx/$fl_name") && (($filectime = filectime("$cache_name/$host_name/$prx/$fl_name")) > ($sfilectime = filectime($file_name)))){
+		if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $filectime) && ($filectime >= $sfilectime)){
+			header('HTTP/1.0 304 Not Modified');
+		}else{
+			echo file_get_contents("$cache_name/$host_name/$prx/$fl_name");
+		} header('Last-Modified: '. date("r", $filectime));
+//			header('HTTP/1.0 304 Not Modified');
+//		}else{
+//			if(!function_exists("mpmc") || !($mc = mpmc($key = "{$_SERVER['HTTP_HOST']}/{$fl_name}/filectime:". (!empty($filectime) ? $filectime : ""). "/{$conf['event']['Формирование изображения']['count']}", null, false, 0, false))){
+//				$mc = file_get_contents("$cache_name/$host_name/$prx/$fl_name");
+//				if(function_exists("mpmc")){
+//					mpmc($key, $mc, false, 86400, false);
+//				}
+//			} /*echo $key;*/ return $mc;
+//		}
+	}else if($src = imagecreatefromstring(file_get_contents($file_name))){
+		header("Expires: ".gmdate("D, d M Y H:i:s", time() + 3600)." GMT");
+		header('Cache-Control: public,max-age=28800');
 		$width = imagesx($src);
 		$height = imagesy($src);
 		if(empty($max_width) || empty($max_height) || (($width <= $max_width) && ($height <= $max_height))){
@@ -1530,12 +1457,8 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 				imagecopyresampled($dst, $logo, ($w < 0 ? imagesx($dst)-imagesx($logo)+$w : $w), ($h < 0 ? imagesy($dst)-imagesy($logo)+$h : $h), 0, 0, imagesx($logo), imagesy($logo), imagesx($logo), imagesy($logo));
 			}
 			ob_start();
-//			if (!empty($rext) && $rext){
-//				$func[$rext]($dst, null, -1);
-//			}else{
 				$func[ strtolower(array_pop(explode('.', $file_name))) ]($dst, null, -1);
-//			}
-			$content = ob_get_contents();
+				$content = ob_get_contents();
 			ob_end_clean();
 			ImageDestroy($src);
 			ImageDestroy($dst);
@@ -1549,7 +1472,7 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 			if($host_name != $IDN->decode($host_name) && !file_exists("$cache_name/". $IDN->decode($host_name))){
 				symlink("$cache_name/$host_name", "$cache_name/". $IDN->decode($host_name));
 			}
-		} file_put_contents("$cache_name/$host_name/$prx/$fl_name", $content);
+		}/* mpre("$cache_name/$host_name/$prx/$fl_name");*/ file_put_contents("$cache_name/$host_name/$prx/$fl_name", $content);
 		if(function_exists("mpevent")){
 			mpevent("Формирование изображения", $fl_name, $conf['user']['uid']);
 		} return $content;
@@ -1559,6 +1482,7 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 		$tc = imagecolorallocate ($src, 0, 0, 0);
 		imagefilledrectangle ($src, 0, 0, 150, 30, $bgc);
 		header("Content-type: image/jpeg");
+		header('Last-Modified: '. date("r"));
 		mpevent("Ошибка открытия изображения", $file_name, $conf['user']['uid']);
 		imagestring ($src, 1, 5, 30, "HeTKapmuHku", $tc);
 		return ImageJpeg($src);
@@ -1592,5 +1516,3 @@ if(!function_exists("array_column")){
 		} return $result;
 	}
 }
-
-?>
