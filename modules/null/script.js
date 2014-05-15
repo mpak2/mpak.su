@@ -1,19 +1,13 @@
 $(".index").on("ajax", function(e, ajax){
 	$.each(ajax, function(url, post){
-		$.ajax({url:url, data:post, dataType:"text", async:false,
-			success:function(data){
-//				$(e.delegateTarget).data("ajax", data);
-			}
+		$.ajax({url:url, type:"POST", data:post, dataType:"text", async:false,
+			success:function(data){ /*$(e.delegateTarget).data("ajax", data);*/ }
 		}).done(function(data){
 			if(isNaN(data)){
 				$(e.delegateTarget).data("ajax", 0);
 				alert(data);
-			}else{
-				$(e.delegateTarget).data("ajax", data);
-			}
-		}).fail(function(data){
-			alert(data.responseText);
-		});
+			}else{ $(e.delegateTarget).data("ajax", data); }
+		}).fail(function(data){ alert(data.responseText); });
 	});
 }).on("json", function(e, json){
 	$.each(json, function(url, post){

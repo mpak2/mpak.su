@@ -723,10 +723,10 @@ function mpget($name, $value = null){
 
 function mpct($file_name, $arg = array(), $vr = 1){
 	global $conf, $tpl;
-	foreach(explode(':', $conf["db"]["open_basedir"]) as $k=>$v)
+	foreach(explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) as $k=>$v)
 		if (file_exists($file = "$v/$file_name")) break;
 	if (!file_exists($file = "$v/$file_name")) return false;
-	$func_name = create_function('$arg', "global \$conf, \$tpl;\n". strtr(file_get_contents($file), $vr ? array('<? die;'=>'', '?>'=>'') : array()));
+	$func_name = create_function('$arg', "global \$conf, \$tpl;\n". strtr(file_get_contents($file), $vr ? array('<? die;'=>'', '<?'=>'', '?>'=>'') : array()));
 	ob_start(); $func_name($arg);
 	$content = ob_get_contents(); ob_end_clean();
 	return $content;
@@ -734,7 +734,7 @@ function mpct($file_name, $arg = array(), $vr = 1){
 
 function mpeval($file_name, $arg = array(), $vr = 1){
 	global $conf;
-	foreach(explode(':', $conf["db"]["open_basedir"]) as $k=>$v)
+	foreach(explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) as $k=>$v)
 		if (file_exists($file = "$v/$file_name")) break;
 	if (!file_exists($file = "$v/$file_name")) return "<div style=\"margin-top:100px; text-align:center;\"><span style=color:red;>Ошибка доступа к файлу</span> $v/$file_name</div>";
 
@@ -748,7 +748,7 @@ function mpeval($file_name, $arg = array(), $vr = 1){
 function mpreaddir($file_name, $merge=0){
 	global $conf;
 	$itog = array();
-	$prefix = $merge ? explode(':', $conf["db"]["open_basedir"]) : array('./');
+	$prefix = $merge ? explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) : array('./');
 	if ($merge < 0) krsort($prefix);
 	foreach($prefix as $k=>$v){
 		if (!is_dir("$v/$file_name")) continue;
@@ -765,7 +765,7 @@ function mpreaddir($file_name, $merge=0){
 
 function mpopendir($file_name, $merge=1){
 	global $conf;
-	$prefix = $merge ? explode(':', $conf["db"]["open_basedir"]) : array('./');
+	$prefix = $merge ? explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) : array('./');
 	if ($merge < 0) krsort($prefix);
 	foreach($prefix as $k=>$v){
 		$file = strtr("$v/$file_name", array('/modules/..'=>''));
@@ -1361,7 +1361,7 @@ function mpquot($text){
 	return $text;
 }
 
-function mpuf($name, $table, $field, $id, $ext){
+/*function mpuf($name, $table, $field, $id, $ext){
 	if ($_FILES[$name]){
 		if ($ext = $ext[ $_FILES[$name]['type'] ]){
 			$fname = "images/{$table}_{$field}_{$id}.$ext";
@@ -1379,7 +1379,7 @@ function mpuf($name, $table, $field, $id, $ext){
 		echo "3";
 		return false;
 	}
-}
+}*/
 
 function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 	global $conf;

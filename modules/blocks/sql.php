@@ -28,7 +28,7 @@ $spt = <<<EOF
 EOF;
 
 $menu = array(
-	array('id'=>'11', 'theme'=>'!zhiraf', 'file'=>'admin/blocks/host.php', 'name'=>'Оплата хостинга', 'access'=>'-1', 'rid'=>'1', 'enabled'=>'1',),
+//	array('id'=>'11', 'theme'=>'!zhiraf', 'file'=>'admin/blocks/host.php', 'name'=>'Оплата хостинга', 'access'=>'-1', 'rid'=>'1', 'enabled'=>'1',),
 
 	array('id'=>'1', 'theme'=>'!zhiraf', 'file'=>'../include/blocks/login.php', 'name'=>'Авторизация', 'access'=>'1', 'rid'=>'1', 'enabled'=>'1', ),
 	array('id'=>'2', 'theme'=>'!zhiraf', 'file'=>'menu/blocks/mnu.php', 'name'=>'Верхнее меню', 'shablon'=>'2', 'access'=>'1', 'rid'=>'3', 'param'=>'a:2:{s:4:"menu";s:1:"2";s:3:"tpl";s:7:"top.tpl";}', 'enabled'=>'1', ),

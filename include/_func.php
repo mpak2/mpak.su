@@ -145,6 +145,8 @@ function stable($table){
 					$_POST[$k] = mktime ($t[0], $t[1], $t[2], $d[1], $d[2], $d[0]);
 				}elseif($table['type'][$k] == 'sort'){
 					$_POST[$k] = mpql(mpqw("SELECT MAX($k) + 1 as max FROM {$table['name']}"), 0, 'max');
+				}elseif($table['type'][$k] == 'password'){
+					$_POST[$k] = mpql(mpqw("SELECT PASSWORD('". mpquot($_POST[$k]). "') AS password"), 0, 'password');
 				}
 				if (isset($table['set'][$k])){ # Если есть $table['set'][$k] значение для записи
 					$fields .= "`$k`, "; $value .= "'{$table['set'][$k]}', ";
@@ -318,7 +320,9 @@ mpre($_GET); exit;
 			foreach($table['title'] ? $table['title'] : $table['_fields'] as $k=>$v){
 				if (!isset($hidden[$k])){
 					echo  strlen($table['top']['td']) ? $table['top']['td'] : "<th".($table['type'][$k] == 'file' ? ' style="min-width:200px;"' : '') .">";
-					if (isset($table['top']['result'])){ # Подстановка значений в результат
+					if(!empty($conf['settings'][substr($table['name'], strlen("{$conf['db']['prefix']}")). ":{$k}"])){
+						echo $conf['settings'][ substr($table['name'], strlen("{$conf['db']['prefix']}")). ":{$k}" ];
+					}else if(isset($table['top']['result'])){ # Подстановка значений в результат
 						echo str_replace("{result}", $table['title'][$k], $table['top']['result']);
 					}else{ # Вывод содержимого в случае отсутствия результата заголовка
 						echo "<a href='{$table['url']}".((int)$_GET['p'] ? "&p={$_GET['p']}" : '')."{$table['_url']}&order=$k".($_GET['order'] == $k ? '%20DESC' : '')."'>{$v}</a>";
@@ -486,7 +490,7 @@ mpre($_GET); exit;
 			foreach($title ?: $table['_fields'] as $k=>$v){
 				if ($k == 'id') $sid = $v['id'];
 				if (!isset($hidden[$k])){
-					echo  strlen($table['bottom']['td']) ? $table['bottom']['td'] : ($table['edit'] == 'list' && $edit ? "<tr><td style=\"width: 15%; text-align:right;\" title=\"{$k}\">".($title[$k] ? $title[$k] : $k)."</td>" : '')."<td>";
+					echo  strlen($table['bottom']['td']) ? $table['bottom']['td'] : ($table['edit'] == 'list' && $edit ? "<tr><td style=\"width:15%; text-align:right;\" title=\"{$k}\">".(!empty($conf['settings'][substr($table['name'], strlen("{$conf['db']['prefix']}")). ":{$k}"]) ? $conf['settings'][substr($table['name'], strlen("{$conf['db']['prefix']}")). ":{$k}"] : ($title[$k] ? $title[$k] : $k))."</td>" : '')."<td>";
 
 					if (gettype($table['spisok'][$k][(int)$_GET['edit']]) == 'array'){ # Для каждого id свой список
 						echo "<select name='$k' style='width:100%'".($disable[$k] || $table['set'][$k] ? ' disabled' : '').">";

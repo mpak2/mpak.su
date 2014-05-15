@@ -1,13 +1,11 @@
 <?
 
-if(!file_exists($f = "mpak.phar")){
-	
-}
+setlocale(LC_CTYPE, 'ru_RU.utf-8'); 
 
 try {
-	$p = new Phar($f, 0, $f);
+	$p = new Phar($phar = "mpak.phar", 0, $phar);
 } catch (UnexpectedValueException $e) {
-    die("Could not open {$f}");
+    die("Could not open {$phar}");
 } catch (BadMethodCallException $e) {
     echo 'technically, this cannot happen';
 }
@@ -21,8 +19,9 @@ function apr($folder){
 			}
 		}
 	}else{
-		if($f = "phar://mpak.phar/$folder"){
-			echo "$f\n";
+		if($f = "phar://mpak.phar/". preg_replace("#(\..*+\.)#i",'.',$folder)){
+
+			echo "copy(\"$folder\", \"$f\")\n";
 			copy("$folder", $f);
 		}
 	}

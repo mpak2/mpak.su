@@ -543,10 +543,13 @@ h2
 			color:#000;
 			font-weight:normal;
 		}
-	.MainTable th
-	{
+	.MainTable th{
 		padding:0 12px;
+		position:relative;
 	}
+	.MainTable th > span.info {display:inline-block; width:15px; height:15px; float:right; background-image:url(i/info.png); position:absolute; right:5px; top:5px;}
+	.MainTable th > span.info > div {display:none; background-color:#fff8e3; /*background-image:url(i/gradients.gif);*/ min-width:80px; position:absolute; right:5px; top:5px; border-radius:5px; line-height:14px; border:1px solid gray;}
+	.MainTable th > span.info:hover > div {display:block; padding:5px;}
 	.MainTable td
 	{
 		padding:7px 12px;

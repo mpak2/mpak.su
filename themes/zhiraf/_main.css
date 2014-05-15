@@ -172,6 +172,8 @@ input[type="submit"]
 .button
 {
 /*	padding:0 0 0 15px;*/
+	border: 1px solid gray;
+	background-color: #fe8e23;
 	background-position:0 -111px;
 	float:left;
 	margin:0 10px 0 0;
@@ -233,7 +235,6 @@ input[type="submit"]
 			{
 				margin:0 0 0 222px;
 				padding:0 1px;
-				content:'&nbsp;';
 			}
 				#content .cont
 				{

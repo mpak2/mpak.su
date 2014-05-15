@@ -32,12 +32,16 @@ function stable($table){
 	}
 
 	# Создаем массив в $tables с описанием полей
-	$sql = "SHOW COLUMNS FROM {$table['name']}";
+
+	$table['_fields'] = array_column($table['full_fields'] = qn("SHOW FULL COLUMNS FROM {$table['name']}", "Field"), "Field", "Field");
+
+/*	$sql = "SHOW FULL COLUMNS FROM {$table['name']}";
 	if ($table['debug']) mpre($sql);
 	$result = mpqw($sql);
 	while($line = mysql_fetch_array($result, 1)){
 		$table['_fields'][$line['Field']] = $line['Field'];
-	} //mpre($table['_fields']);
+	} mpre($table['_fields']);*/
+
 	foreach($table['_fields'] as $k=>$v){ # Отображаем возле названия поля язык
 		$ar = explode("_", $k);
 		$num = array_pop($ar);
@@ -320,7 +324,9 @@ mpre($_GET); exit;
 			foreach($table['title'] ? $table['title'] : $table['_fields'] as $k=>$v){
 				if (!isset($hidden[$k])){
 					echo  strlen($table['top']['td']) ? $table['top']['td'] : "<th".($table['type'][$k] == 'file' ? ' style="min-width:200px;"' : '') .">";
-					if(!empty($conf['settings'][substr($table['name'], strlen("{$conf['db']['prefix']}")). ":{$k}"])){
+					if($table['full_fields'][ $k ]['Comment']){
+						echo "<span class='info'><div>{$table['full_fields'][ $k ]['Comment']}</div></span>";
+					} if(!empty($conf['settings'][substr($table['name'], strlen("{$conf['db']['prefix']}")). ":{$k}"])){
 						echo $conf['settings'][ substr($table['name'], strlen("{$conf['db']['prefix']}")). ":{$k}" ];
 					}else if(isset($table['top']['result'])){ # Подстановка значений в результат
 						echo str_replace("{result}", $table['title'][$k], $table['top']['result']);
