@@ -1,6 +1,8 @@
 <? die;
 
 if(!empty($_REQUEST['class']) && $class = explode(" ", $_REQUEST['class'])){ # klesh запросы
+// $f = function() use($arg, $conf){}; $arg['access'] = $f();
+
 	if($arg['access'] > 1){
 		mpevent("Аякс запрос /{$arg['modpath']}:{$class[0]}", $conf['user']['uid'], $_REQUEST);
 		if($class[1] == "debug"){
@@ -12,8 +14,8 @@ if(!empty($_REQUEST['class']) && $class = explode(" ", $_REQUEST['class'])){ # k
 		}else if(!array_key_exists("id", $_REQUEST)){
 			if($arg['access'] <= 3){ # Права доступа ниже модератора проверяем поле юзера
 				$fileds = qn("SHOW COLUMNS FROM `{$conf['db']['prefix']}{$arg['modpath']}_{$class[0]}`", "Field");
-				if(!array_key_exists("uid", $fileds)){ exit("Прав доступа не достаточно для добавления"); }
-			} $class_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_{$class[0]}", null, $_REQUEST);
+				if(!array_key_exists("uid", $fileds)){ exit("В таблице не предусмотрено добавление от имени пользователя"); }
+			}; $class_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_{$class[0]}", null, array_intersect_key($_REQUEST, $fileds));
 			if($_FILES) foreach($_FILES as $f=>$v){
 				$file_id = mpfid("{$conf['db']['prefix']}{$arg['modpath']}_{$class[0]}", $f, $class_id);
 			} die((string)$class_id);

@@ -44,7 +44,7 @@ if(!empty($conf['settings'][ $s = $arg['modpath']. "=>spisok" ]) && ($fn = explo
 			(($t = array_shift(explode("_", $v))). $fn = "_". implode("_", array_slice(explode("_", $v), 1))) => array('*'=>array("")+spisok("SELECT id, CONCAT('<a href=\"/?m[{$t}]=admin&r={$conf['db']['prefix']}{$t}{$fn}&where[id]=', id, '\">', CONCAT('<span style=color:blue;>', id, '</span>'), '</a>&nbsp;', CONVERT(`name` USING UTF8)) AS name, name AS orderby FROM {$conf['db']['prefix']}{$t}{$fn} ORDER BY orderby")),
 		);
 		if($conf['settings'][ $v ]){
-			$etitle[ $v ] = $conf['settings'][ $v ];
+			$etitle[ $v ] = "~". $conf['settings'][ $v ];
 		}else if(implode("_", array_slice(explode("_", $v), 1)) == "index"){
 			$etitle[ $v ] = $conf['modules'][ array_shift(explode("_", $v)) ]["name"];
 		}
@@ -56,7 +56,7 @@ if(!empty($conf['settings'][ $s = $arg['modpath']. "=>spisok" ]) && ($fn = explo
 			(($t = array_shift(explode("_", $v))). ($fn = "_". implode("_", array_slice(explode("_", $v), 1))). ($prx = ''))=>array('*'=>"<a href=/?m[{$t}]=admin&r={$conf['db']['prefix']}{$t}{$fn}&where[". substr($_GET['r'], strlen("{$conf['db']['prefix']}")). "]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$t}]=admin&r={$conf['db']['prefix']}{$t}{$fn}&where[". substr($_GET['r'], strlen("{$conf['db']['prefix']}")). "]=', r.id, '>', COUNT(*), '_". ($conf['settings']["{$t}{$fn}"] ?: $fn). "</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$t}{$fn} AS fn WHERE r.id=fn.". ($t ? $arg['modpath']. "_" : ""). substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). ($t ? "" : "_id")." GROUP BY r.id"),
 		);
 		if($conf['settings'][ $v ]){
-			$etitle[ $v ] = $conf['settings'][ $v ];
+			$etitle[ $v ] = "~". $conf['settings'][ $v ];
 		}else if(implode("_", array_slice(explode("_", $v), 1)) == "index"){
 			$etitle[ $v ] = $conf['modules'][ array_shift(explode("_", $v)) ]["name"];
 		}

@@ -12,5 +12,3 @@ if($_GET['tn']){
 	$file_name = mpopendir("modules/{$arg['modpath']}/img/". basename($_GET['']));
 } header ("Content-type: image/". array_pop(explode('.', $file_name)));
 echo mprs($file_name, $_GET['w'], $_GET['h'], $_GET['c']);
-
-?>

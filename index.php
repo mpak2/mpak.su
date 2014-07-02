@@ -25,6 +25,7 @@ if(!function_exists('mp_require_once')){
 }
 require_once("config/config.php"); # Конфигурация
 mp_require_once("config/config.php"); # Конфигурация
+mp_require_once("include/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
 
 $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI'], $_GET);
@@ -53,7 +54,7 @@ if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count
 	exit(mpopendir('include/install.php') ? mpct('include/install.php') : "Файл установки не найден");
 }
 
-if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) && array_key_exists('null', $_GET)){
+if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) && array_key_exists('null', $_GET) && empty($_GET['w']) && empty($_GET['h'])){
 	if(empty($_GET['theme'])){
 		$_GET['theme'] = mpql(mpqw("SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"theme\""), 0, 'value');
 	} $ex = array('png'=>'image/png', 'jpg'=>'image/jpg', 'gif'=>'image/gif', 'otf'=>'font/opentype', 'css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', 'woff'=>'application/x-font-woff', 'svg'=>'image/svg+xml', 'tpl'=>'text/html', 'ogg'=>'application/ogg', 'mp3'=>'application/mp3');
@@ -162,9 +163,14 @@ foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE enabled = 
 if(!array_key_exists("null", $_GET) && $conf['modules']['seo']){
 	if($_GET['p']){
 		$r = strtr($_SERVER['REQUEST_URI'], array("?p={$_GET['p']}"=>"", "&p={$_GET['p']}"=>"", "/p:{$_GET['p']}"=>""));
-	}else{ $r = $_SERVER['REQUEST_URI']; }// exit($r);
+	}else{ $r = $_SERVER['REQUEST_URI']; }
 	if($redirect = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}seo_redirect WHERE `from`=\"". $r. "\""), 0)){
 		$_GET = mpgt($redirect['to'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"));
+		$conf['settings']['canonical'] = $r;
+	}elseif($conf['settings']['start_mod'] == $_SERVER['REQUEST_URI']){ # Заглавная страница
+		$conf['settings']['canonical'] = "/";
+	}else{ # Ссылка на основную страницу
+		$conf['settings']['canonical'] = $_SERVER['REQUEST_URI'];
 	}
 }
 

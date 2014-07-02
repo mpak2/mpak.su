@@ -98,7 +98,7 @@ function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $hea
 
 function ql($sql, $ln = null, $fd = null){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата
 	$microtime = microtime(true);
-	if(!($r = mpmc($key = "ql:". md5($sql))) && (gettype($r) == "boolean")){
+	if(!($r = mpmc($key = "ql:". md5($sql))) /*&& (gettype($r) == "boolean")*/){
 		$r = mpql(mpqw($sql), $ln, $fd);
 		if(($mt = (microtime(true) - $microtime)) > .3){
 			mpevent("Кеширование списка", $sql);
@@ -109,7 +109,7 @@ function ql($sql, $ln = null, $fd = null){ # Выполнение запроса
 
 function qn($sql){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата
 	$microtime = microtime(true);
-	if(!($r = mpmc($key = "qn:". md5($sql))) && (gettype($r) == "boolean")){
+	if(!($r = mpmc($key = "qn:". md5($sql))) /*&& (gettype($r) == "boolean")*/){
 		$func_get_args = func_get_args();
 		$func_get_args[0] = mpqw($sql);
 		$r = call_user_func_array('mpqn', $func_get_args);
@@ -300,9 +300,9 @@ function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
 		}
 	}elseif($insert){
 		mpqw($sql = "INSERT INTO `". mpquot($tn). "` SET ". mpdbf($tn, $insert+array("time"=>time(), "uid"=>(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0))));
-		return $sel['id'] = mysql_insert_id();
-	}else{
-//		mpre($find);
+		if(mysql_error()){ mpre(mysql_error()); }else{
+			return $sel['id'] = mysql_insert_id();
+		}
 	}
 }
 
@@ -390,7 +390,7 @@ function mpevent($name, $description = null, $own = null){
 					mpqw($sql = "UPDATE {$conf['db']['prefix']}users_event_notice SET count=count+1 WHERE id=". (int)$v['id']);
 					$name = strtr(($v['name'] ? $v['name'] : $event['name']), $zam);
 					require_once(mpopendir('include/idna_convert.class.inc')); $IDN = new idna_convert();
-					$text = (strip_tags($v['text']) ? strtr(strip_tags($v['text']), $zam) : $event['name']);
+					$text = (strip_tags($v['text']) ? strtr($v['text'], $zam) : $event['name']);
 					switch($v['type']){
 						case "email":# Сообщение на электронную почту
 							if(preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $m['email'])){
@@ -400,6 +400,8 @@ function mpevent($name, $description = null, $own = null){
 								}
 							}
 						break;
+//						case "sms.ru":
+//						break;
 						case "smtp":# Сообщение по smtp протоколу
 							if(preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $m['email'])){
 								$response = mpsmtp($m['email'], $name, $text, $v['login']);
@@ -536,15 +538,11 @@ function mpmail($to = '', $subj='Проверка', $text = 'Проверка', 
 	if($conf['settings']['smtp']){
 		return mpsmtp($to, $subj, $text);
 	} mpevent("Отправка сообщения", $to, $conf['user']['uid'], debug_backtrace());
-	if(empty($to)) return;
-
-	if($to){
-		$header = "Content-type: text/html; charset=UTF-8;\r\nFrom: {$from}";
-		mail($to, $subj, $text, $header, "-f$from");
+	if(empty($to)){ return false; }else{
+		$header = "Content-type:text/html; charset=UTF-8;". ($from ? " From: {$from};" : "");
+		mail($to, $subj, $text, $header/*, ($from ? "-f$from" : null)*/);
 		mpevent($conf['settings']['users_event_mail'], $to, $conf['user']['uid'], $subj, $text);
 		return true;
-	}else{
-		return false;
 	}
 }
 

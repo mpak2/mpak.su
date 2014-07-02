@@ -26,7 +26,7 @@ $files_array = array(
 );
 
 # Устанавливаем права доступа к папке с файлами
-if (!file_exists($cf = array_shift(explode(':', ini_get("open_basedir"))). '/config/config.php') || !is_writable(mpopendir("include/images")) || !empty($conf['db']['error'])){
+if (!file_exists($cf = array_shift(explode(':', $conf['db']["open_basedir"])). '/config/config.php') || !is_writable(mpopendir("include/images")) || !empty($conf['db']['error'])){
 	echo "<table border=0 width=100% height=100%><tr><td align=center>";
 	echo "Создание необходимых файлов и установка прав доступа:<p>";
 	echo "<table cellspacing=0 cellpadding=3 border=0>";
