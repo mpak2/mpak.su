@@ -23,7 +23,7 @@ if(!function_exists('mp_require_once')){
 		}
 	}
 }
-require_once("config/config.php"); # Конфигурация
+require_once("include/config.php"); # Конфигурация
 mp_require_once("config/config.php"); # Конфигурация
 mp_require_once("include/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
