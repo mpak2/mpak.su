@@ -212,18 +212,19 @@ if (!function_exists('bcont')){
 			if($r["term"] == 0){ # Условия выключены
 				$reg[ $r['id'] ] = $r;
 			}else{
-				$br = array_shift($brm = rb($blocks_reg_modules, "reg_id", "id", $r['id']));
-				if($br['name']){ # Если стоит страница
+				$brm = rb($blocks_reg_modules, "reg_id", "id", $r['id']);
+				if(max(array_column($brm, 'name'))){ # Если стоит страница
 					$br = array_shift($brm = rb($brm, "name", "id", array_flip($md)));
-				} if($br['modules_index']){
-					$br = array_shift($brm = rb($brm, "modules_index", "id", rb($conf['modules'], "folder", "id", $md)));
-				} if($br['theme']){ # Условие на тему
-					$br = array_shift($brm = rb($brm, "theme", "id", array_flip(array($conf['settings']['theme']))));
-				} if($br['uri']){ # Адрес страницы в системе. Всегда не главная. (может быть не равен $_SERVER['REDIRECT_URL'])
-					$br = array_shift($brm = rb($brm, "uri", "id", array_flip(array($_SERVER['REQUEST_URI']))));
-				} if($br['url']){ # Адрес страницы из адресной строки браузера работает если нужно поставил условием главную страницу
-					$br = array_shift($brm = rb($brm, "url", "id", array_flip(array($_SERVER['REDIRECT_URL']))));
+				} if(max(array_column($brm, 'modules_index'))){
+					$brm = rb($brm, "modules_index", "id", array("all")+rb($conf['modules'], "folder", "id", $md));
+				} if(max(array_column($brm, 'theme'))){ # Условие на тему
+					$brm = rb($brm, "theme", "id", array_flip(array("", $conf['settings']['theme'])));
+				} if(max(array_column($brm, 'uri'))){ # Адрес страницы в системе. Всегда не главная. (может быть не равен $_SERVER['REDIRECT_URL'])
+					$brm = rb($brm, "uri", "id", array_flip(array("", $_SERVER['REQUEST_URI'])));
+				} if(max(array_column($brm, 'url'))){ # Адрес страницы из адресной строки браузера работает если нужно поставил условием главную страницу
+					$brm = rb($brm, "url", "id", array_flip(array("", $_SERVER['REDIRECT_URL'])));
 				}// mpre(array_flip($md)); mpre($br);
+
 				if(!empty($brm) && ($r["term"] > 0)){ # Условие только
 					$reg[ $r['id'] ] = $r;
 				}elseif(empty($brm) && ($r["term"] < 0)){ # Исключающее условие
