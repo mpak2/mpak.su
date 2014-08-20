@@ -35,7 +35,9 @@ if(!empty($conf['settings'][ $s = $arg['modpath']. "=>spisok" ]) && ($fn = explo
 }else if(!empty($conf['settings'][$s = "{$arg['modpath']}_tpl_exceptions"]) && ($exceptions = explode(",", $conf['settings'][ $s ]))){
 	foreach($m as $table=>$v){
 		$f = substr($table, strlen("{$conf['db']['prefix']}{$arg['modpath']}_"), strlen($_GET['r']));
+		if(array_search($f, $exceptions) === false){
 			$spisok += array("{$f}_id" => array("*"=>array("")+spisok("SELECT id, CONCAT('<a href=\"/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_{$f}&where[id]=', id, '\">',". (qn("SHOW COLUMNS FROM $table WHERE Field=\"name\"", "Field") ? " CONVERT(`name` USING UTF8)" : "CONCAT('#', id)"). ", '</a>') FROM $table")));
+		}
 	}
 } if(!empty($conf['settings'][ $s = $arg['modpath']. "=>espisok" ]) && ($fn = explode(",", $conf['settings'][ $s ]))){
 	foreach($fn as $v){

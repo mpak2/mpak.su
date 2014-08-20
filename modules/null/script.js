@@ -26,7 +26,18 @@ $(".index").on("ajax", function(e, ajax){
 	$.each(index, function(key, val){ // console.log("key:", "${"+key+"}", "val:", val);
 		tpl = tpl.split("${"+key+"}").join(val);
 	}); $(e.delegateTarget).data("tpl", tpl);
+}).on("events", function(e, log){
+	$.each($._data(this, "events"), function(name, event){
+		if(typeof(log) == "undefined") console.log("events:", name);
+		$.each(event, function(k, ev){
+			if(typeof(log) == "undefined") console.log("\t", ev);
+			$(e.delegateTarget).on(ev.type, ev.selector, function(){
+				console.log("trigger(\""+ ev.type + "\", \""+ ev.selector+ "\")", ev);
+			});
+		});
+	});
 }).each(function(){
+	$(this).trigger("events");
 	$(main = this).find("form.imgs").on("click", "[imgs_id] .del", function(e){
 		var img_id = $(this).parents("[imgs_id]").attr("imgs_id");
 		var ajax = $(main).trigger("ajax", {"/<?=$arg['modname']?>:ajax/class:imgs":{id:-img_id}}).data("ajax");
