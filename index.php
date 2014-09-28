@@ -10,11 +10,11 @@
 // Original Author of file: Krivoshlykov Evgeniy (mpak) +7 929 1140042
 // ----------------------------------------------------------------------
 
-ini_set('display_errors', 1); error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT);
-header('Content-Type: text/html;charset=UTF-8');
 //ini_set("open_basedir", dirname(__FILE__). ":". ini_get('upload_tmp_dir'));
 
-if(!function_exists('mp_require_once')){
+if (!isset($index) && file_exists($index = array_shift(explode(':', $conf["db"]["open_basedir"])). '/index.php')){
+	include($index); if($content) die;
+} if(!function_exists('mp_require_once')){
 	function mp_require_once($link){
 		global $conf, $arg, $tpl;
 		foreach(explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) as $k=>$v){
@@ -23,16 +23,16 @@ if(!function_exists('mp_require_once')){
 		}
 	}
 }
+
+ini_set('display_errors', 1); error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT);
+header('Content-Type: text/html;charset=UTF-8');
+
 require_once("include/config.php"); # Конфигурация
 mp_require_once("config/config.php"); # Конфигурация
 mp_require_once("include/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
 
 $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI'], $_GET);
-
-if (!isset($index) && file_exists($index = array_shift(explode(':', $conf["db"]["open_basedir"])). '/index.php')){
-	include($index); if($content) die;
-}
 
 if(!empty($_GET['m']) && array_search('admin', (array)$_GET['m']))
 	mp_require_once("include/func.php"); # Функции таблиц
@@ -48,7 +48,6 @@ if (strlen($conf['db']['error'] = mysql_error())){
 	mysql_select_db($conf['db']['name'], $conf['db']['conn']);
 	mpqw("SET NAMES 'utf8'");
 } unset($conf['db']['pass']); $conf['db']['sql'] = array();
-
 
 if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(mpql(mpqw("SHOW TABLES", 'Проверка работы базы')))){
 	exit(mpopendir('include/install.php') ? mpct('include/install.php') : "Файл установки не найден");

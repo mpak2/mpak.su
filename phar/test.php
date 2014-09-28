@@ -1,7 +1,7 @@
 <?
 
 try {
-	$p = new Phar($phar = "create.phar", 0, $phar);
+	$p = new Phar($phar = "test.phar", 0, $phar);
 } catch (UnexpectedValueException $e) {
     die("Could not open {$phar}:: {$e}");
 } catch (BadMethodCallException $e) {
@@ -9,9 +9,9 @@ try {
 }
 
 $p['index.php'] = <<<EOF
-<?
+<?php
 
-echo "work";
+phpinfo();
 
 EOF;
 

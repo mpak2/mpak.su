@@ -12,10 +12,9 @@ if(!empty($_REQUEST['class']) && $class = explode(" ", $_REQUEST['class'])){ # k
 		}else if(array_key_exists("val", $_REQUEST) && ($arg['access'] > 2)){
 			$klesh_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_{$class[0]}", $w = array("id"=>$_REQUEST["id"]), $w += array("{$class[1]}"=>$_REQUEST['val'])+$_REQUEST, $w); die((string)$klesh_id);
 		}else if(!array_key_exists("id", $_REQUEST)){
-			if($arg['access'] <= 3){ # Права доступа ниже модератора проверяем поле юзера
-				$fileds = qn("SHOW COLUMNS FROM `{$conf['db']['prefix']}{$arg['modpath']}_{$class[0]}`", "Field");
-				if(!array_key_exists("uid", $fileds)){ exit("В таблице не предусмотрено добавление от имени пользователя"); }
-			}; $class_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_{$class[0]}", null, array_intersect_key($_REQUEST, $fileds));
+			$fileds = qn("SHOW COLUMNS FROM `{$conf['db']['prefix']}{$arg['modpath']}_{$class[0]}`", "Field");
+			if(!array_key_exists("uid", $fileds)){ exit("В таблице не предусмотрено добавление от имени пользователя"); }
+			$class_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_{$class[0]}", null, $w = array_intersect_key($_REQUEST + array("uid"=>$conf['user']['uid']), $fileds));
 			if($_FILES) foreach($_FILES as $f=>$v){
 				$file_id = mpfid("{$conf['db']['prefix']}{$arg['modpath']}_{$class[0]}", $f, $class_id);
 			} die((string)$class_id);

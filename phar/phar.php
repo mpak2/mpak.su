@@ -59,18 +59,8 @@ foreach( $dolders = array(
 $p['/config/config.php'] = <<<EOF
 <?
 
-//echo date("d.m.Y H:i:s", filemtime(dirname(dirname(__FILE__)))). "<br>";
-
 #date_default_timezone_set('Europe/Moscow');
-\$conf['db']['open_basedir'] = strtr(dirname(dirname(dirname(__FILE__))), array("phar://"=>"")). ":". dirname(dirname(__FILE__)). ":". ini_get("open_basedir");
-#echo \$conf['db']['open_basedir']. "<br>";
-\$conf['db']['conn'] = null;
-\$conf['db']['type'] = 'mysql';
-\$conf['db']['prefix'] = 'mp_';
-\$conf['db']['host'] = 'localhost';
-\$conf['db']['login'] = 'login';
-\$conf['db']['name'] = 'name';
-\$conf['db']['pass'] = 'pass';
+\$conf['db']['open_basedir'] = dirname(dirname(__FILE__));// echo \$conf['db']['open_basedir']. "<br>";
 
 EOF;
 
