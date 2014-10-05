@@ -32,7 +32,7 @@
 		<div style="overflow:hidden;">
 			<div class="news_name" style="margin-top: 20px; padding: 5px;">
 				<?=date('d.m.Y H:i', $index['time'])?>
-				<h6><a href="/news/<?=$index['id']?>"><?=$index['name']?></a></h6>
+				<h2><a href="/news/<?=$index['id']?>"><?=$index['name']?></a></h2>
 			</div>
 			<? if($index['img']): ?>
 				<div class="news_img" style="padding: 5px;">

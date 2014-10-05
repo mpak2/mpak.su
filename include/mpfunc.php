@@ -306,6 +306,12 @@ function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
 	}
 }
 
+function fdk($tn, $find, $insert = array(), $update = array(), $log = false){
+	if($index_id = mpfdk($tn, $find, $insert, $update, $log)){
+		return ql("SELECT * FROM `$tn` WHERE id=". (int)$index_id, 0);
+	}
+}
+
 function mpdk($tn, $insert, $update = array()){
 	global $conf, $arg;
 	if($ins = mpdbf($tn, $insert)){
@@ -1197,6 +1203,10 @@ function mpqw($sql, $info = null, $conn = null){
 			mpevent("Долгий запрос к базе данных", $sql. " {$q['time']}c.", $conf['user']['uid'], $q);
 		}
 	} return($result);
+}
+
+function qw($sql){
+	return mpqw($sql);
 }
 
 function mpfile($filename, $description = null){

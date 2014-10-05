@@ -26,7 +26,7 @@ $files_array = array(
 );
 
 # Устанавливаем права доступа к папке с файлами
-if (!file_exists($cf = array_shift(explode(':', $conf['db']["open_basedir"])). '/config/config.php') || !is_writable(mpopendir("include/images")) || !empty($conf['db']['error'])){
+if (!file_exists($cf = array_shift(explode(':', $conf['db']["open_basedir"])). '/include/config.php') || !is_writable(mpopendir("include/images")) || !empty($conf['db']['error'])){
 	echo "<table border=0 width=100% height=100%><tr><td align=center>";
 	echo "Создание необходимых файлов и установка прав доступа:<p>";
 	echo "<table cellspacing=0 cellpadding=3 border=0>";
@@ -46,10 +46,9 @@ if (!file_exists($cf = array_shift(explode(':', $conf['db']["open_basedir"])). '
 	}
 	if(!file_exists($cf) || !empty($conf['db']['error'])){
 //		if(!empty($conf['db']['error'])) echo "<tr><td colspan=2><div style=color:red;text-align:center;></div></td></tr>";
-		echo "<tr><td colspan=2 style=text-align:center;>Создайте конфигурационный файл: <b>config/config.php</b>. Содержащий параметры доступа к БД</td></tr>";
+		echo "<tr><td colspan=2 style=text-align:center;>Создайте конфигурационный файл: <b>include/config.php</b>. Содержащий параметры доступа к БД</td></tr>";
 		echo "<tr><td colspan=2 style=text-align:center;color:red;>". (empty($conf['db']['error']) ? 'Доступ к БД выполнен' : $conf['db']['error']). "</td></tr>";
 		echo "<tr><td colspan=2>".
-//		strtr(file_get_contents(mpopendir('config/config.php')), array('<'=>'&lt;', '>'=>'&gt;', "\n"=>'<br />', "\$conf['fs']['path']"=>"#\$conf['fs']['path']")).
 		"</td></tr>";
 	}
 	echo "</table>";
