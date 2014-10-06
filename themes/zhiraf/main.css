@@ -68,7 +68,7 @@ p
 }
 html
 {
-	background:url("i/border.gif") repeat-y 100% 0;
+	/*background:url("i/border.gif") repeat-y 100% 0;*/
 }
 html, body
 {
@@ -242,18 +242,27 @@ input[type="submit"]
 				}
 				#content .tabs
 				{
-					background:url("i/gradients.gif") repeat-x 0 -57px;
+					/*background:url("i/gradients.gif") repeat-x 0 -57px;
 					height:37px;
 					border-top:1px solid #dbdbdd;
 					border-bottom:1px solid #dbdbdd;
-					padding:0 100px 0 17px;
+					padding:0 100px 0 17px;*/
+					background: url("i/gradients.gif") repeat-x;
+					height: 100%;
+					border-top: 1px solid #dbdbdd;
+					border-bottom: 1px solid #dbdbdd;
+					padding: 0 100px 0 17px;
 			}
 
 		#content .tabs li
 		{
-			float:left;
+			/*float:left;
 			position:relative;
-			top:10px;
+			top:10px;*/
+			/* float: left; */
+			position: relative;
+			margin: 0;
+			display: inline-block;
 		}
 			#content .tabs li a
 			{
@@ -557,6 +566,12 @@ h2
 	.MainTable .even
 	{
 		background:#fff8e3;
+	}
+	.MainTable tr:hover{
+		background:#E5E5E5;
+	}
+	.MainTable tr:last-child{
+		background:#fff;
 	}
 	.MainTable .tools a 
 	{
