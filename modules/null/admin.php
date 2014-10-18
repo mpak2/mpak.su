@@ -118,7 +118,7 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 	//			'bottom' => array('tr'=>'<tr>', 'td'=>"<td valign='top'>", 'shablon'=>'<tr><td>{config:url}</td></tr>'), # Формат записей таблицы
 
 				'title' => (!empty($conf['settings']["{$arg['modpath']}_{$tn}=>title"]) ? explode(",", $conf['settings']["{$arg['modpath']}_{$tn}=>title"]) : null), # Название полей
-				'etitle'=> array('time'=>'Время', 'up'=>'Обновление', 'uid'=>'Пользователь', 'count'=>'Количество', 'level'=>'Уровень', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'img2'=>'Изображение2', 'file'=>'Файл', 'hide'=>'Видим', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'duration'=>'Длительность', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', "users_sity"=>'Город', 'log'=>'Лог', 'max'=>'Макс', 'min'=>'Мин', 'own'=>'Владелец', 'period'=>'Период', "from"=>"С", "to"=>"До", "percentage"=>"Процент", 'description'=>'Описание', 'text'=>'Текст') + $etitle,
+				'etitle'=> array('time'=>'Время', 'up'=>'Обновление', 'uid'=>'Пользователь', 'count'=>'Количество', 'level'=>'Уровень', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'img2'=>'Изображение2', 'file'=>'Файл', 'hide'=>'Видим', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'duration'=>'Длительность', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', "article"=>"Артикул", 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', "users_sity"=>'Город', 'log'=>'Лог', 'min'=>'Мин', 'max'=>'Макс', 'own'=>'Владелец', 'period'=>'Период', "from"=>"С", "to"=>"До", "percentage"=>"Процент", 'description'=>'Описание', 'text'=>'Текст') + $etitle,
 				'type' => array('time'=>'timestamp', 'up'=>'timestamp', 'period'=>"timecount", 'sort'=>'sort', 'file'=>'file', 'img'=>'file', 'img2'=>'file', 'duration'=>'timecount', 'description'=>'textarea', 'text'=>'wysiwyg'), # Тип полей
 				'ext' => array('img'=>array('*'=>'*'/*'image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp'*/), 'img2'=>array('*'=>'*'), 'file'=>array('*'=>'*'),),
 	//			'set' => array('orderby'=>$orderby), # Значение которое всегда будет присвоено полю. Исключает любое изменение
@@ -153,6 +153,36 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 				'maxsize' => array('description'=>150, 'text'=>250), # Максимальное количество символов в поле
 			)
 		);
+		if($t == "values"){
+			if($tpl['options'] = qn("SELECT id, param_id FROM {$conf['db']['prefix']}{$arg['modpath']}_options")){
+				$options = json_encode($tpl['options']);// mpre($tpl['options']);
+				echo <<<EOF
+				<script>
+					$(function(){
+						$(".cont").on("change", "select[name=param_id]", function(){
+							var param_id = $(this).val();
+							console.log("param_id:", param_id);
+							$("select[name=options_id]").find("[value=0]").prop("selected", true);
+							$("select[name=options_id]").attr("param_id", param_id).find(">option").not("[value=0]").wrap('<span style="display:none;" />');
+							$("select[name=options_id] option[param_id="+param_id+"]").unwrap();
+						}).on("change", "select[name=options_id]", function(){
+							var options_id = $(this).val();
+							var param_id = $(this).find("option:selected").attr("param_id");
+							$("select[name=param_id] option[value="+param_id+"]").prop("selected", true);
+						}).each(function(){
+							var options = {$options};
+							$("select[name=options_id] option").each(function(){
+								var options_id = $(this).val();
+								if(typeof(options[options_id]) != "undefined"){
+									$(this).attr("param_id", options[options_id].param_id);
+								}
+							});
+						});
+					});
+				</script>
+EOF;
+			}
+		}
 	}else{
 		$name = substr($_GET['r'], strlen($conf['db']['prefix']));
 		echo <<<EOF

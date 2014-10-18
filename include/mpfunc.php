@@ -475,7 +475,7 @@ function mpsettings($name, $value = null){
 }
 
 function mpgt($REQUEST_URI, $get = array()){
-	$part = explode('/null/', array_shift(explode('?', $REQUEST_URI)), 2);// mpre($part); exit;
+	$part = explode('//', str_replace("/null/", "//", array_shift(explode('?', $REQUEST_URI))), 2);// mpre($part); exit;
 	if(!empty($part[1])){
 		$param = explode(':', $part[1], 2);// mpre($param);
 		$val = array_pop($param);// mpre($val); exit;

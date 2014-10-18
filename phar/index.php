@@ -11,7 +11,7 @@
 // ----------------------------------------------------------------------
 
 if(strpos($f = __FILE__, "phar://") === 0){
-	$conf["db"]["open_basedir"] = dirname($f). ":". implode("/", array_slice(explode("/", dirname(dirname($f))), 2));
+	$conf["db"]["open_basedir"] = implode("/", array_slice(explode("/", dirname(dirname($f))), 2)). ":". dirname($f);
 }else{
 	if(($backtrace = array_shift(debug_backtrace())) && (strpos($backtrace['file'], "phar://") === 0)){
 		$conf["db"]["open_basedir"] = dirname($f). ":". dirname($backtrace['file']);

@@ -3,7 +3,7 @@
 
 //if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){ exit(mpre($_POST)) };
 
-//$tpl['index'] = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']}");
+//$tpl[$i = 'param'] = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$i}");
 
 ################################# верстка ################################# ?>
 <div class="block_<?=$arg['blocknum']?>">

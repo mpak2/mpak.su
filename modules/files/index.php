@@ -69,7 +69,7 @@ if($_FILES && ($arg['access'] > 1)){
 			mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']}_files SET count=count+1 WHERE id=".(int)$v['id']);
 			$ext = strtolower(array_pop(explode('.', $v['name'])));
 			if($v['description']){
-				header("Content-Disposition: attachment; filename=\"".$v['description']."\"");
+				header("Content-Disposition: attachment; filename=\"".$v['description'].".{$ext}\"");
 			} header("Content-Type: ". ($defaultmimes[$ext] ? $defaultmimes[$ext] : "application/$ext"));
 			if(array_search($ext, $img) !== false){
 				echo mprs(mpopendir("include/". $v['name']), $_GET['w'] ? $_GET['w'] : $v['w'], $_GET['h'] ? $_GET['h'] : $v['h'], isset($_GET['c']) ? $_GET['c'] : $v['c']);
