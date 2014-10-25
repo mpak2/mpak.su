@@ -1316,6 +1316,10 @@ EOF;
 	}
 }
 
+function pre($array = false, $access = 4, $line = 0){
+	mpre($array, $access, $line);
+}
+
 function mpre($array = false, $access = 4, $line = 0){
 	global $conf, $arg, $argv;
 	if(empty($argv) && ($arg['access'] < $access)) return;

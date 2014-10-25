@@ -6,12 +6,10 @@ if(!empty($_REQUEST['class']) && $class = "{$conf['db']['prefix']}{$arg['modpath
 		$where = array_diff_key($_GET, array_flip(array("class", "m")));
 		$w = array("time"=>time(), "uid"=>$conf['user']['uid']) + $_REQUEST;
 		if($arg['access'] >= 2){ # Добавление
-			$fdk = fdk($class, $where, ($arg['access'] >= 3 ? $w : null), $w);
-			if($f = array_shift($fdk)){
-				if($_FILES && (count($fdk) == 1)) foreach($_FILES as $f=>$v){
-					$file_id = mpfid("{$conf['db']['prefix']}{$arg['modpath']}_{$class[0]}", $f, $class_id);
-				} exit($f['id']);
-			}
+			$f = fdk($class, $where, $w, $w);
+			if($_FILES /*&& (count($fdk) == 1)*/) foreach($_FILES as $f=>$v){
+				$file_id = mpfid("{$conf['db']['prefix']}{$arg['modpath']}_{$class[0]}", $f, $class_id);
+			} exit($f['id']);
 		}else {
 			exit("Прав доступа {$arg['access']} недостаточно для изменения данных");
 		}
