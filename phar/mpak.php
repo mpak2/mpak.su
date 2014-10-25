@@ -30,7 +30,7 @@ function apr($folder){
 
 foreach( $dolders = array(
 	'index.php',
-	'phpinfo.php',
+//	'phpinfo.php',
 	'include/func.php',
 	'include/mpfunc.php',
 	'include/install.php',

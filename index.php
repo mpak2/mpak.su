@@ -12,7 +12,13 @@
 
 //ini_set("open_basedir", dirname(__FILE__). ":". ini_get('upload_tmp_dir'));
 
-if (!isset($index) && file_exists($index = array_shift(explode(':', $conf["db"]["open_basedir"])). '/index.php')){
+if(strpos($f = __FILE__, "phar://") === 0){
+	$conf["db"]["open_basedir"] = implode("/", array_slice(explode("/", dirname(dirname($f))), 2)). ":". dirname($f);
+}elseif(empty($conf["db"]["open_basedir"])){
+	if(($backtrace = array_shift(debug_backtrace())) && (strpos($backtrace['file'], "phar://") === 0)){
+		$conf["db"]["open_basedir"] = dirname($f). ":". dirname($backtrace['file']);
+	}
+} if (!isset($index) && file_exists($index = array_shift(explode(':', $conf["db"]["open_basedir"])). '/index.php')){
 	include($index); if($content) die;
 } if(!function_exists('mp_require_once')){
 	function mp_require_once($link){
