@@ -9,7 +9,7 @@ foreach(mpql(mpqw("SHOW TABLES WHERE Tables_in_{$conf['db']['name']} LIKE \"{$co
 	$t = implode("_", array_slice(explode("_", $v["Tables_in_{$conf['db']['name']}"]), 2));
 	if((empty($conf['settings']["{$arg['modpath']}_tpl_exceptions"]) && !array_key_exists($t, (array)$tpl)) ||
 		((!empty($conf['settings']["{$arg['modpath']}_tpl_exceptions"]) && (array_search($t, explode(",", $conf['settings']["{$arg['modpath']}_tpl_exceptions"])) === false)) && !array_key_exists($t, (array)$tpl))){
-		$tpl[ $t ] = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$t}"));
+		$tpl[ $t ] = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$t}". (($order = $conf['settings']["{$arg['modpath']}_{$t}=>order"]) ? " ORDER BY {$order}" : "")));
 	}
 }// mpre(array_keys($tpl));
 

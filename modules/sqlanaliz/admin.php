@@ -194,7 +194,10 @@ EOF;
 		echo $sql = "ALTER TABLE `{$_POST['tab']}` ADD `{$new['Field']}` {$new['Type']}".($new['Null'] == 'NO' ? ' NOT NULL' : '')." $after".(!empty($new['Default']) ? " DEFAULT ". ($new['Default'] == 'NULL' ? $new['Default'] : "'{$new['Default']}'") : ''	);
 		mpqw($sql);
 		if(($new['Field'] == "sort") && ($new['Type'] == "int(11)")){
-			mpqw("UPDATE `{$_POST['tab']}` SET sort=id"); # Устанока уникальных значений в таблицу сортировки
+			mpqw("UPDATE `{$_POST['tab']}` SET `{$new['Field']}`=`id`"); # Устанока уникальных значений в таблицу сортировки
+			mpqw("ALTER TABLE `{$_POST['tab']}` ADD INDEX (`{$new['Field']}`)"); $keys[$new['Field']] = 'on';
+			$tn = explode("_", $_POST['tab'], 3);
+			mpsettings("{$tn[1]}_{$tn[2]}=>order", $new['Field']);
 		}
 	}
 		echo "<div style='margin:10px;'>";

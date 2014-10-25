@@ -42,7 +42,7 @@ function mpie($url, $decode = false){
 
 function aedit($href, $title = null){
 	global $arg;
-	if($arg['access'] > 3) echo "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:999; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\"></a></span></div>";
+	if($arg['access'] > 3) echo "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:10; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\"></a></span></div>";
 }
 
 function mptс($time = null, $format = 0){
@@ -694,6 +694,7 @@ function mpager($count, $null=null, $cur=null, $url=null){
 	if(2 > $count = ceil($count)) return;
 	$return .= "<script>$(function(){ $(\".pager\").find(\"a[href='". urldecode($_SERVER['REQUEST_URI']). "']\").addClass(\"active\").css(\"font-weight\", \"bold\"); })</script>";
 	$return .=  "<div class=\"pager\">";
+	$mpager['first'] = $url;
 		$return .= "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>";
 		$mpager['prev'] = $url. ($cur > 1 ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur-1) : "/{$p}:".($cur-1)) : '');
 	for($i = max(0, min($cur-5, $count-10)); $i < ($max = min($count, max($cur+5, 10))); $i++){
@@ -703,6 +704,7 @@ function mpager($count, $null=null, $cur=null, $url=null){
 	$return .=  '&nbsp;';
 	$return .=  "<a rel=\"next\" href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : "/{$p}:".($cur+1)) : '')."\">вперед &#8594;</a>";
 	$mpager['next'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". min($max-1, $cur+1)) : '');
+	$mpager['last'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($count-1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". ($count-1)) : '');
 	$return .= "</div>";
 	if($fn = mpopendir("themes/{$conf['settings']['theme']}/mpager.tpl")){
 		ob_start();
