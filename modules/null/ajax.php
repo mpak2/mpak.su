@@ -2,7 +2,7 @@
 
 if(!empty($_REQUEST['class']) && $class = "{$conf['db']['prefix']}{$arg['modpath']}_". array_shift(explode(" ", $_REQUEST['class']))){
 	if($arg['access'] > 1){
-		mpevent("Аякс запрос /{$arg['modpath']}:{$class[0]}", $conf['user']['uid'], $_REQUEST);
+		mpevent("Аякс запрос /{$arg['modpath']}:{$class}", $conf['user']['uid'], $_REQUEST);
 		$where = array_diff_key($_GET, array_flip(array("class", "m")));
 		$w = array("time"=>time(), "uid"=>$conf['user']['uid']) + $_REQUEST;
 		if($arg['access'] >= 2){ # Добавление

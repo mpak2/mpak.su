@@ -42,7 +42,7 @@ function mpie($url, $decode = false){
 
 function aedit($href, $title = null){
 	global $arg;
-	if($arg['access'] > 3) echo "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:10; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\"></a></span></div>";
+	if($arg['access'] > 3) echo "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:10; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px;'></a></span></div>";
 }
 
 function mptс($time = null, $format = 0){
@@ -406,8 +406,6 @@ function mpevent($name, $description = null, $own = null){
 								}
 							}
 						break;
-//						case "sms.ru":
-//						break;
 						case "smtp":# Сообщение по smtp протоколу
 							if(preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $m['email'])){
 								$response = mpsmtp($m['email'], $name, $text, $v['login']);
@@ -417,7 +415,7 @@ function mpevent($name, $description = null, $own = null){
 							}
 						break;
 						case "sms.ru":# Сервис смс уведомление sms.ru
-							include mpopendir("include/class/smsru.php");
+							include_once mpopendir("include/class/smsru.php");
 							$smsru = new \Zelenin\smsru($v['login']);
 							$response = $smsru->sms_send($m['tel'], $text);
 						break;
@@ -1328,14 +1326,14 @@ function mpre($array = false, $access = 4, $line = 0){
 	foreach(debug_backtrace() as $k=>$v){
 		if(!is_numeric($line) || $k === $line){
 			if($array){ # Комментарии выводим для javascript шаблонов. Чтобы они игнорировались как код
-				echo "/*<fieldset><legend>[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()</legend>*/";
+				echo "/*\n<fieldset><legend>[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()</legend>*/";
 			}else{
-				echo "/*[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()<br>*/";
+				echo "/*\n[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()<br>\n*/";
 			}
 			foreach($v['args'] as $n=>$z){
-				echo "/*<pre>"; print_r($z); echo "</pre>*/";
+				echo "/*<pre>\n"; print_r($z); echo "\n</pre>*/";
 			}
-			if($array) echo "/*</fieldset>*/";
+			if($array) echo "/*</fieldset>\n*/";
 		}
 	}
 }
