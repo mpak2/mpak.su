@@ -42,7 +42,7 @@ function mpie($url, $decode = false){
 
 function aedit($href, $title = null){
 	global $arg;
-	if($arg['access'] > 3) echo "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:999; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\"></a></span></div>";
+	if($arg['access'] > 3) echo "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:10; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px;'></a></span></div>";
 }
 
 function mptс($time = null, $format = 0){
@@ -98,7 +98,7 @@ function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $hea
 
 function ql($sql, $ln = null, $fd = null){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата
 	$microtime = microtime(true);
-	if(!($r = mpmc($key = "ql:". md5($sql))) && (gettype($r) == "boolean")){
+	if(!($r = mpmc($key = "ql:". md5($sql))) /*&& (gettype($r) == "boolean")*/){
 		$r = mpql(mpqw($sql), $ln, $fd);
 		if(($mt = (microtime(true) - $microtime)) > .3){
 			mpevent("Кеширование списка", $sql);
@@ -109,7 +109,7 @@ function ql($sql, $ln = null, $fd = null){ # Выполнение запроса
 
 function qn($sql){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата
 	$microtime = microtime(true);
-	if(!($r = mpmc($key = "qn:". md5($sql))) && (gettype($r) == "boolean")){
+	if(!($r = mpmc($key = "qn:". md5($sql))) /*&& (gettype($r) == "boolean")*/){
 		$func_get_args = func_get_args();
 		$func_get_args[0] = mpqw($sql);
 		$r = call_user_func_array('mpqn', $func_get_args);
@@ -300,9 +300,15 @@ function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
 		}
 	}elseif($insert){
 		mpqw($sql = "INSERT INTO `". mpquot($tn). "` SET ". mpdbf($tn, $insert+array("time"=>time(), "uid"=>(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0))));
-		return $sel['id'] = mysql_insert_id();
-	}else{
-//		mpre($find);
+		if(mysql_error()){ mpre(mysql_error()); }else{
+			return $sel['id'] = mysql_insert_id();
+		}
+	}
+}
+
+function fdk($tn, $find, $insert = array(), $update = array(), $log = false){
+	if($index_id = mpfdk($tn, $find, $insert, $update, $log)){
+		return ql("SELECT * FROM `$tn` WHERE id=". (int)$index_id, 0);
 	}
 }
 
@@ -390,7 +396,7 @@ function mpevent($name, $description = null, $own = null){
 					mpqw($sql = "UPDATE {$conf['db']['prefix']}users_event_notice SET count=count+1 WHERE id=". (int)$v['id']);
 					$name = strtr(($v['name'] ? $v['name'] : $event['name']), $zam);
 					require_once(mpopendir('include/idna_convert.class.inc')); $IDN = new idna_convert();
-					$text = (strip_tags($v['text']) ? strtr(strip_tags($v['text']), $zam) : $event['name']);
+					$text = (strip_tags($v['text']) ? strtr($v['text'], $zam) : $event['name']);
 					switch($v['type']){
 						case "email":# Сообщение на электронную почту
 							if(preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $m['email'])){
@@ -409,7 +415,7 @@ function mpevent($name, $description = null, $own = null){
 							}
 						break;
 						case "sms.ru":# Сервис смс уведомление sms.ru
-							include mpopendir("include/class/smsru.php");
+							include_once mpopendir("include/class/smsru.php");
 							$smsru = new \Zelenin\smsru($v['login']);
 							$response = $smsru->sms_send($m['tel'], $text);
 						break;
@@ -467,7 +473,7 @@ function mpsettings($name, $value = null){
 }
 
 function mpgt($REQUEST_URI, $get = array()){
-	$part = explode('/null/', array_shift(explode('?', $REQUEST_URI)), 2);// mpre($part); exit;
+	$part = explode('//', str_replace("/null/", "//", array_shift(explode('?', $REQUEST_URI))), 2);// mpre($part); exit;
 	if(!empty($part[1])){
 		$param = explode(':', $part[1], 2);// mpre($param);
 		$val = array_pop($param);// mpre($val); exit;
@@ -536,15 +542,11 @@ function mpmail($to = '', $subj='Проверка', $text = 'Проверка', 
 	if($conf['settings']['smtp']){
 		return mpsmtp($to, $subj, $text);
 	} mpevent("Отправка сообщения", $to, $conf['user']['uid'], debug_backtrace());
-	if(empty($to)) return;
-
-	if($to){
-		$header = "Content-type: text/html; charset=UTF-8;\r\nFrom: {$from}";
-		mail($to, $subj, $text, $header, "-f$from");
+	if(empty($to)){ return false; }else{
+		$header = "Content-type:text/html; charset=UTF-8;". ($from ? " From: {$from};" : "");
+		mail($to, $subj, $text, $header/*, ($from ? "-f$from" : null)*/);
 		mpevent($conf['settings']['users_event_mail'], $to, $conf['user']['uid'], $subj, $text);
 		return true;
-	}else{
-		return false;
 	}
 }
 
@@ -690,6 +692,7 @@ function mpager($count, $null=null, $cur=null, $url=null){
 	if(2 > $count = ceil($count)) return;
 	$return .= "<script>$(function(){ $(\".pager\").find(\"a[href='". urldecode($_SERVER['REQUEST_URI']). "']\").addClass(\"active\").css(\"font-weight\", \"bold\"); })</script>";
 	$return .=  "<div class=\"pager\">";
+	$mpager['first'] = $url;
 		$return .= "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>";
 		$mpager['prev'] = $url. ($cur > 1 ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur-1) : "/{$p}:".($cur-1)) : '');
 	for($i = max(0, min($cur-5, $count-10)); $i < ($max = min($count, max($cur+5, 10))); $i++){
@@ -699,6 +702,7 @@ function mpager($count, $null=null, $cur=null, $url=null){
 	$return .=  '&nbsp;';
 	$return .=  "<a rel=\"next\" href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : "/{$p}:".($cur+1)) : '')."\">вперед &#8594;</a>";
 	$mpager['next'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". min($max-1, $cur+1)) : '');
+	$mpager['last'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($count-1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". ($count-1)) : '');
 	$return .= "</div>";
 	if($fn = mpopendir("themes/{$conf['settings']['theme']}/mpager.tpl")){
 		ob_start();
@@ -1201,6 +1205,10 @@ function mpqw($sql, $info = null, $conn = null){
 	} return($result);
 }
 
+function qw($sql){
+	return mpqw($sql);
+}
+
 function mpfile($filename, $description = null){
 //	$file_name = strtr($file_name, array('../'=>'', '/./'=>'/', '//'=>'/'));
 	$file_name = mpopendir("include/$filename");
@@ -1308,20 +1316,24 @@ EOF;
 	}
 }
 
+function pre($array = false, $access = 4, $line = 0){
+	mpre($array, $access, $line);
+}
+
 function mpre($array = false, $access = 4, $line = 0){
 	global $conf, $arg, $argv;
 	if(empty($argv) && ($arg['access'] < $access)) return;
 	foreach(debug_backtrace() as $k=>$v){
 		if(!is_numeric($line) || $k === $line){
 			if($array){ # Комментарии выводим для javascript шаблонов. Чтобы они игнорировались как код
-				echo "/*<fieldset><legend>[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()</legend>*/";
+				echo "/*\n<fieldset><legend>[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()</legend>*/";
 			}else{
-				echo "/*[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()<br>*/";
+				echo "/*\n[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()<br>\n*/";
 			}
 			foreach($v['args'] as $n=>$z){
-				echo "/*<pre>"; print_r($z); echo "</pre>*/";
+				echo "/*<pre>\n"; print_r($z); echo "\n</pre>*/";
 			}
-			if($array) echo "/*</fieldset>*/";
+			if($array) echo "/*</fieldset>\n*/";
 		}
 	}
 }

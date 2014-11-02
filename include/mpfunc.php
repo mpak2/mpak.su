@@ -20,6 +20,20 @@ set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 	}
 });
 
+function mpzam($ar, $prefix = "{", $postfix = "}"){
+	$f = function($ar, $prx = "") use(&$f, $prefix, $postfix){
+		$r = array();
+		foreach($ar as $k=>$v){
+			$pr = ($prx ? $prx.":".$k : $k);
+			if(is_array($v)){
+				$r += $f($v, $pr);
+			}else{
+				$r[$prefix. $pr. $postfix] = $v;
+			}
+		} return $r;
+	}; return $f($ar);
+}
+
 function in($ar, $flip = false){
 	if(gettype($ar) != "array"){
 		$ar = array(0);
@@ -345,7 +359,9 @@ function mpevent($name, $description = null, $own = null){
 	if(is_numeric($own)){
 		$func_get_args[2] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE id=". (int)$own), 0);
 	}
-	if(!empty($func_get_args[0]) && function_exists("event")){ $return = event($func_get_args); }
+	if(!empty($func_get_args[0]) && function_exists("event")){
+		$return = event($func_get_args);
+	}
 
 //	if((!empty($conf['settings']['users_log']) && $conf['settings']['users_log']) || !empty($argv)){
 		if(!empty($conf['event'][$name])) $event = $conf['event'][$name];
@@ -1317,12 +1333,6 @@ EOF;
 }
 
 function pre($array = false, $access = 4, $line = 0){
-	mpre($array, $access, $line);
-}
-
-function mpre($array = false, $access = 4, $line = 0){
-	global $conf, $arg, $argv;
-	if(empty($argv) && ($arg['access'] < $access)) return;
 	foreach(debug_backtrace() as $k=>$v){
 		if(!is_numeric($line) || $k === $line){
 			if($array){ # Комментарии выводим для javascript шаблонов. Чтобы они игнорировались как код
@@ -1336,6 +1346,12 @@ function mpre($array = false, $access = 4, $line = 0){
 			if($array) echo "/*</fieldset>\n*/";
 		}
 	}
+}
+
+function mpre($array = false, $access = 4, $line = 0){
+	global $conf, $arg, $argv;
+	if(empty($argv) && ($arg['access'] < $access)) return;
+	pre($array, $access, $line);
 }
 
 function mpqwt($result){
