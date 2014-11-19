@@ -1,4 +1,4 @@
-$(".index").on("ajax", function(e, ajax){
+$("script").slice(-1).parent().on("ajax", function(e, ajax){
 	$.each(ajax, function(url, post){
 		$.ajax({url:url, type:"POST", data:post, dataType:"text", async:false,
 			success:function(data){ /*$(e.delegateTarget).data("ajax", data);*/ }

@@ -1,5 +1,5 @@
 <? if(!$conf['tpl']['elm']): ?>
-	<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+	<script type="text/javascript" src="//www.google.com/jsapi"></script>
 	<script type="text/javascript"> google.load("jquery", "1"); </script>
 	<script type="text/javascript" src="/include/jquery/tiny_mce/jquery.tinymce.js"></script>
 	<script type="text/javascript">

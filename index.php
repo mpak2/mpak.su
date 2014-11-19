@@ -18,7 +18,7 @@ if(strpos($f = __FILE__, "phar://") === 0){ # Фал index.php внутри phar
 	if(($backtrace = array_shift(debug_backtrace())) && (strpos($backtrace['file'], "phar://") === 0)){
 		$conf["db"]["open_basedir"] = dirname($f). ":". dirname($backtrace['file']);
 	}else{
-		$conf["db"]["open_basedir"] = ini_get("open_basedir");
+		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: dirname($f));
 	}
 } if (!isset($index) && file_exists($index = array_shift(explode(':', $conf["db"]["open_basedir"])). '/index.php')){
 	include($index); if($content) die;

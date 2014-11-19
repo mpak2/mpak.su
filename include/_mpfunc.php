@@ -20,7 +20,21 @@ set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 	}
 });
 
-function in($ar, $flip = false){
+function mpzam($ar, $prefix = "{", $postfix = "}"){ # Создание из много мерного массиива - одномерного. Применяется для подставки в текстах отправляемых писем данных из массивов
+	$f = function($ar, $prx = "") use(&$f, $prefix, $postfix){
+		$r = array();
+		foreach($ar as $k=>$v){
+			$pr = ($prx ? $prx.":".$k : $k);
+			if(is_array($v)){
+				$r += $f($v, $pr);
+			}else{
+				$r[$prefix. $pr. $postfix] = $v;
+			}
+		} return $r;
+	}; return $f($ar);
+}
+
+function in($ar, $flip = false){ # Формирует из массива строку с перечисляемыми ключами для подставки в запрос
 	if(gettype($ar) != "array"){
 		$ar = array(0);
 	}else if($flip){
@@ -28,24 +42,12 @@ function in($ar, $flip = false){
 	} return implode(",", array_keys($ar) ? array_keys($ar) : array(0));
 }
 
-function mpie($url, $decode = false){
-	if($decode){
-		if (!is_string($url)) return null;
-		$r='';
-		for($a=0; $a<strlen($url); $a+=2){
-			$r.=chr(hexdec($url{$a}.$url{($a+1)}));
-		} return $r;
-	}else{
-		return "http://mpak.su/files:url/null/". bin2hex((/*strpos($url, "http://") !== 0*/ true ? "" : "http://". $_SERVER['HTTP_HOST']). $url);
-	}
-}
-
-function aedit($href, $title = null){
+function aedit($href, $title = null){ # Установка на пользовательскую старницу ссылки в административные разделы. В качестве аргумента передается ссылка, выводится исходя из прав пользователя на сайте
 	global $arg;
 	if($arg['access'] > 3) echo "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:10; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px;'></a></span></div>";
 }
 
-function mptс($time = null, $format = 0){
+function mptс($time = null, $format = 0){ # Приведение временных данных у удобочитаемую человеческую форму. Обычно для вывода на пользовательские страницы
 	if($time === null) $time = time();
 	$time = time()-$time;
 	$month = explode(",", $conf['settings']['themes_month']);
@@ -71,6 +73,7 @@ function mb_ord($char){
     return html_entity_decode('&#' . intval($string) . ';', ENT_COMPAT, 'UTF-8');
 }
 
+# Вызов библиотеки curl Для хранения файла кукисов используется текущая директория. Первым параметром передается адрес запрос, вторым пост если требуется
 function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $headers = array(), $proxy = null){
 	$ch = curl_init();
 	if($proxy){
@@ -96,9 +99,10 @@ function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $hea
 	return $result;
 }
 
+# Получение данных из базы данных. В качестве ключей используются числа от нуля. Функция используется для выборки первого значения
 function ql($sql, $ln = null, $fd = null){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата
 	$microtime = microtime(true);
-	if(!($r = mpmc($key = "ql:". md5($sql))) /*&& (gettype($r) == "boolean")*/){
+	if(!($r = mpmc($key = "ql:". md5($sql)))){
 		$r = mpql(mpqw($sql), $ln, $fd);
 		if(($mt = (microtime(true) - $microtime)) > .3){
 			mpevent("Кеширование списка", $sql);
@@ -107,9 +111,10 @@ function ql($sql, $ln = null, $fd = null){ # Выполнение запроса
 	} return $r;
 }
 
-function qn($sql){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата
+# Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата. Возвращается список записей в нормальной форме
+function qn($sql){
 	$microtime = microtime(true);
-	if(!($r = mpmc($key = "qn:". md5($sql))) /*&& (gettype($r) == "boolean")*/){
+	if(!($r = mpmc($key = "qn:". md5($sql)))){
 		$func_get_args = func_get_args();
 		$func_get_args[0] = mpqw($sql);
 		$r = call_user_func_array('mpqn', $func_get_args);
@@ -130,6 +135,7 @@ function mpfm($n, $form1, $form2, $form5){
     return $form5;
 }
 
+# Кеширование данных в memcache
 function mc($key, $function, $force = false){
 	if($force !== false) mpre($key);
 	if(!($tmp = mpmc($key)) || $force){
@@ -138,7 +144,7 @@ function mc($key, $function, $force = false){
 	} return $tmp;
 }
 
-function mpsmtp($to, $obj, $text, $login = null){
+function mpsmtp($to, $obj, $text, $login = null){ # Отправка письмо по SMTP протоколу
 	global $conf;
 	ini_set("include_path", ini_get("include_path"). ":". "./include/mail/");
 
@@ -196,33 +202,8 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 	}
 }
 
-/*function dt($arr, $filter, $name = false){
-	$m = $arr; $inc = 0;
-	foreach($filter as $k=>$v){
-		$n = array();
-		if($m) foreach($m as $key=>$val){
-			if(is_numeric($k) || empty($k)){
-				$n[ $inc++ ] = $val;
-			}else{
-				$n[ $val[$k] ][ $val["id"] ] = $val;
-			}
-		} if(is_numeric($k) && $k && !$v && (count($m) > 1)){
-			echo "<span style=color:red;>Ошибка. Множественные данные!!!</span>";
-		} if(gettype($v) == "array"){
-			$m = array_reduce(array_intersect_key($n, $v), function($v = array(), $w = array()){
-				return gettype($v) == "NULL" ? $w : ($v += $w);
-			});
-		}else{
-			$m = $n[ $v ];
-		}
-	} if($name !== false){
-		return $m[ $name ];
-	}else{
-		return $m;
-	}
-}*/
-
-function rb($arr, $key = 'id'){
+# Пересборка данных массива. Исходный массив должен находится в первой форме
+function rb($src, $key = 'id'){
 	$purpose = $keys = $return = array();
 	foreach(array_slice(func_get_args(), 1) as $a){
 		if(is_numeric($a) || (gettype($a) == "array") || $a === true || empty($a)){
@@ -234,9 +215,16 @@ function rb($arr, $key = 'id'){
 				$keys[] = $a;
 			}
 		}
-	} /*mpre($purpose); mpre($keys); mpre($field);*/ if($keys){
-		if(!empty($arr)){
-			foreach($arr as $v){
+	} /*mpre($purpose); mpre($keys); mpre($field);*/
+	if(is_string($src)){
+		global $arg, $conf;
+		$where = array_map(function($key, $val){
+			return "`{$key}`". (is_array($val) ? " IN (". in($val). ")" : "=". (int)$val);
+		}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
+		$src = qn($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$src}". ($where ? " WHERE ". implode(" OR ", $where) : ""));
+	} if($keys){
+		if(!empty($src)){
+			foreach($src as $v){
 				$n = &$return;
 				foreach($keys as $s){
 					if(empty($n[ $v[$s] ])){
@@ -247,7 +235,7 @@ function rb($arr, $key = 'id'){
 		}else{
 			$n = array();
 		}
-	}else{ $return = $arr; }
+	}else{ $return = $src; }
 	foreach($purpose as $v){
 		if(is_numeric($v)){
 			$return = (array)$return[ $v ];
@@ -345,7 +333,9 @@ function mpevent($name, $description = null, $own = null){
 	if(is_numeric($own)){
 		$func_get_args[2] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE id=". (int)$own), 0);
 	}
-	if(!empty($func_get_args[0]) && function_exists("event")){ $return = event($func_get_args); }
+	if(!empty($func_get_args[0]) && function_exists("event")){
+		$return = event($func_get_args);
+	}
 
 //	if((!empty($conf['settings']['users_log']) && $conf['settings']['users_log']) || !empty($argv)){
 		if(!empty($conf['event'][$name])) $event = $conf['event'][$name];
@@ -1317,12 +1307,6 @@ EOF;
 }
 
 function pre($array = false, $access = 4, $line = 0){
-	mpre($array, $access, $line);
-}
-
-function mpre($array = false, $access = 4, $line = 0){
-	global $conf, $arg, $argv;
-	if(empty($argv) && ($arg['access'] < $access)) return;
 	foreach(debug_backtrace() as $k=>$v){
 		if(!is_numeric($line) || $k === $line){
 			if($array){ # Комментарии выводим для javascript шаблонов. Чтобы они игнорировались как код
@@ -1336,6 +1320,12 @@ function mpre($array = false, $access = 4, $line = 0){
 			if($array) echo "/*</fieldset>\n*/";
 		}
 	}
+}
+
+function mpre($array = false, $access = 4, $line = 0){
+	global $conf, $arg, $argv;
+	if(empty($argv) && ($arg['access'] < $access)) return;
+	pre($array);
 }
 
 function mpqwt($result){

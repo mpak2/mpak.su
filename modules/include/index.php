@@ -45,8 +45,7 @@ $defaultmimes = array(
 	'xml' => 'text/xml',
 );
 
-$path = mpopendir($_SERVER['REQUEST_URI']);
-
+$path = mpopendir($_SERVER['REDIRECT_URL']);
 if(($ext = strtolower(array_pop(explode('.', $path)))) && array_key_exists($ext, $defaultmimes) && file_exists($path)){
 	header("Content-type: {$defaultmimes[$ext]}");
 	$f = fopen($path, "rb");

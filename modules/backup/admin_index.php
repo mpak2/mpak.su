@@ -1,7 +1,7 @@
 <? die;
 
 if($_GET['backup']){
-	include(mpopendir("config/config.php"));
+	include(mpopendir("include/config.php"));
 	$file_name = "{$conf['db']['name']}-". date("Y.m.d_H:i:s"). ".sql";
 	if($error = `mysqldump -u {$conf['db']['login']} -p{$conf['db']['pass']} {$conf['db']['name']} > /tmp/$file_name`){
 		echo $error;

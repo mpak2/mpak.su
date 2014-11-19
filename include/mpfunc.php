@@ -219,10 +219,9 @@ function rb($src, $key = 'id'){
 	if(is_string($src)){
 		global $arg, $conf;
 		$where = array_map(function($key, $val){
-			return "`{$key}`=\"". (is_array($val) ? in($val) : $val). "\"";
+			return "`{$key}`". (is_array($val) ? " IN (". in($val). ")" : "=". (int)$val);
 		}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
-		$src = qn($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$src}". ($where ? " WHERE ". implode(" OR ", $where) : ""));
-		mpre($sql);
+		$src = qn($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$src}". ($where ? " WHERE ". implode(" OR ", $where) : ""). (($order = $conf['settings']["{$arg['modpath']}_{$src}=>order"]) ? " ORDER BY ". mpquot($order) : ""));
 	} if($keys){
 		if(!empty($src)){
 			foreach($src as $v){
@@ -1287,7 +1286,7 @@ function mpmenu($m = array()){
 EOF;
 	}
 	if(empty($conf['settings']['admin_help_hide'])){
-		echo '<div style="float:right; margin:5px;"><a target=blank href="http://mpak.su/help/modpath:'. $arg['modpath']. "/fn:". $arg['fn']. '/r:'. $_GET['r']. '">Помощь</a></div>';
+		echo '<div style="float:right; margin:5px;"><a target=blank href="//mpak.su/help/modpath:'. $arg['modpath']. "/fn:". $arg['fn']. '/r:'. $_GET['r']. '">Помощь</a></div>';
 	}
 	if($modname = array_search('admin', $_GET['m'])){
 		$modname_id = mpfdk("{$conf['db']['prefix']}modules",
