@@ -205,7 +205,7 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 # Пересборка данных массива. Исходный массив должен находится в первой форме
 function rb($src, $key = 'id'){
 	$purpose = $keys = $return = array();
-	foreach(array_slice(func_get_args(), 1) as $a){
+	foreach(array_slice(func_get_args(), (is_numeric($key) ? 2 : 1)) as $a){
 		if(is_numeric($a) || (gettype($a) == "array") || $a === true || empty($a)){
 			$purpose[] = $a;
 		}else{
@@ -216,7 +216,15 @@ function rb($src, $key = 'id'){
 			}
 		}
 	} /*mpre($purpose); mpre($keys); mpre($field);*/
-	if(is_string($src)){
+	if(is_numeric($key)){
+		global $arg, $conf, $tpl;
+		if(is_array($src)){
+			$src = array_slice($src, 0, $key);
+		}else{
+			$src = qn($sql = "SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$src}". ($where ? " WHERE ". implode(" OR ", $where) : ""). (($order = $conf['settings']["{$arg['modpath']}_{$src}=>order"]) ? " ORDER BY ". mpquot($order) : " LIMIT ". (int)($_GET['p']*$key). ",". (int)$key));
+			$tpl['pager'] = mpager(ql("SELECT FOUND_ROWS()/". (int)$key. " AS cnt", 0, "cnt"));
+		}
+	}else if(is_string($src)){
 		global $arg, $conf;
 		$where = array_map(function($key, $val){
 			return "`{$key}`". (is_array($val) ? " IN (". in($val). ")" : "=". (int)$val);
