@@ -377,19 +377,17 @@ if (is_numeric($conf['settings']['theme'])){
 	if($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". ($_GET['index'] ? basename($_GET['index']) : "index"). ".html")){
 		$tc = file_get_contents($t);
 	}else{ die("Шаблон {$f} не найден"); }
-}// $tpl = array(1);
+}
 
-if (!array_key_exists('null', $_GET) || !empty($_GET['m']['users'])){
-	if (isset($_GET['m']['sqlanaliz'])) $zblocks = bcont();
-} $content .= mcont($content);
-if (!array_key_exists('null', $_GET) || !empty($_GET['m']['users'])){
-	if (!isset($_GET['m']['sqlanaliz'])) $zblocks = bcont();
-//	if (strpos($tc, '<!-- [modules] -->')){
-		if(!array_key_exists('null', $_GET)){
-			$content = str_replace('<!-- [modules] -->', $content, $tc);
-		} $content = strtr($content, (array)$zblocks);
-//	}
-}// echo $content;
+if(isset($_GET['m']['sqlanaliz'])){
+	$zblocks = bcont();
+	$content .= mcont($content);
+}else{
+	$content .= mcont($content);
+	$zblocks = bcont();
+} if(!array_key_exists('null', $_GET)){
+	$content = str_replace('<!-- [modules] -->', $content, $tc);
+} $content = strtr($content, (array)$zblocks);
 
 if ($conf['settings']['microtime']){
 	$conf['settings']['microtime'] = (substr(microtime(), strpos(microtime(), ' ')) - substr($conf['settings']['microtime'], strpos($conf['settings']['microtime'], ' ')) + microtime() - $conf['settings']['microtime']);

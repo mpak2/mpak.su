@@ -35,11 +35,13 @@ function mpzam($ar, $prefix = "{", $postfix = "}"){ # Создание из мн
 }
 
 function in($ar, $flip = false){ # Формирует из массива строку с перечисляемыми ключами для подставки в запрос
-	if(gettype($ar) != "array"){
+	if(!is_array($ar) || empty($ar)){
 		$ar = array(0);
 	}else if($flip){
 		 $ar = array_flip($ar);
-	} return implode(",", array_keys($ar) ? array_keys($ar) : array(0));
+	} return implode(",", array_map(function($key){
+		return is_numeric($key) ? $key : "\"". mpquot($key). "\"";
+	}, array_keys($ar)));
 }
 
 function aedit($href, $title = null){ # Установка на пользовательскую старницу ссылки в административные разделы. В качестве аргумента передается ссылка, выводится исходя из прав пользователя на сайте
@@ -216,12 +218,15 @@ function rb($src, $key = 'id'){
 			}
 		}
 	} /*mpre($purpose); mpre($keys); mpre($field);*/
-	if(is_numeric($key)){
+	if(is_numeric($key)){ # Второй параметр число строим пагинатор
 		global $arg, $conf, $tpl;
 		if(is_array($src)){
 			$src = array_slice($src, 0, $key);
 		}else{
-			$src = qn($sql = "SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$src}". ($where ? " WHERE ". implode(" OR ", $where) : ""). (($order = $conf['settings']["{$arg['modpath']}_{$src}=>order"]) ? " ORDER BY ". mpquot($order) : " LIMIT ". (int)($_GET['p']*$key). ",". (int)$key));
+			$where = array_map(function($key, $val){
+				return "`{$key}`". (is_array($val) ? " IN (". in($val). ")" : "=". (int)$val);
+			}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
+			$src = qn($sql = "SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$src}". ($where ? " WHERE ". implode(" OR ", $where) : ""). (($order = $conf['settings']["{$arg['modpath']}_{$src}=>order"]) ? " ORDER BY ". mpquot($order) : ""). " LIMIT ". (int)($_GET['p']*$key). ",". (int)$key);
 			$tpl['pager'] = mpager(ql("SELECT FOUND_ROWS()/". (int)$key. " AS cnt", 0, "cnt"));
 		}
 	}else if(is_string($src)){
@@ -240,28 +245,30 @@ function rb($src, $key = 'id'){
 					} $n = &$n[ $v[$s] ];
 				} $n = $v;
 			}
-		}else{
-			$n = array();
-		}
+		}else{ $n = array(); }
 	}else{ $return = $src; }
 	foreach($purpose as $v){
-		if(is_numeric($v)){
+		$r = array();
+		if(is_numeric($v)){ # Выборка по целочисленному ключу
 			$return = (array)$return[ $v ];
-		}else{
-			$r = array();
-			if($v === true){
-				$inc = 0;
-				foreach($return as $k){
-					$r[ $inc++ ] = $k;
-				}
-			}else if($v !== true){
-				if(gettype($v) == "array"){
-					foreach(array_keys($v) as $k){
-						if(!empty($return[ $k ])){
-							$r += $return[ $k ];
+		}else if(is_array($v)){ # Сортировка по ключям массива
+			foreach(array_keys($v) as $k){
+				if(!empty($return[ $k ])){
+					if($intersect = array_intersect_key($return[ $k ], $r)){
+						$t = array_map(function($k, $v1, $v2){
+							return array($k=>($v1 + $v2));
+						}, array_keys($intersect), array_intersect_key($r, $return[ $k ]), array_intersect_key($return[ $k ], $r));
+						$r += $return[ $k ];
+						foreach($t as $k=>$m){
+							$r[ array_shift(array_keys($m)) ] = array_shift($m);
 						}
-					}
-				}else{ $r = array(); }
+					}else{ $r += $return[ $k ]; }
+				}
+			} $return = $r;
+		}else if($v === true){ # Выстраивание ключей по порядку
+			$inc = 0;
+			foreach($return as $k){
+				$r[ $inc++ ] = $k;
 			} $return = $r;
 		}
 	} return !empty($field) ? $return[ $field ] : $return;
@@ -1411,15 +1418,6 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 		}else{
 			echo file_get_contents("$cache_name/$host_name/$prx/$fl_name");
 		} header('Last-Modified: '. date("r", $filectime));
-//			header('HTTP/1.0 304 Not Modified');
-//		}else{
-//			if(!function_exists("mpmc") || !($mc = mpmc($key = "{$_SERVER['HTTP_HOST']}/{$fl_name}/filectime:". (!empty($filectime) ? $filectime : ""). "/{$conf['event']['Формирование изображения']['count']}", null, false, 0, false))){
-//				$mc = file_get_contents("$cache_name/$host_name/$prx/$fl_name");
-//				if(function_exists("mpmc")){
-//					mpmc($key, $mc, false, 86400, false);
-//				}
-//			} /*echo $key;*/ return $mc;
-//		}
 	}else if($src = imagecreatefromstring(file_get_contents($file_name))){
 		header("Expires: ".gmdate("D, d M Y H:i:s", time() + 3600)." GMT");
 		header('Cache-Control: public,max-age=28800');
@@ -1494,7 +1492,7 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 		header("Content-type: image/jpeg");
 		header('Last-Modified: '. date("r"));
 		mpevent("Ошибка открытия изображения", $file_name, $conf['user']['uid']);
-		imagestring ($src, 1, 5, 30, "HeTKapmuHku", $tc);
+		imagestring($src, 1, 5, 30, (file_exists($file_name) ? "GD Error" : "HeTKapmuHku"), $tc);
 		return ImageJpeg($src);
 	}
 }
@@ -1503,23 +1501,20 @@ if(!function_exists("array_column")){
 	function array_column(array $input, $columnKey, $indexKey = null) {
 		$result = array();
 		if(null === $indexKey){
-			if (null === $columnKey){
-				// trigger_error('What are you doing? Use array_values() instead!', E_USER_NOTICE);
+			if(null === $columnKey){
 				$result = array_values($input);
-			}
-			else {
-				foreach ($input as $row){
+			}else{
+				foreach($input as $row){
 					$result[] = $row[$columnKey];
 				}
 			}
 		}else{
-			if (null === $columnKey){
-				foreach ($input as $row){
+			if(null === $columnKey){
+				foreach($input as $row){
 					$result[$row[$indexKey]] = $row;
 				}
-			}
-			else {
-				foreach ($input as $row){
+			}else{
+				foreach($input as $row){
 					$result[$row[$indexKey]] = $row[$columnKey];
 				}
 			}

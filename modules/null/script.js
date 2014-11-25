@@ -1,13 +1,14 @@
-$("script").slice(-1).parent().on("ajax", function(e, ajax){
-	$.each(ajax, function(url, post){
-		$.ajax({url:url, type:"POST", data:post, dataType:"text", async:false,
-			success:function(data){ /*$(e.delegateTarget).data("ajax", data);*/ }
-		}).done(function(data){
-			if(isNaN(data)){
-				$(e.delegateTarget).data("ajax", 0);
-				alert(data);
-			}else{ $(e.delegateTarget).data("ajax", data); }
-		}).fail(function(data){ alert(data.responseText); });
+$("script").slice(-1).parent().on("ajax", function(e, param){
+	var href = "/<?=$arg['modname']?>:ajax/class:"+param.class;
+	$.each(param.get, function(key, val){
+		href += "/"+ (key == "id" ? "" : key+ ":")+ val;
+	});
+	$.post(href, param.post, function(data){
+		if(isNaN(data)){ alert(data) }else{
+			if(typeof(param.complete) == "function"){
+				param.complete.call(null, data);
+			}
+		}
 	});
 }).on("json", function(e, json){
 	$.each(json, function(url, post){
