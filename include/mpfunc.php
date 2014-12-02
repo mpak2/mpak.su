@@ -1,5 +1,9 @@
 <?
 
+function gvk($array = array(), $field=false){ 
+	return isset($array[$field]) ? $array[$field] : FALSE;
+}
+
 set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
     $errortype = array (
 		1   =>  "Ошибка",
@@ -226,7 +230,7 @@ function rb($src, $key = 'id'){
 			$where = array_map(function($key, $val){
 				return "`{$key}`". (is_array($val) ? " IN (". in($val). ")" : "=". (int)$val);
 			}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
-			$src = qn($sql = "SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$src}". ($where ? " WHERE ". implode(" OR ", $where) : ""). (($order = $conf['settings']["{$arg['modpath']}_{$src}=>order"]) ? " ORDER BY ". mpquot($order) : ""). " LIMIT ". (int)($_GET['p']*$key). ",". (int)$key);
+			$src = qn($sql = "SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings']["{$arg['modpath']}_{$src}=>order"]) ? " ORDER BY ". mpquot($order) : ""). " LIMIT ". (int)($_GET['p']*$key). ",". (int)$key);
 			$tpl['pager'] = mpager(ql("SELECT FOUND_ROWS()/". (int)$key. " AS cnt", 0, "cnt"));
 		}
 	}else if(is_string($src)){
@@ -234,7 +238,7 @@ function rb($src, $key = 'id'){
 		$where = array_map(function($key, $val){
 			return "`{$key}`". (is_array($val) ? " IN (". in($val). ")" : "=". (int)$val);
 		}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
-		$src = qn($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$src}". ($where ? " WHERE ". implode(" OR ", $where) : ""). (($order = $conf['settings']["{$arg['modpath']}_{$src}=>order"]) ? " ORDER BY ". mpquot($order) : ""));
+		$src = qn($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings']["{$arg['modpath']}_{$src}=>order"]) ? " ORDER BY ". mpquot($order) : ""));
 	} if($keys){
 		if(!empty($src)){
 			foreach($src as $v){
