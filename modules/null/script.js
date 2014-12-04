@@ -4,11 +4,11 @@ $("script").slice(-1).parent().on("ajax", function(e, param){
 		href += "/"+ (key == "id" ? "" : key+ ":")+ val;
 	});
 	$.post(href, param.post, function(data){
-		if(isNaN(data)){ alert(data) }else{
-			if(typeof(param.complete) == "function"){
-				param.complete.call(null, data);
-			}
+		if(typeof(param.complete) == "function"){
+			param.complete.call(this, data);
 		}
+	}, "json").fail(function(error) {
+		console.log("error:", error);
 	});
 }).on("json", function(e, json){
 	$.each(json, function(url, post){
@@ -22,11 +22,21 @@ $("script").slice(-1).parent().on("ajax", function(e, param){
 			alert(data.responseText);
 		});
 	});
-}).on("tpl", function(e, index){
-	var tpl = $(e.delegateTarget).find(">script[type='text/template']").html();
-	$.each(index, function(key, val){ // console.log("key:", "${"+key+"}", "val:", val);
-		tpl = tpl.split("${"+key+"}").join(val);
-	}); $(e.delegateTarget).data("tpl", tpl);
+}).on("tpl", "*", function(e, t){
+	var index = $(this).data(t);
+	if(typeof(index) != "undefined"){
+		$.each(index, function(k, v){
+			$(e.currentTarget).find("[data-"+t+"-"+k+"]").each(function(n, el){
+				if($(el).is("select")){
+					alert("tpl:select");
+				}else if($(el).is("input[type=checkbox]")){
+					$(el).prop("checked", v);
+				}else{
+					$(el).text(v);
+				}
+			});
+		});
+	}
 }).on("events", function(e, log){
 	$.each($._data(this, "events"), function(name, event){
 		if(typeof(log) == "undefined") console.log("events:", name);

@@ -212,7 +212,11 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 function rb($src, $key = 'id'){
 	$purpose = $keys = $return = array();
 	foreach(array_slice(func_get_args(), (is_numeric($key) ? 2 : 1)) as $a){
-		if(is_numeric($a) || (gettype($a) == "array") || $a === true || empty($a)){
+		if(is_string($a)){
+			if(preg_match('#^\[.*\]$#',trim($a))){
+				$a = array_flip(preg_split('#\s*,\s*#', preg_replace('#^\[|\]$#','',trim($a))));
+			}
+		} if(is_numeric($a) || is_array($a) || is_bool($a) || empty($a)){
 			$purpose[] = $a;
 		}else{
 			if(!empty($purpose)){
