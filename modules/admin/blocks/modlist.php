@@ -21,7 +21,7 @@ $modpath = array_search('admin', $_GET['m']);
 		<li><h2><?=$c['name']?></h2></li>
 		<? foreach($mod[ $c['id'] ] as $k=>$v): if($conf['modules'][ $v['id'] ]['access'] < 4) continue; ?>
 			<li modpath="<?=$v['folder']?>" class="<?=($modpath == $v['folder'] ? "act" : "")?>">
-				<a href="/?m[<?=$v['folder']?>]=admin"><?=$v['name']?></a>
+				<a href="/<?=$v['folder']?>:admin"><?=$v['name']?></a>
 			</li>
 		<? endforeach; ?>
 	<? endforeach; ?>

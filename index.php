@@ -56,7 +56,7 @@ if (strlen($conf['db']['error'] = mysql_error())){
 	mpqw("SET NAMES 'utf8'");
 } unset($conf['db']['pass']); $conf['db']['sql'] = array();
 
-if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(mpql(mpqw("SHOW TABLES", 'Проверка работы базы')))){
+if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(mpql(mpqw("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}_%\"", 'Проверка работы базы')))){
 	exit(mpopendir('include/install.php') ? mpct('include/install.php') : "Файл установки не найден");
 }
 

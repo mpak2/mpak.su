@@ -210,6 +210,7 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 
 # Пересборка данных массива. Исходный массив должен находится в первой форме
 function rb($src, $key = 'id'){
+//	mpre(func_get_args());
 	$purpose = $keys = $return = array();
 	foreach(array_slice(func_get_args(), (is_numeric($key) ? 2 : 1)) as $a){
 		if(is_string($a)){
@@ -225,7 +226,7 @@ function rb($src, $key = 'id'){
 				$keys[] = $a;
 			}
 		}
-	} /*mpre($purpose); mpre($keys); mpre($field);*/
+	}// mpre($purpose); mpre($keys); mpre($field);
 	if(is_numeric($key)){ # Второй параметр число строим пагинатор
 		global $arg, $conf, $tpl;
 		if(is_array($src)){
@@ -240,7 +241,13 @@ function rb($src, $key = 'id'){
 	}else if(is_string($src)){
 		global $arg, $conf;
 		$where = array_map(function($key, $val){
-			return "`{$key}`". (is_array($val) ? " IN (". in($val). ")" : "=". (int)$val);
+			if(is_null($val)){
+				return "`{$key}` IS NULL";
+			}elseif(is_array($val)){
+				return "`{$key}` IN (". in($val). ")";
+			}else{
+				return "`{$key}`=". intval($val);
+			}
 		}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
 		$src = qn($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings']["{$arg['modpath']}_{$src}=>order"]) ? " ORDER BY ". mpquot($order) : ""));
 	} if($keys){
@@ -257,7 +264,7 @@ function rb($src, $key = 'id'){
 	}else{ $return = $src; }
 	foreach($purpose as $v){
 		$r = array();
-		if(is_numeric($v)){ # Выборка по целочисленному ключу
+		if(is_numeric($v) || empty($v)){ # Выборка по целочисленному ключу
 			$return = (array)$return[ $v ];
 		}else if(is_array($v)){ # Сортировка по ключям массива
 			foreach(array_keys($v) as $k){
@@ -315,11 +322,14 @@ function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
 			return $sel['id'] = mysql_insert_id();
 		}
 	}
-}
-
-function fdk($tn, $find, $insert = array(), $update = array(), $log = false){
+} function fdk($tn, $find, $insert = array(), $update = array(), $log = false){
 	if($index_id = mpfdk($tn, $find, $insert, $update, $log)){
 		return ql("SELECT * FROM `$tn` WHERE id=". (int)$index_id, 0);
+	}
+} function fk($t, $find, $insert = array(), $update = array(), $log = false){
+	global $conf, $arg;
+	if($index = fdk("{$conf['db']['prefix']}{$arg['modpath']}_{$t}", $find, $insert, $update, $log)){
+		return $index;
 	}
 }
 
@@ -677,18 +687,21 @@ function mpdbf($tn, $post = null, $and = false){
 	if(!isset($post)) $post = $_POST;
 	foreach(mpql(mpqw("SHOW COLUMNS FROM `$tn`")) as $k=>$v){
 		$fields[$v['Field']] = $v['Type'];
-	}// mpre($post);
-	foreach($post AS $k=>$v){
+	} foreach($post AS $k=>$v){
 		if(!empty($conf['settings']['analizsql_autofields']) && $conf['settings']['analizsql_autofields'] && !array_key_exists($k, $fields) && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false){
 			mpqw($sql = "ALTER TABLE `$tn` ADD `$k` ". (is_numeric($v) ? "INT" : "varchar(255)"). " NOT NULL"); echo "\n<br>". $sql;
 			$f[] = "`$k`=\"". htmlspecialchars(mpquot($v)). "\"";
 		}elseif(array_key_exists($k, $fields)){
-			if(gettype($v) == 'array'){
+			if(is_array($v)){
 				$f[] = "`$k` IN (". mpquot(strtr(implode(",", $v), array("<"=>"&lt;", ">"=>"&gt;"))). ")";
 			}else/* if(gettype($v) == "string")*/{
-				$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
+				if($v == "null"){
+					$f[] = "`$k`=". $v;
+				}else{
+					$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
+				}
 			}
-		}// mpre($f);
+		}
 	} return implode(($and ? " AND " : ', '), (array)$f);
 }
 
@@ -1319,12 +1332,12 @@ EOF;
 	echo '<ul class="nl tabs">';
 	foreach($m as $k=>$v){
 		if (($v[0] == '.') && ($_GET['r'] != $k)) continue;
-		echo "<li class=\"$k\"><a href=\"/?m[{$modname}]=admin". ($k ? "&r=$k" : ''). "\">$v</a></li>";
+		echo "<li class=\"$k\"><a href=\"/{$modname}:admin". ($k ? "/r:$k" : ''). "\">$v</a></li>";
 	}
 	echo '</ul>';
 	if(!empty($m) && empty($_GET['r'])){
 		if(!is_numeric($r = array_shift(array_keys($m))) && (strpos($_SERVER['REQUEST_URI'], "?") !== false)){
-			header("Location: {$_SERVER['REQUEST_URI']}&r=". array_shift(array_keys($m)));
+			header("Location: /admin:{$arg['modname']}/r:". array_shift(array_keys($m)));
 		}
 	}
 }

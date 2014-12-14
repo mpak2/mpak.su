@@ -8,7 +8,7 @@ $("script").slice(-1).parent().on("ajax", function(e, param){
 			param.complete.call(this, data);
 		}
 	}, "json").fail(function(error) {
-		console.log("error:", error);
+		alert(error.responseText);
 	});
 }).on("json", function(e, json){
 	$.each(json, function(url, post){

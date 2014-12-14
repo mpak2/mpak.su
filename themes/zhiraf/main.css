@@ -551,6 +551,7 @@ h2
 			font-size:15px;
 			color:#000;
 			font-weight:normal;
+			white-space: nowrap;
 		}
 	.MainTable th{
 		padding:0 12px;

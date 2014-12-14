@@ -8,7 +8,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index`
   `name` varchar(255) NOT NULL,
   `description` text NOT NULL,
   PRIMARY KEY  (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$conf['db']['prefix']}', '{$arg['modpath']}_tpl_exceptions', '1', '4', '')");
