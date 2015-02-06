@@ -414,7 +414,7 @@ h2
 	{
 		color:#fff;
 		background:#008ee9;
-/*		cursor:text;*/
+		cursor:text;
 	}
 	.ModulesList li a:hover
 	{
@@ -551,7 +551,6 @@ h2
 			font-size:15px;
 			color:#000;
 			font-weight:normal;
-			white-space: nowrap;
 		}
 	.MainTable th{
 		padding:0 12px;

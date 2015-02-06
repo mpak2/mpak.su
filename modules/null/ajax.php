@@ -1,6 +1,6 @@
 <? die;
 
-if($viewer = rb("viewer", "id", $conf['user']['sess']['vk_viewer'])){
+//if($viewer = rb("viewer", "id", $conf['user']['sess']['vk_viewer'])){
 	if(!empty($_REQUEST['class']) && $class = "{$conf['db']['prefix']}{$arg['modpath']}_". array_shift(explode(" ", $_REQUEST['class']))){
 		if($arg['access'] > 1){
 			mpevent("Аякс запрос /{$arg['modpath']}:{$class[0]}", $conf['user']['uid'], $_REQUEST, $viewer);
@@ -23,4 +23,4 @@ if($viewer = rb("viewer", "id", $conf['user']['sess']['vk_viewer'])){
 			}else{ exit("Прав доступа {$arg['access']} недостаточно для изменения данных"); }
 		}else{ exit("Недостаточно прав доступа"); }
 	}else{ exit("Не указана таблица"); }
-}else{ exit(pre("Посетитель не найден")); }
+//}else{ exit(pre("Посетитель не найден")); }

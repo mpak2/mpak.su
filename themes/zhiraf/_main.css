@@ -68,7 +68,7 @@ p
 }
 html
 {
-	/*background:url("i/border.gif") repeat-y 100% 0;*/
+	background:url("i/border.gif") repeat-y 100% 0;
 }
 html, body
 {
@@ -242,27 +242,18 @@ input[type="submit"]
 				}
 				#content .tabs
 				{
-					/*background:url("i/gradients.gif") repeat-x 0 -57px;
+					background:url("i/gradients.gif") repeat-x 0 -57px;
 					height:37px;
 					border-top:1px solid #dbdbdd;
 					border-bottom:1px solid #dbdbdd;
-					padding:0 100px 0 17px;*/
-					background: url("i/gradients.gif") repeat-x;
-					height: 100%;
-					border-top: 1px solid #dbdbdd;
-					border-bottom: 1px solid #dbdbdd;
-					padding: 0 100px 0 17px;
+					padding:0 100px 0 17px;
 			}
 
 		#content .tabs li
 		{
-			/*float:left;
+			float:left;
 			position:relative;
-			top:10px;*/
-			/* float: left; */
-			position: relative;
-			margin: 0;
-			display: inline-block;
+			top:10px;
 		}
 			#content .tabs li a
 			{
@@ -414,7 +405,7 @@ h2
 	{
 		color:#fff;
 		background:#008ee9;
-/*		cursor:text;*/
+		cursor:text;
 	}
 	.ModulesList li a:hover
 	{
@@ -552,13 +543,10 @@ h2
 			color:#000;
 			font-weight:normal;
 		}
-	.MainTable th{
+	.MainTable th
+	{
 		padding:0 12px;
-		position:relative;
 	}
-	.MainTable th > span.info {display:inline-block; width:15px; height:15px; float:right; background-image:url(i/info.png); position:absolute; right:5px; top:5px;}
-	.MainTable th > span.info > div {display:none; background-color:#fff8e3; /*background-image:url(i/gradients.gif);*/ min-width:80px; position:absolute; right:5px; top:5px; border-radius:5px; line-height:14px; border:1px solid gray;}
-	.MainTable th > span.info:hover > div {display:block; padding:5px;}
 	.MainTable td
 	{
 		padding:7px 12px;
@@ -566,12 +554,6 @@ h2
 	.MainTable .even
 	{
 		background:#fff8e3;
-	}
-	.MainTable tr:hover{
-		background:#E5E5E5;
-	}
-	.MainTable tr:last-child{
-		background:#fff;
 	}
 	.MainTable .tools a 
 	{

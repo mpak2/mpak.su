@@ -50,7 +50,7 @@ function in($ar, $flip = false){ # Формирует из массива стр
 
 function aedit($href, $title = null){ # Установка на пользовательскую старницу ссылки в административные разделы. В качестве аргумента передается ссылка, выводится исходя из прав пользователя на сайте
 	global $arg;
-	if($arg['access'] > 3) echo "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:10; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px;'></a></span></div>";
+	if($arg['access'] > 3) echo "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:10; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px; width:10px; height:10px;'></a></span></div>";
 }
 
 function mptс($time = null, $format = 0){ # Приведение временных данных у удобочитаемую человеческую форму. Обычно для вывода на пользовательские страницы
@@ -208,9 +208,16 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 	}
 }
 
-# Пересборка данных массива. Исходный массив должен находится в первой форме
 function rb($src, $key = 'id'){
-//	mpre(func_get_args());
+	global $conf, $arg;
+	$func_get_args = func_get_args();
+	if(is_string($src)){
+		$func_get_args[0] = "{$conf['db']['prefix']}{$arg['modpath']}_{$src}";
+	} return call_user_func_array('erb', $func_get_args);
+}
+
+# Пересборка данных массива. Исходный массив должен находится в первой форме
+function erb($src, $key = 'id'){
 	$purpose = $keys = $return = array();
 	foreach(array_slice(func_get_args(), (is_numeric($key) ? 2 : 1)) as $a){
 		if(is_string($a)){
@@ -235,7 +242,7 @@ function rb($src, $key = 'id'){
 			$where = array_map(function($key, $val){
 				return "`{$key}`". (is_array($val) ? " IN (". in($val). ")" : "=". (int)$val);
 			}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
-			$src = qn($sql = "SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings']["{$arg['modpath']}_{$src}=>order"]) ? " ORDER BY ". mpquot($order) : ""). " LIMIT ". (int)($_GET['p']*$key). ",". (int)$key);
+			$src = qn($sql = "SELECT SQL_CALC_FOUND_ROWS * FROM {$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings'][substr($src, strlen($conf['db']['prefix'])). "=>order"]) ? " ORDER BY ". mpquot($order) : ""). " LIMIT ". (int)($_GET['p']*$key). ",". (int)$key);
 			$tpl['pager'] = mpager(ql("SELECT FOUND_ROWS()/". (int)$key. " AS cnt", 0, "cnt"));
 		}
 	}else if(is_string($src)){
@@ -249,7 +256,7 @@ function rb($src, $key = 'id'){
 				return "`{$key}`=". intval($val);
 			}
 		}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
-		$src = qn($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings']["{$arg['modpath']}_{$src}=>order"]) ? " ORDER BY ". mpquot($order) : ""));
+		$src = qn($sql = "SELECT * FROM {$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings'][substr($src, strlen($conf['db']['prefix'])). "=>order"]) ? " ORDER BY ". mpquot($order) : ""));
 	} if($keys){
 		if(!empty($src)){
 			foreach($src as $v){
@@ -374,9 +381,7 @@ function mpevent($name, $description = null, $own = null){
 		if(!empty($conf['event'][$name])) $event = $conf['event'][$name];
 
 		mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event SET time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", name=\"". mpquot($name). "\", description=\"". mpquot($desc). "\", count=1 ON DUPLICATE KEY UPDATE time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", count=count+1, last=". (int)$func_get_args[1]. ", max=IF(". (int)$func_get_args[1]. ">max, ". (int)$func_get_args[1]. ", max), min=IF(". (int)$func_get_args[1]. "<min, ". (int)$func_get_args[1]. ", min), description=\"". mpquot($desc). "\", log_last=". (!empty($event['log']) && $event['log'] ? "(SELECT id FROM {$conf['db']['prefix']}users_event_logs WHERE event_id=". (int)$event['id']. " ORDER BY id DESC limit 1)" : 0));
-/*if($conf['user']['uname'] == "mpak"){
-	echo "<textarea>". $sql. "</textarea>";
-}*/
+
 		if(!empty($argv)){
 			$event = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event WHERE id=". (int)mysql_insert_id()), 0);
 		} $notice = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event_notice WHERE event_id=". (int)$event['id']));
@@ -384,17 +389,7 @@ function mpevent($name, $description = null, $own = null){
 		if((!empty($event['log']) && ($event['log'] > 1)) || $notice){
 			if(!is_numeric($func_get_args[2]) && array_key_exists("pass", $func_get_args[2])){
 				unset($func_get_args[2]['pass']);
-			}
-			foreach($func_get_args as $k=>$v){
-				$zam["{". $k. "}"] = (string)$v;
-				foreach(is_array($v) ? $v : array() as $n=>$a){
-					if(gettype($a) == 'array'){
-						ob_start(); print_r($a);
-						$a = ob_get_contents();
-						ob_end_clean();// mpre($a);
-					} $zam["{". $k. ":". $n. "}"] = (string)$a;
-				}// mpre($zam);
-			}// mpre($zam);
+			} $zam = mpzam($func_get_args);
 		}
 
 		if(!empty($event['log']) && $event['log']){

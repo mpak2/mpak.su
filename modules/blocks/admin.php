@@ -105,7 +105,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}blocks"){ #Блоки
 //				'set' => array('theme'=>$GLOBALS['conf']['settings']['theme']), # , 'orderby'=>$res['0']['max'] + 1 Значение которое всегда будет присвоено полю. Исключает любое изменение
 				'shablon' => $count_id += array(
 					"rid"=>array('*'=>"<a href='/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_reg&where[id]={f:{f}}'>{spisok:{f}}</a>"),
-					'name'=>array('*'=>"<a href='/?m[{$arg['modpath']}]=admin&conf={f:id}'><img src='/img/block_conf.png' border='0'></a>&nbsp;{f:{f}}"),
+					'name'=>array('*'=>"<a href='/{$arg['modpath']}:admin/conf:{f:id}'><img src='/img/block_conf.png' border='0'></a>&nbsp;{f:{f}}"),
 //					'rid'=>array('*'=>"&#60;--!&nbsp;[blocks:{f:{f}}]&nbsp;--&#62;")+spisok("SELECT b.id, r.description FROM {$GLOBALS['conf']['db']['prefix']}blocks as b, {$GLOBALS['conf']['db']['prefix']}blocks_reg as r WHERE b.rid=r.id"),
 //					'file'=>$blocks_config,
 //					'orderby'=>array('*'=>"<table width='100%' cellspacing='0' cellpadding='0' border='0'><tr><td align='center'><a href='?m[blocks]=admin&dec={f:id}'><img src='modules/blocks/img/up.gif' border='0'></a></td><td align='center'><a href='?m[blocks]=admin&inc={f:id}'><img src='modules/blocks/img/down.gif' border='0'></a></td></tr></table>"), # <td align='center'>{f:{f}}</td>

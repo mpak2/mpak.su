@@ -63,21 +63,21 @@ if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count
 if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) && array_key_exists('null', $_GET) && empty($_GET['w']) && empty($_GET['h'])){
 	if(empty($_GET['theme'])){
 		$_GET['theme'] = mpql(mpqw("SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"theme\""), 0, 'value');
-	} $ex = array('png'=>'image/png', 'jpg'=>'image/jpg', 'gif'=>'image/gif', 'otf'=>'font/opentype', 'css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', 'woff'=>'application/x-font-woff', 'svg'=>'image/svg+xml', 'tpl'=>'text/html', 'ogg'=>'application/ogg', 'mp3'=>'application/mp3');
+	} $ex = array('png'=>'image/png', 'jpg'=>'image/jpg', 'gif'=>'image/gif', 'otf'=>'font/opentype', 'css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', 'woff'=>'application/x-font-woff', 'svg'=>'image/svg+xml', 'tpl'=>'text/html', 'ogg'=>'application/ogg', 'mp3'=>'application/mp3', 'cur'=>'image/x-win-bitmap');
 	$fn = "themes/{$_GET['theme']}/{$_GET['']}";
-	$ext = array_pop(explode('.', $fn));
+	$ext = mb_strtoLower(preg_replace('#^.*\.(\w+)$#Uui','$1',$fn),'UTF-8'); //array_pop(explode('.', $fn));
 	header('Cache-Control: public,max-age=28800');
 	header("Expires: ".gmdate("D, d M Y H:i:s", time() + 3600)." GMT");
 	header("Content-type: ". ($ex[$ext] ? $ex[$ext] : "application/$ext"));
 	header('Last-Modified: '. date("r", filemtime(mpopendir($fn))));
 	if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= filemtime(mpopendir($fn)))){
 		header('HTTP/1.0 304 Not Modified');
-	}else if($ex[$ext]){
-		readfile(mpopendir($fn));
-	}else{
+	}else if(preg_match('#jpg|jpeg|bmp|png#Uui',$ext)){
 		echo mprs(mpopendir($fn), $_GET['w'], $_GET['h'], $_GET['c']);
+	}else{
+		readfile(mpopendir($fn));
 	} exit();
-}
+ }
 
 $conf['db']['info'] = 'Загрузка свойств модулей';
 $conf['settings'] = array('http_host'=>$_SERVER['HTTP_HOST'])+spisok("SELECT `name`, `value` FROM `{$conf['db']['prefix']}settings`");

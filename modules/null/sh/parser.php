@@ -5,6 +5,7 @@ if(file_exists("/../../../mpak.phar")){
 	include "/srv/www/vhosts/mpak.cms/include/mpfunc.php";
 	include "/srv/www/vhosts/mpak.cms/include/func.php";
 	include __DIR__. "/../../../include/config.php";
+	$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: dirname(dirname(dirname(dirname(__FILE__)))));
 }else{
 	include "phar://../../../mpak.phar/include/mpfunc.php";
 	include mpopendir("include/mpfunc.php");

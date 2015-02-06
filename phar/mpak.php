@@ -42,6 +42,7 @@ foreach( $dolders = array(
 	'modules',
 	'themes/zhiraf', 'themes/bootstrap3',
 	'include/blocks',
+	'include/class',
 	'include/jquery/tiny_mce',
 	'include/jquery/tiny_mce/inputmask', # <!-- [settings:inputmask] --> Скрипты для маск ввода в формы, в разделе тема создана переменная для ввода всех скриптов
 	'include/dhonishow',

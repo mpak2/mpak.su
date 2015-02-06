@@ -162,7 +162,7 @@ EOF;
 				if($old['Field'] == 'id'){
 					echo $sql = "DROP TABLE `{$_POST['tab']}`";
 				}elseif(empty($edit['Field'])){
-					echo $sql = "ALTER TABLE `{$_POST['tab']}` DROP `{$old['Field']}`";
+					echo "<div>". ($sql = "ALTER TABLE `{$_POST['tab']}` DROP `{$old['Field']}`"). "</div>";
 				}elseif($fields[ $edit['Type'] ]){
 					$sql = "ALTER TABLE `{$_POST['tab']}` CHANGE `{$old['Field']}` `{$edit['Field']}` {$edit['Type']} ". ($edit['Null'] == 'NO' ? ' NOT NULL' : '').(!empty($edit['Default']) ? " DEFAULT ". ($edit['Default'] == 'NULL' ? $edit['Default'] : "'{$edit['Default']}'") : ''	). " COMMENT '". mpquot($edit['Comment']). "'  $after";
 				}else{
@@ -182,21 +182,28 @@ EOF;
 		foreach(array_diff_key($keys, $_POST['keys']) as $n=>$m){
 			unset($keys[$n]);
 			mpqw($sql = "DROP INDEX $n ON `{$_POST['tab']}`");
+			echo "<div>{$sql}</div>";
 		}
-		foreach(array_diff_key($_POST['keys'], $keys) as $n=>$m){
+		foreach(array_diff_key($_POST['keys'], $keys + array(false)) as $n=>$m){
 			$keys[$n] = 'on';
 			mpqw($sql = "ALTER TABLE `{$_POST['tab']}` ADD INDEX (`$n`)");
-		} echo $sql;
+			echo "<div>{$sql}</div>";
+		}
 	}
 
 	if(($new = $_POST['fields'][++$k]) && $new['Field']){
+		$tn = explode("_", $_POST['tab'], 3);
 		if($new['After'] == '_'){ $after = " FIRST"; }elseif(!empty($new['After'])){ $after = " AFTER `{$new['After']}`"; }
-		echo $sql = "ALTER TABLE `{$_POST['tab']}` ADD `{$new['Field']}` {$new['Type']}".($new['Null'] == 'NO' ? ' NOT NULL' : '')." $after".(!empty($new['Default']) ? " DEFAULT ". ($new['Default'] == 'NULL' ? $new['Default'] : "'{$new['Default']}'") : ''	);
-		mpqw($sql);
+		mpqw($sql = "ALTER TABLE `{$_POST['tab']}` ADD `{$new['Field']}` {$new['Type']}".($new['Null'] == 'NO' ? ' NOT NULL' : '')." $after".(!empty($new['Default']) ? " DEFAULT ". ($new['Default'] == 'NULL' ? $new['Default'] : "'{$new['Default']}'") : ''));// echo $sql;
+		echo "<div>{$sql}</div>";
+
+		if(substr($new['Field'], -3, 3) == "_id"){
+			qw($sql = "ALTER TABLE `{$_POST['tab']}` ADD FOREIGN KEY (`{$new['Field']}`) REFERENCES `{$conf['db']['prefix']}{$tn[1]}_". substr($new['Field'], 0, strlen($new['Field'])-3). "` (`id`) ON UPDATE CASCADE ON DELETE ". ($_POST['keys'][0] ? "CASCADE" : "RESTRICT"));
+			echo "<div>{$sql}</div>";
+		}
 		if(($new['Field'] == "sort") && ($new['Type'] == "int(11)")){
 			mpqw("UPDATE `{$_POST['tab']}` SET `{$new['Field']}`=`id`"); # Устанока уникальных значений в таблицу сортировки
 			mpqw("ALTER TABLE `{$_POST['tab']}` ADD INDEX (`{$new['Field']}`)"); $keys[$new['Field']] = 'on';
-			$tn = explode("_", $_POST['tab'], 3);
 			mpsettings("{$tn[1]}_{$tn[2]}=>order", $new['Field']);
 		}
 	}
@@ -211,7 +218,7 @@ EOF;
 		echo "</div><div style='margin:10px;'>";
 	if(!empty($_REQUEST['tab'])){
 		$stc = ql("SHOW FULL COLUMNS FROM {$_REQUEST['tab']}");
-		$stc[] = array('Null'=>'NO');
+		$stc[] = array('Null'=>'NO', /*"Type"=>"varchar(255)",*/ "Key"=>"Удл");
 		echo "<form method=\"post\"><input type=\"hidden\" name=\"tab\" value=\"{$_REQUEST['tab']}\"><table>";
 		foreach($stc as $k=>$v){// mpre($v);
 			echo "<tr>";

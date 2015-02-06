@@ -10,7 +10,7 @@
 
 	<title><!-- [settings:title] --></title>
 	<base href="/themes/theme:<!-- [settings:theme] -->/null/">
-	<script type="text/javascript" src="//code.jquery.com/jquery-latest.js"></script>
+	<script type="text/javascript" src="/include/jquery/jquery.js"></script>
 	<!-- Bootstrap core CSS -->
 	<link href="css/bootstrap.css" rel="stylesheet">
 
@@ -40,7 +40,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a href="/" class="navbar-brand">Bootstrap</a>
+      <a href="/" class="navbar-brand">На главную</a>
     </div>
     <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
 		<!-- [blocks:3] -->
@@ -54,7 +54,12 @@
       <div class="container">
         <h1><!-- [settings:title] --></h1>
         <p><!-- [settings:description] --></p>
-        <div id="carbonads-container"><div class="carbonad"><div id="azcarbon"></div><script>var z = document.createElement("script"); z.async = true; z.src = "http://engine.carbonads.com/z/32341/azcarbon_2_1_0_HORIZ"; var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(z, s);</script></div></div>
+        <div id="carbonads-container">
+			<div class="carbonad">
+				<div id="azcarbon"></div>
+<!--				<script>var z = document.createElement("script"); z.async = true; z.src = "http://engine.carbonads.com/z/32341/azcarbon_2_1_0_HORIZ"; var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(z, s);</script>-->
+			</div>
+        </div>
 
       </div>
     </div>
