@@ -132,7 +132,7 @@ if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo
 //			'disable' => array('orderby'), # Выключенные для записи поля
 //			'hidden' => array('name', 'enabled'), # Скрытые поля
 			'spisok' => $spisok += array( # Список для отображения и редактирования
-				'uid' => array('*'=>spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
+				'uid' => array('*'=>array("")+spisok("SELECT id, CONCAT('<a href=\"/users:admin/r:{$conf['db']['prefix']}users?where[id]=', id, '\">', name, '</a>') FROM {$conf['db']['prefix']}users")),
 				'own' => array('*'=>array('')+spisok("SELECT id, name FROM {$conf['db']['prefix']}users")),
 				($fn = "grp"). "_id" => array('*'=>array("Владельцу")+spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),
 				($fn = "geoname"). "_id" => array('*'=>array('')+spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_{$fn}")),

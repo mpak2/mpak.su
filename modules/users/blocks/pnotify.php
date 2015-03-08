@@ -47,56 +47,49 @@ if ((int)$arg['confnum']){
 <? return;
 
 }//$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
-//$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 
-foreach($conf['event'] as $v){
-	if($v['log_last']){
-		$event[ $v['id'] ] = array_intersect_key($v, array_flip(array("id", "name", "log_last", "last")));
-	}
-}// mpre($event);// mpre($conf['event']);
+$tpl['event'] = rb($conf['event'], "log", "id", "[1,2]");
 
-if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum'])){
-	foreach($_POST['event'] as $v){
-		if($v['log_last'] != $conf['event'][ $v['name'] ]['log_last']){
-			$log[ $v['id'] ] = mpql(mpqw($sql = "SELECT l.*, u.name AS uname FROM {$conf['db']['prefix']}{$arg['modpath']}_event_logs AS l LEFT JOIN {$conf['db']['prefix']}users AS u ON (l.uid=u.id) WHERE l.event_id=". (int)$v['id']. " AND l.id>". (int)$v['log_last']. " LIMIT 1"), 0);
+if($_POST['max']){
+	$uid = array();
+	foreach($tpl['event'] as $event){
+		if($_POST['max'][ $event['id'] ]){
+			$tpl['event_logs'][ $event['id'] ] = qn($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_event_logs WHERE uid<>". (int)$conf['user']['uid']. " AND event_id=". (int)$event['id']. " AND id>". (int)$_POST['max'][ $event['id'] ]);
+			$uid += rb($tpl['event_logs'][ $event['id'] ], "uid");
 		}
-	} exit($log ? json_encode(array("log"=>$log, "event"=>$event)) : 0);
+	} $tpl['uid'] = qn("SELECT id, name FROM {$conf['db']['prefix']}users WHERE id IN (". in($uid). ")");
+	exit(json_encode(array("event"=>$tpl['event'], "event_logs"=>$tpl['event_logs'], "uid"=>$tpl['uid'])));
 }
-
-//$dat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} LIMIT 10"));
 
 ?>
 <script src="/include/jquery/pnotify-1.1.1/jquery.pnotify.js"></script>
 <link rel="stylesheet" href="/include/jquery/pnotify-1.1.1/jquery.pnotify.default.css" type="text/css">
 <link rel="stylesheet" href="/include/jquery/jquery-ui/themes/redmond/jquery-ui-1.8.23.custom.css" type="text/css">
-<style>
-/*	.ui-pnotify {background-color:#eee; border:1px solid #888; border-radius:10px;}*/
-</style>
 <script>
-	var event = <?=json_encode($event)?>;
+	var max = <?=json_encode(array_column($tpl['event'], "log_last", "id"))?>;
 	$(function(){
 		setInterval(function(){
-			$.post("/blocks/<?=$arg['blocknum']?>/null", {event:event}, function(data){
-				if(isNaN(data)){
-					if(json = $.parseJSON(data)){
-						$.each(json["log"], function(key, val){
-							if(event[ val["event_id"] ]["name"] == "Просмотр фото"){
-								val["description"] = "<a href=\""+val["description"]+"\">"+val["description"]+"</a>";
-							}else if(event[ val["event_id"] ]["name"] == "Открытие страницы сайта"){
-								val["description"] = "<a href=\""+val["description"]+"\">"+val["description"]+"</a>";
-							} if(val["uid"] != <?=$conf['user']['uid']?>){
-								$.pnotify({
-									pnotify_title: event[ val["event_id"] ]["name"],
-									pnotify_text: "<div style='overflow:hidden'>"+val["description"]+"<span style='float:right'><img src='/users:bimg/"+val["uid"]+"/w:20/h:20/null/img.png'>"+(val["uid"] > 0 ? "<a href=\"/users/"+val["uid"]+"\">"+val["uname"]+"</a>" : "<?=$conf['settings']['default_usr']?>"+val["uid"])+"</span></div>",
-									pnotify_type: "error",
-									pnotify_error_icon: "ui-icon ui-icon-signal-diag"
-								});
-							}
-						}); event = json["event"];
-					}else{
-						alert(data);
-					}
-				}
+			$.post("/blocks/<?=$arg['blocknum']?>/null", {max:max}, function(json){
+//				console.log("json:", json, "length:", json["event_logs"].length);
+				$.each(json["event_logs"], function(k, event){
+					$.each(event, function(key, event_logs){
+						if(json.event[ event_logs["event_id"] ].name == "Открытие страницы сайта"){
+							event_logs.description = "<a target=blank href='"+event_logs.description+"'>"+event_logs.description+"</a>";
+						}// console.log("uid:", json.uid[ event_logs["uid"] ])
+						
+						$.pnotify({
+							pnotify_title: (typeof(json.uid[ event_logs["uid"] ]) != "undefined" ? json.uid[ event_logs["uid"] ].name : "гость"+ event_logs["uid"]),
+							pnotify_text: "<strong>"+json.event[ event_logs["event_id"] ].name+"</strong><br /><br />"+event_logs.description,
+							pnotify_type: "info",
+							pnotify_error_icon: "ui-icon ui-icon-signal-diag"
+						});
+						if(max[event_logs.event_id] < event_logs.id){
+							max[event_logs.event_id] = event_logs.id;
+						}// console.log("max:", max);
+					})
+				});
+			}, "json").fail(function(error){
+				alert(error.responseText);
 			});
 		}, 5000);
 	});

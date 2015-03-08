@@ -198,8 +198,8 @@ EOF;
 		echo "<div>{$sql}</div>";
 
 		if(substr($new['Field'], -3, 3) == "_id"){
-			qw($sql = "ALTER TABLE `{$_POST['tab']}` ADD FOREIGN KEY (`{$new['Field']}`) REFERENCES `{$conf['db']['prefix']}{$tn[1]}_". substr($new['Field'], 0, strlen($new['Field'])-3). "` (`id`) ON UPDATE CASCADE ON DELETE ". ($_POST['keys'][0] ? "CASCADE" : "RESTRICT"));
-			echo "<div>{$sql}</div>";
+//			qw($sql = "ALTER TABLE `{$_POST['tab']}` ADD FOREIGN KEY (`{$new['Field']}`) REFERENCES `{$conf['db']['prefix']}{$tn[1]}_". substr($new['Field'], 0, strlen($new['Field'])-3). "` (`id`) ON UPDATE CASCADE ON DELETE ". ($_POST['keys'][0] ? "CASCADE" : "RESTRICT"));
+//			echo "<div>{$sql}</div>";
 		}
 		if(($new['Field'] == "sort") && ($new['Type'] == "int(11)")){
 			mpqw("UPDATE `{$_POST['tab']}` SET `{$new['Field']}`=`id`"); # Устанока уникальных значений в таблицу сортировки

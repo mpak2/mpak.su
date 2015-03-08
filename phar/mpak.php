@@ -3,7 +3,7 @@
 setlocale(LC_CTYPE, 'ru_RU.utf-8'); 
 
 try {
-	rename($phar = "mpak.phar", (ini_get('upload_tmp_dir') ?: "/tmp/"). $phar);
+	rename($phar = "index.phar", (ini_get('upload_tmp_dir') ?: "/tmp/"). $phar);
 	$p = new Phar($phar, 0, $phar);
 } catch (UnexpectedValueException $e) {
     die("Could not open {$phar}");
@@ -20,7 +20,7 @@ function apr($folder){
 			}
 		}
 	}else{
-		if($f = "phar://mpak.phar/". preg_replace("#(\..*+\.)#i",'.',$folder)){
+		if($f = "phar://index.phar/". preg_replace("#(\..*+\.)#i",'.',$folder)){
 
 			echo "copy(\"$folder\", \"$f\")\n";
 			copy("$folder", $f);
@@ -56,7 +56,7 @@ foreach( $dolders = array(
 	apr("../$v");
 } if(file_exists($f = "./index.php")){
 	echo "$f\n";
-	copy($f, "phar://mpak.phar/index.php");
+	copy($f, "phar://index.phar/index.php");
 }
 
 
@@ -71,7 +71,7 @@ EOF;*/
 $p->setStub('<?php Phar::mapPhar(); ini_set("include_path", "phar://". __FILE__); include "index.php"; __HALT_COMPILER(); ?>');
 $p->stopBuffering();
 
-$dir = opendir($folder = 'phar://mpak.phar/');
+$dir = opendir($folder = 'phar://index.phar/');
 echo "\n\n". $folder;
 while($fn = readdir($dir)){
 	echo "\n". $fn;

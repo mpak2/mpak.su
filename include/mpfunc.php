@@ -196,10 +196,10 @@ function mpue($name){
 
 function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 	global $conf;
-	if(!function_exists('memcache_connect')) return false;
+	if($conf['settings']['sql_memcache_disable'] || !function_exists('memcache_connect')) return false;
 	if($memcache = memcache_connect("localhost", 11211)){
 		if($data){
-			@memcache_set($memcache, $key, $data, $compress, $limit);
+			memcache_set($memcache, $key, $data, $compress, $limit);
 	//		if($event) mpevent($conf['settings']['users_event_memcache_set'], $key, $conf['user']['uid']);
 		}else{
 			$mc = memcache_get($memcache, $key);

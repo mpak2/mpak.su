@@ -5,7 +5,7 @@
 		if($arg['access'] > 1){
 			mpevent("Аякс запрос /{$arg['modpath']}:{$class[0]}", $conf['user']['uid'], $_REQUEST, $viewer);
 			$where = array_diff_key($_GET, array_flip(array("class", "m")));
-			$w = array("time"=>time(), "viewer_id"=>($_POST['viewer_id'] ?: $viewer['id'])) + array_diff_key($_REQUEST, array("id"=>false));
+			$w = array("viewer_id"=>($_POST['viewer_id'] ?: $viewer['id'])) + array_diff_key($_REQUEST, array("id"=>false, "time"=>false));
 			if($arg['access'] >= 2){
 				if($_POST['id'] < 0){
 					qw("DELETE FROM {$class} WHERE ". implode(" AND ", array_map(function($k, $v){

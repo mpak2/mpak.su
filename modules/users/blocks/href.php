@@ -51,7 +51,6 @@ if ((int)$arg['confnum']){
 //if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
 
 //$dat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} LIMIT 10"));
-if("/favicon.ico" != ($uri = $_SERVER['REQUEST_URI']) || !strpos("/null/", $uri)){
+if(("/favicon.ico" != ($uri = $_SERVER['REQUEST_URI'])) && !array_key_exists("null", $_GET)){
 	mpevent("Открытие страницы сайта", urldecode($uri), $conf['user']['uid']);
 }
-?>
