@@ -50,7 +50,7 @@ function in($ar, $flip = false){ # Формирует из массива стр
 
 function aedit($href, $title = null){ # Установка на пользовательскую старницу ссылки в административные разделы. В качестве аргумента передается ссылка, выводится исходя из прав пользователя на сайте
 	global $arg;
-	if($arg['access'] > 3) echo "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:10; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\"><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px; width:10px; height:10px;'></a></span></div>";
+	if($arg['access'] > 3) echo "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:10; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\" target='_blank' ><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px; width:10px; height:10px;'></a></span></div>";
 }
 
 function mptс($time = null, $format = 0){ # Приведение временных данных у удобочитаемую человеческую форму. Обычно для вывода на пользовательские страницы
