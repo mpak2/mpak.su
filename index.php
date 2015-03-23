@@ -169,9 +169,17 @@ foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE enabled = 
 if(!array_key_exists("null", $_GET) && $conf['modules']['seo']){
 	if($_GET['p']){
 		$r = strtr($_SERVER['REQUEST_URI'], array("?p={$_GET['p']}"=>"", "&p={$_GET['p']}"=>"", "/p:{$_GET['p']}"=>""));
-	}else{ $r = $_SERVER['REQUEST_URI']; }
-	if($redirect = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}seo_redirect WHERE `from`=\"". $r. "\""), 0)){
-		$_GET = mpgt($redirect['to'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"));
+	}else{ $r = urldecode(preg_replace("#([\#\?].*)?$#",'',$_SERVER['REQUEST_URI'])); }	
+	
+	foreach(erb('mp_seo_redirect') as $rule){
+		if(preg_match("#^{$rule['from']}$#iu",$r)){
+			$redirect = $rule; break;
+		}
+	}
+	
+	if(isset($redirect)){	
+		$redirect['to'] = preg_replace("#^{$redirect['from']}$#iu",$redirect['to'],$r);
+		$_REQUEST = ($_GET = mpgt($redirect['to'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"))+$_REQUEST);
 		$conf['settings']['canonical'] = $r;
 	}elseif($conf['settings']['start_mod'] == $_SERVER['REQUEST_URI']){ # Заглавная страница
 		$conf['settings']['canonical'] = "/";
