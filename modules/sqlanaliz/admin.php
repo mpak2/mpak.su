@@ -56,7 +56,8 @@ if ($m[(int)$_GET['r']] == 'Ключ'){
 						one = $("select[name=one] option:selected").val();
 						two = $("select[name=two] option:selected").val();
 						f = $("select.f option:selected").val();
-						sql = "ALTER TABLE `"+two+"` ADD FOREIGN KEY (`"+f+"`) REFERENCES `"+one+"` (`id`) ON DELETE CASCADE -- ON DELETE RESTRICT";
+						//sql = "ALTER TABLE `"+two+"` ADD FOREIGN KEY (`"+f+"`) REFERENCES `"+one+"` (`id`) ON DELETE CASCADE -- ON DELETE RESTRICT";
+						sql = "";
 						$("textarea[name=sql]").text(sql);
 					});
 				});

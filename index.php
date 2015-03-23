@@ -63,7 +63,7 @@ if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count
 if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) && array_key_exists('null', $_GET) && empty($_GET['w']) && empty($_GET['h'])){
 	if(empty($_GET['theme'])){
 		$_GET['theme'] = mpql(mpqw("SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"theme\""), 0, 'value');
-	} $ex = array('png'=>'image/png', 'jpg'=>'image/jpg', 'gif'=>'image/gif', 'otf'=>'font/opentype', 'css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', 'woff'=>'application/x-font-woff', 'svg'=>'image/svg+xml', 'tpl'=>'text/html', 'ogg'=>'application/ogg', 'mp3'=>'application/mp3', 'cur'=>'image/x-win-bitmap');
+	} $ex = array('png'=>'image/png', 'jpg'=>'image/jpg', 'gif'=>'image/gif', 'otf'=>'font/opentype', 'css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', 'woff'=>'application/x-font-woff', 'svg'=>'image/svg+xml', 'tpl'=>'text/html', 'ogg'=>'application/ogg', 'mp3'=>'application/mp3', 'cur'=>'image/x-win-bitmap', 'rtf'=>'application/rtf');
 	$fn = "themes/{$_GET['theme']}/{$_GET['']}";
 	$ext = mb_strtoLower(preg_replace('#^.*\.(\w+)$#Uui','$1',$fn),'UTF-8'); //array_pop(explode('.', $fn));
 	header('Cache-Control: public,max-age=28800');
