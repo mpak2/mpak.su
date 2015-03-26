@@ -212,7 +212,9 @@ function rb($src, $key = 'id'){
 	global $conf, $arg;
 	$func_get_args = func_get_args();
 	if(is_string($src)){
-		$func_get_args[0] = "{$conf['db']['prefix']}{$arg['modpath']}_{$src}";
+		//проверка полное или коротное название таблицы
+		if(!preg_match("#^".($prefix = $conf['db']['prefix'].$arg['modpath']).".*#iu",$func_get_args[0]))
+			$func_get_args[0] = "{$prefix}_{$func_get_args[0]}";
 	} return call_user_func_array('erb', $func_get_args);
 }
 
@@ -335,9 +337,11 @@ function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
 	}
 } function fk($t, $find, $insert = array(), $update = array(), $log = false){
 	global $conf, $arg;
-	if($index = fdk("{$conf['db']['prefix']}{$arg['modpath']}_{$t}", $find, $insert, $update, $log)){
+	//проверка полное или коротное название таблицы
+	if(!preg_match("#^".($prefix = $conf['db']['prefix'].$arg['modpath']).".*#iu",$t))
+		$t = "{$prefix}_{$t}";	
+	if($index = fdk($t, $find, $insert, $update, $log))
 		return $index;
-	}
 }
 
 function mpdk($tn, $insert, $update = array()){
