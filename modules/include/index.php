@@ -46,6 +46,7 @@ $defaultmimes = array(
 );
 
 $path = mpopendir($_SERVER['REDIRECT_URL']);
+//$path = mpopendir($_SERVER['SCRIPT_URL']); # Для работы у хостера sweb.ru
 if(($ext = strtolower(array_pop(explode('.', $path)))) && array_key_exists($ext, $defaultmimes) && file_exists($path)){
 	header("Content-type: {$defaultmimes[$ext]}");
 	$f = fopen($path, "rb");

@@ -28,14 +28,14 @@
 #	RewriteCond %{HTTP_HOST} ^www.{HTTP_HOST}(.*)
 #	RewriteRule ^(.*)$ http://{HTTP_HOST}/$1 [R=301,L]
 
-	RewriteCond %{DOCUMENT_ROOT}/mpak.phar !-f
+	RewriteCond %{DOCUMENT_ROOT}/index.phar !-f
 	RewriteRule ^(.*)$ /index.php [L]
 
 	RewriteCond %{REQUEST_FILENAME} !-f
-	RewriteRule ^(.*)$ /mpak.phar [L]
+	RewriteRule ^(.*)$ /index.phar [L]
 
 # Если стоит в составе другой системы в директории
 	RewriteCond %{SCRIPT_FILENAME} !-f
-	RewriteRule ^(admin|themes|menu|img)(.+)$ /mpak/mpak.phar/%{REQUEST_URI} [L]
+	RewriteRule ^(admin|themes|menu|img)(.+)$ /mpak/index.phar/%{REQUEST_URI} [L]
 
 </IfModule>
