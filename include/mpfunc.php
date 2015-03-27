@@ -311,13 +311,13 @@ function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
 	if($index_id = mpfdk($tn, $find, $insert, $update, $log)){
 		return ql("SELECT * FROM `$tn` WHERE id=". (int)$index_id, 0);
 	}
-} function fk($t, $find, $insert = array(), $update = array(), $log = false){
+} function fk($t, $find, $insert = array(), $update = array(), $key = false, $log = false){
 	global $conf, $arg;
 	//проверка полное или коротное название таблицы
 	if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$func_get_args[0]))
 		$t = "{$conf['db']['prefix']}{$arg['modpath']}_{$t}";	
 	if($index = fdk($t, $find, $insert, $update, $log))
-		return $index;
+		return $key ? $index[$key] : $index;
 }
 function mpdk($tn, $insert, $update = array()){
 	global $conf, $arg;
