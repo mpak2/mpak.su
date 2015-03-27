@@ -1,9 +1,7 @@
 <?
-
 function gvk($array = array(), $field=false){ 
 	return isset($array[$field]) ? $array[$field] : FALSE;
 }
-
 set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
     $errortype = array (
 		1   =>  "Ошибка",
@@ -23,7 +21,6 @@ set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 		error_log($_SERVER['HTTP_HOST']. $_SERVER['REQUEST_URI']. " ". $filename.":".$linenum."($errno) $errmsg"/*. print_r($vars, true)*/, 0) or die("Ошибка записи сообщения об ошибке в файл");
 	}
 });
-
 function mpzam($ar, $prefix = "{", $postfix = "}"){ # Создание из много мерного массиива - одномерного. Применяется для подставки в текстах отправляемых писем данных из массивов
 	$f = function($ar, $prx = "") use(&$f, $prefix, $postfix){
 		$r = array();
@@ -37,7 +34,6 @@ function mpzam($ar, $prefix = "{", $postfix = "}"){ # Создание из мн
 		} return $r;
 	}; return $f($ar);
 }
-
 function in($ar, $flip = false){ # Формирует из массива строку с перечисляемыми ключами для подставки в запрос
 	if(!is_array($ar) || empty($ar)){
 		$ar = array(0);
@@ -47,12 +43,10 @@ function in($ar, $flip = false){ # Формирует из массива стр
 		return is_numeric($key) ? $key : "\"". mpquot($key). "\"";
 	}, array_keys($ar)));
 }
-
 function aedit($href, $title = null){ # Установка на пользовательскую старницу ссылки в административные разделы. В качестве аргумента передается ссылка, выводится исходя из прав пользователя на сайте
 	global $arg;
 	if($arg['access'] > 3) echo "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:10; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\" target='_blank' ><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px; width:10px; height:10px;'></a></span></div>";
 }
-
 function mptс($time = null, $format = 0){ # Приведение временных данных у удобочитаемую человеческую форму. Обычно для вывода на пользовательские страницы
 	if($time === null) $time = time();
 	$time = time()-$time;
@@ -71,14 +65,12 @@ function mptс($time = null, $format = 0){ # Приведение временн
 				($minutes ? " ". ($minutes%60). " ". mpfm($minutes, "минута", "минуты", "минут")  : "");
 	}
 }
-
 function mb_ord($char){
 		list(, $ord) = unpack('N', mb_convert_encoding($char, 'UCS-4BE', 'UTF-8'));
 		return $ord;
 } function mb_chr($string){
     return html_entity_decode('&#' . intval($string) . ';', ENT_COMPAT, 'UTF-8');
 }
-
 # Вызов библиотеки curl Для хранения файла кукисов используется текущая директория. Первым параметром передается адрес запрос, вторым пост если требуется
 function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $headers = array(), $proxy = null){
 	$ch = curl_init();
@@ -88,7 +80,6 @@ function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $hea
 	curl_setopt ($ch , CURLOPT_FOLLOWLOCATION , 1);
 	curl_setopt($ch, CURLOPT_COOKIEFILE, $temp);//tempnam(ini_get('upload_tmp_dir'), "curl_cookie_")
 	curl_setopt($ch, CURLOPT_COOKIEJAR, $temp); //В какой файл записывать
-
 	curl_setopt($ch, CURLOPT_URL, $href); //куда шлем
 	if($post){
 		curl_setopt($ch, CURLOPT_POST, 1);
@@ -104,7 +95,6 @@ function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $hea
 	curl_close ($ch);
 	return $result;
 }
-
 # Получение данных из базы данных. В качестве ключей используются числа от нуля. Функция используется для выборки первого значения
 function ql($sql, $ln = null, $fd = null){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата
 	$microtime = microtime(true);
@@ -116,7 +106,6 @@ function ql($sql, $ln = null, $fd = null){ # Выполнение запроса
 		}
 	} return $r;
 }
-
 # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата. Возвращается список записей в нормальной форме
 function qn($sql){
 	$microtime = microtime(true);
@@ -130,7 +119,6 @@ function qn($sql){
 		}
 	} return $r;
 }
-
 # единственные двойственные и множественные числительные. Пример использования mpfm($n, 'письмо', 'письма', 'писем');
 function mpfm($n, $form1, $form2, $form5){
     $n = abs($n) % 100;
@@ -140,7 +128,6 @@ function mpfm($n, $form1, $form2, $form5){
     if ($n1 == 1) return $form1;
     return $form5;
 }
-
 # Кеширование данных в memcache
 function mc($key, $function, $force = false){
 	if($force !== false) mpre($key);
@@ -149,18 +136,14 @@ function mc($key, $function, $force = false){
 		if($force !== false) mpre($tmp);
 	} return $tmp;
 }
-
 function mpsmtp($to, $obj, $text, $login = null){ # Отправка письмо по SMTP протоколу
 	global $conf;
 	ini_set("include_path", ini_get("include_path"). ":". "./include/mail/");
-
 	include_once("PEAR.php");
 	include_once("Mail.php");
-
 	$param = explode("@", $login ? $login : $conf['settings']['smtp']);
 	$host = explode(":", array_pop($param));
 	$auth = explode(":", implode("@", $param));
-
 	$mail = Mail::factory(
 		'smtp',
 		(!empty($smtp) ? $smtp : array (
@@ -172,7 +155,6 @@ function mpsmtp($to, $obj, $text, $login = null){ # Отправка письм�
 			'timeout'=>10,
 		))
 	);
-
 	if (PEAR::isError($mail)){
 		$return = $mail->getMessage();
 	} $m = $mail->send( $to,
@@ -189,11 +171,9 @@ function mpsmtp($to, $obj, $text, $login = null){ # Отправка письм�
 	} mpevent("SMTP электронное сообщение", $to, $conf['user']['uid'], func_get_args(), $return);
 	return $return;
 }
-
 function mpue($name){
 	return str_replace('%', '%25', trim($name));
 }
-
 function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 	global $conf;
 	if($conf['settings']['sql_memcache_disable'] || !function_exists('memcache_connect')) return false;
@@ -207,17 +187,15 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 		} return $mc;
 	}
 }
-
 function rb($src, $key = 'id'){
 	global $conf, $arg;
 	$func_get_args = func_get_args();
 	if(is_string($src)){
 		//проверка полное или коротное название таблицы
 		if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$func_get_args[0]))
-			$func_get_args[0] = "{$conf['db']['prefix']}_{$func_get_args[0]}";
+			$func_get_args[0] = "{$conf['db']['prefix']}{$arg['modpath']}_{$func_get_args[0]}";
 	} return call_user_func_array('erb', $func_get_args);
 }
-
 # Пересборка данных массива. Исходный массив должен находится в первой форме
 function erb($src, $key = 'id'){
 	$purpose = $keys = $return = array();
@@ -297,7 +275,6 @@ function erb($src, $key = 'id'){
 		}
 	} return !empty($field) ? $return[ $field ] : $return;
 }
-
 function mpde($string) { 
 	static $list = array('utf-8', 'windows-1251');
 	foreach ($list as $item) {
@@ -306,7 +283,6 @@ function mpde($string) {
 			return iconv($item, "utf-8", $string);
 	} return null;
 }
-
 function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
 	global $conf, $arg;
 	if($find && ($fnd = mpdbf($tn, $find, 1)) &&
@@ -335,15 +311,14 @@ function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
 	if($index_id = mpfdk($tn, $find, $insert, $update, $log)){
 		return ql("SELECT * FROM `$tn` WHERE id=". (int)$index_id, 0);
 	}
-} function fk($t, $find, $insert = array(), $update = array(), $key = false, $log = false){
+} function fk($t, $find, $insert = array(), $update = array(), $log = false){
 	global $conf, $arg;
 	//проверка полное или коротное название таблицы
-	if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$t))
-		$t = "{$conf['db']['prefix']}_{$t}";	
+	if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$func_get_args[0]))
+		$t = "{$conf['db']['prefix']}{$arg['modpath']}_{$t}";	
 	if($index = fdk($t, $find, $insert, $update, $log))
-		return $key ? $index[$key] : $index;
+		return $index;
 }
-
 function mpdk($tn, $insert, $update = array()){
 	global $conf, $arg;
 	if($ins = mpdbf($tn, $insert)){
@@ -356,7 +331,6 @@ function mpdk($tn, $insert, $update = array()){
 		return mysql_insert_id();
 	}
 }
-
 function mpevent($name, $description = null, $own = null){
 	global $conf, $argv;
 	if(empty($name)){
@@ -380,22 +354,17 @@ function mpevent($name, $description = null, $own = null){
 	if(!empty($func_get_args[0]) && function_exists("event")){
 		$return = event($func_get_args);
 	}
-
 //	if((!empty($conf['settings']['users_log']) && $conf['settings']['users_log']) || !empty($argv)){
 		if(!empty($conf['event'][$name])) $event = $conf['event'][$name];
-
 		mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event SET time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", name=\"". mpquot($name). "\", description=\"". mpquot($desc). "\", count=1 ON DUPLICATE KEY UPDATE time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", count=count+1, last=". (int)$func_get_args[1]. ", max=IF(". (int)$func_get_args[1]. ">max, ". (int)$func_get_args[1]. ", max), min=IF(". (int)$func_get_args[1]. "<min, ". (int)$func_get_args[1]. ", min), description=\"". mpquot($desc). "\", log_last=". (!empty($event['log']) && $event['log'] ? "(SELECT id FROM {$conf['db']['prefix']}users_event_logs WHERE event_id=". (int)$event['id']. " ORDER BY id DESC limit 1)" : 0));
-
 		if(!empty($argv)){
 			$event = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event WHERE id=". (int)mysql_insert_id()), 0);
 		} $notice = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event_notice WHERE event_id=". (int)$event['id']));
-
 		if((!empty($event['log']) && ($event['log'] > 1)) || $notice){
 			if(!is_numeric($func_get_args[2]) && array_key_exists("pass", $func_get_args[2])){
 				unset($func_get_args[2]['pass']);
 			} $zam = mpzam($func_get_args);
 		}
-
 		if(!empty($event['log']) && $event['log']){
 			mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event_logs SET time=". time(). ", event_id=". (int)$event['id']. ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", description=\"". mpquot($description). "\", own=". /*mpquot(is_array($own) ? var_export($own, true) : $own)*/ (int)$func_get_args[2]['id']. ", `return`=\"". (!empty($return) ? mpquot($return) : ""). "\", zam=\"". mpquot(!empty($zam) ? var_export($zam, true) : ""). "\"");
 			if($event['limit']){
@@ -405,7 +374,6 @@ function mpevent($name, $description = null, $own = null){
 				}
 			}
 		}
-
 		if($notice){
 			foreach($notice as $v){
 				if(!empty($v['log']) && $v['log']){ # Сохраняем замещаемые значения
@@ -446,14 +414,11 @@ function mpevent($name, $description = null, $own = null){
 						case "xmpp":# Уведомление по джаббер протоколу
 							if(preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $m['xmpp'])){
 								ini_set("include_path", ini_get("include_path"). ":". "/srv/www/vhosts/mpak.cms/include");
-
 								$param = explode("@", $v['login']);// mpre($param);
 								$host = explode(":", array_pop($param));// mpre($host);
 								$auth = explode(":", implode("@", $param));// mpre($auth);
-
 								include_once(mpopendir("include/webi/xmpp.class.php"));
 								$webi = new XMPP(array('user'=>$auth[0], 'pass'=>$auth[1], 'host'=>$host[0], 'port'=>($host[1] ? $host[1] : 5222), 'domain'=>"ya.ru", 'logtxt'=>false,'tls_off'=>0,));
-
 								if($webi->connect()){// установка соединения...
 									$webi->sendStatus('text status','chat',3); // установка статуса
 									$response = $webi->sendMessage($m['xmpp'], $text); // отправка сообщения
@@ -469,7 +434,6 @@ function mpevent($name, $description = null, $own = null){
 //	}
 	if(isset($return)) return $return;
 }
-
 function mpidn($value, $enc = 0){
 	if(!class_exists('idna_convert')){
 		require_once(mpopendir('include/idna_convert.class.inc'));
@@ -480,7 +444,6 @@ function mpidn($value, $enc = 0){
 		return $IDN->decode($value);
 	}
 }
-
 function mpsettings($name, $value = null){
 	global $conf, $arg;
 	if($value === null){
@@ -493,7 +456,6 @@ function mpsettings($name, $value = null){
 		} return $value;
 	} return !empty($name) && !empty($conf['settings'][$name]) ? $conf['settings'][$name] : null;
 }
-
 function mpgt($REQUEST_URI, $get = array()){
 	$part = explode('//', str_replace("/null/", "//", array_shift(explode('?', $REQUEST_URI))), 2);// mpre($part); exit;
 	if(!empty($part[1])){
@@ -522,7 +484,6 @@ function mpgt($REQUEST_URI, $get = array()){
 	} if(!empty($get['стр']) && $get['стр']) $get['p'] = $get['стр'];
 	return $get;
 }
-
 function mpwr($tn, $get = null, $prefix = null){
 	global $conf;
 	if(empty($prefix)) $where = ' WHERE 1=1';
@@ -540,7 +501,6 @@ function mpwr($tn, $get = null, $prefix = null){
 		}
 	} return $where;
 }
-
 /*function mpwr($tn, $get = array()){
 	global $conf;
 	$where = ' WHERE 1=1';
@@ -558,7 +518,6 @@ function mpwr($tn, $get = null, $prefix = null){
 		}
 	} return $where;
 }*/
-
 function mpmail($to = '', $subj='Проверка', $text = 'Проверка', $from = ''){
 	global $conf;
 	if($conf['settings']['smtp']){
@@ -571,7 +530,6 @@ function mpmail($to = '', $subj='Проверка', $text = 'Проверка', 
 		return true;
 	}
 }
-
 function spisok($sql, $str_len = null, $left_pos = 0){
 	$result = mpqw($sql);
 	if (strlen(mysql_error()))
@@ -582,7 +540,6 @@ function spisok($sql, $str_len = null, $left_pos = 0){
 		$spisok[$id] = $name;
 	} return (array)$spisok;
 }
-
 function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf;
 	if($prefix === null){
@@ -619,7 +576,6 @@ function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.p
 		mpevent("Ошибка загрузки файла", $_SERVER['REQUEST_URI'], $conf['user']['uid'], $file);
 	} return null;
 }
-
 function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf;
 	if($data = file_get_contents($href)){
@@ -644,7 +600,6 @@ function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'ima
 		mpevent("Ошибка загрузки внешнего файла", $href, $conf['user']['uid'], func_get_args());
 	} unlink($file['tmp_name']); return null;
 }
-
 function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf;
 	mpevent("Устаревшая функция", "mpfn", $conf['users']['uid']);
@@ -679,7 +634,6 @@ function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.pn
 		return "error not null";
 	} return null;
 }
-
 function mpdbf($tn, $post = null, $and = false){
 	global $conf;
 	$fields = $f = array();
@@ -703,7 +657,6 @@ function mpdbf($tn, $post = null, $and = false){
 		}
 	} return implode(($and ? " AND " : ', '), (array)$f);
 }
-
 function mpager($count, $null=null, $cur=null, $url=null){
 	global $conf;
 	$p = (strpos($_SERVER['HTTP_HOST'], "xn--") === 0) ? "стр" : "p";
@@ -736,11 +689,9 @@ function mpager($count, $null=null, $cur=null, $url=null){
 		ob_end_clean();
 	} return $return;
 }
-
 function mphash($user, $pass){
 	return md5("$user:".md5($pass));
 }
-
 function mpget($name, $value = null){
 	$param = "$name".(strlen($value) ? "=$value" : '');
 	if (isset($_GET[$name])){
@@ -749,7 +700,6 @@ function mpget($name, $value = null){
 		return $_SERVER['REQUEST_URI'].(strpos($_SERVER['REQUEST_URI'], '?') ? '&' : '?').$param;
 	}
 }
-
 function mpct($file_name, $arg = array(), $vr = 1){
 	global $conf, $tpl;
 	foreach(explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) as $k=>$v)
@@ -760,20 +710,17 @@ function mpct($file_name, $arg = array(), $vr = 1){
 	$content = ob_get_contents(); ob_end_clean();
 	return $content;
 }
-
 function mpeval($file_name, $arg = array(), $vr = 1){
 	global $conf;
 	foreach(explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) as $k=>$v)
 		if (file_exists($file = "$v/$file_name")) break;
 	if (!file_exists($file = "$v/$file_name")) return "<div style=\"margin-top:100px; text-align:center;\"><span style=color:red;>Ошибка доступа к файлу</span> $v/$file_name</div>";
-
 	ob_start();
 	eval('?>'. strtr(file_get_contents($file), array('<? die;'=>'<?', '<?php die;'=>'<?php')));
 	$content = ob_get_contents();
 	ob_end_clean();
 	return $content;
 }
-
 function mpreaddir($file_name, $merge=0){
 	global $conf;
 	$itog = array();
@@ -791,7 +738,6 @@ function mpreaddir($file_name, $merge=0){
 	}
 	return $itog;
 }
-
 function mpopendir($file_name, $merge=1){
 	global $conf;
 	$prefix = $merge ? explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) : array('./');
@@ -803,7 +749,6 @@ function mpopendir($file_name, $merge=1){
 		}
 	}
 }
-
 function mpql($dbres, $ln = null, $fd = null){
 	$result = array();
 	while($line = @mysql_fetch_array($dbres, 1))
@@ -815,7 +760,6 @@ function mpql($dbres, $ln = null, $fd = null){
 	}
 	return $result;
 }
-
 function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 	$result = array();
 	while($line = @mysql_fetch_array($dbres, 1)){
@@ -830,7 +774,6 @@ function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 		}
 	} return $result;
 }
-
 function mpqw($sql, $info = null, $conn = null){
 	global $conf;
 	$mt = microtime(true);
@@ -973,7 +916,6 @@ function mpqw($sql, $info = null, $conn = null){
 					"ALTER TABLE `{$conf['db']['prefix']}users` ADD INDEX (`type_id`)",
 				),
 			),
-
 			"Unknown column 'id.cat_id' in 'on clause'" => array(
 				"SELECT c.*, COUNT(DISTINCT id.id) AS cnt FROM mp_pages_cat" => array(
 					"ALTER TABLE `{$conf['db']['prefix']}pages_index` CHANGE `kid` `cat_id` int(11) NOT NULL",
@@ -1217,7 +1159,6 @@ function mpqw($sql, $info = null, $conn = null){
 			}
 		}
 	}
-
 	if (!empty($conf['settings']['analizsql_log'])){
 		$conf['db']['sql'][] = $q = array(
 			'info' => $info ? $info : $conf['db']['info'],
@@ -1229,11 +1170,9 @@ function mpqw($sql, $info = null, $conn = null){
 		}
 	} return($result);
 }
-
 function qw($sql){
 	return mpqw($sql);
 }
-
 function mpfile($filename, $description = null){
 //	$file_name = strtr($file_name, array('../'=>'', '/./'=>'/', '//'=>'/'));
 	$file_name = mpopendir("include/$filename");
@@ -1259,7 +1198,6 @@ function mpfile($filename, $description = null){
 		return '';
 	}
 }
-
 function mpgc($value, $param = null){
 	if ($param) unset($value[$param]);
 	ob_start();
@@ -1268,7 +1206,6 @@ function mpgc($value, $param = null){
 	ob_end_clean();
 	return $str;
 }
-
 function mpwysiwyg($name, $content = null, $tpl = ""){
 	global $conf;
 	if(!empty($conf['modules']['redactor']['access'])){
@@ -1303,13 +1240,11 @@ function mpwysiwyg($name, $content = null, $tpl = ""){
 		return "<textarea name='$name' style='width:100%; height:200px;'>$content</textarea>";
 	}
 }
-
 function mpmenu($m = array()){
 	global $conf, $arg;
 	# Скрываем меню в админке для администраторов
 	if($conf['settings']['admin_mpmenu_hide'] && $arg['access'] < 5) return;
 	if(array_key_exists("null", $_GET)) return false;
-
 	$tab = (int)$_GET['r'];
 	if($_GET['r']){
 		echo <<<EOF
@@ -1340,7 +1275,6 @@ EOF;
 		}
 	}
 }
-
 function pre($array = false, $access = 4, $line = 0){
 	foreach(debug_backtrace() as $k=>$v){
 		if(!is_numeric($line) || $k === $line){
@@ -1356,13 +1290,11 @@ function pre($array = false, $access = 4, $line = 0){
 		}
 	}
 }
-
 function mpre($array = false, $access = 4, $line = 0){
 	global $conf, $arg, $argv;
 	if(empty($argv) && ($arg['access'] < $access)) return;
 	pre($array);
 }
-
 function mpqwt($result){
 	echo "<table style='background-color:#888;' cellspacing=0 cellpadding=3 border=1><tr>";
 	foreach($result[0] as $k=>$v){
@@ -1377,7 +1309,6 @@ function mpqwt($result){
 	}
 	echo "</table>";
 }
-
 /*function mptree($ar, $func, $top = array("id"=>0), $level = 0, $line = 0){
 	global $arg, $conf;
 	$tree = function($p, $tree, $func, $level, $line) use($ar, $conf, $arg){
@@ -1389,7 +1320,6 @@ function mpqwt($result){
 		} if(!$level) $func($p, $ar, $line);
 	}; $tree($top, $tree, $func, $level, $line);
 }*/
-
 function mpquot($text){
 	$text = stripslashes($text);
 	$text = str_replace('\\', '\\\\', $text);
@@ -1397,7 +1327,6 @@ function mpquot($text){
 	$text = str_replace("'", "\\'", $text);
 	return $text;
 }
-
 /*function mpuf($name, $table, $field, $id, $ext){
 	if ($_FILES[$name]){
 		if ($ext = $ext[ $_FILES[$name]['type'] ]){
@@ -1417,7 +1346,6 @@ function mpquot($text){
 		return false;
 	}
 }*/
-
 function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 	global $conf;
 	$func = array(
@@ -1516,7 +1444,6 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 		return ImageJpeg($src);
 	}
 }
-
 if(!function_exists("array_column")){
 	function array_column(array $input, $columnKey, $indexKey = null) {
 		$result = array();
