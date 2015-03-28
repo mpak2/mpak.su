@@ -32,6 +32,7 @@ if(strpos($f = __FILE__, "phar://") === 0){ # Фал index.php внутри phar
 	}
 }
 
+if(!array_key_exists("REDIRECT_URL", $_SERVER)) $_SERVER['REDIRECT_URL'] = $_SERVER['SCRIPT_URL']; # Разные режимы php
 ini_set('display_errors', 1); error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT);
 header('Content-Type: text/html;charset=UTF-8');
 
