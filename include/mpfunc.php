@@ -643,15 +643,15 @@ function mpdbf($tn, $post = null, $and = false){
 	} foreach($post AS $k=>$v){
 		if(!empty($conf['settings']['analizsql_autofields']) && $conf['settings']['analizsql_autofields'] && !array_key_exists($k, $fields) && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false){
 			mpqw($sql = "ALTER TABLE `$tn` ADD `$k` ". (is_numeric($v) ? "INT" : "varchar(255)"). " NOT NULL"); echo "\n<br>". $sql;
-			$f[] = "`$k`=\"". mpquot($v). "\"";
+			$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
 		}elseif(array_key_exists($k, $fields)){
 			if(is_array($v)){
-				$f[] = "`$k` IN (". mpquot(implode(",", $v)). ")";
+				$f[] = "`$k` IN (". mpquot(strtr(implode(",", $v), array("<"=>"&lt;", ">"=>"&gt;"))). ")";
 			}else/* if(gettype($v) == "string")*/{
 				if($v == "null"){
 					$f[] = "`$k`=". $v;
 				}else{
-					$f[] = "`$k`=\"". mpquot($v). "\"";
+					$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
 				}
 			}
 		}
