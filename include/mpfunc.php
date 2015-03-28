@@ -643,15 +643,15 @@ function mpdbf($tn, $post = null, $and = false){
 	} foreach($post AS $k=>$v){
 		if(!empty($conf['settings']['analizsql_autofields']) && $conf['settings']['analizsql_autofields'] && !array_key_exists($k, $fields) && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false){
 			mpqw($sql = "ALTER TABLE `$tn` ADD `$k` ". (is_numeric($v) ? "INT" : "varchar(255)"). " NOT NULL"); echo "\n<br>". $sql;
-			$f[] = "`$k`=\"". htmlspecialchars(mpquot($v)). "\"";
+			$f[] = "`$k`=\"". mpquot($v). "\"";
 		}elseif(array_key_exists($k, $fields)){
 			if(is_array($v)){
-				$f[] = "`$k` IN (". mpquot(strtr(implode(",", $v), array("<"=>"&lt;", ">"=>"&gt;"))). ")";
+				$f[] = "`$k` IN (". mpquot(implode(",", $v)). ")";
 			}else/* if(gettype($v) == "string")*/{
 				if($v == "null"){
 					$f[] = "`$k`=". $v;
 				}else{
-					$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
+					$f[] = "`$k`=\"". mpquot($v). "\"";
 				}
 			}
 		}
@@ -1320,12 +1320,15 @@ function mpqwt($result){
 		} if(!$level) $func($p, $ar, $line);
 	}; $tree($top, $tree, $func, $level, $line);
 }*/
-function mpquot($text){
-	$text = stripslashes($text);
-	$text = str_replace('\\', '\\\\', $text);
-	$text = str_replace('"', '\\"', $text);
-	$text = str_replace("'", "\\'", $text);
-	return $text;
+function mpquot($data){
+	$data = str_replace("\\", "\\\\", $data); 
+	$data = str_replace("'", "\'", $data); 
+	$data = str_replace('"', '\"', $data); 
+	$data = str_replace("\x00", "\\x00", $data); 
+	$data = str_replace("\x1a", "\\x1a", $data); 
+	$data = str_replace("\r", "\\r", $data); 
+	$data = str_replace("\n", "\\n", $data); 
+	return $data;
 }
 /*function mpuf($name, $table, $field, $id, $ext){
 	if ($_FILES[$name]){
