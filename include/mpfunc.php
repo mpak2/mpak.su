@@ -314,8 +314,8 @@ function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
 } function fk($t, $find, $insert = array(), $update = array(), $key = false, $log = false){
 	global $conf, $arg;
 	//проверка полное или коротное название таблицы
-	if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$func_get_args[0]))
-		$func_get_args[0] = "{$conf['db']['prefix']}{$arg['modpath']}_{$func_get_args[0]}";	
+	if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$t))
+		$t = "{$conf['db']['prefix']}{$arg['modpath']}_{$t}";	
 	if($index = fdk($t, $find, $insert, $update, $log))
 		return $key ? $index[$key] : $index;
 }
