@@ -117,9 +117,9 @@ if ($conf['settings']['del_sess'] && ($conf['settings']['del_sess'] != 3 || $_SE
 	mpqw("INSERT INTO {$conf['db']['prefix']}sess_post (sid, url, time, method, post) VALUE ({$sess['id']}, '{$_SERVER['QUERY_STRING']}', ".time().", '{$_SERVER['REQUEST_METHOD']}', '$request')", 'Обновляем свойства сессии');
 }
 
-//if(!array_key_exists("null", $_GET)){ # Обновление информации о сессии При запросе ресурса обязательна
+if(!isset($_REQUEST['NoUpSes']) OR !isset($_REQUEST['null'])){ # Обновление информации о сессии При запросе ресурса обязательна
 	mpqw("UPDATE {$conf['db']['prefix']}sess SET count_time = count_time+".time()."-last_time, last_time=".time().", ".(isset($_GET['null']) ? 'cnull=cnull' : 'count=count')."+1, sess=\"". mpquot($sess['sess']). "\" WHERE id=". (int)$sess['id']);
-//}
+}
 
 if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аутентификация' && $uid = mpql(mpqw("SELECT id FROM {$conf['db']['prefix']}users WHERE type_id=1 AND name = \"".mpquot($_POST['name'])."\" AND pass='".mphash($_POST['name'], $_POST['pass'])."'", 'Проверка существования пользователя'), 0, 'id')){
 	mpqw($sql = "UPDATE {$conf['db']['prefix']}sess SET uid=".($sess['uid'] = $uid)." WHERE id=". (int)$sess['id']);// echo $sql;
