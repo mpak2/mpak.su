@@ -1,6 +1,6 @@
 <div>
 	<? if($cat = $tpl['cat'][ $_GET['id'] ]): ?>
-		<h2><?=$cat['name']?></h2>
+		<h1><?=$cat['name']?></h1>
 		<? if($cat['cat_id']): ?>
 			<div class="bradcrumbs">
 				<? $function = function($cat) use(&$function, $tpl, $arg){ ?>
