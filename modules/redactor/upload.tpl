@@ -1,1 +1,0 @@
-<img src="/<?=$arg['modpath']?>:img/<?=$tpl['upload']['id']?>/tn:index/fn:img/w:250/h:250/null/img.jpg">
