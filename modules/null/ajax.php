@@ -13,8 +13,11 @@
 					}, array_keys($where), array_values($where))));
 					exit("{}");
 				}else{
-					$fdk = fdk($class, $where, $w = ($_POST ? $w : null), $w);
-					if($_FILES) foreach($_FILES as $f=>$v){
+					if($fdk = fdk($class, $where, $w = ($_POST ? $w : null), $w)){
+						if(array_key_exists("sort", $fdk) && ($fdk['sort'] == 0)){
+							$fdk = fdk($class, array("id"=>$fdk['id']), null, array("sort"=>$fdk['id']));
+						}
+					} if($_FILES) foreach($_FILES as $f=>$v){
 						$file_id = mpfid($class, $f, $fdk['id']);
 					}elseif($_POST[$f = 'img']){
 						$file_id = mphid($class, $f, $fdk['id'], $_POST['img']);
