@@ -83,21 +83,14 @@ if(!empty($conf['settings'][ $s = $arg['modpath']. "=>spisok" ]) && ($fn = explo
 		$etitle[array_shift($ex)] = array_pop($ex);
 	}
 }// mpre($title);
-
 if(true || $_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}_index"){ echo "<div style=float:right;color:#bbb;><a href=\"/?m[sqlanaliz]=admin&r=1&tab={$_GET['r']}\">{$_GET['r']}</a>:". __LINE__. "</div>";
-	if(($t = implode("_", array_slice(explode("_", $_GET['r']), 2)))){
-//		if($cln['name']){
-			$shablon += array( # Настройки для всех
-				"name"=>array("*"=>"<a href=\"/{$arg['modname']}". ($t == "index" ? "" : ":{$t}"). "/{f:id}\">{f:{f}}</a>"),
-	//			"file"=>array("*"=>"<a onclick=\"javascript: if (confirm('Стереть файл?')){return obj.href;}else{return false;}\" href=\"/?m[{$arg['modpath']}]=admin&amp;r={$conf['db']['prefix']}{$arg['path']}_{$t}&amp;delfile={f:id}&amp;fil=file\"><img src=\"/img/del.png\" border=\"0\"></a>&nbsp;<a href=\"/{$arg['modname']}:file/{f:id}/tn:{$t}/fn:file/null/{f:{f}}\">{f:{f}}</a>"),
-			);
-//			if($t == "index"){ # Индивидуальные настройки для каждой из таблицы
-				$shablon = array(
-					"name"=>array("*"=>"<a href=\"/{$arg['modname']}:{$t}/{f:id}\">{f:{f}}</a>"),
-	//				"file"=>array("*"=>"<a href=\"/{$arg['modpath']}:file/{f:id}/tn:{$t}/fn:{f}/null\">{f:{f}}</a>"),
-	//				($fn = 'img2')=>array('*'=>"<img src='/{$arg['modpath']}:img/{f:id}/tn:". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "/fn:{$fn}/w:120/h:100/null/img.png' title='{f:{f}}' alt='{f:{f}}'>"),
-				) + $shablon;
-//			}
+	if(array_key_exists("name", $columns) && ($t = implode("_", array_slice(explode("_", $_GET['r']), 2)))){
+//		if($t == "index"){ # Индивидуальные настройки для каждой из таблицы
+			$shablon = array(
+				"name"=>array("*"=>"<a href=\"/{$arg['modname']}:". ($t == "index" ? "" : ":{$t}"). "/{f:id}\">{f:{f}}</a>"),
+//				"file"=>array("*"=>"<a href=\"/{$arg['modpath']}:file/{f:id}/tn:{$t}/fn:{f}/null\">{f:{f}}</a>"),
+//				($fn = 'img2')=>array('*'=>"<img src='/{$arg['modpath']}:img/{f:id}/tn:". (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))). "/fn:{$fn}/w:120/h:100/null/img.png' title='{f:{f}}' alt='{f:{f}}'>"),
+			) + $shablon;
 //		}
 	} if(qn("SHOW TABLES LIKE '{$_GET['r']}'")){
 		stable(

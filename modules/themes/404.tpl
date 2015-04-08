@@ -2,16 +2,20 @@
 	<? if($conf['modules']['pages']['access'] >= 4): ?>
 		<span style="float:right;">
 			<script>
-				$(function(){
-					$(".error a.newpage").on("click", function(){
-						$.post("/<?=$arg['modname']?>:<?=$arg['fn']?>/null", {uri:"<?=$_SERVER['REQUEST_URI']?>"}, function(data){
-							if(isNaN(data)){ alert(data) }else{
-								alert("Создана новая страница на сайте");
-								document.location.href = "<?=$tpl['location']?>";
-							}
-						})
-					});
-				})
+				(function($, script){
+					$(script).parent().one("init", function(e){
+						setTimeout(function(){
+							$(".error a.newpage").on("click", function(){
+								$.post("/<?=$arg['modname']?>:<?=$arg['fn']?>/null", {uri:"<?=$_SERVER['REQUEST_URI']?>"}, function(data){
+									if(isNaN(data)){ alert(data) }else{
+										alert("Создана новая страница на сайте");
+										document.location.href = "<?=$tpl['location']?>";
+									}
+								})
+							});
+						}, 100)
+					}).trigger("init")
+				})(jQuery, document.scripts[document.scripts.length-1])
 			</script>
 			<a class="newpage" href="javascript:">Создать страницу</a>
 		</span>
