@@ -2,6 +2,37 @@
 function gvk($array = array(), $field=false){ 
 	return isset($array[$field]) ? $array[$field] : FALSE;
 }
+//проверка на ассоциативность массива
+function mp_is_assoc($array){
+	$keys = array_keys($array);
+	return array_keys($keys) !== $keys;
+}
+//форматирование массива - приведение двухмерного массива к нужному формату
+function mp_array_format($array,$array_format){
+	$buf = array();
+	if(is_array($array) AND (is_array($array_format) OR is_string($array_format))){
+		foreach($array as $key => $value){
+			if(is_array($array_format)){
+				if(!isset($buf[$key])) $buf[$key] = array();
+				foreach($array_format as $key_to => $key_from){	
+					if(isset($value[(string)$key_from])){
+						if(mp_is_assoc($array_format)){						
+							$buf[$key][(string)$key_to] = $value[(string)$key_from];
+						}else{
+							$buf[$key][(string)$key_from] = $value[(string)$key_from];
+						}
+					}
+				}
+			}else if(is_string($array_format)){				
+				if(!isset($buf[$key])) $buf[$key] = array();					
+				if(isset($value[$array_format])) 
+					$buf[$key][(string)$array_format] = $value[(string)$array_format];				
+			}
+		}
+	}
+	return $buf?:$array;
+}
+
 set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
     $errortype = array (
 		1   =>  "Ошибка",
