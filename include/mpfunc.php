@@ -14,14 +14,14 @@ function mp_array_format($array,$array_format){
 		foreach($array as $key => $value){
 			if(is_array($array_format)){
 				if(!isset($buf[$key])) $buf[$key] = array();
-				foreach($array_format as $key_from => $key_to){	
-					if(isset($value[(string)$key_from])){
-						if(mp_is_assoc($array_format)){						
+				foreach($array_format as $key_from => $key_to){						
+					if(is_string($key_from)){	
+						if(isset($value[(string)$key_from]))
 							$buf[$key][(string)$key_to] = $value[(string)$key_from];
-						}else{
-							$buf[$key][(string)$key_from] = $value[(string)$key_from];
-						}
-					}
+					}else{
+						if(isset($value[(string)$key_to]))
+							$buf[$key][(string)$key_to] = $value[(string)$key_to];
+					}					
 				}
 			}else if(is_string($array_format)){				
 				if(!isset($buf[$key])) $buf[$key] = array();					
