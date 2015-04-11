@@ -14,7 +14,7 @@ function mp_array_format($array,$array_format){
 		foreach($array as $key => $value){
 			if(is_array($array_format)){
 				if(!isset($buf[$key])) $buf[$key] = array();
-				foreach($array_format as $key_to => $key_from){	
+				foreach($array_format as $key_from => $key_to){	
 					if(isset($value[(string)$key_from])){
 						if(mp_is_assoc($array_format)){						
 							$buf[$key][(string)$key_to] = $value[(string)$key_from];
