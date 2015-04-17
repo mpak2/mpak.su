@@ -219,6 +219,18 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 		} return $mc;
 	}
 }
+function arb($index,$params,$return=null){
+	$buff = array($index);
+	foreach($params as $key => $param){
+		if(!is_int($key)){array_push($buff,$key);}
+		else{array_push($buff,$param);}
+	}
+	foreach($params as $key => $param){
+		if(!is_int($key)){array_push($buff,$param);}
+	}
+	if(is_string($return)){array_push($buff,$return);}
+	return call_user_func_array('rb',$buff);
+}
 function rb($src, $key = 'id'){
 	global $conf, $arg;
 	$func_get_args = func_get_args();
