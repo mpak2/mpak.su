@@ -4,6 +4,37 @@ function gvk($array = array(), $field=false){
 	return isset($array[$field]) ? $array[$field] : FALSE;
 }
 
+//проверка на ассоциативность массива
+function mp_is_assoc($array){
+	$keys = array_keys($array);
+	return array_keys($keys) !== $keys;
+}
+//форматирование массива - приведение двухмерного массива к нужному формату
+function mp_array_format($array,$array_format){
+	$buf = array();
+	if(is_array($array) AND (is_array($array_format) OR is_string($array_format))){
+		foreach($array as $key => $value){
+			if(is_array($array_format)){
+				if(!isset($buf[$key])) $buf[$key] = array();
+				foreach($array_format as $key_from => $key_to){						
+					if(is_string($key_from)){	
+						if(isset($value[(string)$key_from]))
+							$buf[$key][(string)$key_to] = $value[(string)$key_from];
+					}else{
+						if(isset($value[(string)$key_to]))
+							$buf[$key][(string)$key_to] = $value[(string)$key_to];
+					}					
+				}
+			}else if(is_string($array_format)){				
+				if(!isset($buf[$key])) $buf[$key] = array();					
+				if(isset($value[$array_format])) 
+					$buf[$key][(string)$array_format] = $value[(string)$array_format];				
+			}
+		}
+	}
+	return $buf?:$array;
+}
+
 set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
     $errortype = array (
 		1   =>  "Ошибка",
@@ -192,6 +223,18 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 	//		if($event) mpevent($conf['settings']['users_event_memcache_get'], $key, $conf['user']['uid']);
 		} return $mc;
 	}
+}
+function arb($index,$params,$return=null){
+	$buff = array($index);
+	foreach($params as $key => $param){
+		if(!is_int($key)){array_push($buff,$key);}
+		else{array_push($buff,$param);}
+	}
+	foreach($params as $key => $param){
+		if(!is_int($key)){array_push($buff,$param);}
+	}
+	if(is_string($return)){array_push($buff,$return);}
+	return call_user_func_array('rb',$buff);
 }
 function rb($src, $key = 'id'){
 	global $conf, $arg;

@@ -371,8 +371,23 @@ if (!function_exists('mcont')){
 	}
 }
 
-if ((strpos($f, "admin") === 0) && $conf['settings']["theme/*:admin"])
-	$conf['settings']['theme'] = $conf['settings']["theme/*:admin"];
+$m = array_shift(array_keys($_GET['m']));
+$f = array_shift(array_values($_GET['m']));
+
+if (empty($f)) $f = 'index';
+if (!empty($conf['settings']["theme/*:$f"])) $conf['settings']['theme'] = $conf['settings']["theme/*:$f"];
+if (!empty($conf['settings']["theme/$m:*"])) $conf['settings']['theme'] = $conf['settings']["theme/$m:*"];
+if (!empty($conf['settings']["theme/$m:$f"])) $conf['settings']['theme'] = $conf['settings']["theme/$m:$f"];
+
+ if ((strpos($f, "admin") === 0) && $conf['settings']["theme/*:admin"])
+ 	$conf['settings']['theme'] = $conf['settings']["theme/*:admin"];
+ 
+if(isset($_GET['theme']) && $_GET['theme'] != $conf['user']['sess']['theme']){
+	$conf['user']['sess']['theme'] = $conf['settings']['theme'] = basename($_GET['theme']);
+}elseif($conf['user']['sess']['theme']){
+	$conf['settings']['theme'] = $conf['user']['sess']['theme'];
+}
+
 
 if (is_numeric($conf['settings']['theme'])){
 	$sql = "SELECT b.theme as btheme, t.* FROM mp_themes as t LEFT JOIN mp_themes_blk as b ON t.id=b.tid WHERE t.id=".(int)$conf['settings']['theme']." ORDER BY b.sort";
