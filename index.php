@@ -380,7 +380,7 @@ if (is_numeric($conf['settings']['theme'])){
 	$tc = $theme['theme'];
 }else{
 	if($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". ($_GET['index'] ? basename($_GET['index']) : "index"). ".html")){
-		$tc = file_get_contents($t);
+		$tc = ($conf['settings']['theme_exec'] ? mpeval($f) : file_get_contents($t));
 	}else{ die("Шаблон {$f} не найден"); }
 }
 

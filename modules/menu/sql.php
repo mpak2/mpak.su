@@ -12,7 +12,7 @@ $menu = array(
 	array('region_id'=>1, 'name'=>'Видео', 'href'=>'/video/1', 'description'=>'Видео материалы', ),
 	array('region_id'=>1, 'name'=>'Чат', 'href'=>'/chat','description'=>'Место для общения',),
 
-	array('region_id'=>2, 'name'=> 'Обо мне', 'href'=>'/users/0', 'description'=> 'Рассказ о себе',),
+	array('region_id'=>2, 'name'=> 'Кабинет', 'href'=>'/users', 'description'=> 'Личный кабинет на сайте',),
 	array('region_id'=>2, 'name'=> 'Услуги', 'href'=>'/pages/3', 'description'=> 'Список услуг',),
 	array('region_id'=>2, 'name'=> 'Цены', 'href'=>'/pages/4', 'description'=> 'Прайс лист',),
 	array('region_id'=>2, 'name'=> 'Котакты', 'href'=>'/pages/5', 'description'=> 'Контактные данные',),
