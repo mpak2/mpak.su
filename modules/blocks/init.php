@@ -79,7 +79,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_uacces
 mpqw($sql);
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('blocks', 'block_edit', '1', '1', 'Скрытие блоков')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('blocks', 'blocks_start', '<section id=\"{id}\" modname=\"{modpath}\" fn=\"{fn}\">', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('blocks', 'blocks_start', '<section id=\"{id}\" block=\"modules/{modpath}/{fn}\">', '4', '')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('blocks', 'blocks_stop', '</section>', '4', '')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('blocks', 'blocks_reg_modules', 'Модули', '4', '')");
 
