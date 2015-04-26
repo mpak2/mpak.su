@@ -194,10 +194,14 @@ if(!array_key_exists("null", $_GET) && $conf['modules']['seo']){
 		}
 	}
 	
-	if(isset($redirect)){	
+	if(isset($redirect)){
 		$redirect['to'] = preg_replace("#^{$redirect['from']}$#iu",$redirect['to'],$r);
-		$_REQUEST = ($_GET = mpgt($redirect['to'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"))+$_REQUEST);
-		$conf['settings']['canonical'] = $r;
+		if(strpos($redirect['to'], "http://") === 0){
+			exit(header("Location: {$redirect['to']}"));
+		}else{
+			$_REQUEST = ($_GET = mpgt($redirect['to'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"))+$_REQUEST);
+			$conf['settings']['canonical'] = $r;
+		}
 	}elseif($conf['settings']['start_mod'] == $_SERVER['REQUEST_URI']){ # Заглавная страница
 		$conf['settings']['canonical'] = "/";
 	}else{ # Ссылка на основную страницу
