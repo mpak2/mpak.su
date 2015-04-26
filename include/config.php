@@ -10,3 +10,4 @@ $conf['db']['host'] = 'localhost';
 $conf['db']['login'] = 'root';
 $conf['db']['name'] = 'mpak';
 $conf['db']['pass'] = '';
+//$conf["db"]["open_basedir"] = '.:core:/tmp';

@@ -67,8 +67,8 @@ foreach( $dolders = array(
 \$conf['db']['open_basedir'] = dirname(dirname(__FILE__));// echo \$conf['db']['open_basedir']. "<br>";
 
 EOF;*/
-
-$p->setStub('<?php Phar::mapPhar(); ini_set("include_path", "phar://". __FILE__); include "index.php"; __HALT_COMPILER(); ?>');
+$p->setStub('<?php Phar::webPhar(); ini_set("include_path", "phar://". __FILE__); include "index.php"; __HALT_COMPILER(); ?>');
+/*$p->setStub('<?php Phar::mapPhar(); ini_set("include_path", "phar://". __FILE__); include "index.php"; __HALT_COMPILER(); ?>');*/
 $p->stopBuffering();
 
 $dir = opendir($folder = 'phar://index.phar/');
