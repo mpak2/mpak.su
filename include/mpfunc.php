@@ -1,9 +1,7 @@
 <?
-
 function gvk($array = array(), $field=false){ 
 	return isset($array[$field]) ? $array[$field] : FALSE;
 }
-
 //проверка на ассоциативность массива
 function mp_is_assoc($array){
 	$keys = array_keys($array);
@@ -54,7 +52,6 @@ set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 		error_log($_SERVER['HTTP_HOST']. $_SERVER['REQUEST_URI']. " ". $filename.":".$linenum."($errno) $errmsg"/*. print_r($vars, true)*/, 0) or die("Ошибка записи сообщения об ошибке в файл");
 	}
 });
-
 function mpzam($ar, $prefix = "{", $postfix = "}"){ # Создание из много мерного массиива - одномерного. Применяется для подставки в текстах отправляемых писем данных из массивов
 	$f = function($ar, $prx = "") use(&$f, $prefix, $postfix){
 		$r = array();
@@ -77,12 +74,10 @@ function in($ar, $flip = false){ # Формирует из массива стр
 		return is_numeric($key) ? $key : "\"". mpquot($key). "\"";
 	}, array_keys($ar)));
 }
-function aedit($href, $echo = true, $title = null, $modpath = null){ # Установка на пользовательскую старницу ссылки в административные разделы. В качестве аргумента передается ссылка, выводится исходя из прав пользователя на сайте
-	global $arg, $conf;
+function aedit($href, $echo = true, $title = null){ # Установка на пользовательскую старницу ссылки в административные разделы. В качестве аргумента передается ссылка, выводится исходя из прав пользователя на сайте
+	global $arg;
 	$link = "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:10; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\" target='_blank' ><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px; width:10px; height:10px;'></a></span></div>";
-	if(($modpath && ($conf['modules'][$modpath]['access'] > 3)) || $arg['access'] > 3) {
-		if((bool)$echo) echo $link; else return $link;
-	}	
+	if($arg['access'] > 3) {if((bool)$echo) echo $link; else return $link;}	
 }
 function mptс($time = null, $format = 0){ # Приведение временных данных у удобочитаемую человеческую форму. Обычно для вывода на пользовательские страницы
 	if($time === null) $time = time();
@@ -1369,7 +1364,8 @@ function mpqwt($result){
 		} if(!$level) $func($p, $ar, $line);
 	}; $tree($top, $tree, $func, $level, $line);
 }*/
-function mpquot($data){
+function mpquot($data){	
+	$data = stripslashes($data); /*	; Волшебные кавычки для входных данных GET/POST/Cookie. magic_quotes_gpc = On	*/
 	$data = str_replace("\\", "\\\\", $data); 
 	$data = str_replace("'", "\'", $data); 
 	$data = str_replace('"', '\"', $data); 
