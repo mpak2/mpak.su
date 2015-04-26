@@ -15,7 +15,7 @@ phpinfo();
 
 EOF;
 
-$p->setStub('<?php Phar::mapPhar(); ini_set("include_path", "phar://". __FILE__); include index.php"; __HALT_COMPILER(); ?>');
+$p->setStub('<?php Phar::mapPhar(); ini_set("include_path", "phar://". __FILE__); include "index.php"; __HALT_COMPILER(); ?>');
 $p->stopBuffering();
 
 $dir = opendir($folder = "phar://{$phar}/");
