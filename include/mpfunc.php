@@ -79,6 +79,9 @@ function aedit($href, $echo = true, $title = null){ # Установка на п
 	$link = "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:10; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\" target='_blank' ><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px; width:10px; height:10px;'></a></span></div>";
 	if($arg['access'] > 3) {if((bool)$echo) echo $link; else return $link;}	
 }
+
+
+
 function mptс($time = null, $format = 0){ # Приведение временных данных у удобочитаемую человеческую форму. Обычно для вывода на пользовательские страницы
 	if($time === null) $time = time();
 	$time = time()-$time;
