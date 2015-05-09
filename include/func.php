@@ -91,7 +91,8 @@ function stable($table){
 			if (strlen($table['_where'])) $sql .= " AND {$table['_where']}";
 			if ($table['debug']) mpre($sql);
 			$result = mpqw($sql);
-			$edit = $_GET['edit'] ? mysql_fetch_array($result, 1) : true;
+//			$edit = $_GET['edit'] ? mysql_fetch_array($result, 1) : true;
+			$edit = $_GET['edit'] ? ql($sql, 0) : true;
 			foreach((array)$table['type'] as $k=>$v){
 				if ($v == 'timestamp') @$edit[$k] = ($edit[$k] ? date('Y.m.d H:i:s', $edit[$k]) : "");
 			}
@@ -100,8 +101,9 @@ function stable($table){
 			if (strlen($table['where'])) $sql .= " AND ".mpquot($table['where']);
 			if (strlen($table['_where'])) $sql .= " AND {$table['_where']}";
 			if ($table['debug']) mpre($sql);
-			$result = mpqw($sql);
-			$edit = mysql_fetch_array($result, 1);
+//			$result = mpqw($sql);
+//			$edit = mysql_fetch_array($result, 1);
+			$edit = ql($sql, 0);
 			foreach((array)$table['type'] as $k=>$v)
 				if ($v == 'timestamp') $edit[$k] = date('Y.m.d H:i:s', $edit[$k]);
 		}elseif ($table['acess']['edit']['*'] && (int)$_POST['id']){
@@ -131,9 +133,7 @@ function stable($table){
 			if (strlen($table['where'])) $sql .= " AND ".mpquot($table['where']);
 			if (strlen($table['_where'])) $sql .= " AND {$table['_where']}";
 			if ($table['debug']) echo mpre($sql);
-			$result = mpqw($sql);
-			if (mysql_num_rows($result)){
-				$line = mysql_fetch_array($result, 1);
+			if ($line = ql($sql, 0)){
 				unlink(strtr(mpopendir('include')."/{$line[$_GET['fil']]}", array('/..'=>'')));
 				$sql = "UPDATE {$table['name']} SET {$_GET['fil']} = '' WHERE `id` = '".(int)$_GET['delfile']."'";
 				if (strlen($table['where'])) $sql .= " AND ".mpquot($table['where']);
@@ -162,7 +162,7 @@ function stable($table){
 			if ($table['debug']) mpre($sql);
 			mpqw($sql);
 			$table['_count']++;
-			loadfile($table, mysql_insert_id()); # Загружаем изображения
+			loadfile($table, $conf['db']['conn']->lastInsertId()); # Загружаем изображения
 			mpevent("Добавление через админстраницу", $sql);
 			if(!mysql_error())
 				header("Location: {$_SERVER['REQUEST_URI']}");
@@ -173,7 +173,7 @@ function stable($table){
 			if ($table['debug']) mpre($sql);
 			$result = mpql(mpqw($sql), 0);
 			if(!empty($result['img']) && /*array_key_exists('img', $result) &&*/ ($file_name = mpopendir("include/{$result['img']}"))){
-				@mkdir("/tmp/del/", true);
+				mkdir("/tmp/del/", true);
 				copy($file_name, "/tmp/del/". basename($file_name));
 				unlink($file_name);
 			}
