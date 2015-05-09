@@ -71,7 +71,7 @@ function in($ar, $flip = false){ # Формирует из массива стр
 	}else if($flip){
 		 $ar = array_flip($ar);
 	} return implode(",", array_map(function($key){
-		return is_numeric($key) ? $key : "\"". mpquot($key). "\"";
+		return (is_numeric($key) || ($key == "NULL")) ? $key : "\"". mpquot($key). "\"";
 	}, array_keys($ar)));
 }
 function aedit($href, $echo = true, $title = null){ # Установка на пользовательскую старницу ссылки в административные разделы. В качестве аргумента передается ссылка, выводится исходя из прав пользователя на сайте
@@ -126,30 +126,6 @@ function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $hea
 	$result=curl_exec ($ch);
 	curl_close ($ch);
 	return $result;
-}
-# Получение данных из базы данных. В качестве ключей используются числа от нуля. Функция используется для выборки первого значения
-function ql($sql, $ln = null, $fd = null){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата
-	$microtime = microtime(true);
-	if(!($r = mpmc($key = "ql:". md5($sql)))){
-		$r = mpql(mpqw($sql), $ln, $fd);
-		if(($mt = (microtime(true) - $microtime)) > .3){
-			mpevent("Кеширование списка", $sql);
-			mpmc($key, $r);
-		}
-	} return $r;
-}
-# Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата. Возвращается список записей в нормальной форме
-function qn($sql){
-	$microtime = microtime(true);
-	if(!($r = mpmc($key = "qn:". md5($sql)))){
-		$func_get_args = func_get_args();
-		$func_get_args[0] = mpqw($sql);
-		$r = call_user_func_array('mpqn', $func_get_args);
-		if(($mt = microtime(true) - $microtime) > .3){
-			mpevent("Кеширование нумерованного списка", $sql);
-			mpmc($key, $r);
-		}
-	} return $r;
 }
 # единственные двойственные и множественные числительные. Пример использования mpfm($n, 'письмо', 'письма', 'писем');
 function mpfm($n, $form1, $form2, $form5){
@@ -575,11 +551,14 @@ function mpmail($to = '', $subj='Проверка', $text = 'Проверка', 
 	}
 }
 function spisok($sql, $str_len = null, $left_pos = 0){
+	global $conf;
 	$result = mpqw($sql);
-	if (strlen(mysql_error()))
-		echo "$sql<br><font color=red>".mysql_error()."</font>";
-	while($line = mysql_fetch_array($result, MYSQL_NUM)){
-		list($id, $name) = $line;
+	$spisok = array();
+	while($line = $result->fetch()){
+//		list($id, $name) = $line;
+		$name = array_pop($line);
+		$id = array_pop($line);
+//		pre($line); pre($id); pre($name);
 		if ($str_len) $name = substr($name, $left_pos , $str_len).(strlen($name) > $str_len ? '...' : '');
 		$spisok[$id] = $name;
 	} return (array)$spisok;
@@ -692,8 +671,8 @@ function mpdbf($tn, $post = null, $and = false){
 			if(is_array($v)){
 				$f[] = "`$k` IN (". mpquot(strtr(implode(",", $v), array("<"=>"&lt;", ">"=>"&gt;"))). ")";
 			}else/* if(gettype($v) == "string")*/{
-				if($v == "null"){
-					$f[] = "`$k`=". $v;
+				if($v == "NULL"){
+					$f[] = ($and ? "`$k` IS NULL" : "`$k`=NULL");
 				}else{
 					$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
 				}
@@ -795,18 +774,29 @@ function mpopendir($file_name, $merge=1){
 }
 function mpql($dbres, $ln = null, $fd = null){
 	$result = array();
-	while($line = @mysql_fetch_array($dbres, 1))
+	while($line = $dbres->fetch()){
 		$result[] = $line;
+	}
 	if ($ln !== null && $result){
 		$result = $result[$ln];
-		if ($fd)
+		if ($fd){
 			$result = $result[$fd];
-	}
-	return $result;
+		}
+	} return $result;
+} function ql($sql, $ln = null, $fd = null){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата
+	$microtime = microtime(true);
+	if(!($r = mpmc($key = "ql:". md5($sql)))){
+		$r = mpql(mpqw($sql), $ln, $fd);
+		if(($mt = (microtime(true) - $microtime)) > .3){
+			mpevent("Кеширование списка", $sql);
+			mpmc($key, $r);
+		}
+	} return $r;
 }
+
 function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 	$result = array();
-	while($line = @mysql_fetch_array($dbres, 1)){
+	while($line = $dbres->fetch()){
 		if($z){
 			$result[ $line[$x] ][ $line[$y] ][ $line[$n] ][ $line[$z] ] = $line;
 		}elseif($n){
@@ -817,393 +807,23 @@ function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 			$result[ $line[$x] ] = $line;
 		}
 	} return $result;
+} function qn($sql){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата. Возвращается список записей в нормальной форме
+	$microtime = microtime(true);
+	if(!($r = mpmc($key = "qn:". md5($sql)))){
+		$func_get_args = func_get_args();
+		$func_get_args[0] = mpqw($sql);
+		$r = call_user_func_array('mpqn', $func_get_args);
+		if(($mt = microtime(true) - $microtime) > .3){
+			mpevent("Кеширование нумерованного списка", $sql);
+			mpmc($key, $r);
+		}
+	} return $r;
 }
 function mpqw($sql, $info = null, $conn = null){
 	global $conf;
 	$mt = microtime(true);
-	$result = mysql_query($sql, ($conn ? $conn : $conf['db']['conn']));
-	if ($error = mysql_error()){// mpre($conf['user']);
-		if(!empty($conf['modules']['sqlanaliz']['access']) && (array_search($conf['user']['uname'], explode(",", $conf['settings']['admin_usr'])) !== false)){
-			echo "<p>$sql<br><div color=red>".mysql_error()."</div>";
-		}
-		$check = array(
-			"Table '{$conf['db']['name']}.mp_blocks_reg_modules' doesn't exist" => array(
-				"SELECT * FROM {$conf['db']['prefix']}blocks_reg_modules" => array(
-					"CREATE TABLE `{$conf['db']['prefix']}blocks_reg_modules` ( `id` int(11) NOT NULL AUTO_INCREMENT, `sort` int(11) NOT NULL, `reg_id` int(11) NOT NULL, `modules_index` int(11) NOT NULL, `name` varchar(255) NOT NULL, `theme` varchar(255) NOT NULL, `uri` varchar(255) NOT NULL, PRIMARY KEY (`id`), KEY `sort` (`sort`), KEY `modules_index` (`modules_index`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
-					"INSERT INTO `{$conf['db']['prefix']}blocks` (`id`, `file` ,`name` ,`theme` ,`shablon` ,`access` ,`rid` ,`orderby` ,`param` ,`enabled`) VALUES (999, 'modules/blocks/update.php' ,'Обновление блоков' ,'zhiraf' ,'' ,'0' ,'-1' ,'0' ,'' ,'1');",
- 					"INSERT INTO `{$conf['db']['prefix']}blocks_gaccess` (`bid` ,`gid` ,`access` ,`description`) VALUES (999 , (SELECT id FROM mp_users_grp WHERE name='Администратор'),'1' ,'')",
-					"INSERT INTO mp_blocks_reg SET id=-2, term=1, description='Админ', reg_id=2",
-					"INSERT INTO mp_blocks_reg SET id=-1, term=1, description='Админ', reg_id=1",
-				),
-			),
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_city' doesn't exist" => array(
-				"SHOW COLUMNS FROM" => array(
-					"CREATE TABLE `{$conf['db']['prefix']}users_city` (`id` int(11) NOT NULL AUTO_INCREMENT, `country` varchar(255) NOT NULL, `region_id` int(11) NOT NULL, `name` varchar(255) NOT NULL, `lat` float NOT NULL, `lng` float NOT NULL, `description` text NOT NULL, PRIMARY KEY (`id`), KEY `name` (`name`), KEY `region_id` (`region_id`)) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
-				),
-			),
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_region' doesn't exist" => array(
-				"SHOW COLUMNS FROM" => array(
-					"CREATE TABLE `{$conf['db']['prefix']}users_region` (`id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `description` text NOT NULL, PRIMARY KEY (`id`), KEY `name` (`name`)) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
-				),
-			),
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}sess_city' doesn't exist" => array(
-				"SHOW COLUMNS FROM `{$conf['db']['name']}sess_city`" => array(
-					"CREATE TABLE `{$conf['db']['prefix']}users_city` (`id` INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT, `name` varchar(255) NOT NULL, `description` text NOT NULL) ENGINE = InnoDB",
-					"ALTER TABLE `{$conf['db']['prefix']}users_city` ADD INDEX (`name`)",
-				),
-			),
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}menu_index' doesn't exist" => array(
-				"SELECT *, href AS link FROM {$conf['db']['prefix']}menu_index WHERE" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}menu` RENAME `{$conf['db']['prefix']}menu_index`",
-					"ALTER TABLE `{$conf['db']['prefix']}menu_index` CHANGE `pid` `index_id` int(11) NOT NULL",
-					"ALTER TABLE `{$conf['db']['prefix']}menu_index` ADD INDEX (`index_id`)",
-					"ALTER TABLE `{$conf['db']['prefix']}menu_index` CHANGE `rid` `region_id` int(11) NOT NULL",
-					"ALTER TABLE `{$conf['db']['prefix']}menu_index` ADD INDEX (`region_id`)",
-					"ALTER TABLE `{$conf['db']['prefix']}menu_index` CHANGE `orderby` `sort` int(11) NOT NULL",
-					"ALTER TABLE `{$conf['db']['prefix']}menu_index` ADD INDEX (`sort`)",
-					"ALTER TABLE `{$conf['db']['prefix']}menu_index` CHANGE `link` `href` varchar(255) NOT NULL ",
-				),
-			),
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}search_index' doesn't exist" => array(
-				"INSERT INTO {$conf['db']['prefix']}search_index" => array(
-					"CREATE TABLE `{$conf['db']['prefix']}search_index` (`id` int(11) NOT NULL AUTO_INCREMENT,`uid` int(11) NOT NULL,`time` int(11) NOT NULL,`num` int(11) NOT NULL,`name` varchar(255) NOT NULL,`count` int(11) NOT NULL,`pages` int(11) NOT NULL,`ip` varchar(255) NOT NULL,PRIMARY KEY (`id`),KEY `uid` (`uid`),KEY `num` (`num`),KEY `uid_2` (`uid`),KEY `time` (`time`)) ENGINE=MyISAM DEFAULT CHARSET=cp1251",
-				),
-			),
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_geoname' doesn't exist" => array(
-				"SELECT id, CONCAT(name, ' (', countryName, ')') FROM {$conf['db']['prefix']}users_geoname" => array(
-					"CREATE TABLE `{$conf['db']['prefix']}users_geoname` (`id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `continentCode` varchar(255) NOT NULL, `countryCode` varchar(255) NOT NULL, `countryName` varchar(255) NOT NULL, `fclName` varchar(255) NOT NULL, `fcode` varchar(255) NOT NULL, `fcodeName` varchar(255) NOT NULL, `geonameId` varchar(255) NOT NULL, `lat` varchar(255) NOT NULL, `lng` varchar(255) NOT NULL, `name` varchar(255) NOT NULL, `population` varchar(255) NOT NULL, `toponymName` varchar(255) NOT NULL, PRIMARY KEY (`id`), KEY `uid` (`uid`), KEY `geonameId` (`geonameId`)) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
-				),
-			),
-			"Unknown column 's.geo' in 'where clause'" => array(
-				"SELECT s.*, u.name AS uname" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}sess` ADD `geo` varchar(255) NOT NULL",
-				),
-			),
-			"Unknown column 'sort' in 'order clause'" => array(
-				"SELECT * FROM {$conf['db']['prefix']}blocks_reg" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}blocks_reg` ADD `sort` int(11) NOT NULL AFTER `id`",
-					"UPDATE {$conf['db']['prefix']}blocks_reg SET sort=id",
-				),
-			),
-			"Unknown column 'sort' in 'where clause'" => array(
-				"SELECT COUNT(*) FROM {$conf['db']['prefix']}blocks_reg" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}blocks_reg` ADD `sort` int(11) NOT NULL AFTER `id`",
-					"UPDATE {$conf['db']['prefix']}blocks_reg SET sort=id",
-				),
-			),
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}search_keys_tabs' doesn't exist" => array(
-				"SELECT i.*, k.id AS keys_id, k.name as keys_name, kt.name AS tabs_name" => array(
-					"CREATE TABLE `{$conf['db']['prefix']}search_keys_tabs` ( `id` int(11) NOT NULL AUTO_INCREMENT, `keys_id` int(11) NOT NULL, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `name` varchar(255) NOT NULL, PRIMARY KEY (`id`), KEY `search_keys_id` (`keys_id`), KEY `time` (`time`), KEY `uid` (`uid`) ) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=cp1251",
-				),
-			),
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}search_keys' doesn't exist" => array(
-				"SELECT i.*, k.id AS keys_id, k.name as keys_name, kt.name AS tabs_name" => array(
-					"CREATE TABLE `{$conf['db']['prefix']}search_keys` ( `id` int(11) NOT NULL AUTO_INCREMENT, `index_id` int(11) NOT NULL, `name` varchar(255) NOT NULL, `tab` varchar(255) NOT NULL, PRIMARY KEY (`id`), KEY `index_id` (`index_id`) ) ENGINE=InnoDB AUTO_INCREMENT=80 DEFAULT CHARSET=cp1251",
-					"ALTER TABLE `{$conf['db']['prefix']}search_index` CHANGE `search` `name` varchar(255) NOT NULL",
-				),
-			),
-			"Unknown column 'term' in 'where clause'" => array(
-				"SELECT * FROM {$conf['db']['prefix']}blocks_reg AS r WHERE r.reg_id=0 AND" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}blocks_reg` ADD `term` int(11) NOT NULL AFTER `id`",
-					"ALTER TABLE `{$conf['db']['prefix']}blocks_reg` ADD INDEX (`term`)",
-				),
-			),
-/*			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_geoname' doesn't exist" => array(
-				"SELECT id, CONCAT(name, \' (\', countryName, \')\') FROM mp_users_geoname" => array(
-					"",
-					"",
-				),
-			),*/
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_lang_words' doesn't exist" => array(
-				"SELECT id, name FROM {$conf['db']['prefix']}users_lang_words" => array(
-					"CREATE TABLE `{$conf['db']['prefix']}users_lang_words` ( `id` int(11) NOT NULL AUTO_INCREMENT, `modules` varchar(255) NOT NULL, `name` varchar(255) NOT NULL, `description` varchar(255) NOT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
-				),
-			),
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_lang' doesn't exist" => array(
-				"SELECT id, name FROM {$conf['db']['prefix']}users_lang" => array(
-					"CREATE TABLE `{$conf['db']['prefix']}users_lang` ( `id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `description` varchar(255) NOT NULL, `sort` int(11) NOT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=cp1251",
-					"CREATE TABLE `{$conf['db']['prefix']}users_lang_words` ( `id` int(11) NOT NULL AUTO_INCREMENT, `modules` varchar(255) NOT NULL, `name` varchar(255) NOT NULL, `description` varchar(255) NOT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
-					"CREATE TABLE `{$conf['db']['prefix']}users_lang_translation` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `lang_id` int(11) NOT NULL, `lang_words_id` int(11) NOT NULL, `name` varchar(255) NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `name` (`name`,`lang_id`), KEY `lang_words_id` (`lang_words_id`) ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=cp1251"
-				),
-			),
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_anket_type' doesn't exist" => array(
-				"SELECT id, name FROM {$conf['db']['prefix']}users_anket_type" => array(
-					"CREATE TABLE `{$conf['db']['prefix']}users_anket_type` ( `id` int(11) NOT NULL AUTO_INCREMENT, `sort` int(11) NOT NULL, `name` varchar(255) NOT NULL, `description` varchar(255) NOT NULL, `border` int(11) NOT NULL, PRIMARY KEY (`id`), KEY `sort` (`sort`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
-					"CREATE TABLE `{$conf['db']['prefix']}users_anket` ( `id` int(11) NOT NULL AUTO_INCREMENT, `sort` int(11) NOT NULL, `anket_type_id` int(11) NOT NULL, `name` varchar(255) NOT NULL, `required` int(11) NOT NULL, `alias` varchar(255) NOT NULL, `description` varchar(255) NOT NULL, `reg` int(11) NOT NULL, PRIMARY KEY (`id`), KEY `sort` (`sort`), KEY `anket_type_id` (`anket_type_id`) ) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=cp1251",
-					"CREATE TABLE `{$conf['db']['prefix']}users_anket_data` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `anket_id` int(11) NOT NULL, `name` varchar(255) NOT NULL, `description` varchar(255) NOT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=cp1251"
-				),
-			),
-/*			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_geoname' doesn't exist" => array(
-				"SELECT id, name FROM {$conf['db']['prefix']}users_geoname" => array(
-					"CREATE TABLE `mp_users_geoname` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `continentCode` varchar(255) NOT NULL, `countryCode` varchar(255) NOT NULL, `countryName` varchar(255) NOT NULL, `fclName` varchar(255) NOT NULL, `fcode` varchar(255) NOT NULL, `fcodeName` varchar(255) NOT NULL, `geonameId` varchar(255) NOT NULL, `lat` varchar(255) NOT NULL, `lng` varchar(255) NOT NULL, `name` varchar(255) NOT NULL, `population` varchar(255) NOT NULL, `toponymName` varchar(255) NOT NULL, PRIMARY KEY (`id`), KEY `uid` (`uid`), KEY `geonameId` (`geonameId`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
-				),
-			),*/
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_event_notice' doesn't exist" => array(
-				"SELECT * FROM {$conf['db']['prefix']}users_event_notice" => array(
-					"CREATE TABLE `{$conf['db']['prefix']}users_event_notice` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `grp_id` int(11) NOT NULL, `type` varchar(255) NOT NULL, `event_id` int(11) NOT NULL, `log` int(11) NOT NULL, `count` int(11) NOT NULL, `name` varchar(255) NOT NULL, `text` text NOT NULL, `zam` text NOT NULL, PRIMARY KEY (`id`), KEY `event_id` (`event_id`), KEY `uid` (`uid`), KEY `grp_id` (`grp_id`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
-					"CREATE TABLE `mp_users_event_mess` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `event_notice_id` int(11) NOT NULL, `dst` varchar(255) NOT NULL, `name` varchar(255) NOT NULL, `text` text NOT NULL, `response` varchar(255) NOT NULL, PRIMARY KEY (`id`), KEY `time` (`time`), KEY `uid` (`uid`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
-				),
-			),
- 			"Unknown column 'm.grp_id' in 'where clause'" => array(
- 				"SELECT g.id, g.name FROM {$conf['db']['prefix']}users_grp as g, {$conf['db']['prefix']}users_mem as m WHERE" => array(
- 					"ALTER TABLE `{$conf['db']['prefix']}users_mem` CHANGE `gid` `grp_id` int(11) NOT NULL",
- 				),
- 			),
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_event_logs' doesn't exist" => array(
-				"INSERT DELAYED INTO {$conf['db']['prefix']}users_event_logs SET" => array(
-					"ALTER TABLE {$conf['db']['prefix']}users_event_log RENAME mp_users_event_logs",
-				),
-			),
-			"Unknown column 'type_id' in 'where clause'" => array(
-				"SELECT id FROM {$conf['db']['prefix']}users WHERE type_id=1" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}users` CHANGE `tid` `type_id` int(11) NOT NULL",
-					"ALTER TABLE `{$conf['db']['prefix']}users` ADD INDEX (`type_id`)",
-				),
-			),
-			"Unknown column 'id.cat_id' in 'on clause'" => array(
-				"SELECT c.*, COUNT(DISTINCT id.id) AS cnt FROM mp_pages_cat" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}pages_index` CHANGE `kid` `cat_id` int(11) NOT NULL",
-					"ALTER TABLE `{$conf['db']['prefix']}pages_index` ADD INDEX (cat_id)",
-				),
-			),
-			"Unknown column 'p.kat_id' in 'on clause'" => array(
-				"SELECT SQL_CALC_FOUND_ROWS p.*, p.id AS id" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}news_post` CHANGE `kid` `kat_id` int(11) NOT NULL",
-					"ALTER TABLE `{$conf['db']['prefix']}news_post` CHANGE `tema` `name` varchar(255) NOT NULL",
-					"ALTER TABLE `{$conf['db']['prefix']}news_post` ADD INDEX (uid)",
-				),
-			),
-			"Unknown column 'w.plan_id' in 'where clause'" => array(
-				"SELECT w.*, u.name FROM {$conf['db']['prefix']}develop_work" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}develop_work` CHANGE `pid` `plan_id` int(11) NOT NULL",
-					"ALTER TABLE `{$conf['db']['prefix']}develop_work` ADD INDEX (plan_id)",
-					"ALTER TABLE `{$conf['db']['prefix']}develop_work` ADD `uid` int(11) NOT NULL AFTER `plan_id`"
-				),
-			),
-			"Unknown column 'performers_id' in 'field list'" => array(
-				"INSERT INTO {$conf['db']['prefix']}develop_plan" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}develop_plan` ADD `performers_id` int(11) NOT NULL AFTER `cat_id`",
-					"ALTER TABLE `{$conf['db']['prefix']}develop_plan` ADD INDEX (performers_id)",
-				),
-			),
-			"Unknown column 'plan_id' in 'field list'" => array(
-				"SELECT plan_id, COUNT(*) FROM {$conf['db']['prefix']}develop_golos" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}develop_golos` CHANGE `pid` `plan_id` int(11) NOT NULL",
-					"ALTER TABLE `{$conf['db']['prefix']}develop_golos` CHANGE `sid` `uid` int(11) NOT NULL",
-				),
-			),
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}develop_performers' doesn't exist" => array(
-				"SELECT p.*, CONCAT(u.name, ' (', p.name, ')') AS name FROM {$conf['db']['prefix']}develop_performers" => array(
-					"CREATE TABLE `{$conf['db']['prefix']}develop_performers` (`id` int(11) NOT NULL AUTO_INCREMENT,`time` int(11) NOT NULL,`uid` int(11) NOT NULL,`name` varchar(255) NOT NULL,`description` text NOT NULL, PRIMARY KEY (`id`), KEY `time` (`time`),KEY `uid` (`uid`)) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
-					"INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('develop', 'develop_golos', 'Голос', '0', 'Название таблицы')",
-					"INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('develop', 'develop_kat', 'Категории', '0', 'Название таблицы')",
-					"INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('develop', 'develop_plan', 'Задачи', '0', 'Название таблицы')",
-					"INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('develop', 'develop_work', 'Работа', '0', 'Название таблицы')",
-					"INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('develop', 'develop_performers', 'Исполнители', '0', 'Название таблицы')",
-				),
-			),
-			"Unknown column 'p.cat_id' in 'field list'" => array(
-				"SELECT p.*, p.id AS plan_id, p.cat_id, COUNT(*) AS cnt FROM {$conf['db']['prefix']}develop_plan" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}develop_plan` CHANGE `kid` `cat_id` int(11) NOT NULL",
-				),
-			),
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}develop_cat' doesn't exist" => array(
-				"SELECT * FROM {$conf['db']['prefix']}develop_cat" => array(
-					"ALTER TABLE {$conf['db']['prefix']}develop_kat RENAME {$conf['db']['prefix']}develop_cat",
-					"ALTER TABLE `{$conf['db']['prefix']}develop_cat` ADD INDEX (sort)",
-				),
-			),
-			"Unknown column 'priority' in 'order clause'" => array(
-				"SELECT * FROM {$conf['db']['prefix']}modules" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}modules` ADD `priority` int(11) NOT NULL",
-					"ALTER TABLE `{$conf['db']['prefix']}modules` ADD INDEX (`priority`)",
-				),
-			),
-			"Unknown column 'g.hide' in 'where clause'" => array(
-				"SELECT g.* FROM {$conf['db']['prefix']}gbook AS g" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}gbook` CHANGE `vid` `hide` INT(11) NOT NULL",
-					"ALTER TABLE `{$conf['db']['prefix']}gbook` ADD INDEX (hide)",
-				),
-			),
-			"DELAYED option not supported for table" => array(
-				"INSERT DELAYED INTO {$conf['db']['prefix']}users_event_log SET" => array(
-					"ALTER TABLE {$conf['db']['prefix']}users_event_log ENGINE=MyISAM"
-				),
-			),
-			"Unknown column 'r.fn' in 'where clause'" => array(
-				"SELECT * FROM {$conf['db']['prefix']}blocks_reg AS r WHERE" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}blocks_reg` ADD `fn` varchar(255) NOT NULL",
-					"ALTER TABLE `{$conf['db']['prefix']}blocks_reg` ADD INDEX (fn)",
-				),
-			),
-			"Unknown column 'log_last' in 'field list'" => array(
-				"INSERT INTO {$conf['db']['prefix']}users_event SET" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}users_event` ADD `log_last` int(11) NOT NULL AFTER `log`",
-				),
-			),
-			"Unknown column 'last' in 'field list'" => array(
-				"INSERT INTO {$conf['db']['prefix']}users_event SET" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}users_event` ADD `last` int(11) NOT NULL AFTER `log`",
-					"ALTER TABLE `{$conf['db']['prefix']}users_event` ADD `max` int(11) NOT NULL AFTER `last`",
-					"ALTER TABLE `{$conf['db']['prefix']}users_event` ADD `min` int(11) NOT NULL AFTER `max`",
-				),
-			),
-			"Unknown column 'faq.cat_id' in 'on clause'" => array(
-				"SELECT cat.*, COUNT(*) AS cnt FROM {$conf['db']['prefix']}faq_cat" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}faq` CHANGE `cid` `cat_id` int(11) NOT NULL",
-					"ALTER TABLE `{$conf['db']['prefix']}faq` ADD INDEX (cat_id)",
-					"ALTER TABLE `{$conf['db']['prefix']}faq` ADD INDEX (hide)",
-				),
-			),
-			"Table 'shop_mpak_su.{$conf['db']['prefix']}faq' doesn't exist" => array(
-				"SELECT cat.*, COUNT(*) AS cnt FROM {$conf['db']['prefix']}faq_cat" => array(
-					"ALTER TABLE {$conf['db']['prefix']}faq RENAME {$conf['db']['prefix']}faq_index",
-				),
-			),
-			"Unknown column 'reg_id' in 'where clause'" => array(
-				"SELECT * FROM {$conf['db']['prefix']}blocks_reg" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}blocks_reg` ADD `reg_id` int(11) NOT NULL AFTER `id`",
-					"ALTER TABLE `{$conf['db']['prefix']}blocks_reg` ADD INDEX (reg_id)",
-				),
-			),
-			"Unknown column 'cmail' in 'field list'" => array(
-				"UPDATE {$conf['db']['prefix']}users_event SET cmail=cmail+1" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}users_event` ADD `cmail` int(11) NOT NULL AFTER `send`",
-				),
-			),
-			"Unknown column 'zam' in 'field list'" => array(
-				"INSERT INTO {$conf['db']['prefix']}users_event_log SET" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}users_event_log` ADD `zam` text NOT NULL",
-				),
-			),
-			"Unknown column 'text' in 'field list'" => array(
-				"SELECT * FROM {$conf['db']['prefix']}users_event" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}users_event` ADD `text` text NOT NULL ",
-				),
-			),
-			"Unknown column 'own' in 'field list'" => array(
-				"INSERT INTO {$conf['db']['prefix']}users_event_log SET" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}users_event_log` ADD `own` varchar(255) NOT NULL",
-				),
-			),
-			"Unknown column 'pages' in 'field list'" => array(
-				"UPDATE {$conf['db']['prefix']}search SET" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}search` ADD `pages` int(11) NOT NULL AFTER `count`",
-				),
-			),
-			"Unknown column 'flush' in 'field list'"=>array(
-				"UPDATE {$conf['db']['prefix']}users SET pass="=>array(
-					"ALTER TABLE `{$conf['db']['prefix']}users` ADD `flush` int(11) NOT NULL AFTER `refer`",
-					"ALTER TABLE `{$conf['db']['prefix']}users` ADD INDEX (flush)",
-				),
-			),
-			"Unknown column 'r.mid' in 'where clause'" => array(
-				"SELECT b.* FROM {$conf['db']['prefix']}blocks_reg AS r INNER JOIN {$conf['db']['prefix']}blocks AS b ON r.id=b.rid WHERE"=> array(
-					"ALTER TABLE `{$conf['db']['prefix']}blocks_reg` ADD `mid` int(11) NOT NULL AFTER `id`",
-					"ALTER TABLE `{$conf['db']['prefix']}blocks_reg` ADD INDEX (mid)",
-				),
-			),
-			"Unknown column 'time' in 'field list'" => array(
-				"INSERT INTO {$conf['db']['prefix']}foto_img SET"=>array(
-					"ALTER TABLE `{$conf['db']['prefix']}foto_img` ADD `time` int(11) NOT NULL AFTER `id`",
-					"ALTER TABLE `{$conf['db']['prefix']}foto_img` ADD INDEX (time)",
-				),
-			),
-			"Unknown column 'ref' in 'field list'" => array(
-				"INSERT INTO {$conf['db']['prefix']}users SET"=>array(
-					"ALTER TABLE `{$conf['db']['prefix']}users` ADD `ref` varchar(255) NOT NULL AFTER `img`",
-					"ALTER TABLE `{$conf['db']['prefix']}users` ADD INDEX (ref)",
-				),
-			),
-			"Unknown column 'url_id' in 'field list'" => array(
-				"INSERT INTO {$conf['db']['prefix']}comments_txt SET url_id=" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}comments_txt` CHANGE `uid` `url_id` int(11) NOT NULL",
-					"ALTER TABLE `{$conf['db']['prefix']}comments_txt` ADD INDEX (url_id)",
-				),
-			),
-			"Unknown column 'txt.url_id' in 'where clause'" => array(
-				"SELECT txt.* FROM {$conf['db']['prefix']}comments_txt AS" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}comments_txt` CHANGE `uid` `url_id` int(11) NOT NULL",
-					"ALTER TABLE `{$conf['db']['prefix']}comments_txt` ADD INDEX (url_id)",
-				),
-			),
-			"Unknown column 'url.name' in 'where clause'" => array(
-				"SELECT txt.* FROM {$conf['db']['prefix']}comments_txt" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}comments_url` CHANGE `url` `name` text NOT NULL",
-//					"ALTER TABLE `{$conf['db']['prefix']}comments_txt` ADD INDEX (url_id)",
-				),
-			),
-			"Unknown column 'count' in 'field list'" => array(
-				"INSERT INTO {$conf['db']['prefix']}search" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}search` ADD `count` int(11) NOT NULL AFTER `search`",
-					"ALTER TABLE `{$conf['db']['prefix']}search` ADD INDEX (uid)",
-				),
-				"UPDATE {$conf['db']['prefix']}search SET" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}search` ADD `count` int(11) NOT NULL AFTER `search`",
-					"ALTER TABLE `{$conf['db']['prefix']}search` ADD INDEX (uid)",
-				),
-			),
-			"Unknown column 'uid' in 'field list'" => array(
-				"INSERT INTO {$conf['db']['prefix']}users_event SET" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}users_event` ADD `uid` int(11) NOT NULL AFTER `time`",
-				),
-				"INSERT INTO {$conf['db']['prefix']}comments_txt SET" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}comments_txt` ADD `uid` int(11) NOT NULL AFTER `url_id`",
-					"ALTER TABLE `{$conf['db']['prefix']}comments_txt` ADD INDEX (uid)",
-				),
-			),
-			"Unknown column 'modpath' in 'field list'" => array(
-				"INSERT INTO {$conf['db']['prefix']}comments_url SET" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}comments_url` ADD `modpath` varchar(255) NOT NULL AFTER `name`",
-					"ALTER TABLE `{$conf['db']['prefix']}comments_url` ADD INDEX (modpath)",
-				),
-			),
-			"Unknown column 'fn' in 'field list'" => array(
-				"INSERT INTO {$conf['db']['prefix']}comments_url SET" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}comments_url` ADD `fn` varchar(255) NOT NULL AFTER `modpath`",
-					"ALTER TABLE `{$conf['db']['prefix']}comments_url` ADD INDEX (fn)",
-				),
-			),
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}pages_index' doesn't exist" => array(
-				"SELECT * FROM {$conf['db']['prefix']}pages_index" => array(
-					"ALTER TABLE {$conf['db']['prefix']}pages_post RENAME {$conf['db']['prefix']}pages_index",
-				),
-			),
-			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}users_event' doesn't exist" => array(
-				"INSERT INTO {$conf['db']['prefix']}users_event SET" => array(
-					"CREATE TABLE `{$conf['db']['prefix']}users_event` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `name` varchar(255) NOT NULL, `count` int(11) NOT NULL, `log` smallint(6) NOT NULL, `description` varchar(255) NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `name_2` (`name`), KEY `name` (`name`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
-					"CREATE TABLE `{$conf['db']['prefix']}users_event_log` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `event_id` int(11) NOT NULL, `uid` int(11) NOT NULL, `description` text NOT NULL, PRIMARY KEY (`id`), KEY `event_id` (`event_id`), KEY `uid` (`uid`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251",
-				),
-			),
-/*			"Unknown column 'time' in 'order clause'" => array(
-				"SELECT * FROM {$conf['db']['prefix']}search" => array(
-					"ALTER TABLE `{$conf['db']['prefix']}search` ADD `time` int(11) NOT NULL AFTER `uid`",
-					"ALTER TABLE `{$conf['db']['prefix']}search` ADD INDEX (time)",
-					"ALTER TABLE `{$conf['db']['prefix']}search` DROP `date`ALTER TABLE `{$conf['db']['prefix']}search` DROP `date`",
-				),
-			),*/
-/*			"Table '{$conf['db']['name']}.{$conf['db']['prefix']}search_index' doesn't exist" => array(
-				"SELECT * FROM {$conf['db']['prefix']}search_index" => array(
-					"ALTER TABLE {$conf['db']['prefix']}search RENAME {$conf['db']['prefix']}search_index",
-				),
-			),*/
-		);
-		if($error){
-			mpevent("Ошибка в структуре базы данных", $error, !empty($conf['user']['uid']) ? $conf['user']['uid'] : 0);
-			if($init = $check[ $error ]){
-				mpevent("Таблица исправлений структуры базы даных", $sql, $conf['user']['uid'], $init);
-				foreach($init as $r=>$q){
-					if(strpos($sql, $r) !== false){
-						mpevent("Исправление структуры базы данных", $sql, $conf['user']['uid'], $init[ $q ]);
-						foreach($q as $n=>$s){
-							mpqw($s); echo $s;
-						} mpre($q);
-					}
-				};
-			}
-		}
-	}
-	if (!empty($conf['settings']['analizsql_log'])){
+	$result = $conf['db']['conn']->query($sql);
+	if(!empty($conf['settings']['analizsql_log'])){
 		$conf['db']['sql'][] = $q = array(
 			'info' => $info ? $info : $conf['db']['info'],
 			'time' => microtime(true)-$mt,
@@ -1213,9 +833,21 @@ function mpqw($sql, $info = null, $conn = null){
 			mpevent("Долгий запрос к базе данных", $sql. " {$q['time']}c.", $conf['user']['uid'], $q);
 		}
 	} return($result);
-}
-function qw($sql){
-	return mpqw($sql);
+} function qw($sql, $info = null, $conn = null){
+	global $conf;
+	$mt = microtime(true);
+	$stm = $conf['db']['conn']->prepare($sql);
+	$return = $stm->execute();
+	if(!empty($conf['settings']['analizsql_log'])){
+		$conf['db']['sql'][] = $q = array(
+			'info' => $info ? $info : $conf['db']['info'],
+			'time' => microtime(true)-$mt,
+			'sql' => $sql,
+		);
+		if(!empty($conf['settings']['sqlanaliz_time_log']) && $q['time'] > $conf['settings']['sqlanaliz_time_log']){
+			mpevent("Долгий запрос к базе данных", $sql. " {$q['time']}c.", $conf['user']['uid'], $q);
+		}
+	} return($result);
 }
 function mpfile($filename, $description = null){
 //	$file_name = strtr($file_name, array('../'=>'', '/./'=>'/', '//'=>'/'));

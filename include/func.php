@@ -221,13 +221,22 @@ mpre($_GET); exit;
 		}
 	}
 
-
-	if(!empty($table['title'])) foreach($table['title'] as $k=>$v){
-		if(is_numeric($k)){
-			$table['title'][ $v ] = $table['etitle'][ $v ];
-			unset($table['title'][ $k ]);
+	if(empty($table['title']) && array_key_exists("text", $table['_fields'])){
+/*		$table['title'] = array();
+		foreach(array_diff_key($table['_fields'], array("id"=>false, "text"=>false)) as $v){
+			if(substr($v, -3) != "_id"){
+				array_push($table['title'], $v);
+			}
+		}*/
+		$table['title'] = array_values(array_diff_key($table['_fields'], array("id"=>false, "text"=>false)));
+	} if(!empty($table['title'])){
+		foreach($table['title'] as $k=>$v){
+			if(is_numeric($k)){
+				$table['title'][ $v ] = $table['etitle'][ $v ];
+				unset($table['title'][ $k ]);
+			}
 		}
-	}// mpre($table['title']);
+	}
 
 	if($table['edit'] == "title" && $table['title']) $table['edit'] = "list";
 	if($table['shablon'] && !array_key_exists('edit', $_GET)){
@@ -237,7 +246,6 @@ mpre($_GET); exit;
 			$p0 = array_keys($table['shablon']);
 			$p1 = array_keys(array_intersect_key((array)$table['etitle'], array_flip(array_keys($table['shablon']))))+$p0;//+array_keys($table['shablon']);
 			$p2 = array_intersect_key((array)$table['etitle'], array_flip(array_keys($table['shablon'])))+array_combine($p0, $p0);//+array_keys($table['shablon']);
-
 			if($p1 && $p2) $table['title'] = $table['title'] + array_combine($p1, $p2);
 		}
 	}
@@ -257,7 +265,6 @@ mpre($_GET); exit;
 	if (isset($table['_fields'][ strtr($_GET['order'], array(' DESC'=>'', ' desc'=>'')) ]) || !count(array_diff(explode(',', $_GET['order']), array_flip((array)$table['title'])))) $sql .= " ORDER BY {$_GET['order']}";
 	$sql .= " LIMIT ".($_GET['p'] * $table['count_rows']).", {$table['count_rows']}";
 	if ($table['debug']) mpre($sql);
-	$result = mpqw($sql);
 
 	# Выводим ссылку на страницы
 //	echo "<script src=include/openpopup.js></script><p>";
@@ -296,7 +303,7 @@ mpre($_GET); exit;
 	} $zamena += getspisok('spisok', $table['spisok']);
 
 	$table_data = array();
-	while($line = @mysql_fetch_array($result, 1)){
+	foreach(qn($sql) as $line){
 		if (isset($_GET['order']) && isset($table['shablon'][ strtr($_GET['order'], array(' DESC'=>'')) ])){
 			if (strlen($table['shablon'][ strtr($_GET['order'], array(' DESC'=>'')) ][ $line['id'] ])) $shablon[ count($table_data) ] = preg_replace("'<[^>]*?>'si", "", $table['shablon'][ strtr($_GET['order'], array(' DESC'=>'')) ][ $line['id'] ]);
 		}elseif(isset($_GET['order']) && gettype($table['spisok'][ strtr($_GET['order'], array(' DESC'=>'')) ]) == 'array'){

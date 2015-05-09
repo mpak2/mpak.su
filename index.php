@@ -10,7 +10,8 @@
 // Original Author of file: Krivoshlykov Evgeniy (mpak) +7 929 1140042
 // ----------------------------------------------------------------------
 
-//ini_set("open_basedir", dirname(__FILE__). ":". ini_get('upload_tmp_dir'));
+ini_set('display_errors', 1); error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT);
+header('Content-Type: text/html;charset=UTF-8');
 
 if(strpos($f = __FILE__, "phar://") === 0){ # Фал index.php внутри phar архива
 	$conf["db"]["open_basedir"] = implode("/", array_slice(explode("/", dirname(dirname($f))), 2)). ":". dirname($f);
@@ -32,31 +33,18 @@ if(strpos($f = __FILE__, "phar://") === 0){ # Фал index.php внутри phar
 	}
 }
 
-ini_set('display_errors', 1); error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT);
-header('Content-Type: text/html;charset=UTF-8');
-
 require_once("include/config.php"); # Конфигурация
 mp_require_once("include/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
 
+$conf['db']['conn'] = new PDO("{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC));
 $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI'], $_GET);
 
-if(!empty($_GET['m']) && array_search('admin', (array)$_GET['m']))
+if(!empty($_GET['m']) && array_search('admin', (array)$_GET['m'])){
 	mp_require_once("include/func.php"); # Функции таблиц
-
-if(!function_exists('mysql_connect')){
-	echo "no function mysql"; die;
-}else if(empty($conf['db']['conn'])){ # При подключении копии файла повторное подключение базы даных не требуется
-	$conf['db']['conn'] = mysql_connect($conf['db']['host'], $conf['db']['login'], $conf['db']['pass']); # Соединение с базой данных
 }
-if (strlen($conf['db']['error'] = mysql_error())){
-#	echo "Ошибка соединения с базой данных";
-}else{
-	mysql_select_db($conf['db']['name'], $conf['db']['conn']);
-	mpqw("SET NAMES 'utf8'");
-} unset($conf['db']['pass']); $conf['db']['sql'] = array();
 
-if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(mpql(mpqw("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}_%\"", 'Проверка работы базы')))){
+if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(qn("SHOW TABLES"))){
 	exit(mpopendir('include/install.php') ? mpct('include/install.php') : "Файл установки не найден");
 }
 
@@ -80,10 +68,9 @@ if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) 
  }
 
 $conf['db']['info'] = 'Загрузка свойств модулей';
-$conf['settings'] = array('http_host'=>$_SERVER['HTTP_HOST'])+spisok("SELECT `name`, `value` FROM `{$conf['db']['prefix']}settings`");
-if($conf['settings']['users_log']) $conf['event'] = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event"), "name");
-
+$conf['settings'] = array('http_host'=>$_SERVER['HTTP_HOST'])+array_column(rb("{$conf['db']['prefix']}settings"), "value", "name");
 $conf['settings']['access_array'] = array('0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ');
+if($conf['settings']['users_log']) $conf['event'] = rb("{$conf['db']['prefix']}users_event", "name");
 if ($conf['settings']['microtime']) $conf['settings']['microtime'] = microtime();
 
 if($conf['settings']['del_sess']){
@@ -101,11 +88,11 @@ if (!$guest_id = mpql(mpqw("SELECT id as gid FROM {$conf['db']['prefix']}users W
 	$guest_mem_id = mpfdk("{$conf['db']['prefix']}users", $w = array("uid"=>$guest_id, "grp_id"=>$guest_grp_id), $w);
 }
 
-$sess = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE `ip`='{$_SERVER['REMOTE_ADDR']}' AND last_time>=".(time()-$conf['settings']['sess_time'])." AND `agent`=\"".mpquot($_SERVER['HTTP_USER_AGENT']). "\" AND (". ($_COOKIE["{$conf['db']['prefix']}sess"] ? "sess=\"". mpquot($_COOKIE["{$conf['db']['prefix']}sess"]). "\"" : "uid=". (int)$guest_id).") ORDER BY id DESC", 'Получаем свойства текущей сессии'), 0);
+$sess = ql($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE `ip`='{$_SERVER['REMOTE_ADDR']}' AND last_time>=".(time()-$conf['settings']['sess_time'])." AND `agent`=\"".mpquot($_SERVER['HTTP_USER_AGENT']). "\" AND (". ($_COOKIE["{$conf['db']['prefix']}sess"] ? "sess=\"". mpquot($_COOKIE["{$conf['db']['prefix']}sess"]). "\"" : "uid=". (int)$guest_id).") ORDER BY id DESC", 0);
 if(!$sess){
 	$sess = array('uid'=>$guest_id, 'sess'=>md5("{$_SERVER['REMOTE_ADDR']}:".microtime()), 'ref'=>mpidn(urldecode($_SERVER['HTTP_REFERER'])), 'ip'=>$_SERVER['REMOTE_ADDR'], 'agent'=>$_SERVER['HTTP_USER_AGENT'], 'url'=>$_SERVER['REQUEST_URI']);
-	mpqw($sql = "INSERT INTO {$conf['db']['prefix']}sess (uid, ref, sess, last_time, ip, agent, url) VALUES (". (int)$guest_id. ", '". mpquot($sess['ref']). "', \"". mpquot($_COOKIE["{$conf['db']['prefix']}sess"]). "\", ".time().", '". mpquot($sess['ip']). "', '".mpquot($sess['agent'])."', '".mpquot($sess['url'])."')");
-	$sess['id'] = mysql_insert_id();
+	$res = qw($sql = "INSERT INTO {$conf['db']['prefix']}sess (uid, ref, sess, last_time, ip, agent, url) VALUES (". (int)$guest_id. ", '". mpquot($sess['ref']). "', \"". mpquot($_COOKIE["{$conf['db']['prefix']}sess"]). "\", ".time().", '". mpquot($sess['ip']). "', '".mpquot($sess['agent'])."', '".mpquot($sess['url'])."')");
+	$sess['id'] = $conf['db']['conn']->lastInsertId();
 }
 
 if($_COOKIE["{$conf['db']['prefix']}sess"] != $sess['sess']){
@@ -113,17 +100,13 @@ if($_COOKIE["{$conf['db']['prefix']}sess"] != $sess['sess']){
 	setcookie("{$conf['db']['prefix']}sess", $sess['sess'], 0, "/");
 }
 
-if ($conf['settings']['del_sess'] && ($conf['settings']['del_sess'] != 3 || $_SERVER['REQUEST_METHOD'] != 'GET' )){
-	mpqw("INSERT INTO {$conf['db']['prefix']}sess_post (sid, url, time, method, post) VALUE ({$sess['id']}, '{$_SERVER['QUERY_STRING']}', ".time().", '{$_SERVER['REQUEST_METHOD']}', '$request')", 'Обновляем свойства сессии');
-}
-
 if(!isset($_REQUEST['NoUpSes']) OR !isset($_REQUEST['null'])){ # Обновление информации о сессии При запросе ресурса обязательна
 	mpqw("UPDATE {$conf['db']['prefix']}sess SET count_time = count_time+".time()."-last_time, last_time=".time().", ".(isset($_GET['null']) ? 'cnull=cnull' : 'count=count')."+1, sess=\"". mpquot($sess['sess']). "\" WHERE id=". (int)$sess['id']);
 }
 
 if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аутентификация' && $uid = mpql(mpqw("SELECT id FROM {$conf['db']['prefix']}users WHERE type_id=1 AND name = \"".mpquot($_POST['name'])."\" AND pass='".mphash($_POST['name'], $_POST['pass'])."'", 'Проверка существования пользователя'), 0, 'id')){
-	mpqw($sql = "UPDATE {$conf['db']['prefix']}sess SET uid=".($sess['uid'] = $uid)." WHERE id=". (int)$sess['id']);// echo $sql;
-	mpqw("UPDATE {$conf['db']['prefix']}users SET last_time=". time(). " WHERE id=".(int)$uid);
+	qw($sql = "UPDATE {$conf['db']['prefix']}sess SET uid=".($sess['uid'] = $uid)." WHERE id=". (int)$sess['id']);
+	qw($sql = "UPDATE {$conf['db']['prefix']}users SET last_time=". time(). " WHERE id=".(int)$uid);
 //	header("Location: ". $_SERVER['REQUEST_URI']); exit;
 }elseif(isset($_GET['logoff'])){ # Если пользователь покидает сайт
 	mpqw("UPDATE {$conf['db']['prefix']}sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
@@ -142,7 +125,7 @@ if(($conf['settings']['users_uname'] = $conf['user']['uname']) == $conf['setting
 } $conf['settings']['users_uid'] = $conf['user']['uid'];
 
 $conf['db']['info'] = 'Получаем информацию о группах в которые входит пользователь';
-$conf['user']['gid'] = spisok("SELECT g.id, g.name FROM {$conf['db']['prefix']}users_grp as g, {$conf['db']['prefix']}users_mem as m WHERE (g.id=m.grp_id) AND m.uid = {$sess['uid']}");
+$conf['user']['gid'] = array_column(qn("SELECT g.id, g.name FROM {$conf['db']['prefix']}users_grp as g, {$conf['db']['prefix']}users_mem as m WHERE (g.id=m.grp_id) AND m.uid=". (int)$sess['uid']), "name", "id");
 $conf['user']['sess'] = $sess;
 
 if ($conf['settings']['start_mod'] && !$_GET['m']){
@@ -383,8 +366,9 @@ if (!empty($conf['settings']["theme/*:$f"])) $conf['settings']['theme'] = $conf[
 if (!empty($conf['settings']["theme/$m:*"])) $conf['settings']['theme'] = $conf['settings']["theme/$m:*"];
 if (!empty($conf['settings']["theme/$m:$f"])) $conf['settings']['theme'] = $conf['settings']["theme/$m:$f"];
 
- if ((strpos($f, "admin") === 0) && $conf['settings']["theme/*:admin"])
- 	$conf['settings']['theme'] = $conf['settings']["theme/*:admin"];
+if ((strpos($f, "admin") === 0) && $conf['settings']["theme/*:admin"]){
+	$conf['settings']['theme'] = $conf['settings']["theme/*:admin"];
+}
  
 if(isset($_GET['theme']) && $_GET['theme'] != $conf['user']['sess']['theme']){
 	$conf['user']['sess']['theme'] = $conf['settings']['theme'] = basename($_GET['theme']);
@@ -392,16 +376,9 @@ if(isset($_GET['theme']) && $_GET['theme'] != $conf['user']['sess']['theme']){
 	$conf['settings']['theme'] = $conf['user']['sess']['theme'];
 }
 
-
-if (is_numeric($conf['settings']['theme'])){
-	$sql = "SELECT b.theme as btheme, t.* FROM mp_themes as t LEFT JOIN mp_themes_blk as b ON t.id=b.tid WHERE t.id=".(int)$conf['settings']['theme']." ORDER BY b.sort";
-	$theme = mpql(mpqw($sql, 'Запрос темы'), 0);
-	$tc = $theme['theme'];
-}else{
-	if($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". ($_GET['index'] ? basename($_GET['index']) : "index"). ".html")){
-		$tc = ($conf['settings']['theme_exec'] ? mpeval($f) : file_get_contents($t));
-	}else{ die("Шаблон {$f} не найден"); }
-}
+if($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". ($_GET['index'] ? basename($_GET['index']) : "index"). ".html")){
+	$tc = ($conf['settings']['theme_exec'] ? mpeval($f) : file_get_contents($t));
+}else{ die("Шаблон {$f} не найден"); }
 
 if(isset($_GET['m']['sqlanaliz'])){
 	$zblocks = bcont();

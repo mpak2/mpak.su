@@ -52,7 +52,7 @@ if(($ext = strtolower(array_pop(explode('.', $path)))) && array_key_exists($ext,
 	$f = fopen($path, "rb");
 	while (!feof($f)) {
 		echo fread($f, 256);
-	}
+	} exit();
 }elseif(file_exists($f = "img/". basename($_GET['']))){
 	header("Content-type: {$defaultmimes[$ext]}");
 	echo mprs($f, $_GET['w'], $_GET['h'], $_GET['c']);
@@ -60,5 +60,3 @@ if(($ext = strtolower(array_pop(explode('.', $path)))) && array_key_exists($ext,
 	header("HTTP/1.1 404 Not Found");
 	echo "HTTP/1.1 404 Not Found";
 }
-
-?>

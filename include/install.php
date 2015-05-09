@@ -1,12 +1,16 @@
 <? die;
 
-echo <<<EOF
+if(array_key_exists("null", $_GET)){
+	exit(200);
+}else{
+	echo <<<EOF
 <html>
 <head>
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8" />
 </head>
 <body>
 EOF;
+}
 
 function perm2str($perm){
 	$perm = decbin($perm);
@@ -176,5 +180,3 @@ EOF;
 	echo "<p>Утановка завершена. <a href=/>Перейти на сайт</a></div>";
 }
 echo "</body></html>";
-
-?>
