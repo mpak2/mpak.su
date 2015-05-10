@@ -51,11 +51,13 @@ if(!empty($conf['settings'][ $s = $arg['modpath']. "=>spisok" ]) && ($fn = explo
 			$etitle[ $v ] = $conf['modules'][ array_shift(explode("_", $v)) ]["name"];
 		}
 	}
-}  if(!empty($conf['settings'][ $s = "{$arg['modpath']}_{$tn}=>ecounter" ]) && ($fn = explode(",", $conf['settings'][ $s ]))){
+} if(!empty($conf['settings'][ $s = "{$arg['modpath']}". ($tn ? "_{$tn}" : ""). "=>ecounter" ]) && ($fn = explode(",", $conf['settings'][$s]))){
 	foreach($fn as $v){
-//		$etitle += array($v=>$conf['settings'][$v]);
+		$m = array_shift(explode("_", $v));
+		$t = implode("_", array_slice(explode("_", $v), 1));
+		$sql = "SELECT r.id, CONCAT('<a href=/?m[{$m}]=admin&r={$conf['db']['prefix']}{$m}_{$t}&where[". substr($_GET['r'], strlen("{$conf['db']['prefix']}")). "]=', r.id, '>', COUNT(*), '_". ($conf['settings']["{$m}_{$t}"] ?: "_{$t}"). "</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$m}_{$t} AS fn WHERE r.id=fn.". ($arg['modpath'] == "users" ? "uid" : $arg['modpath']). ($ss = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ? "_{$ss}" : ""). ($m ? "" : "_id")." GROUP BY r.id";
 		$shablon += array(
-			(($t = array_shift(explode("_", $v))). ($fn = "_". implode("_", array_slice(explode("_", $v), 1))). ($prx = ''))=>array('*'=>"<a href=/?m[{$t}]=admin&r={$conf['db']['prefix']}{$t}{$fn}&where[". substr($_GET['r'], strlen("{$conf['db']['prefix']}")). "]={f:id}>Нет</a>")+spisok("SELECT r.id, CONCAT('<a href=/?m[{$t}]=admin&r={$conf['db']['prefix']}{$t}{$fn}&where[". substr($_GET['r'], strlen("{$conf['db']['prefix']}")). "]=', r.id, '>', COUNT(*), '_". ($conf['settings']["{$t}{$fn}"] ?: $fn). "</a>') FROM {$_GET['r']} AS r, {$conf['db']['prefix']}{$t}{$fn} AS fn WHERE r.id=fn.". ($t ? $arg['modpath']. "_" : ""). substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). ($t ? "" : "_id")." GROUP BY r.id"),
+			("{$m}_{$t}". ($prx = ''))=>array('*'=>"<a href=/?m[{$m}]=admin&r={$conf['db']['prefix']}{$m}_{$t}&where[". substr($_GET['r'], strlen("{$conf['db']['prefix']}")). "]={f:id}>Нет</a>")+spisok($sql),
 		);
 		if($conf['settings'][ $v ]){
 			$etitle[ $v ] = "~". $conf['settings'][ $v ];

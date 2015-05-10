@@ -23,7 +23,6 @@ function stable($table){
 	}
 	$modname = basename(dirname(__FILE__));
 	if (gettype($table['dbconn']) == 'object')
-		$table['dbconn']->SetFetchMode(2);
 	$hidden = array_flip( array_merge( array('id'), (array)$table['hidden'] ) ); # Меняем местами ключ=>значение и добавляем поле id
 	$disable = array_flip( array_merge( array('id'), (array)$table['disable'] ) ); # Меняем местами ключ=>значение и добавляем поле id
 	if (!strlen($table['name'])){

@@ -211,26 +211,27 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_type` 
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'user_grp', 'Зарегистрированные', '4', 'Группа зарегистрированных пользователей')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'admin_grp', 'Администратор', '5', 'Группа администратров')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'admin_usr', 'mpak', '5', 'Бог')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'default_usr', 'гость', '1', 'Пользователь при входе')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'default_grp', 'Гость', '1', 'Группа пользователя при входе')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_field_icq', 'Номер ICQ клиента', '1', 'Дополнительное поле')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_field_skype', 'Номер скайп клиента', '1', 'Дополнительное поле')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_field_email', 'Почтовый ящик', '1', 'Дополнительное поле')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_field_name', 'Логин доступа', '1', 'Дополнительное поле')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_log', '', '0', 'Логирование событий')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'user_reg_fields', '', '1', 'Добавочные поля для регистрации через запятую')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'user_diff_fields', '', '1', 'Добавочные скрываемые в лк')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_reg_redirect', '/', '1', 'Страница перенаправления после регистрации')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_event_memcache_get', 'Использован созданный ранее memcache', '1', 'Событие')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_event_memcache_set', 'Сформирован новый memcache', '1', 'Событие')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_event_image', 'Обновление изображения', '1', 'Событие')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_event_mail', 'Отправка сообщения пользователю', '1', 'Событие')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_activation', '', '0', 'Активация пользователя')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_reg_text', 'Спасибо за регистрацию. Рады приветствовать вас на нашем сайте', '0', 'Текст при регистрации')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_field_geoname_id', 'География', '5', 'Название поля в таблице пользователя')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('users', 'users_field_geo', 'На карте', '0', 'Название поля в личных данных пользователя')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', 'user_grp', 'Зарегистрированные', '4', 'Группа зарегистрированных пользователей')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', 'admin_grp', 'Администратор', '5', 'Группа администратров')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', 'admin_usr', 'mpak', '5', 'Бог')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', 'default_usr', 'гость', '1', 'Пользователь при входе')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', 'default_grp', 'Гость', '1', 'Группа пользователя при входе')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', 'user_reg_fields', '', '1', 'Добавочные поля для регистрации через запятую')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', 'user_diff_fields', '', '1', 'Добавочные скрываемые в лк')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_field_icq', 'Номер ICQ клиента', '1', 'Дополнительное поле')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_field_skype', 'Номер скайп клиента', '1', 'Дополнительное поле')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_field_email', 'Почтовый ящик', '1', 'Дополнительное поле')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_field_name', 'Логин доступа', '1', 'Дополнительное поле')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_log', '', '0', 'Логирование событий')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_reg_redirect', '/', '1', 'Страница перенаправления после регистрации')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_event_memcache_get', 'Использован созданный ранее memcache', '1', 'Событие')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_event_memcache_set', 'Сформирован новый memcache', '1', 'Событие')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_event_image', 'Обновление изображения', '1', 'Событие')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_event_mail', 'Отправка сообщения пользователю', '1', 'Событие')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_activation', '', '0', 'Активация пользователя')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_reg_text', 'Спасибо за регистрацию. Рады приветствовать вас на нашем сайте', '0', 'Текст при регистрации')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_field_geoname_id', 'География', '5', 'Название поля в таблице пользователя')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_field_geo', 'На карте', '0', 'Название поля в личных данных пользователя')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_tpl_exceptions', '1', '0', 'Выпадающие списки')");
 
 ?>
