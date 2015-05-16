@@ -13,8 +13,9 @@
 #</FilesMatch>
 <IfModule mod_rewrite.c>
 	AddType application/x-httpd-php .phar
+	php_value short_open_tag 1
 	php_value file_uploads 1
-	php_value upload_max_filesize 200M
+#	php_value upload_max_filesize 200M
 
 	RewriteEngine Off
 	RewriteCond %{REQUEST_FILENAME} !/crossdomain.xml

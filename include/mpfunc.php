@@ -1,4 +1,163 @@
 <?
+
+if (!function_exists('mcont')){
+	function mcont($content){ # Загрузка содержимого модуля
+		global $conf, $arg, $tpl;
+		foreach($_GET['m'] as $k=>$v){ $k = urldecode($k);
+			$mod = $conf['modules'][ $k ];
+			$mod['link'] = (is_link($f = mpopendir("modules/{$mod['folder']}")) ? readlink($f) : $mod['folder']);
+			ini_set("include_path" ,mpopendir("modules/{$mod['link']}"). ":./modules/{$mod['link']}:". ini_get("include_path"));
+			if($conf['settings']['modules_title']){
+				$conf['settings']['title'] = $conf['modules'][ $k ]['name']. ' : '. $conf['settings']['title'];
+			}
+
+			$v = $v != 'del' && $v != 'init' && $v != 'sql' && strlen($v) ? $v : 'index';
+			if ( ((strpos($v, 'admin') === 0) ? $conf['modules'][$k]['access'] >= 4 : $conf['modules'][$k]['access'] >= 1) ){
+				$conf['db']['info'] = "Модуль '". ($name = $mod['name']). "'";
+
+				if(preg_match("/[a-z]/", $v)){ $g = "/*{$v}.*php"; }else{ $g = "/*.{$v}.php"; }// pre($g);
+				if(($glob = glob($gb = (mpopendir("modules/{$mod['link']}"). $g)))
+					|| ($glob = glob($gb = ("modules/{$mod['link']}". $g)))){
+					$glob = basename(array_pop($glob));
+					$g = explode(".", $glob);
+					$v = array_shift($g);
+				}// print_r($glob);
+
+				$fe = ((strpos($_SERVER['HTTP_HOST'], "xn--") !== false) && (count($g) > 1)) ? array_shift($g) : $v;
+				$arg = array('modpath'=>$mod['folder'], 'modname'=>$mod['modname'], 'fn'=>$v, "fe"=>$fe, 'access'=>$mod['access']);
+
+				if($glob){
+					$content .= mpct("modules/{$mod['link']}/{$glob}", $arg);
+				}elseif($v == "admin"){
+					if(mpopendir("modules/{$mod['link']}/admin.php")){
+						$content .= mpct("modules/{$mod['link']}/admin.php", $arg);
+					}else{
+						$content .= mpct("modules/admin/admin.php", $arg);
+					}
+				}elseif(($tmp = mpct("modules/{$mod['link']}/". ($fn = $v). ".php", $arg)) === false){
+					$content .= mpct("modules/{$mod['link']}/". ($fn = "default"). ".php", $arg);
+				}else{
+					$content .= $tmp;
+				} if(!empty($tpl) || !empty($conf['tpl'])){
+					$conf['tpl'] = array_merge((array)$tpl, (array)$conf['tpl']);
+				}
+				
+				ob_start();
+				if (mpopendir("modules/{$mod['link']}/$v.tpl")){# Проверяем модуль на файл шаблона
+					mp_require_once("modules/{$mod['link']}/$v.tpl");
+				}else if(mpopendir("modules/{$mod['link']}/$v.js")){
+					if(array_key_exists("null", $_GET)) header("Content-type: application/x-javascript");
+					mp_require_once("modules/{$mod['link']}/$v.js");
+				}else if(mpopendir("modules/{$mod['link']}/$v.css")){
+					if(array_key_exists("null", $_GET)) header("Content-type: text/css");
+					mp_require_once("modules/{$mod['link']}/$v.css");
+				}else if(($v == "admin") && mpopendir("modules/{$v}/{$v}.php")){
+					mp_require_once("modules/{$v}/{$v}.tpl");
+				}else{# Дефолтный файл
+					mp_require_once("modules/{$mod['link']}/$fn.tpl");
+				} $content .= ob_get_contents(); ob_end_clean();
+			}else if(array_key_exists($k, $conf['modules']) && ($_SERVER['REQUEST_URI'] != "/admin")){
+				header("HTTP/1.0 403 Access Denied");
+				header("Location: /users:login");
+			}else{
+				if (file_exists(mpopendir("modules/{$mod['link']}/deny.php"))){
+					$content = mpct("modules/{$mod['link']}/deny.php", $conf['arg'] = array('modpath'=>$mod['folder']));
+				}else if(!array_key_exists("themes", $_GET)){
+					if(!array_key_exists('null', $_GET) && ($_SERVER['REQUEST_URI'] != "/admin")){
+//						header("HTTP/1.0 404 Not Found");
+//						header("Location: /themes:404{$_SERVER['REQUEST_URI']}");// header("Location: /admin");
+					}
+				}
+			}
+		}
+		return $content;
+	}
+}
+
+if (!function_exists('bcont')){
+	function bcont($bid = null){# Загружаем список блоков и прав доступа
+		global $theme, $conf;
+		$conf['db']['info'] = "Выборка шаблонов блоков";
+		$shablon = spisok("SELECT id, shablon FROM {$conf['db']['prefix']}blocks_shablon");
+
+		$blocks = qn("SELECT * FROM {$conf['db']['prefix']}blocks WHERE enabled=1". ($bid ? " AND id=". (int)$bid : " ORDER BY orderby"));
+		$blocks_reg = qn("SELECT * FROM {$conf['db']['prefix']}blocks_reg");
+		$blocks_reg_modules = qn("SELECT * FROM {$conf['db']['prefix']}blocks_reg_modules ORDER BY sort");
+
+		foreach($_GET['m'] as $k=>$v){
+			$md[ $k ] = $v ? $v : "index";
+		}
+
+		foreach($blocks_reg as $r){
+			if($r["term"] == 0){ # Условия выключены
+				$reg[ $r['id'] ] = $r;
+			}else{
+				$brm = rb($blocks_reg_modules, "reg_id", "id", $r['id']);
+				if(max(array_column($brm, 'name'))){ # Если стоит страница
+					$br = array_shift($brm = rb($brm, "name", "id", array_flip($md)));
+				} if(max(array_column($brm, 'modules_index'))){
+					$brm = rb($brm, "modules_index", "id", array("all")+rb($conf['modules'], "folder", "id", $md));
+				} if(max(array_column($brm, 'theme'))){ # Условие на тему
+					$brm = rb($brm, "theme", "id", array_flip(array("", $conf['settings']['theme'])));
+				} if(max(array_column($brm, 'uri'))){ # Адрес страницы в системе. Всегда не главная. (может быть не равен $_SERVER['REDIRECT_URL'])
+					$brm = rb($brm, "uri", "id", array_flip(array("", $_SERVER['REQUEST_URI'])));
+				} if(max(array_column($brm, 'url'))){ # Адрес страницы из адресной строки браузера работает если нужно поставил условием главную страницу
+					$brm = rb($brm, "url", "id", array_flip(array("", $_SERVER['REDIRECT_URL'])));
+				}// mpre(array_flip($md)); mpre($br);
+
+				if(!empty($brm) && ($r["term"] > 0)){ # Условие только
+					$reg[ $r['id'] ] = $r;
+				}elseif(empty($brm) && ($r["term"] < 0)){ # Исключающее условие
+					$reg[ $r['id'] ] = $r;
+				}
+			} # Условие исключая не срабатывает
+		}
+
+		$gt = mpgt(urldecode(array_pop(explode("/{$_SERVER['HTTP_HOST']}", $_SERVER['HTTP_REFERER']))));
+		$uid = array_key_exists('blocks', $_GET['m']) ? $gt['id'] : $_GET['id'];
+		$uid = (array_intersect_key(array($conf['modules']['users']['folder']=>1, $conf['modules']['users']['modname']=>2), (array_key_exists('blocks', $_GET['m']) ? (array)$gt['m'] : array())+$_GET['m']) && $uid) ? $uid : $conf['user']['uid'];
+
+
+		foreach(rb($blocks, "rid", "id", $reg) as $k=>$v){
+			$conf['blocks']['info'][$v['id']] = $v;
+			if(($v['access'] < 0)){
+				$conf['blocks']['info'][ $v['id'] ]['access'] = (int)$conf['modules'][array_shift(explode('/', $v['file']))]['access'];
+			}
+		}
+
+		foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}blocks_gaccess ORDER BY id", 'Права доступа группы к блоку')) as $k=>$v)
+			if ($conf['user']['gid'][ $v['gid'] ]) $conf['blocks']['info'][ $v['bid'] ]['access'] = $v['access'];
+
+		foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}blocks_uaccess ORDER BY id", 'Права доступа пользователя к блоку')) as $k=>$v)
+			if ($conf['user']['uid'] == $v['uid'] || (!$v['uid'] && ($conf['user']['uid'] == $uid)))
+				$conf['blocks']['info'][ $v['bid'] ]['access'] = $v['access'];
+
+		foreach(rb($blocks, "rid", "id", $reg) as $k=>$v){
+			$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
+			$mod = $conf['modules'][ $modpath = basename(dirname(dirname($v['file']))) ];
+			$modname = $mod['modname'];
+			if ($conf['blocks']['info'][ $v['id'] ]['access'] && strlen($cb = mpeval("modules/{$v['file']}", $arg = array('blocknum'=>$v['id'], 'modpath'=>$modpath, 'modname'=>$modname, 'fn'=>basename(array_shift(explode('.', $v['file']))), 'uid'=>$uid, 'access'=>$conf['blocks']['info'][ $v['id'] ]['access']) ))){
+				if($bid){ $result = $cb; }else{
+					if (!is_numeric($v['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($v['shablon'] ? $v['shablon'] : "block.html")))){
+						$shablon[ $v['shablon'] ] = file_get_contents($file_name);
+					}
+					$cb = strtr($shablon[ $v['shablon'] ], $w = array(
+						'<!-- [block:content] -->'=>$cb,
+						'<!-- [block:id] -->'=>$v['id'],
+						'<!-- [block:name] -->'=>$v['name'],
+						'<!-- [block:modpath] -->'=>$arg['modpath'],
+						'<!-- [block:fn] -->'=>$arg['fn'],
+						'<!-- [block:title] -->'=>$v['name']
+					));
+					$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$v['name'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
+					$result["<!-- [blocks:". (int)$v['rid'] . "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
+					$result["<!-- [blocks:". (int)$reg[ $v['rid'] ]['reg_id']. "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
+				}
+			}
+		} return $result;
+	}
+}
+
 function gvk($array = array(), $field=false){ 
 	return isset($array[$field]) ? $array[$field] : FALSE;
 }
@@ -797,17 +956,22 @@ function mpql($dbres, $ln = null, $fd = null){
 
 function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 	$result = array();
-	while($line = $dbres->fetch()){
-		if($z){
-			$result[ $line[$x] ][ $line[$y] ][ $line[$n] ][ $line[$z] ] = $line;
-		}elseif($n){
-			$result[ $line[$x] ][ $line[$y] ][ $line[$n] ] = $line;
-		}elseif($y){
-			$result[ $line[$x] ][ $line[$y] ] = $line;
-		}else{
-			$result[ $line[$x] ] = $line;
+//	try{
+		while($line = $dbres->fetch()){
+			if($z){
+				$result[ $line[$x] ][ $line[$y] ][ $line[$n] ][ $line[$z] ] = $line;
+			}elseif($n){
+				$result[ $line[$x] ][ $line[$y] ][ $line[$n] ] = $line;
+			}elseif($y){
+				$result[ $line[$x] ][ $line[$y] ] = $line;
+			}else{
+				$result[ $line[$x] ] = $line;
+			}
 		}
-	} return $result;
+//	}catch(Exception $e){
+//		mpre($e->getMessage());
+//	}
+	return $result;
 } function qn($sql){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата. Возвращается список записей в нормальной форме
 	$microtime = microtime(true);
 	if(!($r = mpmc($key = "qn:". md5($sql)))){
@@ -823,7 +987,11 @@ function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 function mpqw($sql, $info = null, $conn = null){
 	global $conf;
 	$mt = microtime(true);
-	$result = $conf['db']['conn']->query($sql);
+//	try{
+		$result = $conf['db']['conn']->query($sql);
+//	}catch(Exception $e){
+//		mpre($e->getMessage());
+//	}
 	if(!empty($conf['settings']['analizsql_log'])){
 		$conf['db']['sql'][] = $q = array(
 			'info' => $info ? $info : $conf['db']['info'],

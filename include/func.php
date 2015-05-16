@@ -79,8 +79,7 @@ function stable($table){
 		$sql .= " WHERE ".mpquot($table['where'])."{$table['_where']}";
 	}// echo $sql;
 	if ($table['debug']) mpre($sql);
-	$result = mpqw($sql);
-	$line = mysql_fetch_array($result, 1);
+	$line = ql($sql, 0);
 	$table['_count'] = $line['count'];
 
 	if ($table['acess']){ # Разрешено редактирование таблицы
@@ -265,10 +264,6 @@ mpre($_GET); exit;
 	$sql .= " LIMIT ".($_GET['p'] * $table['count_rows']).", {$table['count_rows']}";
 	if ($table['debug']) mpre($sql);
 
-	# Выводим ссылку на страницы
-//	echo "<script src=include/openpopup.js></script><p>";
-
-//	echo $table['_count']." ".$table['count_rows']." <br>";
 	$tmp_row = 15;
 	# Ссылка на первую страницу и предыдущий список страниц
 	echo "<div style=\"clear:both;\"></div><div class=\"adpager\" style=\"margin:10px 30px;\">";
