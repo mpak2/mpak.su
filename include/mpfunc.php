@@ -984,14 +984,15 @@ function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 		}
 	} return $r;
 }
+
 function mpqw($sql, $info = null, $conn = null){
 	global $conf;
 	$mt = microtime(true);
-//	try{
+	try{
 		$result = $conf['db']['conn']->query($sql);
-//	}catch(Exception $e){
-//		mpre($e->getMessage());
-//	}
+	}catch(Exception $e){
+		mpre($e->getMessage());
+	}
 	if(!empty($conf['settings']['analizsql_log'])){
 		$conf['db']['sql'][] = $q = array(
 			'info' => $info ? $info : $conf['db']['info'],
