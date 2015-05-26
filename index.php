@@ -232,9 +232,9 @@ if($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". ($_GET['index'] ?
 
 if(isset($_GET['m']['sqlanaliz'])){
 	$zblocks = bcont();
-	$content .= mcont($content);
+	$content = mcont($content);
 }else{
-	$content .= mcont($content);
+	$content = mcont($content);
 	$zblocks = bcont();
 } if(!array_key_exists('null', $_GET)){
 	$content = str_replace('<!-- [modules] -->', $content, $tc);
