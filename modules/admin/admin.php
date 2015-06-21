@@ -5,7 +5,11 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){
 		exit(qw("DELETE FROM {$_GET['r']} WHERE id=". (int)$_GET['id']));
 	}else{ # Правка записи и добавление новой
 		$el = fk($_GET['r'], ($_GET['id'] ? array("id"=>$_GET['id']) : null), $_POST, $_POST);
-		exit(json_encode($el));
+		if($_FILES['img']){ # POST содержащий  файл
+			$file_id = mpfid($_GET['r'], "img", $el['id']);
+		}elseif($_POST[$f = 'img']){ # Адрес внешнего изображения
+			$file_id = mphid($class, $f, $el['id'], $_POST['img']);
+		} exit(json_encode($el));
 	}
 }else{ # Выборка таблицы
 	$tpl['tables'] = array_column(ql("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modname']}%\""), "Tables_in_{$conf['db']['name']}");
@@ -19,17 +23,29 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){
 		if($_GET['order']){ # Установка временной сортировки
 			$conf['settings'][substr($_GET['r'], strlen($conf['db']['prefix'])). "=>order"] = $_GET['order'];
 		} $tpl['lines'] = call_user_func_array("rb", ($_GET['where'] ? array_merge(array($_GET['r'], 20), array_keys($_GET['where']), array("id"), (array)array_values($_GET['where'])) : array($_GET['r'], 20)));
-		if($_GET['edit']){
-			$tpl['edit'] = rb($_GET['r'], "id", $_GET['edit']);
-		}else{
-			foreach(array_intersect_key(explode(",", $conf['settings']["{$arg['modname']}=>espisok"]), $tpl['fields']) as $espisok){
-				mpre($espisok);
-			}
-		}
 
 		$tpl['spisok'] = array(
 			'hide' => array(0=>"Видим", 1=>"Скрыт"),
-		); if($tab = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))){
+		);
+		if($_GET['edit']){
+			$tpl['edit'] = rb($_GET['r'], "id", $_GET['edit']);
+		}else{
+			foreach(array_intersect_key($tpl['fields'], array_flip(explode(",", $conf['settings']["{$arg['modname']}=>espisok"]))) as $fl=>$espisok){
+				$tpl['espisok'][$fl] = rb("{$conf['db']['prefix']}{$fl}", "id", "id", rb($tpl['lines'], $fl));
+			}
+			if($settings = $conf['settings']["{$arg['modname']}=>ecounter"]){
+				foreach(explode(",", $settings) as $ecounter){
+					if($fields = qn("SHOW FULL COLUMNS FROM {$conf['db']['prefix']}{$ecounter}", "Field")){
+						if(array_key_exists(substr($_GET['r'], strlen($conf['db']['prefix'])), $fields)){
+							if($fl = substr($_GET['r'], strlen($conf['db']['prefix']))){
+								$tpl['ecounter']["__". $ecounter] = qn($sql = "SELECT `id`, `{$fl}`, COUNT(id) AS cnt FROM `{$conf['db']['prefix']}{$ecounter}` WHERE `{$fl}` IN (". in($tpl['lines']). ") GROUP BY `{$fl}`", $fl);
+							}else{ mpre("Поле не определено ". substr($_GET['r'], strlen($conf['db']['prefix']))); }
+						}
+					}else{ mpre("Не удалось получить список полей таблицы {$conf['db']['prefix']}{$ecounter}"); }
+				}
+			}
+		}// mpre($tpl['ecounter']);
+		if($tab = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))){
 			foreach($tpl['tables'] as $tables){
 				$ft = substr($tables, strlen("{$conf['db']['prefix']}{$arg['modpath']}_"));
 				$fields = qn("SHOW FULL COLUMNS FROM {$tables}", "Field");

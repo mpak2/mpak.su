@@ -1,0 +1,22 @@
+.fm {background-color:#F7F7F7;}
+
+.bs-callout-info {
+border-left-color: #5bc0de;
+: ;
+}
+.bs-callout {
+padding: 20px;
+margin: 20px 0;
+border: 1px solid #eee;
+border-left-width: 5px;
+border-radius: 3px;
+}
+
+.fm .table > div > span {padding-top:3px;}
+.fm .table input[type="text"] {width:100%;}
+.fm .table textarea {width:100%;}
+
+div.table {display:table; width:100%;}
+div.table > div {display:table-row;}
+div.table > div > span {display:table-cell; vertical-align:top;}
+div.table > div.th {background-color:#444; color:white;}

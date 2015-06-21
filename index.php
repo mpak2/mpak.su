@@ -130,17 +130,7 @@ $conf['db']['info'] = 'Получаем информацию о группах �
 $conf['user']['gid'] = array_column(qn("SELECT g.id, g.name FROM {$conf['db']['prefix']}users_grp as g, {$conf['db']['prefix']}users_mem as m WHERE (g.id=m.grp_id) AND m.uid=". (int)$sess['uid']), "name", "id");
 $conf['user']['sess'] = $sess;
 
-if ($conf['settings']['start_mod'] && !$_GET['m']){
-	if (strpos($conf['settings']['start_mod'], 'array://') === 0){
-		$_GET = unserialize(substr($conf['settings']['start_mod'], 8));
-	}else if(strpos($conf['settings']['start_mod'], "http://") === 0){
-		header("Location: {$conf['settings']['start_mod']}"); exit;
-	}else{
-		$_GET = mpgt($_SERVER['REQUEST_URI'] = $conf['settings']['start_mod']);
-	}
-}
-
-foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE enabled = 2", 'Информация о модулях')) as $k=>$v){
+foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE enabled=2", 'Информация о модулях')) as $k=>$v){
 	if (array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) $v['access'] = 5; # Права суперпользователя
 	$conf['modules'][ $v['folder'] ] = $v;
 	$conf['modules'][ $v['folder'] ]['modname'] = (strpos($_SERVER['HTTP_HOST'], "xn--") !== false) ? mb_strtolower($v['name']) : $v['folder'];
@@ -151,6 +141,42 @@ foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE enabled = 
 
 $conf['settings']['modpath'] = $conf['modules'][ array_shift(array_keys($_GET['m'])) ]['folder'];
 $conf['settings']['fn'] = array_shift(array_values($_GET['m'])) ? array_shift(array_values($_GET['m'])) : "index";
+
+if ($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страница
+	if(strpos($conf['settings']['start_mod'], 'array://') === 0){
+		$_GET = unserialize(substr($conf['settings']['start_mod'], 8));
+	}else if(strpos($conf['settings']['start_mod'], "http://") === 0){
+		header("Location: {$conf['settings']['start_mod']}"); exit;
+	}else{
+		$_GET = mpgt($_SERVER['REQUEST_URI'] = $conf['settings']['start_mod']);
+	}
+}elseif(!array_key_exists("null", $_GET) && $conf['modules']['seo']){
+	if($_GET['p']){
+		$r = strtr($_SERVER['REQUEST_URI'], array("?p={$_GET['p']}"=>"", "&p={$_GET['p']}"=>"", "/p:{$_GET['p']}"=>""));
+	}else{ $r = urldecode(preg_replace("#([\#\?].*)?$#",'',$_SERVER['REQUEST_URI'])); }	
+
+	foreach(erb("{$conf['db']['prefix']}seo_redirect") as $rule){
+		if(preg_match("#^{$rule['from']}$#iu",$r)){
+			$redirect = $rule; break;
+		}
+	}
+	
+	if(isset($redirect)){
+		$redirect['to'] = preg_replace("#^{$redirect['from']}$#iu",$redirect['to'],$r);
+		if(strpos($redirect['to'], "http://") === 0){
+			exit(header("Location: {$redirect['to']}"));
+		}else{
+			$_REQUEST = ($_GET = mpgt($redirect['to'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"))+$_REQUEST);
+			$conf['settings']['canonical'] = $r;
+		}
+	}elseif($conf['settings']['start_mod'] == $_SERVER['REQUEST_URI']){ # Заглавная страница
+		$conf['settings']['canonical'] = "/";
+	}elseif(empty($conf['settings']['modpath'])){
+		exit(header("Location: /themes:404{$_SERVER['REQUEST_URI']}"));
+	}else{ # Ссылка на основную страницу
+		$conf['settings']['canonical'] = $_SERVER['REQUEST_URI'];
+	}
+}
 
 if(isset($_GET['theme']) && $_GET['theme'] != $conf['user']['sess']['theme']){
 	$conf['user']['sess']['theme'] = $conf['settings']['theme'] = basename($_GET['theme']);
@@ -167,32 +193,6 @@ if (!empty($conf['settings']["theme/{$conf['settings']['modpath']}:*"])) $conf['
 if (!empty($conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"])) $conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"];
 
 $content = ((mpopendir($init = "include/init.php")) ? mpct($init, $arg = array("access"=>(array_search($conf['settings']['admin_grp'], $conf['user']['gid']) ? 5 : 1))) : ""); # Установка предварительных переменных
-
-if(!array_key_exists("null", $_GET) && $conf['modules']['seo']){
-	if($_GET['p']){
-		$r = strtr($_SERVER['REQUEST_URI'], array("?p={$_GET['p']}"=>"", "&p={$_GET['p']}"=>"", "/p:{$_GET['p']}"=>""));
-	}else{ $r = urldecode(preg_replace("#([\#\?].*)?$#",'',$_SERVER['REQUEST_URI'])); }	
-	
-	foreach(erb('mp_seo_redirect') as $rule){
-		if(preg_match("#^{$rule['from']}$#iu",$r)){
-			$redirect = $rule; break;
-		}
-	}
-	
-	if(isset($redirect)){
-		$redirect['to'] = preg_replace("#^{$redirect['from']}$#iu",$redirect['to'],$r);
-		if(strpos($redirect['to'], "http://") === 0){
-			exit(header("Location: {$redirect['to']}"));
-		}else{
-			$_REQUEST = ($_GET = mpgt($redirect['to'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"))+$_REQUEST);
-			$conf['settings']['canonical'] = $r;
-		}
-	}elseif($conf['settings']['start_mod'] == $_SERVER['REQUEST_URI']){ # Заглавная страница
-		$conf['settings']['canonical'] = "/";
-	}else{ # Ссылка на основную страницу
-		$conf['settings']['canonical'] = $_SERVER['REQUEST_URI'];
-	}
-}
 
 if($_GET['id'] && $conf['settings']['modules_default'] && empty($conf['modules'][ ($mp = array_shift(array_keys($_GET['m']))) ])){
 	$_GET['m'] = array($conf['settings']['modules_default']=>$_GET['m'][ $mp ]);

@@ -1,15 +1,26 @@
 <? die;
 
 if(isset($_GET[''])) $_GET['q'] = $_GET[''];
-if($_SERVER['HTTP_IF_MODIFIED_SINCE'] >= filemtime($localFileName)){
+/*if($_SERVER['HTTP_IF_MODIFIED_SINCE'] >= filemtime($localFileName)){
 	exit(header('HTTP/1.0 304 Not Modified'));
-}else if (isset($_GET['q'])){
+}else*/if(isset($_GET['q'])){
 	$ext = array_pop(explode('.', $_GET['q']));
 	$tn = "themes/".basename($_GET['theme'] ? $_GET['theme'] : $conf['settings']['theme']);
 	$res_name = $tn ."/".strtr($_GET['q'], array('..'=>''));
-	if($conf['settings']['themes_file_not_exists_event'] && !is_file($res_name)){
-		header("HTTP/1.0 404 Not Found");
-		mpevent("Файл темы не найден ошибка 404", $res_name);
+	if($conf['settings']['themes_file_not_exists_event'] && !($res = mpopendir($res_name))){
+		if($themes_resources = $conf['settings']['themes_resources']){
+			mkdir($dir = mpopendir($tn. "/". dirname($_GET['q'])), 0777, true);
+			if(copy(($dst = "{$themes_resources}/{$_GET['q']}"), $fl = $tn. "/". $_GET['q'])){
+				mpevent("Закачка файла из внешнего ресурса", $res_name);
+				exit(header("Location: {$_GET['q']}"));
+			}else{
+				header("HTTP/1.0 404 Not Found");
+				exit("Ошибка скачивания {$dst}");
+			}
+		}else{
+			header("HTTP/1.0 404 Not Found");
+			mpevent("Файл темы не найден ошибка 404", $res_name);
+		}
 	}else{
 		header('Last-Modified: Cache-Control: max-age=86400, must-revalidate');
 		header("Expires: " . date("r", time() + 3600));
@@ -19,16 +30,16 @@ if($_SERVER['HTTP_IF_MODIFIED_SINCE'] >= filemtime($localFileName)){
 		);
 		header("Content-type: ".($defaultmimes[$ext] ? $defaultmimes[$ext] : "text/$ext"));
 		if(($_GET['w'] || $_GET['h']) && array_search($ext, array(1=>'jpg', 'png', 'gif'))){
-			echo mprs(mpopendir($res_name), $_GET['w'], $_GET['h'], $_GET['c']);
+			echo mprs($res, $_GET['w'], $_GET['h'], $_GET['c']);
 		}else{
-			if($f = fopen(mpopendir($res_name), "rb")){
+			if($f = fopen($res, "rb")){
 				while(!feof($f)) {
 					echo fread($f, 256);
 				}
 			}
 		}
 	}
-}else if($_GET['id']){
+}/*else if($_GET['id']){
 	$theme = mpql(mpqw("SELECT theme FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE id=".(int)$_GET['id']), 0, 'theme');
 	if (isset($_GET['null'])){
 		header('Content-Type: image/svg+xml');
@@ -46,6 +57,6 @@ if($_SERVER['HTTP_IF_MODIFIED_SINCE'] >= filemtime($localFileName)){
 	header('Content-Type: image/svg+xml');
 	header('Last-Modified: Cache-Control: max-age=86400, must-revalidate');
 	echo strtr($svg, $config); die;
-}else{
+}*/else{
 	header("Location: /{$arg['modpath']}:404");
 }

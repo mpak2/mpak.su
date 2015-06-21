@@ -457,6 +457,7 @@ function erb($src, $key = 'id'){
 		}
 	} return !empty($field) ? $return[ $field ] : $return;
 }
+
 function mpde($string) { 
 	static $list = array('utf-8', 'windows-1251');
 	foreach ($list as $item) {
@@ -465,21 +466,20 @@ function mpde($string) {
 			return iconv($item, "utf-8", $string);
 	} return null;
 }
+
 function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
 	global $conf, $arg;
 	if($find && ($fnd = mpdbf($tn, $find, 1)) &&
-		($sel = qn($sql = "SELECT id FROM `". mpquot($tn). "` WHERE ". $fnd))
+		($sel = qn($sql = "SELECT `id` FROM `". mpquot($tn). "` WHERE ". $fnd))
 	){
 		if($log) mpre($sql);
 		if((count($sel) == 1) && ($s = array_shift($sel))){
 			if($update && ($upd = mpdbf($tn, $update)))
-				qw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE id=". (int)$s['id']);
-				if($log) mpre($sql);
+				qw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE `id`=". (int)$s['id']);
 			return $s['id'];
-		}else{
+		}else{ # Множественное обновление. Если в качестве условия используется несколько элементов
 			if($update && ($upd = mpdbf($tn, $update))){
-				qw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE id IN (". implode(",", array_keys($sel)). ")");
-				if($log) mpre($sql);
+				qw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE `id` IN (". implode(",", array_keys($sel)). ")");
 			}
 			return array_keys($sel);
 		}
@@ -817,6 +817,7 @@ function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.pn
 		return "error not null";
 	} return null;
 }
+
 function mpdbf($tn, $post = null, $and = false){
 	global $conf;
 	$fields = $f = array();
@@ -832,7 +833,9 @@ function mpdbf($tn, $post = null, $and = false){
 				$f[] = "`$k` IN (". mpquot(strtr(implode(",", $v), array("<"=>"&lt;", ">"=>"&gt;"))). ")";
 			}else/* if(gettype($v) == "string")*/{
 				if($v == "NULL"){
-					$f[] = ($and ? "`$k` IS NULL" : "`$k`=NULL");
+					$f[] = ($and ? "`$k` IS NULL" : "`$k`={$v}");
+				}elseif(is_numeric($v)){
+					$f[] = "`$k`=". $v;
 				}else{
 					$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
 				}
