@@ -17,6 +17,7 @@
 
 //if ($_GET['img'])
 //	getfile(mpql(mpqw("SELECT img FROM {$GLOBALS['conf']['db']['prefix']}randimg WHERE id=".(int)$_GET['img'])));
+mp_require_once("include/func.php"); # Функции таблиц
 mpmenu($menu = array('Темы', 'Блоки', 'svg', 'Дамп'));
 
 if ($menu[(int)$_GET['r']] == 'Темы'){

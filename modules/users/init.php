@@ -22,43 +22,6 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}` (
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_anket` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `sort` int(11) NOT NULL,
-  `anket_type_id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `required` int(11) NOT NULL,
-  `alias` varchar(255) NOT NULL,
-  `description` varchar(255) NOT NULL,
-  `reg` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `sort` (`sort`),
-  KEY `anket_type_id` (`anket_type_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
-mpqw($sql);
-
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_anket_data` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `time` int(11) NOT NULL,
-  `uid` int(11) NOT NULL,
-  `anket_id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `description` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
-mpqw($sql);
-
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_anket_type` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `sort` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `description` varchar(255) NOT NULL,
-  `border` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `sort` (`sort`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
-mpqw($sql);
-
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_event` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `time` int(11) NOT NULL,
@@ -132,28 +95,6 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_event_
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_geoname` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `time` int(11) NOT NULL,
-  `uid` int(11) NOT NULL,
-  `continentCode` varchar(255) NOT NULL,
-  `countryCode` varchar(255) NOT NULL,
-  `countryName` varchar(255) NOT NULL,
-  `fclName` varchar(255) NOT NULL,
-  `fcode` varchar(255) NOT NULL,
-  `fcodeName` varchar(255) NOT NULL,
-  `geonameId` varchar(255) NOT NULL,
-  `lat` varchar(255) NOT NULL,
-  `lng` varchar(255) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `population` varchar(255) NOT NULL,
-  `toponymName` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `uid` (`uid`),
-  KEY `geonameId` (`geonameId`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
-mpqw($sql);
-
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_grp` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
@@ -161,37 +102,6 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_grp` (
   UNIQUE KEY `name` (`name`)
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);
-
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_lang` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
-  `description` varchar(255) NOT NULL,
-  `sort` int(11) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
-mpqw($sql);
-
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_lang_translation` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `time` int(11) NOT NULL,
-  `uid` int(11) NOT NULL,
-  `lang_id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `text` text NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`,`lang_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
-mpqw($sql);
-
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_lang_words` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `modules` varchar(255) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `description` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
-mpqw($sql);
-
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_mem` (
 	`id` int(11) NOT NULL AUTO_INCREMENT,
 	`uid` int(11) NOT NULL,
@@ -210,6 +120,15 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_type` 
 	PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
 mpqw($sql);
+
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_users', 'Пользователи', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_users_event', 'События', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_users_event_logs', 'Журнал', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_users_event_mess', 'Сообщения', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_users_event_notice', 'Уведомления', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_users_users_grp', 'Группы', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_users_mem', 'Участники', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_users_type', 'Типы', '4', '')");
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', 'user_grp', 'Зарегистрированные', '4', 'Группа зарегистрированных пользователей')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', 'admin_grp', 'Администратор', '5', 'Группа администратров')");
@@ -230,8 +149,4 @@ mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`,
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_event_mail', 'Отправка сообщения пользователю', '1', 'Событие')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_activation', '', '0', 'Активация пользователя')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_reg_text', 'Спасибо за регистрацию. Рады приветствовать вас на нашем сайте', '0', 'Текст при регистрации')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_field_geoname_id', 'География', '5', 'Название поля в таблице пользователя')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_field_geo', 'На карте', '0', 'Название поля в личных данных пользователя')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_tpl_exceptions', '1', '0', 'Выпадающие списки')");
-
-?>

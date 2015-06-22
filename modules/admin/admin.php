@@ -4,11 +4,18 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){
 	if($_GET['id'] && !$_POST['id'] && array_key_exists("id", $_POST)){ # Удаление элемента
 		exit(qw("DELETE FROM {$_GET['r']} WHERE id=". (int)$_GET['id']));
 	}else{ # Правка записи и добавление новой
+		foreach($_POST as $field=>$post){
+			if(array_search($field, array(1=>"time", "last_time", "reg_time", "up"))){
+				$_POST[$field] = strtotime($post);
+			}
+		}
 		$el = fk($_GET['r'], ($_GET['id'] ? array("id"=>$_GET['id']) : null), $_POST, $_POST);
 		if($_FILES['img']){ # POST содержащий  файл
 			$file_id = mpfid($_GET['r'], "img", $el['id']);
 		}elseif($_POST[$f = 'img']){ # Адрес внешнего изображения
 			$file_id = mphid($class, $f, $el['id'], $_POST['img']);
+		} if(array_key_exists("sort", $el) && !$el['sort']){
+			$el = fk($_GET['r'], array("id"=>$el['id']), null, array("sort"=>$el['id']));
 		} exit(json_encode($el));
 	}
 }else{ # Выборка таблицы
@@ -50,11 +57,11 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){
 				$ft = substr($tables, strlen("{$conf['db']['prefix']}{$arg['modpath']}_"));
 				$fields = qn("SHOW FULL COLUMNS FROM {$tables}", "Field");
 				if(array_key_exists(($t = "{$tab}_id"), $fields)){
-					$tpl['counter']["_{$ft}"] = array_column(ql("SELECT `{$t}`, COUNT(*) AS cnt FROM `{$conf['db']['prefix']}{$arg['modpath']}_{$ft}` WHERE `{$t}` IN (". in($tpl['lines']). ") GROUP BY `{$t}`"), "cnt", $t);
+					$tpl['counter']["_{$ft}"] = array_column(ql("SELECT `{$t}`, COUNT(*) AS cnt FROM `{$conf['db']['prefix']}{$arg['modpath']}". ($ft ? "_{$ft}" : ""). "` WHERE `{$t}` IN (". in($tpl['lines']). ") GROUP BY `{$t}`"), "cnt", $t);
 				}
 			}
 
-			$tpl['etitle'] = array("id"=>"Номер", 'time'=>'Время', 'up'=>'Обновление', 'uid'=>'Пользователь', 'count'=>'Количество', 'level'=>'Уровень', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'img2'=>'Изображение2', 'file'=>'Файл', 'hide'=>'Видим', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'duration'=>'Длительность', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', "article"=>"Артикул", 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', "users_sity"=>'Город', 'log'=>'Лог', 'min'=>'Мин', 'max'=>'Макс', 'own'=>'Владелец', 'period'=>'Период', "from"=>"С", "to"=>"До", "percentage"=>"Процент", 'description'=>'Описание', 'text'=>'Текст');
+			$tpl['etitle'] = array("id"=>"Номер", 'time'=>'Время', 'up'=>'Обновление', 'uid'=>'Пользователь', 'count'=>'Количество', 'level'=>'Уровень', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'img2'=>'Изображение2', 'file'=>'Файл', 'hide'=>'Видим', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'duration'=>'Длительность', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', "article"=>"Артикул", 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', "users_sity"=>'Город', 'log'=>'Лог', 'min'=>'Мин', 'max'=>'Макс', 'own'=>'Владелец', 'period'=>'Период', "from"=>"Откуда", "to"=>"Куда", "percentage"=>"Процент", 'description'=>'Описание', 'text'=>'Текст');
 			if($title = $conf['settings']["{$arg['modpath']}_{$tab}=>title"]){
 				$tpl['title'] = array_merge(array("id"), explode(",", $title));
 			}elseif(array_key_exists("text", $tpl['fields'])){

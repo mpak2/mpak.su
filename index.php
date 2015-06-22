@@ -42,10 +42,6 @@ if($conf['db']['type'] == "mysql"){
 	$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
 } $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI'], $_GET);
 
-if(!empty($_GET['m']) && array_search('admin', (array)$_GET['m'])){
-	mp_require_once("include/func.php"); # Функции таблиц
-}
-
 if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(qn("SHOW TABLES"))){
 	exit(mpopendir('include/install.php') ? mpct('include/install.php') : "Файл установки не найден");
 }

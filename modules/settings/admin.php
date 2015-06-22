@@ -14,6 +14,7 @@
 // Purpose of file:
 // ----------------------------------------------------------------------
 
+	mp_require_once("include/func.php"); # Функции таблиц
 	mpmenu();
 
 	foreach(mpreaddir('themes', 1) as $pathname) $values['theme'][$pathname] = $pathname;

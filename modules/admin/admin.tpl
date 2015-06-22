@@ -10,11 +10,9 @@
 		<li class="<?=$r?> <?=($_GET['r'] == $r ? "act" : "")?>">
 			<a href="/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$conf['db']['prefix']?><?=($s = substr($r, strlen($conf['db']['prefix'])))?>">
 				<? if($n = $conf['settings'][$s]): ?>
-					<?// if((substr($n, 0, 1) != ".") || ($_GET['r'] == $r)): ?>
-						<?=$n?>
-					<?// endif; ?>
+					<?=$n?>
 				<? else: ?>
-					<?=substr($r, strlen("{$conf['db']['prefix']}{$arg['modname']}"))?>
+					<?=(substr($r, strlen("{$conf['db']['prefix']}{$arg['modname']}")) ?: "_")?>
 				<? endif; ?>
 			</a>
 		</li>
@@ -125,8 +123,8 @@
 											<option value="<?=$uid['id']?>" <?=((array_key_exists("edit", $tpl) && ($tpl['edit'][ $field['Field'] ] == $uid['id'])) || (!array_key_exists("edit", $tpl) && ($conf['user']['uid'] == $uid['id'])) ? "selected" : "")?>><?=$uid['name']?></option>
 										<? endforeach; ?>
 									</select>
-								<? elseif($field['Field'] == "time"): # Поле времени ?>
-									<input type="text" name="<?=$field['Field']?>" value="<?=date("Y.m.d H:i:s", rb($_GET['r'], "id", $_GET['edit'], $field['Field']))?>" placeholder="<?=($tpl['etitle'][$field['Field']] ?: $field['Field'])?>">
+								<? elseif(array_search($field['Field'], array(1=>"time", "last_time", "reg_time", "up"))): # Поле времени ?>
+									<input type="text" name="<?=$field['Field']?>" value="<?=date("Y-m-d H:i:s", ($edit ? rb($_GET['r'], "id", $edit['id'], $field['Field']) : time()))?>" placeholder="<?=($tpl['etitle'][$field['Field']] ?: $field['Field'])?>">
 								<? elseif(substr($field['Field'], -3) == "_id"): # Поле вторичного ключа связанной таблицы ?>
 									<select name="<?=$field['Field']?>" style="width:100%;">
 										<option></option>
@@ -197,6 +195,12 @@
 											<a target="blank" href="/<?=$arg['modname']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:img/w:800/h:600/null/img.png" title="<?=$v?>">
 												<img src="/<?=$arg['modname']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:img/w:65/h:65/null/img.png" style="border:1px solid #aaa; padding:2px;">
 											</a>
+										<? elseif($k == "sort"): ?>
+											<div style="white-space:nowrap;">
+												<a class="inc" href="javascript:void(0);" style="background:url(i/mgif.gif); background-position:-18px -90px; width: 10px; height: 14px; display:inline-block;"></a>
+												<?=$v?>
+												<a class="inc" href="javascript:void(0);" style="background:url(i/mgif.gif); background-position:0 -90px; width: 10px; height: 14px; display:inline-block;"></a>
+											</div>
 										<? elseif($k == "hide"): ?>
 											<?=$tpl['spisok']['hide'][$v]?>
 										<? elseif($k == "uid"): ?>
@@ -210,9 +214,9 @@
 													</span>
 												<? endif; ?>
 											</span>
-										<? elseif($k == "time"): ?>
+										<? elseif(array_search($k, array(1=>"time", "last_time", "reg_time", "up"))): # Поле времени ?>
 											<span style="white-space:nowrap;" title="<?=$v?>">
-												<?=date("Y.m.d H:i:s", $v)?>
+												<?=date("Y-m-d H:i:s", $v)?>
 											</span>
 										<? elseif(substr($k, -3) == "_id"): ?>
 												<? if($el = rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($k, 0, -3), "id", $v)): ?>
@@ -259,8 +263,8 @@
 												</option>
 											<? endforeach; ?>
 										</select>
-									<? elseif($fiel == "time"): # Поле времени ?>
-										<input type="text" name="<?=$fiel?>" value="<?=date("Y.m.d H:i:s", rb($_GET['r'], "id", $_GET['edit'], $fiel))?>" placeholder="<?=($tpl['etitle'][$fiel] ?: $fiel)?>">
+									<? elseif(array_search($field['Field'], array(1=>"time", "last_time", "reg_time", "up"))): # Поле времени ?>
+										<input type="text" name="<?=$fiel?>" value="<?=date("Y-m-d H:i:s", ($edit ? rb($_GET['r'], "id", $_GET['edit'], $fiel) : time()))?>" placeholder="<?=($tpl['etitle'][$fiel] ?: $fiel)?>">
 									<? elseif((substr($fiel, -3) == "_id") && (false === array_search(substr($fiel, 0, strlen($fiel)-3), explode(",", $conf['settings']["{$arg['modpath']}_tpl_exceptions"])))): # Поле вторичного ключа связанной таблицы ?>
 										<select name="<?=$fiel?>" style="width:100%;">
 											<option><?=($ln = rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($fiel, 0, -3), "id", $tpl['edit'][$fiel]) ? "" : $tpl['edit'][$fiel])?></option>

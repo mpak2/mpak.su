@@ -79,7 +79,6 @@ if (!function_exists('bcont')){
 		global $theme, $conf;
 		$conf['db']['info'] = "Выборка шаблонов блоков";
 		$shablon = spisok("SELECT id, shablon FROM {$conf['db']['prefix']}blocks_shablon");
-
 		$blocks = qn("SELECT * FROM {$conf['db']['prefix']}blocks WHERE enabled=1". ($bid ? " AND id=". (int)$bid : " ORDER BY orderby"));
 		$blocks_reg = qn("SELECT * FROM {$conf['db']['prefix']}blocks_reg");
 		$blocks_reg_modules = qn("SELECT * FROM {$conf['db']['prefix']}blocks_reg_modules ORDER BY sort");
@@ -133,25 +132,27 @@ if (!function_exists('bcont')){
 				$conf['blocks']['info'][ $v['bid'] ]['access'] = $v['access'];
 
 		foreach(rb($blocks, "rid", "id", $reg) as $k=>$v){
-			$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
-			$mod = $conf['modules'][ $modpath = basename(dirname(dirname($v['file']))) ];
-			$modname = $mod['modname'];
-			if ($conf['blocks']['info'][ $v['id'] ]['access'] && strlen($cb = mpeval("modules/{$v['file']}", $arg = array('blocknum'=>$v['id'], 'modpath'=>$modpath, 'modname'=>$modname, 'fn'=>basename(array_shift(explode('.', $v['file']))), 'uid'=>$uid, 'access'=>$conf['blocks']['info'][ $v['id'] ]['access']) ))){
-				if($bid){ $result = $cb; }else{
-					if (!is_numeric($v['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($v['shablon'] ? $v['shablon'] : "block.html")))){
-						$shablon[ $v['shablon'] ] = file_get_contents($file_name);
+			if(($conf['settings']['theme'] == $v['theme']) || ((substr($v['theme'], 0, 1) == "!") && ($conf['settings']['theme'] == substr($v['theme'], 1)))){
+				$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
+				$mod = $conf['modules'][ $modpath = basename(dirname(dirname($v['file']))) ];
+				$modname = $mod['modname'];
+				if ($conf['blocks']['info'][ $v['id'] ]['access'] && strlen($cb = mpeval("modules/{$v['file']}", $arg = array('blocknum'=>$v['id'], 'modpath'=>$modpath, 'modname'=>$modname, 'fn'=>basename(array_shift(explode('.', $v['file']))), 'uid'=>$uid, 'access'=>$conf['blocks']['info'][ $v['id'] ]['access']) ))){
+					if($bid){ $result = $cb; }else{
+						if (!is_numeric($v['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($v['shablon'] ? $v['shablon'] : "block.html")))){
+							$shablon[ $v['shablon'] ] = file_get_contents($file_name);
+						}
+						$cb = strtr($shablon[ $v['shablon'] ], $w = array(
+							'<!-- [block:content] -->'=>$cb,
+							'<!-- [block:id] -->'=>$v['id'],
+							'<!-- [block:name] -->'=>$v['name'],
+							'<!-- [block:modpath] -->'=>$arg['modpath'],
+							'<!-- [block:fn] -->'=>$arg['fn'],
+							'<!-- [block:title] -->'=>$v['name']
+						));
+						$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$v['name'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
+						$result["<!-- [blocks:". (int)$v['rid'] . "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
+						$result["<!-- [blocks:". (int)$reg[ $v['rid'] ]['reg_id']. "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
 					}
-					$cb = strtr($shablon[ $v['shablon'] ], $w = array(
-						'<!-- [block:content] -->'=>$cb,
-						'<!-- [block:id] -->'=>$v['id'],
-						'<!-- [block:name] -->'=>$v['name'],
-						'<!-- [block:modpath] -->'=>$arg['modpath'],
-						'<!-- [block:fn] -->'=>$arg['fn'],
-						'<!-- [block:title] -->'=>$v['name']
-					));
-					$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$v['name'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
-					$result["<!-- [blocks:". (int)$v['rid'] . "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
-					$result["<!-- [blocks:". (int)$reg[ $v['rid'] ]['reg_id']. "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
 				}
 			}
 		} return $result;
@@ -235,7 +236,7 @@ function in($ar, $flip = false){ # Формирует из массива стр
 }
 function aedit($href, $echo = true, $title = null){ # Установка на пользовательскую старницу ссылки в административные разделы. В качестве аргумента передается ссылка, выводится исходя из прав пользователя на сайте
 	global $arg;
-	$link = "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:10; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\" target='_blank' ><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px; width:10px; height:10px;'></a></span></div>";
+	$link = "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:999; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\" target='_blank' ><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px; width:10px; height:10px;'></a></span></div>";
 	if($arg['access'] > 3) {if((bool)$echo) echo $link; else return $link;}	
 }
 

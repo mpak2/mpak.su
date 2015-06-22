@@ -22,20 +22,8 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}` (
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_post` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uid` int(11) NOT NULL,
-  `sid` int(11) NOT NULL,
-  `url` varchar(255) NOT NULL,
-  `time` int(11) NOT NULL,
-  `method` varchar(50) NOT NULL,
-  `post` text NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `sid` (`sid`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
-mpqw($sql);
-
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('sess', 'sess_time', '3600', '1', 'Время сессии')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('sess', 'del_sess', '0', '1', 'Отслеживание сессий')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', 'sess_time', '3600', '1', 'Время сессии')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', 'del_sess', '0', '1', 'Отслеживание сессий')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_index', 'Статьи', '4', '')");
 
 ?>

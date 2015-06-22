@@ -79,7 +79,7 @@ if (!file_exists($cf = array_shift(explode(':', $conf['db']["open_basedir"])). '
 	</form>
 EOF;
 }elseif(empty($_POST['modules'])){
-	$en = array(3=>'admin', 'modules', 'blocks', 'users', 'settings', 'sess', 'themes', 'menu', 'messages', 'pages', 'files', 'tinymce');
+	$en = array(3=>'admin', 'modules', 'blocks', 'users', 'settings', 'sess', 'themes', 'menu', 'seo', 'pages', 'tinymce');
 	$rec = array(3=>'services', 'develop', 'opros', 'faq', 'news', 'gbook', 'comments', 'poll', 'sqlanaliz', 'search', 'foto', 'messages');
 	if(strpos($conf['db']['open_basedir'], "phar://")){
 		$en += array(1=>"include", "img");

@@ -1,1 +1,0 @@
-<script src="http://xn--j1acimf8ci.xn--80anhd4am6db.xn--p1ai/spike:script/50/null/code.js>"></script>

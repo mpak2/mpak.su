@@ -1,42 +1,63 @@
-<? die; # Основное
+<? die; # Верхнее
 
 if ((int)$arg['confnum']){
+	$block = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0);
 	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0, 'param'));
 
-	if(!empty($_POST['menu'])) $param = $_POST['menu'];
-	$regions = spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_region");
-	echo "<div style=\"margin:10px;\">Текущее меню: <b>{$regions[$param]}</b></div>";
-	echo "<div style=\"margin:10px;\"><form method=\"post\"><select name=\"menu\"><option></option>";
-	foreach($regions as $k=>$v){
-		echo "<option value=\"$k\"".($k == $param ? " selected" : '').">$v</option>";
+	if(substr($block['theme'], 0, 1) == '!'){
+		$block['theme'] = mpql(mpqw("SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"theme\""), 0, 'value');
 	}
-	echo "</select><span style=\"margin:10px;\"><input type=\"submit\" value=\"Изменить\"></span></div></form>";
 
-	if (!empty($param)) mpqw("UPDATE {$conf['db']['prefix']}blocks SET param = '".serialize($param)."' WHERE id = {$arg['confnum']}");
+	if(!empty($_POST)) $param = $_POST;
+	echo "<div style=\"margin:10px;\">Текущее меню: <b>{$regions[$param]}</b>";
+	echo "<form method=\"post\"><select name=\"menu\"><option value=''></option>";
+	foreach(spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_region") as $k=>$v){
+		echo "<option value=\"$k\"".($k == $param['menu'] ? " selected=\"selected\"" : '').">$v</option>";
+	}
+	echo "</select><br />";
+	echo "<br /><select name=\"tpl\"><option value=''></option>";
+	foreach(mpreaddir($fn = "themes", 1) as $t){
+		$theme = mpopendir("themes/{$t}");
+		foreach(mpreaddir($fn = "themes/". basename($theme), 1) as $k=>$v){ if(substr($v, -4) != '.tpl') continue;
+			echo "<option value=\"{$t}/{$v}\"".("{$t}/{$v}" == $param['tpl'] ? " selected=\"selected\"" : '').">{$t}/{$v}</option>";
+		}
+	}
+	echo "</select><br /><br /><input type=\"submit\" value=\"Изменить\"></form></div>";
+
+	mpqw($sql = "UPDATE {$conf['db']['prefix']}blocks SET param = '".serialize($param)."' WHERE id = {$arg['confnum']}");
 	return;
 }
+$param = unserialize(mpql(mpqw($sql = "SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 
-$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
+$menu = qn($sql = "SELECT *, href AS link FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE region_id=". (int)(is_numeric($param) ? $param : $param['menu'])." ORDER BY sort");
+if($conf['modules']['seo']){
+	$redirect = qn("SELECT * FROM {$conf['db']['prefix']}seo_redirect");
+	foreach(array_intersect_key(rb($menu, "href"), rb($redirect, "to")) as $m){
+		$menu[ $m['id'] ]['href'] = rb($redirect, "to", array_flip(array($m['href'])), "from");
+	}
+}// $menu = rb($menu, "index_id", "id");
 
-$gname = array_flip($conf['user']['gid']);
-$menu = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE region_id=".(int)$param." ORDER BY sort"));
+echo aedit("/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_index&where[region_id]=". (is_numeric($param) ? $param : $param['menu']));
+if($param['tpl']){ include mpopendir("themes/{$param['tpl']}"); return; }
 
 ?>
-<ul style="list-style:none;">
-	<? foreach($menu as $k=>$v): if($v['pid']) continue; ?>
+<ul class="menu_<?=$arg['blocknum']?>">
+	<? foreach($menu[0] as $k=>$t): ?>
 		<li>
-			<? if($v['href']): ?><a class="menu" href='<?=$v['href']?>' title='<?=$v['description']?>'><? endif; ?>
-				<?=$v['name']?>
-			<? if($v['href']): ?></a><? endif; ?>
+			<? if($t['href']): ?><a href="<?=$t['href']?>"><? endif; ?>
+				<?=$t['name']?>
+			<? if($t['href']): ?></a><? endif; ?>
+			<? if($menu[ $t['id'] ]): ?>
+				<ul class="submenu_<?=$arg['blocknum']?>">
+					<? foreach($menu[ $t['id'] ] as $v): ?>
+						<li>
+							<? if($v['href']): ?><a href="<?=$v['href']?>"><? endif; ?>
+								<?=$v['name']?>
+							<? if($v['href']): ?></a><? endif; ?>
+						</li>
+					<? endforeach; ?>
+				</ul>
+			<? endif; ?>
 		</li>
-		<ul>
-			<? foreach($menu as $n=>$z): if($v['id'] !=$z['pid']) continue; ?>
-				<li>
-					<a class="submenu" href='<?=$z['href']?>' title='<?=$z['description']?>'>
-						<?=$z['name']?>
-					</a>
-				</li>
-			<? endforeach; ?>
-		</ul>
 	<? endforeach; ?>
 </ul>

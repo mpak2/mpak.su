@@ -14,6 +14,8 @@
 // Purpose of file:
 // ----------------------------------------------------------------------
 
+mp_require_once("include/func.php"); # Функции таблиц
+
 $conf['settings'] += array(
 	"{$arg['modpath']}"=>'Блоки',
 	"{$arg['modpath']}_cache"=>'Кеш',
