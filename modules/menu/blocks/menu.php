@@ -42,22 +42,11 @@ if($param['tpl']){ include mpopendir("themes/{$param['tpl']}"); return; }
 
 ?>
 <ul class="menu_<?=$arg['blocknum']?>">
-	<? foreach($menu[0] as $k=>$t): ?>
+	<? foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}_index", "region_id", "id", $param['menu']) as $index): ?>
 		<li>
-			<? if($t['href']): ?><a href="<?=$t['href']?>"><? endif; ?>
-				<?=$t['name']?>
-			<? if($t['href']): ?></a><? endif; ?>
-			<? if($menu[ $t['id'] ]): ?>
-				<ul class="submenu_<?=$arg['blocknum']?>">
-					<? foreach($menu[ $t['id'] ] as $v): ?>
-						<li>
-							<? if($v['href']): ?><a href="<?=$v['href']?>"><? endif; ?>
-								<?=$v['name']?>
-							<? if($v['href']): ?></a><? endif; ?>
-						</li>
-					<? endforeach; ?>
-				</ul>
-			<? endif; ?>
+			<? if($index['href']): ?><a href="<?=$index['href']?>"><? endif; ?>
+				<?=$index['name']?>
+			<? if($index['href']): ?></a><? endif; ?>
 		</li>
 	<? endforeach; ?>
 </ul>

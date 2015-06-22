@@ -1,7 +1,7 @@
 <? if($conf['modules']['sqlanaliz']['access'] > 4): ?>
 	<span style="float:right; line-height:25px; padding:0 5px;">
 		<a href="/sqlanaliz:admin/r:1/tab:<?=$_GET['r']?>">
-			<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>
+			<?=(substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_") ?: "_"))?>
 		</a>
 	</span>
 <? endif; ?>
@@ -12,7 +12,7 @@
 				<? if($n = $conf['settings'][$s]): ?>
 					<?=$n?>
 				<? else: ?>
-					<?=(substr($r, strlen("{$conf['db']['prefix']}{$arg['modname']}")) ?: "_")?>
+					<?=(($i = substr($r, strlen("{$conf['db']['prefix']}{$arg['modname']}"))) ? $conf['modules'][$arg['modname']]['name'] : "_")?>
 				<? endif; ?>
 			</a>
 		</li>

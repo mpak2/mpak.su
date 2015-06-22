@@ -132,7 +132,7 @@ if (!function_exists('bcont')){
 				$conf['blocks']['info'][ $v['bid'] ]['access'] = $v['access'];
 
 		foreach(rb($blocks, "rid", "id", $reg) as $k=>$v){
-			if(($conf['settings']['theme'] == $v['theme']) || ((substr($v['theme'], 0, 1) == "!") && ($conf['settings']['theme'] == substr($v['theme'], 1)))){
+			if(($conf['settings']['theme'] == $v['theme']) || ((substr($v['theme'], 0, 1) == "!") && ($conf['settings']['theme'] != substr($v['theme'], 1)))){
 				$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
 				$mod = $conf['modules'][ $modpath = basename(dirname(dirname($v['file']))) ];
 				$modname = $mod['modname'];
