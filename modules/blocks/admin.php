@@ -70,7 +70,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}blocks"){ #Блоки
 		$shablon = array();
 		$themes = array(''=>'', "!{$conf['settings']['theme']}"=>"!{$conf['settings']['theme']}");
 		foreach(mpreaddir('themes', 1) as $pathname) $themes[$pathname] = $pathname;
-		$themes += spisok("SELECT id, name FROM {$conf['db']['prefix']}themes WHERE type='text/html'");
+//		$themes += spisok("SELECT id, name FROM {$conf['db']['prefix']}themes WHERE type='text/html'");
 
 		$theme = mpql(mpqw("SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"theme\""), 0, 'value');
 		if($glob = glob(mpopendir("themes"). "/*/block*.html")){

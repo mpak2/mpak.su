@@ -713,15 +713,16 @@ function mpmail($to = '', $subj='Проверка', $text = 'Проверка', 
 }
 function spisok($sql, $str_len = null, $left_pos = 0){
 	global $conf;
-	$result = mpqw($sql);
 	$spisok = array();
-	while($line = $result->fetch()){
-//		list($id, $name) = $line;
-		$name = array_pop($line);
-		$id = array_pop($line);
-//		pre($line); pre($id); pre($name);
-		if ($str_len) $name = substr($name, $left_pos , $str_len).(strlen($name) > $str_len ? '...' : '');
-		$spisok[$id] = $name;
+	if($result = mpqw($sql)){
+		while($line = $result->fetch()){
+	//		list($id, $name) = $line;
+			$name = array_pop($line);
+			$id = array_pop($line);
+	//		pre($line); pre($id); pre($name);
+			if ($str_len) $name = substr($name, $left_pos , $str_len).(strlen($name) > $str_len ? '...' : '');
+			$spisok[$id] = $name;
+		}
 	} return (array)$spisok;
 }
 function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
@@ -995,7 +996,7 @@ function mpqw($sql, $info = null, $conn = null){
 	try{
 		$result = $conf['db']['conn']->query($sql);
 	}catch(Exception $e){
-		mpre($e->getMessage());
+		mpre($sql, $e->getMessage(), true);
 	}
 	if(!empty($conf['settings']['analizsql_log'])){
 		$conf['db']['sql'][] = $q = array(
@@ -1125,10 +1126,14 @@ EOF;
 		}
 	}
 }
-function pre($array = false, $access = 4, $line = 0){
-	foreach(debug_backtrace() as $k=>$v){
-		if(!is_numeric($line) || $k === $line){
-			if($array){ # Комментарии выводим для javascript шаблонов. Чтобы они игнорировались как код
+function pre(){
+	$lines = false;
+	if(is_bool($bool = array_shift(array_slice($func_get_args = func_get_args(), -1, 1))) && ($lines = $bool)){
+		$func_get_args = array_slice(func_get_args(), -1, 1);
+	}else{ /*exit(var_dump($lines));*/ } foreach(debug_backtrace() as $k=>$v){
+		if($lines || ($k == 2)){
+//			echo "<pre>"; print_r(debug_backtrace()); echo "</pre>";
+			if(true){ # Комментарии выводим для javascript шаблонов. Чтобы они игнорировались как код
 				echo "/*\n<fieldset><legend>[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()</legend>*/";
 			}else{
 				echo "/*\n[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()<br>\n*/";
@@ -1136,14 +1141,14 @@ function pre($array = false, $access = 4, $line = 0){
 			foreach($v['args'] as $n=>$z){
 				echo "/*<pre>\n"; print_r($z); echo "\n</pre>*/";
 			}
-			if($array) echo "/*</fieldset>\n*/";
+			if(true) echo "/*</fieldset>\n*/";
 		}
 	}
 }
-function mpre($array = false, $access = 4, $line = 0){
+function mpre(){
 	global $conf, $arg, $argv;
 	if(empty($argv) && ($arg['access'] < $access)) return;
-	pre($array);
+	return call_user_func_array('pre', func_get_args());
 }
 function mpqwt($result){
 	echo "<table style='background-color:#888;' cellspacing=0 cellpadding=3 border=1><tr>";

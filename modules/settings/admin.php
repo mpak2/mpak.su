@@ -18,7 +18,7 @@
 	mpmenu();
 
 	foreach(mpreaddir('themes', 1) as $pathname) $values['theme'][$pathname] = $pathname;
-	$values['theme'] += spisok("SELECT id, name FROM {$GLOBALS['conf']['db']['prefix']}themes WHERE type='text/html'");
+//	$values['theme'] += spisok("SELECT id, name FROM {$GLOBALS['conf']['db']['prefix']}themes WHERE type='text/html'");
 
 	$values['admin_grp'] = $values['$user_grp'] = $values['default_grp'] = spisok("SELECT name, name FROM {$conf['db']['prefix']}users_grp");
 //	$values['admin_usr'] = $values['default_usr'] = spisok("SELECT name, name FROM {$conf['db']['prefix']}users");

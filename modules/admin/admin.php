@@ -1,6 +1,6 @@
 <?
 
-if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){
+if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляющие данные
 	if($_GET['id'] && !$_POST['id'] && array_key_exists("id", $_POST)){ # Удаление элемента
 		exit(qw("DELETE FROM {$_GET['r']} WHERE id=". (int)$_GET['id']));
 	}else{ # Правка записи и добавление новой
@@ -9,12 +9,12 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){
 				$_POST[$field] = strtotime($post);
 			}
 		}
-		$el = fk($_GET['r'], ($_GET['id'] ? array("id"=>$_GET['id']) : null), $_POST, $_POST);
+		$el = fk($_GET['r'], ($_GET['id'] ? array("id"=>$_GET['id']) : null), $_POST, $_POST); # Редактирование / Создание
 		if($_FILES['img']){ # POST содержащий  файл
 			$file_id = mpfid($_GET['r'], "img", $el['id']);
 		}elseif($_POST[$f = 'img']){ # Адрес внешнего изображения
 			$file_id = mphid($class, $f, $el['id'], $_POST['img']);
-		} if(array_key_exists("sort", $el) && !$el['sort']){
+		} if(array_key_exists("sort", $el) && !$el['sort']){ # Если у нас есть поле сортировки и оно пустое, то назначаем его равным id
 			$el = fk($_GET['r'], array("id"=>$el['id']), null, array("sort"=>$el['id']));
 		} exit(json_encode($el));
 	}

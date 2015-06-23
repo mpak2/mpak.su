@@ -9,14 +9,15 @@ if(isset($_GET[''])) $_GET['q'] = $_GET[''];
 	$res_name = $tn ."/".strtr($_GET['q'], array('..'=>''));
 	if($conf['settings']['themes_file_not_exists_event'] && !($res = mpopendir($res_name))){
 		if($themes_resources = $conf['settings']['themes_resources']){
-			mkdir($dir = mpopendir($tn. "/". dirname($_GET['q'])), 0777, true);
-			if(copy(($dst = "{$themes_resources}/{$_GET['q']}"), $fl = $tn. "/". $_GET['q'])){
-				mpevent("Закачка файла из внешнего ресурса", $res_name);
-				exit(header("Location: {$_GET['q']}"));
-			}else{
-				header("HTTP/1.0 404 Not Found");
-				exit("Ошибка скачивания {$dst}");
-			}
+			if(file_exists($dir = mpopendir($tn). "/". dirname($_GET['q'])) || mkdir($dir, 0777, true)){
+				if(copy(($dst = "{$themes_resources}/{$_GET['q']}"), $fl = $tn. "/". $_GET['q'])){
+					mpevent("Закачка файла из внешнего ресурса", $res_name);
+					exit(header("Location: {$_GET['q']}"));
+				}else{
+					header("HTTP/1.0 404 Not Found");
+					exit("Ошибка скачивания {$dst} в {$fl}");
+				}
+			}else{ mpre("Ошибка создания директории {$dir} в теме {$_GET['theme']}"); }
 		}else{
 			header("HTTP/1.0 404 Not Found");
 			mpevent("Файл темы не найден ошибка 404", $res_name);
