@@ -9,14 +9,24 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 				$_POST[$field] = strtotime($post);
 			}
 		}
-		$el = fk($_GET['r'], ($_GET['id'] ? array("id"=>$_GET['id']) : null), $_POST, $_POST); # Редактирование / Создание
+//		$el = fk($_GET['r'], ($_GET['id'] ? array("id"=>$_GET['id']) : null), $_POST, $_POST); # Редактирование / Создание
+		if($_GET['id']){
+			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=\"". mpquot(htmlspecialchars_decode($val)). "\""; });
+			qw($sql = "UPDATE `{$_GET['r']}` SET ". implode(", ", array_values($_POST)). " WHERE id=". (int)$_GET['id']);
+		}else{
+			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "\"". mpquot(htmlspecialchars_decode($val)). "\""; });
+			qw($sql = "INSERT INTO `{$_GET['r']}` (`". implode("`, `", array_keys($_POST)). "`) VALUE (". implode(", ", array_values($_POST)). ")");
+			$_GET['id'] = $conf['db']['conn']->lastInsertId();
+		} $el = fk($_GET['r'], array("id"=>$_GET['id']));
+		exit(htmlspecialchars(json_encode($el)));
+
 		if($_FILES['img']){ # POST содержащий  файл
 			$file_id = mpfid($_GET['r'], "img", $el['id']);
 		}elseif($_POST[$f = 'img']){ # Адрес внешнего изображения
 			$file_id = mphid($class, $f, $el['id'], $_POST['img']);
 		} if(array_key_exists("sort", $el) && !$el['sort']){ # Если у нас есть поле сортировки и оно пустое, то назначаем его равным id
 			$el = fk($_GET['r'], array("id"=>$el['id']), null, array("sort"=>$el['id']));
-		} exit(json_encode($el));
+		}
 	}
 }else{ # Выборка таблицы
 	$tpl['tables'] = array_column(ql("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modname']}%\""), "Tables_in_{$conf['db']['name']}");

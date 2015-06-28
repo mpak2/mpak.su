@@ -1223,7 +1223,7 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 		if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $filectime) && ($filectime >= $sfilectime)){
 			header('HTTP/1.0 304 Not Modified');
 		}else{
-			echo file_get_contents("$cache_name/$host_name/$prx/$fl_name");
+			return file_get_contents("$cache_name/$host_name/$prx/$fl_name");
 		} header('Last-Modified: '. date("r", $filectime));
 	}else if($src = imagecreatefromstring(file_get_contents($file_name))){
 		header("Expires: ".gmdate("D, d M Y H:i:s", time() + 3600)." GMT");

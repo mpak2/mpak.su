@@ -12,7 +12,9 @@
 				<? if($n = $conf['settings'][$s]): ?>
 					<?=$n?>
 				<? else: ?>
-					<?=(($i = substr($r, strlen("{$conf['db']['prefix']}{$arg['modname']}"))) ? $conf['modules'][$arg['modname']]['name'] : "_")?>
+					<? if($i = substr($r, strlen("{$conf['db']['prefix']}{$arg['modname']}"))): ?>
+						<?=($i == "_index" ? $conf['modules'][$arg['modname']]['name'] : $i)?>
+					<? else: ?>_<? endif; ?>
 				<? endif; ?>
 			</a>
 		</li>
@@ -58,14 +60,15 @@
 							$(e.delegateTarget).iframePostForm({
 								complete:function(data){
 									try{
-										if(json = JSON.parse(data)){
+										if(json = jQuery.parseJSON(data)){
 											console.log("json:", json);
-//											document.location.href = "/<?=$arg['modname']?>:<?=$arg['fe']?>/r:<?=$_GET['r']?><?=($_GET['p'] ? "/p:{$_GET['p']}" : "")?>";
-//											document.location.reload(true);
 											document.location.href = "/<?=$arg['modname']?>:<?=$arg['fe']?>/r:<?=$_GET['r']?><?=($_GET['p'] ? "/p:{$_GET['p']}" : "")?>?<? foreach($_GET['where'] as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>";
 										}
 									}catch(e){
-										if(isNaN(data)){ alert(data) }else{
+										if(isNaN(data)){
+											console.log("isNaN:", data)
+											alert(data);
+										}else{
 											console.log("date:", data)
 										}
 									}

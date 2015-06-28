@@ -2,12 +2,45 @@
 <head>
 	<base href="/themes/theme:<!-- [settings:theme] -->/null/">
 	<script type="text/javascript" src="//code.jquery.com/jquery-latest.js"></script>
-	
 	<link rel="stylesheet" href="bootstrap-3.2.0-dist/css/bootstrap.css">
 	<link rel="stylesheet" href="bootstrap-3.2.0-dist/css/bootstrap-theme.css">
 	<script src="bootstrap-3.2.0-dist/js/bootstrap.js"></script>
 
 	<link rel="stylesheet" href="style.css" type="text/css" />
+	<script src="//vk.com/js/api/xd_connection.js?2"  type="text/javascript"></script>
+	<script>
+		$(function(){
+			$("body").on("location", function(e, href){
+				if((typeof(href) !== "undefined") && ((href).split(":").shift() != "javascript")){
+					console.log("location:", href);
+					VK.init(function(){
+						VK.callMethod("setLocation", href);
+					}, function(){
+						console.log("API initialization failed");
+					}, '5.26');
+				}
+			}).on("settitle", function(e, title){
+				VK.init(function(){
+					console.log("settitle", title);
+					VK.callMethod("setTitle", title);
+				}, function(){
+					console.log("API initialization failed");
+				}, '5.26'); 
+			}).on("click", "a", function(e){
+//				if(!$(e.currentTarget).is(".local")){
+					var target = $(this).attr("target");
+					var href = $(this).attr("href");
+					if((typeof(target) == "undefined") && (href != "#")){
+						$(e.delegateTarget).trigger("location", href);
+					}
+//				}
+			}).on("init", function(){
+				$(this).find(".aedit a").attr("target", "blank");
+			}).each(function(){
+				$(this).trigger("init");
+			});
+		});
+	</script>
 </head>
 <body>
 	<!-- [modules] -->
