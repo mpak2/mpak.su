@@ -18,7 +18,6 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 			qw($sql = "INSERT INTO `{$_GET['r']}` (`". implode("`, `", array_keys($_POST)). "`) VALUE (". implode(", ", array_values($_POST)). ")");
 			$_GET['id'] = $conf['db']['conn']->lastInsertId();
 		} $el = fk($_GET['r'], array("id"=>$_GET['id']));
-		exit(htmlspecialchars(json_encode($el)));
 
 		if($_FILES['img']){ # POST содержащий  файл
 			$file_id = mpfid($_GET['r'], "img", $el['id']);
@@ -26,7 +25,7 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 			$file_id = mphid($class, $f, $el['id'], $_POST['img']);
 		} if(array_key_exists("sort", $el) && !$el['sort']){ # Если у нас есть поле сортировки и оно пустое, то назначаем его равным id
 			$el = fk($_GET['r'], array("id"=>$el['id']), null, array("sort"=>$el['id']));
-		}
+		} exit(htmlspecialchars(json_encode($el)));
 	}
 }else{ # Выборка таблицы
 	$tpl['tables'] = array_column(ql("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modname']}%\""), "Tables_in_{$conf['db']['name']}");
@@ -47,14 +46,14 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 		if($_GET['edit']){
 			$tpl['edit'] = rb($_GET['r'], "id", $_GET['edit']);
 		}else{
-			foreach(array_intersect_key($tpl['fields'], array_flip(explode(",", $conf['settings']["{$arg['modname']}=>espisok"]))) as $fl=>$espisok){
-				$tpl['espisok'][$fl] = rb("{$conf['db']['prefix']}{$fl}", "id", "id", rb($tpl['lines'], $fl));
-			}
+//			foreach(array_intersect_key($tpl['fields'], array_flip(explode(",", $conf['settings']["{$arg['modname']}=>espisok"]))) as $fl=>$espisok){
+//				$tpl['espisok'][$fl] = rb("{$conf['db']['prefix']}{$fl}", "id", "id", rb($tpl['lines'], $fl));
+
 			if($settings = $conf['settings']["{$arg['modname']}=>ecounter"]){
 				foreach(explode(",", $settings) as $ecounter){
 					if($fields = qn("SHOW FULL COLUMNS FROM {$conf['db']['prefix']}{$ecounter}", "Field")){
-						if(array_key_exists(substr($_GET['r'], strlen($conf['db']['prefix'])), $fields)){
-							if($fl = substr($_GET['r'], strlen($conf['db']['prefix']))){
+						if(array_key_exists(substr($_GET['r'], strlen($conf['db']['prefix'])), $fields) || ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}")){
+							if($fl = ($_GET['r'] != "{$conf['db']['prefix']}{$arg['modpath']}" ? substr($_GET['r'], strlen($conf['db']['prefix'])) : "uid")){
 								$tpl['ecounter']["__". $ecounter] = qn($sql = "SELECT `id`, `{$fl}`, COUNT(id) AS cnt FROM `{$conf['db']['prefix']}{$ecounter}` WHERE `{$fl}` IN (". in($tpl['lines']). ") GROUP BY `{$fl}`", $fl);
 							}else{ mpre("Поле не определено ". substr($_GET['r'], strlen($conf['db']['prefix']))); }
 						}
@@ -62,6 +61,11 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 				}
 			}
 		}// mpre($tpl['ecounter']);
+		if($conf['settings']["{$arg['modname']}=>espisok"]){
+			foreach(explode(",", $conf['settings']["{$arg['modname']}=>espisok"]) as $espisok){
+				$tpl['espisok'][$espisok] = rb("{$conf['db']['prefix']}{$espisok}", "id");
+			}
+		}
 		if($tab = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))){
 			foreach($tpl['tables'] as $tables){
 				$ft = substr($tables, strlen("{$conf['db']['prefix']}{$arg['modpath']}_"));

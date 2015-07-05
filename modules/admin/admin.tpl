@@ -180,7 +180,7 @@
 									<span>
 										<? if(substr($k, 0, 2) == "__"): // $tpl['ecounter'] ?>
 											<? if(($f = substr($k, 2)) && ($m = array_shift(explode("_", $f)))): ?>
-												<a href="/<?=$m?>:admin/r:<?=$conf['db']['prefix']?><?=$f?>?where[<?=(substr($_GET['r'], strlen($conf['db']['prefix'])))?>]=<?=$lines['id']?>">
+												<a href="/<?=$m?>:admin/r:<?=$conf['db']['prefix']?><?=$f?>?where[<?=($_GET['r'] == "{$conf['db']['prefix']}users" ? "uid" : substr($_GET['r'], strlen($conf['db']['prefix'])))?>]=<?=$lines['id']?>">
 													<?=($v[$lines['id']]['cnt'] ? "{$v[$lines['id']]['cnt']}&nbspшт" : "Нет")?>
 												</a>
 											<? endif; ?>
@@ -254,7 +254,7 @@
 									<? elseif($fiel == "hide"): ?>
 										<select name="hide">
 											<? foreach($tpl['spisok']['hide'] as $k=>$v): ?>
-												<option value="<?=$k?>" <?=((!$tpl['edit'] && ($field['Default'] == $k)) || ($k == $tpl['edit']['hide']) ? "selected" : "")?>><?=$v?></option>
+												<option value="<?=$k?>" <?=((!$tpl['edit'] && ($field['Default'] == $k)) || ($k == $tpl['edit'][$fiel]) ? "selected" : "")?>><?=$v?></option>
 											<? endforeach; ?>
 										</select>
 									<? elseif($fiel == "uid"): ?>
@@ -275,6 +275,13 @@
 												<option value="<?=$ln['id']?>" <?=(($tpl['edit'] && ($tpl['edit'][$fiel] == $ln['id'])) || (!$tpl['edit'] && ($ln['id'] == ($_GET['where'][$fiel] ?: $field['Default']))) ? "selected" : "")?>>
 													<?=$ln['id']?>&nbsp;<?=$ln['name']?>
 												</option>
+											<? endforeach; ?>
+										</select>
+									<? elseif(array_key_exists($fiel, $tpl['espisok'])): ?>
+										<select name="<?=$fiel?>">
+											<option></option>
+											<? foreach($tpl['espisok'][$fiel] as $espisok): ?>
+												<option value="<?=$espisok['id']?>" <?=((!$tpl['edit'] && ($field['Default'] == $espisok['id'])) || ($espisok['id'] == $tpl['edit'][$fiel]) ? "selected" : "")?>><?=$espisok['id']?> <?=$espisok['name']?></option>
 											<? endforeach; ?>
 										</select>
 									<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>

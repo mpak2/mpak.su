@@ -14,13 +14,13 @@ $tpl['index'] = qn("SELECT *
 /** Запрос данных для построения хлебных крошек в соответствии с меню сайта **/
 //$tpl['menu_index'] = qn("SELECT * FROM {$conf['db']['prefix']}menu_index");
 
-if($index = $tpl['index'][ $_GET['id'] ]){
-	$conf['settings']['title'] = $index['name'];
-	if($index['description']){
-		$conf['settings']['description'] = $index['description'];
-	} if($index['keywords']){
-		$conf['settings']['keywords'] = $index['keywords'];
-	} if($index['title']){
-		$conf['settings']['title'] = $index['title'];
+if(${$arg['fn']} = rb($arg['fn'], "id", $_GET['id'])){ # Загрузка мета информации о странице
+	$conf['settings']['title'] = ${$arg['fn']}['name'];
+	if(${$arg['fn']}['description']){
+		$conf['settings']['description'] = ${$arg['fn']}['description'];
+	} if(${$arg['fn']}['keywords']){
+		$conf['settings']['keywords'] = ${$arg['fn']}['keywords'];
+	} if(${$arg['fn']}['title']){
+		$conf['settings']['title'] = ${$arg['fn']}['title'];
 	}
 }

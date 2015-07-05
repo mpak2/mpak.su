@@ -388,7 +388,11 @@ function erb($src, $key = 'id'){
 				$a = array_flip(preg_split('#\s*,\s*#', preg_replace('#^\[|\]$#','',trim($a))));
 			}
 		} if(is_numeric($a) || is_array($a) || is_bool($a) || empty($a)){
-			$purpose[] = $a;
+			if($a === true){ # Удаляем условие на выборку (любые условия)
+				array_splice($keys, count($purpose), 1);
+			}else{
+				$purpose[] = $a;
+			}
 		}else{
 			if(!empty($purpose)){
 				$field = $a;
