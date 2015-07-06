@@ -233,6 +233,8 @@
 										<? elseif($tpl['espisok'][$k]): ?>
 											<a class="ekey" href="/invest:admin/r:<?=$conf['db']['prefix']?><?=$k?>?where[id]=<?=$v?>" title="<?=$v?>"></a>
 											<?=(strlen($tpl['espisok'][$k][$v]['name']) > 16 ? mb_substr($tpl['espisok'][$k][$v]['name'], 0, 16, "UTF-8"). "..." : $tpl['espisok'][$k][$v]['name'])?>
+										<? elseif($k == "name"): ?>
+											<a href="/<?=$arg['modname']?><?=(($substr = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))) == "index" ? "" : ":{$substr}")?>/<?=$lines['id']?>"><?=$v?></a>
 										<? else: ?>
 											<?=$v?>
 										<? endif; ?>

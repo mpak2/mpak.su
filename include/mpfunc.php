@@ -943,15 +943,16 @@ function mpopendir($file_name, $merge=1){
 }
 function mpql($dbres, $ln = null, $fd = null){
 	$result = array();
-	while($line = $dbres->fetch()){
-		$result[] = $line;
-	}
-	if ($ln !== null && $result){
-		$result = $result[$ln];
-		if ($fd){
-			$result = $result[$fd];
+	if($dbres){
+		while($line = $dbres->fetch()){
+			$result[] = $line;
+		} if($ln !== null && $result){
+			$result = $result[$ln];
+			if ($fd){
+				$result = $result[$fd];
+			}
 		}
-	} return $result;
+	}return $result;
 } function ql($sql, $ln = null, $fd = null){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата
 	$microtime = microtime(true);
 	if(!($r = mpmc($key = "ql:". md5($sql)))){
@@ -965,7 +966,7 @@ function mpql($dbres, $ln = null, $fd = null){
 
 function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 	$result = array();
-//	try{
+	if($dbres){
 		while($line = $dbres->fetch()){
 			if($z){
 				$result[ $line[$x] ][ $line[$y] ][ $line[$n] ][ $line[$z] ] = $line;
@@ -977,9 +978,7 @@ function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 				$result[ $line[$x] ] = $line;
 			}
 		}
-//	}catch(Exception $e){
-//		mpre($e->getMessage());
-//	}
+	}
 	return $result;
 } function qn($sql){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата. Возвращается список записей в нормальной форме
 	$microtime = microtime(true);
@@ -1000,9 +999,8 @@ function mpqw($sql, $info = null, $conn = null){
 	try{
 		$result = $conf['db']['conn']->query($sql);
 	}catch(Exception $e){
-		mpre($sql, $e->getMessage(), true);
-	}
-	if(!empty($conf['settings']['analizsql_log'])){
+		mpre($sql, $e->getMessage());
+	} if(!empty($conf['settings']['analizsql_log'])){
 		$conf['db']['sql'][] = $q = array(
 			'info' => $info ? $info : $conf['db']['info'],
 			'time' => microtime(true)-$mt,
@@ -1130,23 +1128,33 @@ EOF;
 		}
 	}
 }
+
 function pre(){
 	$lines = false;
 	if(is_bool($bool = array_shift(array_slice($func_get_args = func_get_args(), -1, 1))) && ($lines = $bool)){
 		$func_get_args = array_slice(func_get_args(), -1, 1);
-	}else{ /*exit(var_dump($lines));*/ } foreach(debug_backtrace() as $k=>$v){
-		if($lines || ($k == 2)){
-//			echo "<pre>"; print_r(debug_backtrace()); echo "</pre>";
-			if(true){ # Комментарии выводим для javascript шаблонов. Чтобы они игнорировались как код
-				echo "/*\n<fieldset><legend>[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()</legend>*/";
-			}else{
-				echo "/*\n[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()<br>\n*/";
-			}
-			foreach($v['args'] as $n=>$z){
-				echo "/*<pre>\n"; print_r($z); echo "\n</pre>*/";
-			}
-			if(true) echo "/*</fieldset>\n*/";
+	}else{ /*exit(var_dump($lines));*/ }
+
+	$debug_backtrace = debug_backtrace();
+
+	if($lines){
+		$list = $debug_backtrace;
+	}else{
+		if($l = rb($debug_backtrace, "function", "[mpre]")){
+			$list = array($l);
+		}else{
+			$list = array(rb($debug_backtrace, "function", "[pre]"));
 		}
+	} foreach($list as $k=>$v){
+		if(true){ # Комментарии выводим для javascript шаблонов. Чтобы они игнорировались как код
+			echo "/*\n<fieldset><legend>[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()</legend>*/";
+		}else{
+			echo "/*\n[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()<br>\n*/";
+		}
+		foreach($v['args'] as $n=>$z){
+			echo "/*<pre>\n"; print_r($z); echo "\n</pre>*/";
+		}
+		if(true) echo "/*</fieldset>\n*/";
 	}
 }
 function mpre(){
