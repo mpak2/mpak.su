@@ -9,4 +9,13 @@ if($n = $tpl['index'][ $_GET['id'] ] && !empty($n['count'])){
 	mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']}_index SET count=count+1 WHERE id=". (int)$n['id']);
 }
 
-?>
+if(${$arg['fn']} = rb($arg['fn'], "id", $_GET['id'])){ # Загрузка мета информации о странице
+	$conf['settings']['title'] = ${$arg['fn']}['name'];
+	if(${$arg['fn']}['description']){
+		$conf['settings']['description'] = ${$arg['fn']}['description'];
+	} if(${$arg['fn']}['keywords']){
+		$conf['settings']['keywords'] = ${$arg['fn']}['keywords'];
+	} if(${$arg['fn']}['title']){
+		$conf['settings']['title'] = ${$arg['fn']}['title'];
+	}
+}

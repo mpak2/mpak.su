@@ -163,7 +163,7 @@ if ($conf['settings']['start_mod'] && !$_GET['m']){ # Главная стран�
 			exit(header("Location: {$redirect['to']}"));
 		}else{
 			$_REQUEST = ($_GET = mpgt($redirect['to'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"))+$_REQUEST);
-			$conf['settings']['canonical'] = $r;
+			$conf['settings']['canonical'] = $redirect['to'];
 		}
 	}elseif($conf['settings']['start_mod'] == $_SERVER['REQUEST_URI']){ # Заглавная страница
 		$conf['settings']['canonical'] = "/";
