@@ -944,24 +944,29 @@ function mpopendir($file_name, $merge=1){
 function mpql($dbres, $ln = null, $fd = null){
 	$result = array();
 	if($dbres){
-		while($line = $dbres->fetch()){
-			$result[] = $line;
-		} if($ln !== null && $result){
-			$result = $result[$ln];
-			if ($fd){
-				$result = $result[$fd];
+		try{
+			$result = $dbres->fetchAll();
+			if($ln !== null && $result){
+				$result = $result[$ln];
+				if ($fd){
+					$result = $result[$fd];
+				}
 			}
+		} catch(Exception $e){
+			mpre($e->getMessage());
 		}
-	}return $result;
+	} return $result;
 } function ql($sql, $ln = null, $fd = null){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата
 	$microtime = microtime(true);
 	if(!($r = mpmc($key = "ql:". md5($sql)))){
-		$r = mpql(mpqw($sql), $ln, $fd);
-		if(($mt = (microtime(true) - $microtime)) > .3){
-			mpevent("Кеширование списка", $sql);
-			mpmc($key, $r);
-		}
-	} return $r;
+		if($mpqw = mpqw($sql)){
+			$r = mpql($mpqw, $ln, $fd);
+			if(($mt = (microtime(true) - $microtime)) > .3){
+				mpevent("Кеширование списка", $sql);
+				mpmc($key, $r);
+			}
+		} return $r;
+	}
 }
 
 function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
@@ -1013,6 +1018,7 @@ function mpqw($sql, $info = null, $conn = null){
 } function qw($sql, $info = null, $conn = null){
 	global $conf;
 	$mt = microtime(true);
+//	pre($sql);
 	$stm = $conf['db']['conn']->prepare($sql);
 	$return = $stm->execute();
 	if(!empty($conf['settings']['analizsql_log'])){

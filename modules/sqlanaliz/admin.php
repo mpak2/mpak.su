@@ -254,7 +254,7 @@ EOF;
 }elseif ($m[(int)$_GET['r']] == 'Запрос'){
 	if (isset($_POST['sqlquery']) && $_POST['textarea'] == 'Длинный'){
 		$microtime = microtime();
-		$result['sqlquery'] = mpql(mpqw(stripslashes($_POST['sqlquery'])));
+		$result['sqlquery'] = ql(stripslashes($_POST['sqlquery']));
 		$mess['sqlquery'] = "<p><b>".stripslashes($_POST['sqlquery'])."</b>";
 		$time['sqlquery'] = "<br><i>Время исполнения</i>: ".(microtime() - $microtime)." c.<p>";
 	$query_error = mysql_error();
