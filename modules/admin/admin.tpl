@@ -157,7 +157,9 @@
 								<? if($field['Comment']): ?>
 									<span class="info" title="<?=$field['Comment']?>">?</span>
 								<? endif; ?>
-									<? if(substr($fiel, 0, 1) == "_"): ?>
+									<? if(substr($fiel, 0, 2) == "__"): ?>
+										<span title="Количество записей во внешних модулях">_<?=($conf['settings'][substr($fiel, 2)] ?: substr($fiel, 2))?></span>
+									<? elseif(substr($fiel, 0, 1) == "_"): ?>
 										<?=($conf['settings']["{$arg['modname']}_". substr($fiel, 1)] ?: substr($fiel, 1))?>
 									<? elseif($tpl['etitle'][$fiel]): ?>
 									<a href="/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?order=<?=$fiel?>">
@@ -185,7 +187,7 @@
 												</a>
 											<? endif; ?>
 										<? elseif(substr($k, 0, 1) == "_"): // $tpl['counter'] ?>
-											<a href="/<?=$arg['modname']?>:admin/r:<?="{$conf['db']['prefix']}{$arg['modpath']}{$k}?where[". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "_id]={$lines['id']}"?>">
+											<a href="/<?=$arg['modname']?>:admin/r:<?="{$conf['db']['prefix']}{$arg['modpath']}{$k}?where[". (($_GET['r'] == "{$conf['db']['prefix']}users") && ($k == "_mem") ? "uid" : substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "_id"). "]={$lines['id']}"?>">
 												<?=($tpl['counter'][$k][ $lines['id'] ] ? "{$tpl['counter'][$k][ $lines['id'] ]}&nbspшт" : "Нет")?>
 											</a>
 										<? elseif($k == "id"): ?>
@@ -261,6 +263,9 @@
 										</select>
 									<? elseif($fiel == "uid"): ?>
 										<select name="<?=$fiel?>">
+											<? if(!rb("{$conf['db']['prefix']}users", "id", $tpl['edit'][$fiel])): ?>
+												<option value="<?=$tpl['edit'][$fiel]?>" selected><?=$tpl['edit'][$fiel]?></option>
+											<? endif; ?>
 											<option></option>
 											<? foreach(rb("{$conf['db']['prefix']}users") as $uid): ?>
 												<option value="<?=$uid['id']?>" <?=(($tpl['edit'] && ($tpl['edit'][ $fiel ] == $uid['id'])) || (!$tpl['edit'] && ($uid['id'] == $conf['user']['uid'])) ? "selected" : "")?>>

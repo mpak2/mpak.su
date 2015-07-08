@@ -948,7 +948,7 @@ function mpql($dbres, $ln = null, $fd = null){
 			$result = $dbres->fetchAll();
 			if($ln !== null && $result){
 				$result = $result[$ln];
-				if ($fd){
+				if($fd){
 					$result = $result[$fd];
 				}
 			}

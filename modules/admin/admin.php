@@ -45,22 +45,17 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 		);
 		if($_GET['edit']){
 			$tpl['edit'] = rb($_GET['r'], "id", $_GET['edit']);
-		}else{
-//			foreach(array_intersect_key($tpl['fields'], array_flip(explode(",", $conf['settings']["{$arg['modname']}=>espisok"]))) as $fl=>$espisok){
-//				$tpl['espisok'][$fl] = rb("{$conf['db']['prefix']}{$fl}", "id", "id", rb($tpl['lines'], $fl));
-
-			if($settings = $conf['settings']["{$arg['modname']}=>ecounter"]){
-				foreach(explode(",", $settings) as $ecounter){
-					if($fields = qn("SHOW FULL COLUMNS FROM {$conf['db']['prefix']}{$ecounter}", "Field")){
-						if(array_key_exists(substr($_GET['r'], strlen($conf['db']['prefix'])), $fields) || ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}")){
-							if($fl = ($_GET['r'] != "{$conf['db']['prefix']}{$arg['modpath']}" ? substr($_GET['r'], strlen($conf['db']['prefix'])) : "uid")){
-								$tpl['ecounter']["__". $ecounter] = qn($sql = "SELECT `id`, `{$fl}`, COUNT(id) AS cnt FROM `{$conf['db']['prefix']}{$ecounter}` WHERE `{$fl}` IN (". in($tpl['lines']). ") GROUP BY `{$fl}`", $fl);
-							}else{ mpre("Поле не определено ". substr($_GET['r'], strlen($conf['db']['prefix']))); }
-						}
-					}else{ mpre("Не удалось получить список полей таблицы {$conf['db']['prefix']}{$ecounter}"); }
-				}
+		}elseif($settings = $conf['settings']["{$arg['modname']}=>ecounter"]){
+			foreach(explode(",", $settings) as $ecounter){
+				if($fields = qn("SHOW FULL COLUMNS FROM {$conf['db']['prefix']}{$ecounter}", "Field")){
+					if(array_key_exists(substr($_GET['r'], strlen($conf['db']['prefix'])), $fields) || ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}")){
+						if($fl = ($_GET['r'] != "{$conf['db']['prefix']}{$arg['modpath']}" ? substr($_GET['r'], strlen($conf['db']['prefix'])) : "uid")){
+							$tpl['ecounter']["__". $ecounter] = qn($sql = "SELECT `id`, `{$fl}`, COUNT(id) AS cnt FROM `{$conf['db']['prefix']}{$ecounter}` WHERE `{$fl}` IN (". in($tpl['lines']). ") GROUP BY `{$fl}`", $fl);
+						}else{ mpre("Поле не определено ". substr($_GET['r'], strlen($conf['db']['prefix']))); }
+					}
+				}else{ mpre("Не удалось получить список полей таблицы {$conf['db']['prefix']}{$ecounter}"); }
 			}
-		}// mpre($tpl['ecounter']);
+		}
 		if($conf['settings']["{$arg['modname']}=>espisok"]){
 			foreach(explode(",", $conf['settings']["{$arg['modname']}=>espisok"]) as $espisok){
 				$tpl['espisok'][$espisok] = rb("{$conf['db']['prefix']}{$espisok}", "id");
@@ -81,6 +76,8 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 			}elseif(array_key_exists("text", $tpl['fields'])){
 				$tpl['title'] = array_keys(array_diff_key($tpl['fields'], array("text"=>false)));
 			}
+		}elseif($_GET['r'] == "{$conf['db']['prefix']}users"){ # Количество групп в которых состоит человек
+			$tpl['counter']["_mem"] = array_column(ql("SELECT `uid`, COUNT(*) AS cnt FROM `{$conf['db']['prefix']}{$arg['modpath']}_mem` WHERE `uid` IN (". in($tpl['lines']). ") GROUP BY `uid`"), "cnt", "uid");
 		}
 	}
 }
