@@ -6,7 +6,7 @@ mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_region SET id=2, name
 $menu = array(
 	array('region_id'=>1, 'name'=>'Главная страница', 'href'=>'/'),
 	array('region_id'=>1, 'name'=>'Личный кабинет', 'href'=>'/users/0'),
-	array('region_id'=>1, 'name'=>'Статьи', 'href'=>'/pages:list/cid:1'),
+	array('region_id'=>1, 'name'=>'Статьи', 'href'=>'/pages:cat/1'),
 	array('region_id'=>1, 'name'=>'Гостевая книга', 'href'=>'/gbook'),
 	array('region_id'=>1, 'name'=>'Фотогаллерея', 'href'=>'/foto'),
 	array('region_id'=>1, 'name'=>'Видео', 'href'=>'/video/1'),

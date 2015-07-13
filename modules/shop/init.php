@@ -34,24 +34,14 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_cat` (
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
 mpqw($sql);
 
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_groups` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
-  `description` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
-mpqw($sql);
-
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `time` int(11) NOT NULL,
   `uid` int(11) NOT NULL,
   `cat_id` int(11) NOT NULL,
   `vendor_id` int(11) NOT NULL,
-  `groups_id` int(11) NOT NULL,
   `img` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `balance` int(11) NOT NULL,
   `price` int(11) NOT NULL,
   `description` varchar(255) NOT NULL,
   `text` text NOT NULL,
@@ -82,6 +72,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_vendor
 mpqw($sql);
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('shop', 'shop_basket', 'Корзина', '5', 'Название таблицы')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('shop', 'shop_cat', 'Категория', '5', 'Название таблицы')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('shop', 'shop_index=>title', 'cat_id,vendor_id,img,name,price', '5', 'Название таблицы')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('shop', 'shop_premium', '20%', '5', 'Наценка на весь товар в магазине')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('shop', 'shop_price', 'Цены', '5', 'Название таблицы')");

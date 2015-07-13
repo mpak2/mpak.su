@@ -28,7 +28,7 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 		} exit(htmlspecialchars(json_encode($el)));
 	}
 }else{ # Выборка таблицы
-	$tpl['tables'] = array_column(ql("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modname']}%\""), "Tables_in_{$conf['db']['name']}");
+	$tpl['tables'] = array_column(ql("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\""), "Tables_in_{$conf['db']['name']}");
 	if(empty($_GET['r'])){
 		if($table = array_shift($tables = $tpl['tables'])){
 			exit(header("Location:/{$arg['modname']}:admin/r:{$table}"));

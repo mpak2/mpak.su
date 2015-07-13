@@ -1,5 +1,5 @@
 <? if($_GET['id']): ?>
-	<? if($index = $tpl['index'][ $_GET['id'] ]): ?>
+	<? if($index = rb("index", "id", $_GET['id'])): ?>
 		<?/* if($menu_index = rb($tpl['menu_index'], "href", array_flip(array($_SERVER['REQUEST_URI'])))): ?>
 			<div class="navigation">
 				<? $function = function($menu_index) use(&$function, $tpl, $arg){ ?>
@@ -42,28 +42,11 @@
 			<? endif; ?>
 		</div>
 	<? endif; ?>
-<? elseif($cat = rb($tpl['cat'], "id", $_GET['cat_id'])): ?>
-	<div>
-		<h1><?=$cat['name']?></h1>
-		<ul>
-			<? foreach(rb($tpl['index'], "cat_id", "id", $cat['id']) as $index): ?>
-				<li>
-					<a href="/<?=$arg['modname']?>/<?=$index['id']?>"><?=$index['name']?></a>
-				</li>
-			<? endforeach; ?>
-		</ul>
-	</div>
-<? elseif($tpl['pages']): ?>
+<? else: ?>
 	<ul>
-		<? foreach($tpl['pages'] as $cat_id=>$cats): ?>
-			<li>
-				<b><?=$tpl['cat'][ $cat_id ]['name']?></b> [<?=$tpl['cat'][ $cat_id ]['cnt']?>]
-				<ul>
-					<? foreach($cats as $v): ?>
-						<li><a href="/<?=$arg['modname']?>/<?=$v['id']?>"><?=$v['name']?></a></li>
-					<? endforeach; ?>
-				</ul>
-			</li>
+		<? foreach(rb("index", 20) as $index): ?>
+			<li><a href="/<?=$arg['modname']?>/<?=$index['id']?>"><?=$index['name']?></a></li>
 		<? endforeach; ?>
 	</ul>
+	<div><?=$tpl['pager']?></div>
 <? endif; ?>

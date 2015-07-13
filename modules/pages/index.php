@@ -5,15 +5,6 @@ if($_POST['id'] && ($arg['access'] > 3)){
 	exit((string)$index_id);
 }
 
-$tpl['cat'] = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_cat");
-$tpl['index'] = qn("SELECT *
-	FROM {$conf['db']['prefix']}{$arg['modpath']}_index
-	WHERE 1". ($_GET['id'] ? " AND id=". (int)$_GET['id'] : " LIMIT 100")
-);// mpre($tpl['index']);
-
-/** Запрос данных для построения хлебных крошек в соответствии с меню сайта **/
-//$tpl['menu_index'] = qn("SELECT * FROM {$conf['db']['prefix']}menu_index");
-
 if(${$arg['fn']} = rb($arg['fn'], "id", $_GET['id'])){ # Загрузка мета информации о странице
 	$conf['settings']['title'] = ${$arg['fn']}['name'];
 	if(${$arg['fn']}['description']){

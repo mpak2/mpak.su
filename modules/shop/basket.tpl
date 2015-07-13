@@ -1,91 +1,79 @@
-<script>
-	$(function(){
-		$(".price_del").click(function(){
-			order_id = $(this).parents("[order_id]").attr("order_id");// alert(order_id);
-			$.get("/<?=$arg['modname']?>:<?=$arg['fn']?>/null", {товар:order_id, количество:0}, function(data){
-				if(isNaN(data)){ alert(data) }else{
-					$("[order_id="+order_id+"]").hide();
-				}
-			});
-		});
-	});
-</script>
-<div>
-	<div style="float:right;">
-		<a href="/<?=$arg['modname']?>">
-			Выбрать другой товар
-		</a>
-	</div>
-	<h3>Корзина</h3>
-	<ul style="margin-top:20px;">
-		<? foreach($conf['price']['order'] as $k=>$v): ?>
-			<li order_id="<?=$v['id']?>" style="overflow:hidden;">
-				<div style="float:right; width:200px;">
-					<div style="float:right;">
-						<span class="price_del" style="cursor:pointer;"><img src="/img/del.png"></span>
-					</div>
-					<div style="float:left; width:100px;"><b><?=number_format($v['sum'], 0)?></b> р.</div>
-					<div><b><?=$v['count']?></b> шт.</div>
-				</div>
-				<span>
-					<a href="/<?=$arg['modname']?>/<?=$v['id']?>"><?=$v['name']?></a>
-				</spam>
-			</li>
-		<? endforeach; ?>
-	</ul>
-	<div style="text-align:right;"><?=$sum?></div>
-	<style>
-		#order {margin:20px 0;}
-		#order > div {margin-top:5px;}
-		#order > div > div:first-child {float:left; width:200px; font-weight:bold;}
-		#order > div > div input,textarea {width:40%;}
-	</style>
-
-	<script src="/include/jquery/jquery.iframe-post-form.js"></script>
-	<script>
-		$(function(){
-			$("#basket").submit(function(){
-				status = true;
-				$(this).find("input").each(function(key, val){
-					if($(val).val() == ""){
-						$(val).css("background-color", "yellow");
-						status = false;
+<div class="text">
+	<h1>В корзине:</h1>
+	<div class="bask">
+		<script>
+			(function($, script){
+				$(script).parent().on("ajax", "*", function(e, table, get, post, complete){
+					var href = "/<?=$arg['modname']?>:ajax/class:"+table;
+					$.each(get, function(key, val){
+						href += "/"+ (key == "id" ? "" : key+ ":")+ val;
+					});
+					$.post(href, post, function(data){
+						if(typeof(complete) == "function"){
+							complete.call(e.currentTarget, data);
+						}
+					}, "json").fail(function(error) {
+						alert(error.responseText);
+					}); e.stopPropagation();
+				}).on("click", "a.del", function(e){
+					if(confirm("Подтвердите удаление")){
+						var basket_order_id = $(e.currentTarget).parents("[basket_order_id]").attr("basket_order_id");
+						$(e.currentTarget).trigger("ajax", ["basket_order", {id:basket_order_id}, {id:-basket_order_id}, function(basket_order){
+							console.log("basket_order:", basket_order);
+							document.location.reload(true);
+						}])
 					}
-				});
-				if(!status){
-					alert("Не все обязательные поля заполнены!!!");
-				}
-				return status;
-			}).iframePostForm({
-				complete:function(data){
-					$("#basket").html(data).css("text-align", "center");
-				}
-			});
-			
-		});
-	</script>
-	<form id="basket" method="post" action="/<?=$arg['modname']?>:<?=$arg['fe']?>/null" style="margin-top:20px;">
-		<h3>Заказать</h3>
-		<div id="order">
-			<div>
-				<div>* Имя:</div>
-				<div><input type="text" name="name"></div>
-			</div>
-			<div>
-				<div>* Адрес:</div>
-				<div><input type="text" name="addr"></div>
-			</div>
-			<div>
-				<div>* Телефон:</div>
-				<div><input type="text" name="tel"></div>
-			</div>
-			<div>
-				<div>Комментарии:</div>
-				<div><textarea name="description"></textarea></div>
-			</div>
+				}).on("change", "input[name=count]", function(e){
+					var basket_order_id = $(e.currentTarget).parents("[basket_order_id]").attr("basket_order_id");
+					var count = $(e.currentTarget).val();
+					$(e.currentTarget).trigger("ajax", ["basket_order", {id:basket_order_id}, {count:count}, function(basket_order){
+						document.location.reload(true);
+					}])
+				})
+			})(jQuery, document.scripts[document.scripts.length-1])
+		</script>
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+			<tbody>
+				<tr>
+					<th>Фото товара </th>
+					<th>Наименование товара</th>
+					<th>Кол-во</th>
+					<th>Цена</th>
+					<th>Сумма</th>
+					<th>Удалить</th>
+				</tr>
+				<? foreach(rb("basket_order", "basket_id", "id", 0) as $basket_order): ?>
+					<? if($index = rb("index", "id", $basket_order['index_id'])): ?>
+						<tr basket_order_id="<?=$basket_order['id']?>">
+							<td class="foto"><img src="/shop:img/<?=$index['id']?>/tn:index/fn:img/w:65/h:65/null/img.png" alt="<?=$index['name']?>"></td>
+							<td class="name">
+								<a href="/<?=$arg['modname']?>/<?=$index['id']?>"><?=$index['name']?></a>
+							</td>
+							<td class="amount"><input type="text" name="count" value="<?=$basket_order['count']?>" size="3"></td>
+							<td class="price"><span class="Requirement"><strong><?=$index['price']?></strong></span>&nbsp;руб.</td>
+							<td class="amount"><span class="Requirement"><strong><?=$itogo[] = ($index['price']*$basket_order['count'])?></strong></span>&nbsp;руб.</td>
+							<td class="remove"><a class="del" href="javascript:void(0);"><img src="/img/del.png"></a></td>
+						</tr>
+					<? endif; ?>
+				<? endforeach; ?>
+			</tbody>
+		</table>
+		<div class="itogo">
+			Итого: 
+			<span class="itogorub"> <span class="Requirement"><strong><?=array_sum($itogo)?></strong></span> руб.</span>
 		</div>
-		<div>
-			<input type="submit" value="Заказать">
+	</div>
+	<div class="clear"></div>
+	<form>
+		<div class="table">
+			<div>
+				<span>Ваш телефон</span>
+				<span><input type="tel"></span>
+			</div>
+			<div>
+				<span>Адрес доставки</span>
+				<span><input type="addr"></span>
+			</div>
 		</div>
 	</form>
 </div>

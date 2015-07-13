@@ -1,26 +1,26 @@
 <? die;
 
 if ($_REQUEST['search_block_num'] || empty($_GET['tabs_id'])){
-	$index = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE (id=". (int)$_GET['id']. " OR name=\"". mpquot($_REQUEST['search']). "\") AND num=". (int)$_GET['search_block_num']), 0);
-	$index_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_index",
+	$index = ql("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE (id=". (int)$_GET['id']. " OR name=\"". mpquot($_REQUEST['search']). "\") AND num=". (int)$_GET['search_block_num'], 0);
+	$index = fk("{$conf['db']['prefix']}{$arg['modpath']}_index",
 		$w = array("id"=>$index['id']),
 		$w += array("name"=>$_REQUEST['search'], "time"=>time(), "num"=>$_GET['search_block_num'])
 	);
-	$keys_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_keys",
-		$w = array("index_id"=>$index_id, "name"=>$_GET['search_key']),
+	$keys = fk("{$conf['db']['prefix']}{$arg['modpath']}_keys",
+		$w = array("index_id"=>$index['id'], "name"=>$_GET['search_key']),
 		$w += array("time"=>time())
 	);
-	$tabs_id = mpfdk("{$conf['db']['prefix']}{$arg['modpath']}_keys_tabs",
-		$w = array("keys_id"=>$keys_id, "name"=>serialize($_GET['tab'])),
+	$tabs = fk("{$conf['db']['prefix']}{$arg['modpath']}_keys_tabs",
+		$w = array("keys_id"=>$keys['id'], "name"=>serialize($_GET['tab'])),
 		$w += array("time"=>time(), "uid"=>$conf['user']['uid'])
-	); header("Location: /{$arg['modname']}/tabs_id:". (int)$tabs_id. "/". str_replace("%", "%25", $_REQUEST['search']));
+	); header("Location: /{$arg['modname']}/tabs_id:". (int)$tabs['id']. "/". str_replace("%", "%25", $_REQUEST['search']));
 }elseif($_GET['tabs_id']){
-		$tpl['search'] = mpql(mpqw("SELECT i.*, k.id AS keys_id, k.name as keys_name, kt.name AS tabs_name
+		$tpl['search'] = ql("SELECT i.*, k.id AS keys_id, k.name as keys_name, kt.name AS tabs_name
 			FROM {$conf['db']['prefix']}{$arg['modpath']}_index AS i
 			INNER JOIN {$conf['db']['prefix']}{$arg['modpath']}_keys AS k ON (i.id=k.index_id)
 			LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_keys_tabs AS kt ON (k.id=kt.keys_id)
 			WHERE kt.id=". (int)$_GET['tabs_id']
-		), 0);// mpre($tpl['search']);
+		, 0);// mpre($tpl['search']);
 
 		$tpl['http_host'] = mpidn($_SERVER['HTTP_HOST']);
 		$conf['settings']['title'] .= " : ". $tpl['search']['name'];
