@@ -379,10 +379,29 @@ function rb($src, $key = 'id'){
 			$func_get_args[0] = "{$conf['db']['prefix']}{$arg['modpath']}_{$func_get_args[0]}";
 	} return call_user_func_array('erb', $func_get_args);
 }
+
 # Пересборка данных массива. Исходный массив должен находится в первой форме
+#	[0]  = (array)|(string)			массив|название тавлицы
+#   	[1] ?= (int) \d+				пагинатор
+#	[2] ?= (string) 'id|name_id'	другой id
+#	[.] ?= (mixed)					параметры выборки
+#
+#	erb('table',10,'id|virtuemart_category_id',........ПАРАМЕТРЫ ВЫБОКИ..........);
+#	erb('table','id|virtuemart_category_id',........ПАРАМЕТРЫ ВЫБОКИ..........);
+#	erb('table',10,........ПАРАМЕТРЫ ВЫБОКИ..........);
+#	erb('table',........ПАРАМЕТРЫ ВЫБОКИ..........);
+#####################################################################################
 function erb($src, $key = 'id'){
+	
 	$purpose = $keys = $return = array();
-	foreach(array_slice(func_get_args(), (is_numeric($key) ? 2 : 1)) as $a){
+	$ArrayPositions = array(array(1,2),array(2,3));
+	$func_get_args = func_get_args();
+	$FixID = is_string($func_get_args[$ArrayPositions[is_numeric($key)][0]])?intval(preg_match("#^id\|.*$#",$func_get_args[$ArrayPositions[is_numeric($key)][0]])):0;
+	$StartForeach = $ArrayPositions[intval(is_numeric($key))][$FixID];
+	
+	$IdName = $FixID?preg_replace("#^id\|(.*)$#","$1",$func_get_args[$StartForeach-1]):'id';
+	
+	foreach(array_slice($func_get_args, $StartForeach) as $a){
 		if(is_string($a)){
 			if(preg_match('#^\[.*\]$#',trim($a))){
 				$a = array_flip(preg_split('#\s*,\s*#', preg_replace('#^\[|\]$#','',trim($a))));
@@ -409,7 +428,7 @@ function erb($src, $key = 'id'){
 			$where = array_map(function($key, $val){
 				return "`{$key}`". (is_array($val) ? " IN (". in($val). ")" : "=". (int)$val);
 			}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
-			$src = qn($sql = "SELECT SQL_CALC_FOUND_ROWS * FROM {$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings'][substr($src, strlen($conf['db']['prefix'])). "=>order"]) ? " ORDER BY ". mpquot($order) : ""). " LIMIT ". (int)($_GET['p']*$key). ",". (int)$key);
+			$src = qn($sql = "SELECT SQL_CALC_FOUND_ROWS * FROM {$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings'][substr($src, strlen($conf['db']['prefix'])). "=>order"]) ? " ORDER BY ". mpquot($order) : ""). " LIMIT ". (int)($_GET['p']*$key). ",". (int)$key,$IdName);
 			$tpl['pager'] = mpager(ql("SELECT FOUND_ROWS()/". (int)$key. " AS cnt", 0, "cnt"));
 		}
 	}else if(is_string($src)){
@@ -423,7 +442,7 @@ function erb($src, $key = 'id'){
 				return "`{$key}`=". intval($val);
 			}
 		}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
-		$src = qn($sql = "SELECT * FROM {$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings'][substr($src, strlen($conf['db']['prefix'])). "=>order"]) ? " ORDER BY ". mpquot($order) : ""));
+		$src = qn($sql = "SELECT * FROM {$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings'][substr($src, strlen($conf['db']['prefix'])). "=>order"]) ? " ORDER BY ". mpquot($order) : ""),$IdName);
 	} if($keys){
 		if(!empty($src)){
 			foreach($src as $v){
