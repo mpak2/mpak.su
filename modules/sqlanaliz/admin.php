@@ -96,7 +96,6 @@ EOF;
 		echo "<option". ($_POST['table'] == $tn ? " selected" : ""). ">$tn</option>";
 	}
 	echo "</select></div>";
-
 	$json = json_encode($fields);
 	echo <<<EOF
 	<div>
@@ -118,6 +117,7 @@ EOF;
 						$("select[name=fields]").append("<option>"+val+"</option>");
 						$("select[name=field]").append("<option>"+val+"</option>");
 					});
+					$("select[name=fields]").find("option:contains('{$_POST['fields']}')").prop("selected", "true");
 					$("select[name=field]").change();
 				}).change();
 			});

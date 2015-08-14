@@ -7,7 +7,7 @@ if ($conf['user']['uname'] != $conf['settings']['default_usr']){
 	$gid  = $conf['user']['gid'];
 }
 
-$anket = mpql(mpqw("SELECT id, COUNT(*) AS cnt FROM {$conf['db']['prefix']}{$arg['modpath']}_anket"), 0);
+//$anket = mpql(mpqw("SELECT id, COUNT(*) AS cnt FROM {$conf['db']['prefix']}{$arg['modpath']}_anket"), 0);
 
 ?>
 <? if($conf['user']['flush']): ?>

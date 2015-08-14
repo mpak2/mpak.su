@@ -4,7 +4,7 @@
 	</style>
 	<script>
 		$(function(){
-			$(".pager").find("a[href='<?=$_SERVER['REQUEST_URI']?>']").addClass("active");
+			$(".pager").find("a[href='<?=urldecode($_SERVER['REQUEST_URI'])?>']").addClass("active");
 		})
 	</script>
 	<a style="font-size: 12px;" href="<?=$mpager['first']?>">‹‹ начало</a>

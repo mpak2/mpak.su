@@ -40,7 +40,7 @@ foreach( $dolders = array(
 
 	'img',
 	'modules',
-	'themes/zhiraf', 'themes/bootstrap3',
+	'themes/zhiraf', 'themes/bootstrap3', 'themes/vk',
 	'include/blocks',
 	'include/class',
 	'include/mail',

@@ -7,6 +7,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_redire
   `from` varchar(255) NOT NULL,
   `to` varchar(255) NOT NULL,
   `description` varchar(255) NOT NULL,
+  `keywords` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
 mpqw($sql);

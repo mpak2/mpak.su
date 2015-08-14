@@ -140,7 +140,9 @@ foreach($conf['user'] as $k=>$v){
 		<div style="float:left; width:200px; text-align:center;">
 			<img class="user_img" src="/<?=$conf['modules']['users']['modname']?>:img/<?=$user['id']?>/tn:index/w:200/h:200/null/img.jpg">
 			<h3 style="text-align:center;"><?=$user['name']?></h3>
-			<div><a href="/<?=$conf['modules']['messages']['modname']?>:письмо/uid:<?=$user['id']?>">Написать личное сообщение</a></div>
+			<? if($conf['modules']['messages']): ?>
+				<div><a href="/<?=$conf['modules']['messages']['modname']?>:письмо/uid:<?=$user['id']?>">Написать личное сообщение</a></div>
+			<? endif; ?>
 			<? if($arg['uid'] == $conf['user']['uid']): ?>
 				<script src="/include/jquery/jquery.iframe-post-form.js"></script>
 				<script>
@@ -159,7 +161,7 @@ foreach($conf['user'] as $k=>$v){
 				<form id="load_img_<?=$arg['blocknum']?>" style="text-align:right;" method="post" action="/blocks/<?=$arg['blocknum']?>/null" enctype="multipart/form-data">
 					<input type="hidden" name="uid" value="<?=$conf['user']['uid']?>">
 					<input type="file" name="img" style="margin-bottom:5px;">
-					<input type="submit" value="Загрузить фото">
+					<input type="submit" value="Загрузить фото" style="width:100%;">
 				</form>
 			<? endif; ?>
 		</div>
@@ -266,17 +268,6 @@ foreach($conf['user'] as $k=>$v){
 									)
 								<? endif; ?>
 							};
-//							$('#search_form').submit(function () {
-//								alert(123);
-/*								var search_query = $('input:first').val();
-
-								map.geocode(search_query, {results: 100}).then(function (res) {
-									myCollection.removeAll();
-									myCollection = res.geoObjects;
-									map.geoObjects.add(myCollection);
-								});
-								return false;*/
-//							});
 						</script>
 						<script type="text/javascript" src="http://api-maps.yandex.ru/2.0/?coordorder=longlat&load=package.full&wizard=constructor&lang=ru-RU&onload=fid_134128145774966671747"></script>
 						<!-- Этот блок кода нужно вставить в ту часть страницы, где вы хотите разместить карту (конец) -->

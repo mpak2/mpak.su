@@ -9,13 +9,14 @@
 			</div>
 		<? endif;*/ ?>
 
-		<? if($cat = $tpl['cat'][ $index['cat_id'] ]): ?>
+		<? if($pages_cat = rb("cat", "id", $index['cat_id'])): ?>
 			<div class="bradcrumbs">
-				<? $function = function($cat) use(&$function, $tpl, $arg){ ?>
-					<? if($c = $tpl['cat'][ $cat['cat_id'] ]): ?>
-						<? $function($c) ?>
-					<? endif; ?> &raquo; <a href="/<?=$arg['modname']?>:cat/<?=$cat['id']?>"><?=$cat['name']?></a>
-				<? }; $function($tpl['cat'][ $index['cat_id'] ]); ?> &raquo; <?=$index['name']?>
+				<? $f = function($pages_cat) use(&$f, $tpl, $arg){ ?>
+					<? if($cat = rb("cat", "id", $pages_cat['cat_id'])): ?>
+						<? $f($cat) ?>
+					<? endif; ?>
+					&raquo; <a href="/<?=$arg['modname']?>:cat/<?=$pages_cat['id']?>"><?=$pages_cat['name']?></a>
+				<? }; $f($pages_cat); ?>
 			</div>
 		<? endif; ?>
 		

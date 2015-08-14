@@ -1,14 +1,5 @@
 <? die;
 
-if($_GET['id']){
-//	$usr = mpql(mpqw("SELECT name, reg_time, last_time FROM {$conf['db']['prefix']}utree_index WHERE usr=". (int)$conf['user']['uid']));
-//	if(!$conf['user']['sess']['count'] && !$usr){
-//		$sql = "INSERT INTO {$conf['db']['prefix']}utree_index SET time=". time(). ", uid=". (int)$_GET['id']. ", usr=". (int)$conf['user']['uid']; mpqw($sql);
-//	}// header("Location: /{$arg['modname']}:{$arg['fe']}/". (int)$_GET['id']); exit;
-}else{
-//	mpqw("INSERT INTO {$conf['db']['prefix']}utree_index SET time=". time(). ", usr=". (int)$conf['user']['uid']. " ON DUPLICATE KEY UPDATE view=view+1");
-}
-
 $readtree = function ($id, $readtree, $tree = array()) use($arg) { global $conf;
 	if($id > 0){
 		$tree[''] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE id=". (int)$id), 0);
@@ -22,10 +13,3 @@ $readtree = function ($id, $readtree, $tree = array()) use($arg) { global $conf;
 	}
 	return $tree;
 }; $conf['tpl']['tree'] = $readtree(isset($_GET['uid']) ? (int)$_GET['uid'] : $conf['user']['uid'], $readtree);
-
-//mpre($conf['tpl']['tree']);
-
-//$conf['tpl']['tree'][''] = array('name'=>mpidn($_SERVER['HTTP_HOST']));
-//$conf['tpl']['index'] = mpql(mpqw("SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}{$arg['modpath']}"));
-
-?>

@@ -117,7 +117,7 @@ if (!function_exists('bcont')){
 		$uid = (array_intersect_key(array($conf['modules']['users']['folder']=>1, $conf['modules']['users']['modname']=>2), (array_key_exists('blocks', $_GET['m']) ? (array)$gt['m'] : array())+$_GET['m']) && $uid) ? $uid : $conf['user']['uid'];
 
 
-		foreach(rb($blocks, "rid", "id", $reg) as $k=>$v){
+		foreach(rb($blocks, "rid", "id", $reg+array(0=>array("id"=>0))) as $k=>$v){
 			$conf['blocks']['info'][$v['id']] = $v;
 			if(($v['access'] < 0)){
 				$conf['blocks']['info'][ $v['id'] ]['access'] = (int)$conf['modules'][array_shift(explode('/', $v['file']))]['access'];
@@ -131,7 +131,7 @@ if (!function_exists('bcont')){
 			if ($conf['user']['uid'] == $v['uid'] || (!$v['uid'] && ($conf['user']['uid'] == $uid)))
 				$conf['blocks']['info'][ $v['bid'] ]['access'] = $v['access'];
 
-		foreach(rb($blocks, "rid", "id", $reg) as $k=>$v){
+		foreach(rb($blocks, "rid", "id", $reg+array(0=>array("id"=>0))) as $k=>$v){
 			if(($conf['settings']['theme'] == $v['theme']) || ((substr($v['theme'], 0, 1) == "!") && ($conf['settings']['theme'] != substr($v['theme'], 1)))){
 				$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
 				$mod = $conf['modules'][ $modpath = basename(dirname(dirname($v['file']))) ];
@@ -150,7 +150,8 @@ if (!function_exists('bcont')){
 							'<!-- [block:title] -->'=>$v['name']
 						));
 						$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$v['name'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
-						$result["<!-- [blocks:". (int)$v['rid'] . "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
+						$result["<!-- [block:". (int)$v['id'] . "] -->"] = strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
+						$result["<!-- [blocks:". (int)$v['rid'] . "] -->"] .= $result["<!-- [block:". (int)$v['id'] . "] -->"];
 						$result["<!-- [blocks:". (int)$reg[ $v['rid'] ]['reg_id']. "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
 					}
 				}
@@ -236,7 +237,7 @@ function in($ar, $flip = false){ # Формирует из массива стр
 }
 function aedit($href, $echo = true, $title = null){ # Установка на пользовательскую старницу ссылки в административные разделы. В качестве аргумента передается ссылка, выводится исходя из прав пользователя на сайте
 	global $arg;
-	$link = "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:999; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\" target='_blank' ><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px; width:10px; height:10px;'></a></span></div>";
+	$link = "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:999; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\" ><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px; width:10px; height:10px;'></a></span></div>";
 	if($arg['access'] > 3) {if((bool)$echo) echo $link; else return $link;}	
 }
 
@@ -358,27 +359,7 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 		} return $mc;
 	}
 }
-function arb($index,$params,$return=null){
-	$buff = array($index);
-	foreach($params as $key => $param){
-		if(!is_int($key)){array_push($buff,$key);}
-		else{array_push($buff,$param);}
-	}
-	foreach($params as $key => $param){
-		if(!is_int($key)){array_push($buff,$param);}
-	}
-	if(is_string($return)){array_push($buff,$return);}
-	return call_user_func_array('rb',$buff);
-}
-function rb($src, $key = 'id'){
-	global $conf, $arg;
-	$func_get_args = func_get_args();
-	if(is_string($src)){
-		//проверка полное или коротное название таблицы
-		if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$func_get_args[0]))
-			$func_get_args[0] = "{$conf['db']['prefix']}{$arg['modpath']}_{$func_get_args[0]}";
-	} return call_user_func_array('erb', $func_get_args);
-}
+
 # Пересборка данных массива. Исходный массив должен находится в первой форме
 function erb($src, $key = 'id'){
 	$purpose = $keys = $return = array();
@@ -461,6 +442,25 @@ function erb($src, $key = 'id'){
 			} $return = $r;
 		}
 	} return !empty($field) ? $return[ $field ] : $return;
+} function rb($src, $key = 'id'){
+	global $conf, $arg;
+	$func_get_args = func_get_args();
+	if(is_string($src)){
+		//проверка полное или коротное название таблицы
+		if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$func_get_args[0]))
+			$func_get_args[0] = "{$conf['db']['prefix']}{$arg['modpath']}_{$func_get_args[0]}";
+	} return call_user_func_array('erb', $func_get_args);
+} function arb($index,$params,$return=null){
+	$buff = array($index);
+	foreach($params as $key => $param){
+		if(!is_int($key)){array_push($buff,$key);}
+		else{array_push($buff,$param);}
+	}
+	foreach($params as $key => $param){
+		if(!is_int($key)){array_push($buff,$param);}
+	}
+	if(is_string($return)){array_push($buff,$return);}
+	return call_user_func_array('rb',$buff);
 }
 
 function mpde($string) { 
@@ -477,7 +477,6 @@ function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
 	if($find && ($fnd = mpdbf($tn, $find, 1)) &&
 		($sel = qn($sql = "SELECT `id` FROM `". mpquot($tn). "` WHERE ". $fnd))
 	){
-		if($log) mpre($sql);
 		if((count($sel) == 1) && ($s = array_shift($sel))){
 			if($update && ($upd = mpdbf($tn, $update)))
 				qw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE `id`=". (int)$s['id']);
@@ -770,9 +769,10 @@ function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'ima
 	if($data = file_get_contents($href)){
 		if (($ext = '.'. preg_replace("/[\W]+.*/", '', preg_replace("/.*?\./", '', $href))) && (array_search($ext, $exts) || isset($exts['*']))){
 			$f = "{$tn}_{$fn}_". (int)($img_id = mpfdk($tn, $w = array("id"=>$id), $w += array("time"=>time()), $w)). $ext;
-			if(($ufn = mpopendir('include/images')) && file_put_contents("$ufn/$f", $data) /*&& copy($file['tmp_name'], "$ufn/$f")*/){
-				mpqw($sql = "UPDATE {$tn} SET `". mpquot($fn). "`=\"". mpquot($return = "images/$f"). "\" WHERE id=". (int)$img_id);
+			if(($ufn = mpopendir('include/images')) && file_put_contents("$ufn/$f", $data)){
+//				mpqw($sql = "UPDATE {$tn} SET `". mpquot($fn). "`=\"". mpquot("images/$f"). "\" WHERE id=". (int)$img_id);
 				chown("$ufn/$f", "www-data");
+				fk($tn, array("id"=>$img_id), null, array($fn=>"images/$f"));
 				mpevent("Загрузка внешнего файла", $href, (!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0), func_get_args());
 			}else{
 				if($img_id != $id){
@@ -782,12 +782,12 @@ function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'ima
 		}else{
 			echo $ext;
 			mpevent("Ошибка расширения при загрузке удаленного файла", $href, $conf['user']['uid'], func_get_args());
-			return 0;
+			return null;
 		}
-	}elseif(empty($file)){
-		echo "file href error {$error}";
+	}else{
 		mpevent("Ошибка загрузки внешнего файла", $href, $conf['user']['uid'], func_get_args());
-	} unlink($file['tmp_name']); return null;
+		echo "file href error {$error}";
+	} return null;
 }
 function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf;
@@ -840,14 +840,14 @@ function mpdbf($tn, $post = null, $and = false){
 			}else/* if(gettype($v) == "string")*/{
 				if($v == "NULL"){
 					$f[] = ($and ? "`$k` IS NULL" : "`$k`={$v}");
-				}elseif(is_numeric($v)){
+				}elseif(is_int($v)){
 					$f[] = "`$k`=". $v;
 				}else{
 					$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
 				}
 			}
 		}
-	} return implode(($and ? " AND " : ', '), (array)$f);
+	} /*mpre($post, implode(($and ? " AND " : ', '), (array)$f));*/ return implode(($and ? " AND " : ', '), (array)$f);
 }
 function mpager($count, $null=null, $cur=null, $url=null){
 	global $conf;
@@ -874,12 +874,13 @@ function mpager($count, $null=null, $cur=null, $url=null){
 	$mpager['next'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". min($max-1, $cur+1)) : '');
 	$mpager['last'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($count-1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". ($count-1)) : '');
 	$return .= "</div>";
-	if($fn = mpopendir("themes/{$conf['settings']['theme']}/mpager.tpl")){
+	if(($fn = mpopendir("themes/{$conf['settings']['theme']}/mpager.tpl")) || ($fn = mpopendir("themes/zhiraf/mpager.tpl"))){
 		ob_start();
 		include($fn);
 		$return = ob_get_contents();
 		ob_end_clean();
-	} return $return;
+		return $return;
+	}else{ return $return; }
 }
 function mphash($user, $pass){
 	return md5("$user:".md5($pass));
@@ -1020,8 +1021,11 @@ function mpqw($sql, $info = null, $conn = null){
 	$mt = microtime(true);
 //	pre($sql);
 	$stm = $conf['db']['conn']->prepare($sql);
-	$return = $stm->execute();
-	if(!empty($conf['settings']['analizsql_log'])){
+	try{
+		$return = $stm->execute();
+	}catch(Exception $e){
+		mpre($sql, $e->getMessage());
+	} if(!empty($conf['settings']['analizsql_log'])){
 		$conf['db']['sql'][] = $q = array(
 			'info' => $info ? $info : $conf['db']['info'],
 			'time' => microtime(true)-$mt,
@@ -1248,10 +1252,10 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 		header('Cache-Control: public,max-age=28800');
 		$width = imagesx($src);
 		$height = imagesy($src);
-		if(empty($max_width) || empty($max_height) || (($width <= $max_width) && ($height <= $max_height))){
+		if(!array_key_exists('water', $_GET) && (empty($max_width) || empty($max_height) || (($width <= $max_width) && ($height <= $max_height)))){
 			$content = file_get_contents($file_name);
 		}else{
-			if ($crop){
+			if($crop){
 				$cdst = array($max_width, $max_height);
 				$max = max($max_width/$width, $max_height/$height);
 				$irs = array(4=>($width-$max_width/$max)/2, ($height-$max_height/$max)/2, $max_width, $max_height, ($max_width/$max), ($max_height/$max),);
@@ -1276,10 +1280,10 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 			imagesavealpha($dst, true);
 			imagecopyresampled($dst, $src, 0, 0, $irs[4], $irs[5], $irs[6], $irs[7], $irs[8], $irs[9]);
 			if (
-				!array_key_exists('nologo', $_GET) &&
+				!array_key_exists('nowater', $_GET) &&
 				!empty($conf['settings']['theme_logo']) &&
-				(imagesx($dst) > 250) &&
-				(imagesy($dst) > 150) &&
+				(imagesx($dst) >= 200) &&
+				(imagesy($dst) >= 200) &&
 				!isset($_GET['m']['themes']) &&
 				($lg = explode(':', $conf['settings']['theme_logo'])) &&
 				($f = mpopendir("themes/{$conf['settings']['theme']}/". array_shift($lg))) &&
@@ -1321,6 +1325,7 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 		return ImageJpeg($src);
 	}
 }
+
 if(!function_exists("array_column")){
 	function array_column(array $input, $columnKey, $indexKey = null) {
 		$result = array();

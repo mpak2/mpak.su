@@ -1,3 +1,4 @@
+<h1>Моя структура</h1>
 <script src="/include/jquery/treeview/jquery.treeview.js" type="text/javascript"></script>
 <script src="/include/jquery/treeview/jquery.cookie.js" type="text/javascript"></script>
 <link rel="stylesheet" href="/include/jquery/treeview/jquery.treeview.css" />

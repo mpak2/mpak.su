@@ -84,10 +84,10 @@ if ($_REQUEST['search_block_num'] || empty($_GET['tabs_id'])){
 					if (isset($tpl['param'][$k][$t])){
 						$lstring .= ' '. ($t == "time" ? "<b>". date("d.m.Y", $f). "</b>" : strip_tags($f));
 					}
-				}// mpre($zamena);
+				}
 				foreach($regs[1] as $t=>$f){
 					$zamena['{'.$f.'}'] = str_replace("%", "%25", $r[$f]);
-				}// mpre($zamena);
+				}
 				if($tpl['search']['name']){
 					if(($pos = mb_strpos($lstring, $tpl['search']['name']))){
 						$lstring = mb_substr($lstring, max($pos-150, 0), 300, 'utf-8');

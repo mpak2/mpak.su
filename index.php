@@ -37,10 +37,14 @@ require_once("include/config.php"); # Конфигурация
 mp_require_once("include/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
 
-$conf['db']['conn'] = new PDO("{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC));
-if($conf['db']['type'] == "mysql"){
-	$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
-} $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI'], $_GET);
+try{
+	$conf['db']['conn'] = new PDO("{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC));
+	if($conf['db']['type'] == "mysql"){
+		$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
+	} $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI'], $_GET);
+}catch(Exception $e){
+	pre($e->message);
+}
 
 if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(qn("SHOW TABLES"))){
 	exit(mpopendir('include/install.php') ? mpct('include/install.php') : "Файл установки не найден");
@@ -138,14 +142,14 @@ foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE enabled=2"
 $conf['settings']['modpath'] = $conf['modules'][ array_shift(array_keys($_GET['m'])) ]['folder'];
 $conf['settings']['fn'] = array_shift(array_values($_GET['m'])) ? array_shift(array_values($_GET['m'])) : "index";
 
-if ($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страница
-	if(strpos($conf['settings']['start_mod'], 'array://') === 0){
-		$_GET = unserialize(substr($conf['settings']['start_mod'], 8));
-	}else if(strpos($conf['settings']['start_mod'], "http://") === 0){
+if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страница
+	if(strpos($conf['settings']['start_mod'], "http://") === 0){
 		header("Location: {$conf['settings']['start_mod']}"); exit;
+	}elseif($redirect = erb("{$conf['db']['prefix']}seo_redirect", "from", "[/]")){
+		$_REQUEST += $_GET = mpgt($_SERVER['REQUEST_URI'] = ($conf['settings']['canonical'] = $redirect['to']));
 	}else{
-		$_GET = mpgt($_SERVER['REQUEST_URI'] = $conf['settings']['start_mod']);
-	}
+		$_REQUEST += $_GET = mpgt($_SERVER['REQUEST_URI'] = ($conf['settings']['canonical'] = $conf['settings']['start_mod']));
+	} $_SERVER['SCRIPT_URL'] = "/";
 }elseif(!array_key_exists("null", $_GET) && $conf['modules']['seo']){
 	if($_GET['p']){
 		$r = strtr($_SERVER['REQUEST_URI'], array("?p={$_GET['p']}"=>"", "&p={$_GET['p']}"=>"", "/p:{$_GET['p']}"=>""));
@@ -162,8 +166,9 @@ if ($conf['settings']['start_mod'] && !$_GET['m']){ # Главная стран�
 		if(strpos($redirect['to'], "http://") === 0){
 			exit(header("Location: {$redirect['to']}"));
 		}else{
-			$_REQUEST = ($_GET = mpgt($redirect['to'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"))+$_REQUEST);
-			$conf['settings']['canonical'] = $redirect['to'];
+			$conf['settings']['description'] = $redirect['description'] ?: $conf['settings']['description'];
+			$conf['settings']['keywords'] = $redirect['keywords'] ?: $conf['settings']['keywords'];
+			$_REQUEST = ($_GET = mpgt($conf['settings']['canonical'] = $redirect['to'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"))+$_REQUEST);
 		}
 	}elseif($conf['settings']['start_mod'] == $_SERVER['REQUEST_URI']){ # Заглавная страница
 		$conf['settings']['canonical'] = "/";
