@@ -35,9 +35,9 @@ a:active
 {
 	color:#008ee9;
 }
-p
-{
+p {
 	line-height:16px;
+	margin:5px 5px;
 }
 .adpager{
 	margin:10px;

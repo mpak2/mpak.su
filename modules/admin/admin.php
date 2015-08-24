@@ -38,7 +38,7 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 	}// mpre($tpl['menu']);
 	if(empty($_GET['r'])){
 		if($table = array_shift($tables = $tpl['tables'])){
-			exit(header("Location:/{$arg['modname']}:admin/r:{$table}"));
+			exit(header("Location:/{$arg['modpath']}:admin/r:{$table}"));
 		}
 	}elseif(array_search($_GET['r'], $tpl['tables']) !== false){
 		$tpl['fields'] = qn("SHOW FULL COLUMNS FROM {$_GET['r']}", "Field");
@@ -52,7 +52,7 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 		);
 		if($_GET['edit']){
 			$tpl['edit'] = rb($_GET['r'], "id", $_GET['edit']);
-		}elseif($settings = $conf['settings']["{$arg['modname']}=>ecounter"]){
+		}elseif($settings = $conf['settings']["{$arg['modpath']}=>ecounter"]){
 			foreach(explode(",", $settings) as $ecounter){
 				if($fields = qn("SHOW FULL COLUMNS FROM {$conf['db']['prefix']}{$ecounter}", "Field")){
 					if(array_key_exists(substr($_GET['r'], strlen($conf['db']['prefix'])), $fields) || ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}")){
@@ -63,8 +63,8 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 				}else{ mpre("Не удалось получить список полей таблицы {$conf['db']['prefix']}{$ecounter}"); }
 			}
 		}
-		if($conf['settings']["{$arg['modname']}=>espisok"]){
-			foreach(explode(",", $conf['settings']["{$arg['modname']}=>espisok"]) as $espisok){
+		if($conf['settings']["{$arg['modpath']}=>espisok"]){
+			foreach(explode(",", $conf['settings']["{$arg['modpath']}=>espisok"]) as $espisok){
 				$tpl['espisok'][$espisok] = rb("{$conf['db']['prefix']}{$espisok}", "id");
 			}
 		}

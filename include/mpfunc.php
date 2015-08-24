@@ -15,7 +15,7 @@ if (!function_exists('mcont')){
 			if ( ((strpos($v, 'admin') === 0) ? $conf['modules'][$k]['access'] >= 4 : $conf['modules'][$k]['access'] >= 1) ){
 				$conf['db']['info'] = "Модуль '". ($name = $mod['name']). "'";
 
-				if(preg_match("/[a-z]/", $v)){ $g = "/*{$v}.*php"; }else{ $g = "/*.{$v}.php"; }// pre($g);
+				if(preg_match("/[a-z]/", $v)){ $g = "/{$v}.*.php"; }else{ $g = "/*.{$v}.php"; }// pre($g);
 				if(($glob = glob($gb = (mpopendir("modules/{$mod['link']}"). $g)))
 					|| ($glob = glob($gb = ("modules/{$mod['link']}". $g)))){
 					$glob = basename(array_pop($glob));
@@ -785,7 +785,7 @@ function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.p
 function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf;
 	if($data = file_get_contents($href)){
-		if (($ext = '.'. preg_replace("/[\W]+.*/", '', preg_replace("/.*?\./", '', $href))) && (array_search($ext, $exts) || isset($exts['*']))){
+		if (($ext = '.'. preg_replace("/[\W]+.*/", '', preg_replace("/.*?\./", '', $href))) && (array_search(strtolower($ext), $exts) || isset($exts['*']))){
 			$f = "{$tn}_{$fn}_". (int)($img_id = mpfdk($tn, $w = array("id"=>$id), $w += array("time"=>time()), $w)). $ext;
 			if(($ufn = mpopendir('include/images')) && file_put_contents("$ufn/$f", $data)){
 //				mpqw($sql = "UPDATE {$tn} SET `". mpquot($fn). "`=\"". mpquot("images/$f"). "\" WHERE id=". (int)$img_id);

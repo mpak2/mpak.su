@@ -12,6 +12,7 @@
 
 ini_set('display_errors', 1); error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT);
 header('Content-Type: text/html;charset=UTF-8');
+date_default_timezone_set('Europe/Moscow');
 
 if(strpos($f = __FILE__, "phar://") === 0){ # Фал index.php внутри phar архива
 	$conf["db"]["open_basedir"] = implode("/", array_slice(explode("/", dirname(dirname($f))), 2)). ":". dirname($f);
