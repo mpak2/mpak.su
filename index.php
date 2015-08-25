@@ -36,6 +36,10 @@ if(strpos($f = __FILE__, "phar://") === 0){ # Фал index.php внутри phar
 require_once("include/config.php"); # Конфигурация
 mp_require_once("include/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
+#Автоподгрузка классов
+function __autoload($class_name) {
+	include_once mpopendir("/include/class/$class_name.php");	
+}
 
 try{
 	$conf['db']['conn'] = new PDO("{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC));
