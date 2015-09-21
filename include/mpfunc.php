@@ -76,7 +76,7 @@ if (!function_exists('mcont')){
 
 if (!function_exists('bcont')){
 	function bcont($bid = null){# Загружаем список блоков и прав доступа
-		global $theme, $conf;
+		global $theme, $conf, $arg;
 		$conf['db']['info'] = "Выборка шаблонов блоков";
 		$shablon = spisok("SELECT id, shablon FROM {$conf['db']['prefix']}blocks_shablon");
 		$blocks = qn("SELECT * FROM {$conf['db']['prefix']}blocks WHERE enabled=1". ($bid ? " AND id=". (int)$bid : " ORDER BY orderby"));
@@ -135,8 +135,8 @@ if (!function_exists('bcont')){
 			if(($conf['settings']['theme'] == $v['theme']) || ((substr($v['theme'], 0, 1) == "!") && ($conf['settings']['theme'] != substr($v['theme'], 1)))){
 				$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
 				$mod = $conf['modules'][ $modpath = basename(dirname(dirname($v['file']))) ];
-				$modname = $mod['modname'];
-				if ($conf['blocks']['info'][ $v['id'] ]['access'] && strlen($cb = mpeval("modules/{$v['file']}", $arg = array('blocknum'=>$v['id'], 'modpath'=>$modpath, 'modname'=>$modname, 'fn'=>basename(array_shift(explode('.', $v['file']))), 'uid'=>$uid, 'access'=>$conf['blocks']['info'][ $v['id'] ]['access']) ))){
+				$arg = array('blocknum'=>$v['id'], 'modpath'=>$mod['folder'], 'modname'=>$mod['modname'], 'fn'=>basename(array_shift(explode('.', $v['file']))), 'uid'=>$uid, 'access'=>$conf['blocks']['info'][ $v['id'] ]['access']);
+				if ($conf['blocks']['info'][ $v['id'] ]['access'] && strlen($cb = mpeval("modules/{$v['file']}", $arg))){
 					if($bid){ $result = $cb; }else{
 						if (!is_numeric($v['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($v['shablon'] ? $v['shablon'] : "block.html")))){
 							$shablon[ $v['shablon'] ] = file_get_contents($file_name);
@@ -380,7 +380,7 @@ function rb($src, $key = 'id'){
 #	erb('table',........ПАРАМЕТРЫ ВЫБОКИ..........);
 #####################################################################################
 function erb($src, $key = 'id'){
-	
+	global $arg;
 	$purpose = $keys = $return = array();
 	$ArrayPositions = array(array(1,2),array(2,3));
 	$func_get_args = func_get_args();
@@ -511,7 +511,9 @@ function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
 	}
 } function fdk($tn, $find, $insert = array(), $update = array(), $log = false){
 	if($index_id = mpfdk($tn, $find, $insert, $update, $log)){
-		return ql("SELECT * FROM `$tn` WHERE id=". (int)$index_id, 0);
+		if($line = ql("SELECT * FROM `$tn` WHERE id=". (int)$index_id, 0)){
+			return $line;
+		}else{ return false; }
 	}
 } function fk($t, $find, $insert = array(), $update = array(), $key = false, $log = false){
 	global $conf, $arg;
@@ -658,6 +660,8 @@ function mpsettings($name, $value = null){
 		} return $value;
 	} return !empty($name) && !empty($conf['settings'][$name]) ? $conf['settings'][$name] : null;
 }
+
+# Разбор адресной строки на параметры для использования в $_GET массиве
 function mpgt($REQUEST_URI, $get = array()){
 	$part = explode('//', str_replace("/null/", "//", array_shift(explode('?', $REQUEST_URI))), 2);// mpre($part); exit;
 	if(!empty($part[1])){
@@ -676,7 +680,7 @@ function mpgt($REQUEST_URI, $get = array()){
 		foreach($tpl = explode('/', $part[2]) as $k=>$v){
 			if($param = explode(':', $v, 2)){
 				if(!empty($param[0]) && !is_numeric($param[0])){
-					$get = array(@urldecode($param[0])=>@urldecode($param[1])) + $get;
+					$get = $get + array(@urldecode($param[0])=>@urldecode($param[1]));
 				}elseif(is_numeric($param[0])){
 					$get += array('id'=>$param[0]); # Первый вариант верный
 //					$get = array('id'=>$param[0]) + $get; # Каждый последующий имеет приоритет
@@ -780,7 +784,7 @@ function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.p
 	}elseif(empty($file)){
 		echo "file error {$file['error']}";
 		mpevent("Ошибка загрузки файла", $_SERVER['REQUEST_URI'], $conf['user']['uid'], $file);
-	} return null;
+	} mpre($file); return null;
 }
 function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf;
@@ -789,7 +793,7 @@ function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'ima
 			$f = "{$tn}_{$fn}_". (int)($img_id = mpfdk($tn, $w = array("id"=>$id), $w += array("time"=>time()), $w)). $ext;
 			if(($ufn = mpopendir('include/images')) && file_put_contents("$ufn/$f", $data)){
 //				mpqw($sql = "UPDATE {$tn} SET `". mpquot($fn). "`=\"". mpquot("images/$f"). "\" WHERE id=". (int)$img_id);
-				chown("$ufn/$f", "www-data");
+//				chmod(0777, "$ufn/$f"); chown("www-data", "$ufn/$f");
 				fk($tn, array("id"=>$img_id), null, array($fn=>"images/$f"));
 				mpevent("Загрузка внешнего файла", $href, (!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0), func_get_args());
 			}else{
@@ -1187,7 +1191,10 @@ function pre(){
 }
 function mpre(){
 	global $conf, $arg, $argv;
-	if(empty($argv) && ($arg['access'] < $access)) return;
+	if(!array_search("Администратор", $conf['user']['gid'])){
+		return;
+	}
+//	if(empty($argv) && ($arg['access'] < $access)) return;
 	return call_user_func_array('pre', func_get_args());
 }
 function mpqwt($result){

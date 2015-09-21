@@ -140,9 +140,6 @@ foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE enabled=2"
 	$conf['modules'][ $v['id'] ] = &$conf['modules'][ $v['folder'] ];
 }
 
-$conf['settings']['modpath'] = $conf['modules'][ array_shift(array_keys($_GET['m'])) ]['folder'];
-$conf['settings']['fn'] = array_shift(array_values($_GET['m'])) ? array_shift(array_values($_GET['m'])) : "index";
-
 if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страница
 	if(strpos($conf['settings']['start_mod'], "http://") === 0){
 		header("Location: {$conf['settings']['start_mod']}"); exit;
@@ -156,12 +153,12 @@ if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страни
 		$r = strtr($_SERVER['REQUEST_URI'], array("?p={$_GET['p']}"=>"", "&p={$_GET['p']}"=>"", "/p:{$_GET['p']}"=>""));
 	}else{ $r = urldecode(preg_replace("#([\#\?].*)?$#",'',$_SERVER['REQUEST_URI'])); }	
 
-	foreach(erb("{$conf['db']['prefix']}seo_redirect") as $rule){
+	foreach(rb("{$conf['db']['prefix']}seo_redirect") as $rule){
 		if(preg_match("#^{$rule['from']}$#iu",$r)){
-			$redirect = $rule; break;
+			$redirect = $rule;
 		}
 	}
-	
+
 	if(isset($redirect)){
 		$redirect['to'] = preg_replace("#^{$redirect['from']}$#iu",$redirect['to'],$r);
 		if(strpos($redirect['to'], "http://") === 0){
@@ -173,12 +170,22 @@ if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страни
 		}
 	}elseif($conf['settings']['start_mod'] == $_SERVER['REQUEST_URI']){ # Заглавная страница
 		$conf['settings']['canonical'] = "/";
-	}elseif(empty($conf['settings']['modpath'])){
+	}elseif(!$conf['modules'][ array_shift(array_keys($_GET['m'])) ]['folder']){
 		exit(header("Location: /themes:404{$_SERVER['REQUEST_URI']}"));
 	}else{ # Ссылка на основную страницу
 		$conf['settings']['canonical'] = $_SERVER['REQUEST_URI'];
 	}
+
+	if($redirect = erb("{$conf['db']['prefix']}seo_redirect", "to", "[{$_SERVER['REQUEST_URI']}]")){
+		if($redirect['hide']){
+			header('HTTP/1.1 301 Moved Permanently');
+			exit(header("Location: {$redirect['from']}"));
+		}
+	}
 }
+
+$conf['settings']['modpath'] = $conf['modules'][ array_shift(array_keys($_GET['m'])) ]['folder'];
+$conf['settings']['fn'] = array_shift(array_values($_GET['m'])) ? array_shift(array_values($_GET['m'])) : "index";
 
 if(isset($_GET['theme']) && $_GET['theme'] != $conf['user']['sess']['theme']){
 	$conf['user']['sess']['theme'] = $conf['settings']['theme'] = basename($_GET['theme']);
@@ -186,13 +193,15 @@ if(isset($_GET['theme']) && $_GET['theme'] != $conf['user']['sess']['theme']){
 	$conf['settings']['theme'] = $conf['user']['sess']['theme'];
 }
 
-//$m = array_shift(array_keys($_GET['m']));
-//$f = array_shift(array_values($_GET['m']));
-
-if (empty($f)) $f = 'index';
-if (!empty($conf['settings']["theme/*:{$conf['settings']['fn']}"])) $conf['settings']['theme'] = $conf['settings']["theme/*:{$conf['settings']['fn']}"];
-if (!empty($conf['settings']["theme/{$conf['settings']['modpath']}:*"])) $conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:*"];
-if (!empty($conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"])) $conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"];
+if(empty($f)){
+	$f = 'index';
+} if(!empty($conf['settings']["theme/*:{$conf['settings']['fn']}"])){
+	$conf['settings']['theme'] = $conf['settings']["theme/*:{$conf['settings']['fn']}"];
+} if(!empty($conf['settings']["theme/{$conf['settings']['modpath']}:*"])){
+	$conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:*"];
+} if(!empty($conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"])){
+	$conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"];
+}
 
 $content = ((mpopendir($init = "include/init.php")) ? mpct($init, $arg = array("access"=>(array_search($conf['settings']['admin_grp'], $conf['user']['gid']) ? 5 : 1))) : ""); # Установка предварительных переменных
 

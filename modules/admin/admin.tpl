@@ -78,6 +78,22 @@
 							}
 						})
 					}
+				}).on("click", "a.inc", function(e){
+					var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
+					$.post("/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null", {inc:line_id}, function(request){
+						if(isNaN(request)){ alert(request) }else{
+							console.log("request:", request);
+							document.location.reload(true);
+						}
+					})
+				}).on("click", "a.dec", function(e){
+					var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
+					$.post("/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null", {dec:line_id}, function(request){
+						if(isNaN(request)){ alert(request) }else{
+							console.log("request:", request);
+							document.location.reload(true);
+						}
+					})
 				})
 			})(jQuery, document.scripts[document.scripts.length-1])
 		</script>
@@ -111,12 +127,21 @@
 			<div class="table">
 				<div>
 					<? if($tpl['title'] && !array_key_exists("edit", $_GET)): ?>
-						<span style="width:80px; padding-left:20px;"><a href="/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?><?=($_GET['p'] ? "/p:{$_GET['p']}" : "")?>/edit"><button type="button">Добавить</button></a></span>
+						<span style="width:10%; padding-left:20px;">
+							<a href="/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?><?=($_GET['p'] ? "/p:{$_GET['p']}" : "")?>/edit">
+								<button type="button">Добавить</button>
+							</a>
+						</span>
 					<? endif; ?>
 					<? if(!$tpl['edit']): ?>
 						<span><?=$tpl['pager']?></span>
 					<? endif; ?>
-					<span style="width:100px; text-align:right; padding-right:20px;">
+					<span style="width:30%; padding-right:20px; text-align:right;">
+						<? foreach(mpreaddir("/modules/{$arg['modname']}/", true) as $_file): ?>
+							<? if((strpos($_file, "admin_") === 0) && (array_pop(explode(".", $_file)) == "tpl")): ?>
+								<a href="/<?=$arg['modname']?>:<?=($_short = array_shift(explode(".", $_file)))?>"><?=implode("_", (array_slice(explode("_", $_short), 1)))?></a>
+							<? endif; ?>
+						<? endforeach; ?>
 						<a href="/sqlanaliz:admin/r:1/tab:<?=$_GET['r']?>">
 							<?=($conf['settings'][ $t = implode("_", array_slice(explode("_", $_GET['r']), 1)) ] ?: $t)?>
 						</a>
@@ -146,8 +171,10 @@
 							<span>
 								<? if($field['Field'] == "id"): ?>
 									<?=($tpl['edit']['id'] ?: "Номер записи назначаеся ситемой")?>
-								<? elseif($field['Field'] == "img"): ?>
-									<input type="file" name="img">
+								<? elseif(array_search($field['Field'], array(1=>"img", "img2"))): ?>
+									<input type="file" name="<?=$field['Field']?>">
+								<? elseif($field['Field'] == "file"): ?>
+									<input type="file" name="file">
 								<? elseif($field['Field'] == "hide"): ?>
 									<select name="hide">
 										<? foreach($tpl['spisok']['hide'] as $k=>$v): ?>
@@ -241,15 +268,19 @@
 												<a class="edit" href="/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?edit=<?=$v?><? foreach($_GET['where'] as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=($_GET['p'] ? "&p={$_GET['p']}" : "")?>"></a>
 												<a href="/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?where[id]=<?=$v?>"><?=$v?></a>
 											</span>
-										<? elseif($k == "img"): ?>
+										<? elseif(array_search($k, array(1=>"img", "img2"))): ?>
+											<a target="blank" href="/<?=$arg['modname']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?>/w:800/h:600/null/img.png" title="<?=$v?>">
+												<img src="/<?=$arg['modname']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?>/w:65/h:65/null/img.png" style="border:1px solid #aaa; padding:2px;">
+											</a>
+										<? elseif($k == "file"): ?>
 											<a target="blank" href="/<?=$arg['modname']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:img/w:800/h:600/null/img.png" title="<?=$v?>">
-												<img src="/<?=$arg['modname']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:img/w:65/h:65/null/img.png" style="border:1px solid #aaa; padding:2px;">
+												<?=$v?>
 											</a>
 										<? elseif($k == "sort"): ?>
 											<div style="white-space:nowrap;">
 												<a class="inc" href="javascript:void(0);" style="background:url(i/mgif.gif); background-position:-18px -90px; width: 10px; height: 14px; display:inline-block;"></a>
 												<?=$v?>
-												<a class="inc" href="javascript:void(0);" style="background:url(i/mgif.gif); background-position:0 -90px; width: 10px; height: 14px; display:inline-block;"></a>
+												<a class="dec" href="javascript:void(0);" style="background:url(i/mgif.gif); background-position:0 -90px; width: 10px; height: 14px; display:inline-block;"></a>
 											</div>
 										<? elseif($k == "hide"): ?>
 											<?=$tpl['spisok']['hide'][$v]?>
@@ -278,7 +309,7 @@
 													<span style="color:red;"><?=$v?></span>
 												<? endif; ?>
 										<? elseif($tpl['espisok'][$k]): ?>
-											<a class="ekey" href="/invest:admin/r:<?=$conf['db']['prefix']?><?=$k?>?where[id]=<?=$v?>" title="<?=$v?>"></a>
+											<a class="ekey" href="/<?=array_shift(explode("_", $k))?>:admin/r:<?=$conf['db']['prefix']?><?=$k?>?where[id]=<?=$v?>" title="<?=$v?>"></a>
 											<?=(strlen($tpl['espisok'][$k][$v]['name']) > 16 ? mb_substr($tpl['espisok'][$k][$v]['name'], 0, 16, "UTF-8"). "..." : $tpl['espisok'][$k][$v]['name'])?>
 										<? elseif($k == "name"): ?>
 											<a href="/<?=$arg['modname']?><?=(($substr = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))) == "index" ? "" : ":{$substr}")?>/<?=$lines['id']?>"><?=$v?></a>
@@ -300,6 +331,8 @@
 										<button type="submit"><?=(array_key_exists("edit", $_GET) ? "Редактировать" : "Добавить")?></button>
 									<? elseif($fiel == "img"): ?>
 										<input type="file" name="img">
+									<? elseif($fiel == "file"): ?>
+										<input type="file" name="file">
 									<? elseif($fiel == "hide"): ?>
 										<select name="hide">
 											<? foreach($tpl['spisok']['hide'] as $k=>$v): ?>

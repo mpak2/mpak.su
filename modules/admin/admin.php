@@ -1,8 +1,19 @@
 <?
 
 if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляющие данные
+//	exit(mpre($_POST));
 	if($_GET['id'] && !$_POST['id'] && array_key_exists("id", $_POST)){ # Удаление элемента
 		exit(qw("DELETE FROM {$_GET['r']} WHERE id=". (int)$_GET['id']));
+	}elseif(array_key_exists("inc", $_POST) && ($inc = rb($_GET['r'], "id", $_POST['inc']))){ # Правка записи и добавление новой
+		if($dec = ql("SELECT * FROM {$_GET['r']} WHERE sort<". (int)$inc['sort']. " ORDER BY sort DESC LIMIT 1", 0)){
+			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
+			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
+		} exit($inc['id']);
+	}elseif(array_key_exists("dec", $_POST) && ($dec = rb($_GET['r'], "id", $_POST['dec']))){ # Правка записи и добавление новой
+		if($inc = ql("SELECT * FROM {$_GET['r']} WHERE sort>". (int)$dec['sort']. " ORDER BY sort LIMIT 1", 0)){
+			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
+			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
+		} exit($dec['id']);
 	}else{ # Правка записи и добавление новой
 		foreach($_POST as $field=>$post){
 			if(array_search($field, array(1=>"time", "last_time", "reg_time", "up"))){
@@ -21,11 +32,23 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 			$_GET['id'] = $conf['db']['conn']->lastInsertId();
 		} $el = fk($_GET['r'], array("id"=>$_GET['id']));
 
-		if($_FILES['img']){ # POST содержащий  файл
-			$file_id = mpfid($_GET['r'], "img", $el['id']);
-		}elseif($_POST[$f = 'img']){ # Адрес внешнего изображения
-			$file_id = mphid($class, $f, $el['id'], $_POST['img']);
-		} if(array_key_exists("sort", $el) && !$el['sort']){ # Если у нас есть поле сортировки и оно пустое, то назначаем его равным id
+		foreach(array(
+			"img"=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp'),
+			"img2"=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp'),
+			"file"=>array("*"=>"*")
+		) as $f=>$ext){
+			if(($file = $_FILES[$f]) && $file['name']){ # POST содержащий  файл
+				if($file_id = mpfid($_GET['r'], $f, $el['id'], null, $ext)){
+					# Файл загружен
+				}else{
+					exit("Ошибка загрузки файла {$file['name']}");
+				}
+			}elseif($_POST[$f]){ # Адрес внешнего изображения
+				$file_id = mphid($class, $f, $el['id'], $_POST[$f], $ext);
+			}
+		}
+		
+		if(array_key_exists("sort", $el) && !$el['sort']){ # Если у нас есть поле сортировки и оно пустое, то назначаем его равным id
 			$el = fk($_GET['r'], array("id"=>$el['id']), null, array("sort"=>$el['id']));
 		} exit(htmlspecialchars(json_encode($el)));
 	}

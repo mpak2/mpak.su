@@ -17,15 +17,20 @@ EOF;*/
 
 //$dat = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']} LIMIT 10")); //$dat
 
-$get = mpgt($_SERVER['REQUEST_URI'], $_GET);
+if($themes_index = $conf['user']['sess']['themes_index']){
+	if($seo_redirect = rb("{$conf['db']['prefix']}seo_redirect", "from", "[{$_SERVER['REQUEST_URI']}]")){
+		$get = mpgt($seo_redirect['to']/*, $_GET*/);
+	}else{ $get = mpgt($_SERVER['REQUEST_URI']/*, $_GET*/); }
 
-$uri = "/"; $m = array();
-foreach($get['m']+array('sqlanaliz'=>'admin') as $k=>$v){
-	$m[] = "m[$k]". ($v ? "=$v" : "");
-} $uri .= "?". implode("&", $m);
-foreach(array_diff_key($get, array('m'=>'')) as $k=>$v){
-	$uri .= "&$k=$v";
-}// echo $uri;
+	$uri = "/"; $m = array();
+	foreach($get['m']+array('sqlanaliz'=>'admin') as $k=>$v){
+		$m[] = "m[$k]". ($v ? "=$v" : "");
+	} $uri .= "?". implode("&", $m);
+	mpre($get);
+	foreach(array_diff_key($get, array('m'=>'')) as $k=>$v){
+		$uri .= "&$k=$v";
+	}// echo $uri;
+}else{ mpre("Имя сайта не определено"); }
 
 ?>
 <div style="white-space:nowrap;">
