@@ -1,15 +1,9 @@
 <? die;
 
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_redirect` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `time` int(11) NOT NULL,
-  `uid` int(11) NOT NULL,
-  `from` varchar(255) NOT NULL,
-  `to` varchar(255) NOT NULL,
-  `description` varchar(255) NOT NULL,
-  `keywords` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
-mpqw($sql);
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_redirect` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `hide` smallint(6) NOT NULL DEFAULT '1' COMMENT 'Влияет на 301 перенаправление', `redirect_type_id` int(11) NOT NULL COMMENT 'Тип страницы', `redirect_status_id` int(11) NOT NULL COMMENT 'Статус страницы', `sort` int(11) NOT NULL, `priority` float NOT NULL DEFAULT '0.8' COMMENT 'Приоритет страницы в файле sitemap', `themes_index` int(11) NOT NULL, `from` varchar(255) NOT NULL, `to` varchar(255) NOT NULL, `title` varchar(255) NOT NULL COMMENT 'Заголовок сайта', `description` varchar(255) NOT NULL COMMENT 'Описание сайта', `keywords` varchar(255) NOT NULL COMMENT 'Ключевые слова', PRIMARY KEY (`id`), UNIQUE KEY `themes_index` (`themes_index`,`to`), KEY `sort` (`sort`), KEY `redirect_status_id` (`redirect_status_id`), KEY `redirect_type_id` (`redirect_type_id`) ) ENGINE=MyISAM DEFAULT CHARSET=cp1251"; mpqw($sql);
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_redirect_status` ( `id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `description` text NOT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251"; mpqw($sql);
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_redirect_type` ( `id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `description` text NOT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251"; mpqw($sql);
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_redirect', 'Перенаправления', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_redirect_status', 'Статус', '4', '')");
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_redirect_type', 'Тип', '4', '')");

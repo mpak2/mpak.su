@@ -37,9 +37,11 @@ if(strpos($f = __FILE__, "phar://") === 0){ # Фал index.php внутри phar
 require_once("include/config.php"); # Конфигурация
 mp_require_once("include/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
-#Автоподгрузка классов
-function __autoload($class_name) {
-	include_once mpopendir("/include/class/$class_name.php");	
+
+if(!function_exists('__autoload')){
+	function __autoload($class_name){#Автоподгрузка классов
+		include_once mpopendir("/include/class/$class_name.php");	
+	}
 }
 
 try{
@@ -54,25 +56,6 @@ try{
 if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(qn("SHOW TABLES"))){
 	exit(mpopendir('include/install.php') ? mpct('include/install.php') : "Файл установки не найден");
 }
-
-if(array_key_exists('themes', (array)$_GET['m']) && empty($_GET['m']['themes']) && array_key_exists('null', $_GET) && empty($_GET['w']) && empty($_GET['h'])){
-	if(empty($_GET['theme'])){
-		$_GET['theme'] = mpql(mpqw("SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"theme\""), 0, 'value');
-	} $ex = array('png'=>'image/png', 'jpg'=>'image/jpg', 'gif'=>'image/gif', 'otf'=>'font/opentype', 'css'=>'text/css', 'js'=>'text/javascript', 'swf'=>'application/x-shockwave-flash', 'ico' => 'image/x-icon', 'woff'=>'application/x-font-woff', 'svg'=>'image/svg+xml', 'tpl'=>'text/html', 'ogg'=>'application/ogg', 'mp3'=>'application/mp3', 'cur'=>'image/x-win-bitmap', 'rtf'=>'application/rtf');
-	$fn = "themes/{$_GET['theme']}/{$_GET['']}";
-	$ext = mb_strtoLower(preg_replace('#^.*\.(\w+)$#Uui','$1',$fn),'UTF-8'); //array_pop(explode('.', $fn));
-	header('Cache-Control: public,max-age=28800');
-	header("Expires: ".gmdate("D, d M Y H:i:s", time() + 3600)." GMT");
-	header("Content-type: ". ($ex[$ext] ? $ex[$ext] : "application/$ext"));
-	header('Last-Modified: '. date("r", filemtime(mpopendir($fn))));
-	if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= filemtime(mpopendir($fn)))){
-		header('HTTP/1.0 304 Not Modified');
-	}else if(preg_match('#jpg|jpeg|bmp|png#Uui',$ext)){
-		echo mprs(mpopendir($fn), $_GET['w'], $_GET['h'], $_GET['c']);
-	}else{
-		readfile(mpopendir($fn));
-	} exit();
- }
 
 $conf['db']['info'] = 'Загрузка свойств модулей';
 $conf['settings'] = array('http_host'=>$_SERVER['HTTP_HOST'])+array_column(rb("{$conf['db']['prefix']}settings"), "value", "name");
@@ -124,7 +107,6 @@ if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аут
 	mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess_post WHERE time < ".(time() - $conf['settings']['sess_time']), 'Удаление данных сессии');
 //	}
 }
-
 $user = mpql(mpqw("SELECT *, id AS uid, name AS uname FROM {$conf['db']['prefix']}users WHERE id={$sess['uid']}", 'Проверка пользователя'));
 list($k, $conf['user']) = each($user);
 if(($conf['settings']['users_uname'] = $conf['user']['uname']) == $conf['settings']['default_usr']){
@@ -143,15 +125,19 @@ foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE enabled=2"
 	$conf['modules'][ mb_strtolower($v['name']) ] = &$conf['modules'][ $v['folder'] ];
 	$conf['modules'][ $v['id'] ] = &$conf['modules'][ $v['folder'] ];
 }
-
 if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страница
 	if(strpos($conf['settings']['start_mod'], "http://") === 0){
 		header("Location: {$conf['settings']['start_mod']}"); exit;
-	}elseif($redirect = erb("{$conf['db']['prefix']}seo_redirect", "from", "[/]")){
-		$_REQUEST += $_GET = mpgt($_SERVER['REQUEST_URI'] = ($conf['settings']['canonical'] = $redirect['to']));
+	}elseif(($redirect = erb("{$conf['db']['prefix']}seo_redirect", "from", "[/]")) /*&& array_key_exists("themes_index", $redirect)*/){
+		if((!$redirect['themes_index'] && $redirect['redirect_type_id']) && ($redirect_type = rb("{$conf['db']['prefix']}seo_redirect_type", "id", $redirect['redirect_type_id']))){
+			$_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $redirect['to']));
+		}else{
+			$_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $conf['settings']['start_mod']));
+		}
 	}else{
-		$_REQUEST += $_GET = mpgt($_SERVER['REQUEST_URI'] = ($conf['settings']['canonical'] = $conf['settings']['start_mod']));
+		$_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $conf['settings']['start_mod']));
 	} $_SERVER['SCRIPT_URL'] = "/";
+//mpre($_SERVER['REQUEST_URI']);
 }elseif(!array_key_exists("null", $_GET) && $conf['modules']['seo']){
 	if($_GET['p']){
 		$r = strtr($_SERVER['REQUEST_URI'], array("?p={$_GET['p']}"=>"", "&p={$_GET['p']}"=>"", "/p:{$_GET['p']}"=>""));
@@ -167,7 +153,7 @@ if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страни
 		$redirect['to'] = preg_replace("#^{$redirect['from']}$#iu",$redirect['to'],$r);
 		if(strpos($redirect['to'], "http://") === 0){
 			exit(header("Location: {$redirect['to']}"));
-		}else{
+		}else if(!$redirect['redirect_type_id'] || ($redirect_type = rb("{$conf['db']['prefix']}seo_redirect_type", "id", $redirect['redirect_type_id']))){
 			$conf['settings']['description'] = $redirect['description'] ?: $conf['settings']['description'];
 			$conf['settings']['keywords'] = $redirect['keywords'] ?: $conf['settings']['keywords'];
 			$_REQUEST = ($_GET = mpgt($conf['settings']['canonical'] = $redirect['to'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"))+$_REQUEST);
@@ -181,9 +167,11 @@ if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страни
 	}
 
 	if($redirect = erb("{$conf['db']['prefix']}seo_redirect", "to", "[{$_SERVER['REQUEST_URI']}]")){
-		if($redirect['hide']){
-			header('HTTP/1.1 301 Moved Permanently');
-			exit(header("Location: {$redirect['from']}"));
+		if(!$redirect['themes_index']){
+			if($redirect['redirect_status_id'] && ($redirect_status = rb("{$conf['db']['prefix']}seo_redirect_status", "id", $redirect['redirect_status_id']))){
+				header("HTTP/1.1 {$redirect_status['name']} {$redirect_status['description']}");
+				exit(header("Location: {$redirect['from']}"));
+			}
 		}
 	}
 }

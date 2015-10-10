@@ -1,3 +1,5 @@
+div.table > div.th >span {background-color:#666; color:white; font-weight:bold; border:1px solid #aaa;}
+
 p {
 	margin:10px 0;
 }

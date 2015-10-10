@@ -403,19 +403,22 @@ h2
 	border-bottom:1px solid #dbdbdd;
 	padding:0 0 0 14px;
 }
-.ModulesList li a
+#left .ModulesList li > a
 {
 	color:#6b6b6b;
 	text-decoration:none;
 	padding:5px 0 5px 14px;
 	display:block;
 }
-	.ModulesList li.act a,
-	.ModulesList li.act a:hover
+#left .ModulesList li > div {
+	margin:10px 0 10px 10px;
+}
+	#left .ModulesList li.act a,
+	#left .ModulesList li.act a:hover
 	{
 		color:#fff;
 		background:#008ee9;
-		cursor:text;
+/*		cursor:text;*/
 	}
 	.ModulesList li a:hover
 	{

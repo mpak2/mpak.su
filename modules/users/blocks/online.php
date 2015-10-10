@@ -81,7 +81,10 @@ foreach($online as $k=>$v){
 $guest = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE name=\"". mpquot($conf['settings']['default_usr']). "\""), 0);
 
 ?>
-<div style="overflow:hidden;">
+<div class="online" style="overflow:hidden;">
+	<style>
+		.online a {padding:0 !important;}
+	</style>
 	<div style="clear:both;">на сайте <b><?=$count?></b> <?=mpfm($count, 'посетитель', 'посетителя', 'посетителей')?></div>
 	<? foreach($on as $os): ?>
 		<? foreach($os as $s=>$o): $v = array_shift(array_slice($o, 0, 1)); ?>
@@ -102,7 +105,7 @@ $guest = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE name=\"". m
 						<?// endif; ?>
 						<div style="position:absolute; top:1px; right:1px; opacity:0.8;"><img src="/<?=$arg['modname']?>:img/w:15/h:15/null/<?=$v['os']?>"></div>
 					<? endif; ?>
-					<img src="<?=$v['image']?>">
+					<img src="<?=$v['image']?>" style="z-index:-1; padding:1px;">
 				</a>
 			</div>
 		<? endforeach; ?>

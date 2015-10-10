@@ -1,5 +1,12 @@
 <?
 
+function seo($href){ # Функция определения seo вдреса страницы. Если адрес не определен в таблице seo_redirect то false
+	global $conf;
+	if($seo_redirect = rb("{$conf['db']['prefix']}seo_redirect", "to", "[{$href}]")){
+		return $seo_redirect['from'];
+	}else{ return false; }
+}
+
 if (!function_exists('mcont')){
 	function mcont($content){ # Загрузка содержимого модуля
 		global $conf, $arg, $tpl;
@@ -236,9 +243,9 @@ function in($ar, $flip = false){ # Формирует из массива стр
 	}, array_keys($ar)));
 }
 function aedit($href, $echo = true, $title = null){ # Установка на пользовательскую старницу ссылки в административные разделы. В качестве аргумента передается ссылка, выводится исходя из прав пользователя на сайте
-	global $arg;
+	global $arg, $conf;
 	$link = "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:999; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\" ><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px; width:10px; height:10px;'></a></span></div>";
-	if($arg['access'] > 3) {if((bool)$echo) echo $link; else return $link;}	
+	if(array_search("Администратор", $conf['user']['gid'])){if((bool)$echo) echo $link; else return $link;}	
 }
 
 
@@ -416,7 +423,7 @@ function erb($src, $key = 'id'){
 			$where = array_map(function($key, $val){
 				return "`{$key}`". (is_array($val) ? " IN (". in($val). ")" : "=". (int)$val);
 			}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
-			$src = qn($sql = "SELECT SQL_CALC_FOUND_ROWS * FROM {$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings'][substr($src, strlen($conf['db']['prefix'])). "=>order"]) ? " ORDER BY ". mpquot($order) : ""). " LIMIT ". (int)($_GET['p']*$key). ",". (int)$key,$IdName);
+			$src = qn($sql = "SELECT SQL_CALC_FOUND_ROWS * FROM `{$src}`". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings'][substr($src, strlen($conf['db']['prefix'])). "=>order"]) ? " ORDER BY ". mpquot($order) : ""). " LIMIT ". (int)($_GET['p']*$key). ",". (int)$key,$IdName);
 			$tpl['pager'] = mpager(ql("SELECT FOUND_ROWS()/". (int)$key. " AS cnt", 0, "cnt"));
 		}
 	}else if(is_string($src)){
@@ -480,7 +487,7 @@ function erb($src, $key = 'id'){
 	if(is_string($return)){array_push($buff,$return);}
 	return call_user_func_array('rb',$buff);
 }
-
+# Автоматическое определение кодировки строки и приведение ее в нужную форму.
 function mpde($string) { 
 	static $list = array('utf-8', 'windows-1251');
 	foreach ($list as $item) {
@@ -1233,25 +1240,8 @@ function mpquot($data){
 	$data = str_replace("\n", "\\n", $data); 
 	return $data;
 }
-/*function mpuf($name, $table, $field, $id, $ext){
-	if ($_FILES[$name]){
-		if ($ext = $ext[ $_FILES[$name]['type'] ]){
-			$fname = "images/{$table}_{$field}_{$id}.$ext";
-			if(@copy($_FILES[$name]['tmp_name'], array_shift(explode(':', $GLOBALS['conf']['fs']['path'], 2))."/include/$fname")){
-				return $fname;
-			}else{
-				echo "1";
-				return false;
-			}
-		}else{
-			echo "2";
-			return false;
-		}
-	}else{
-		echo "3";
-		return false;
-	}
-}*/
+
+# Изменение размеров изображения. ($max_width и $max_height) высота и ширина. Параметр $crop это способ обработки. Обрезать или вписать в размер
 function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 	global $conf;
 	$func = array(
@@ -1265,16 +1255,15 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 	$host_name = strpos('www.', $_SERVER['SERVER_NAME']) === 0 ? substr($_SERVER['SERVER_NAME'], 4) : $_SERVER['SERVER_NAME'];
 	$fl_name = (int)$max_width. "x". (int)$max_height. "x". (int)$crop. "_" .basename($file_name);
 	$prx = basename(dirname($file_name));
-		header('Cache-Control: max-age=28800');
-	if(!array_key_exists('nologo', $_GET) && file_exists("$cache_name/$host_name/$prx/$fl_name") && (($filectime = filectime("$cache_name/$host_name/$prx/$fl_name")) > ($sfilectime = filectime($file_name)))){
-		if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $filectime) && ($filectime >= $sfilectime)){
-			header('HTTP/1.0 304 Not Modified');
-		}else{
-			return file_get_contents("$cache_name/$host_name/$prx/$fl_name");
-		} header('Last-Modified: '. date("r", $filectime));
+	if(!array_key_exists('nologo', $_GET) && isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= filectime($file_name))){
+		header('HTTP/1.0 304 Not Modified');
+	}else if(file_exists("$cache_name/$host_name/$prx/$fl_name") && (($filectime = filectime("$cache_name/$host_name/$prx/$fl_name")) > ($sfilectime = filectime($file_name)))){
+		header('Last-Modified: '. date("r", $filectime));
+		header("Expires: ".gmdate("r", time() + 86400));
+		return file_get_contents("$cache_name/$host_name/$prx/$fl_name");
 	}else if($src = imagecreatefromstring(file_get_contents($file_name))){
-		header("Expires: ".gmdate("D, d M Y H:i:s", time() + 3600)." GMT");
-		header('Cache-Control: public,max-age=28800');
+		header('Last-Modified: '. date("r", filectime($file_name)));
+		header("Expires: ".gmdate("r", time() + 86400));
 		$width = imagesx($src);
 		$height = imagesy($src);
 		if(!array_key_exists('water', $_GET) && (empty($max_width) || empty($max_height) || (($width <= $max_width) && ($height <= $max_height)))){

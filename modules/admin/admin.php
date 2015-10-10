@@ -5,15 +5,15 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 	if($_GET['id'] && !$_POST['id'] && array_key_exists("id", $_POST)){ # Удаление элемента
 		exit(qw("DELETE FROM {$_GET['r']} WHERE id=". (int)$_GET['id']));
 	}elseif(array_key_exists("inc", $_POST) && ($inc = rb($_GET['r'], "id", $_POST['inc']))){ # Правка записи и добавление новой
-		if($dec = ql("SELECT * FROM {$_GET['r']} WHERE sort<". (int)$inc['sort']. " ORDER BY sort DESC LIMIT 1", 0)){
+		if($dec = ql($sql = "SELECT * FROM {$_GET['r']} WHERE sort<". (int)$inc['sort']. " AND ". (mpdbf($_GET['r'], $_GET['where'], true) ?: 1). " ORDER BY ". ($_GET['order'] ?: "sort"). " DESC LIMIT 1", 0)){
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
-		} exit($inc['id']);
+		} exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
 	}elseif(array_key_exists("dec", $_POST) && ($dec = rb($_GET['r'], "id", $_POST['dec']))){ # Правка записи и добавление новой
-		if($inc = ql("SELECT * FROM {$_GET['r']} WHERE sort>". (int)$dec['sort']. " ORDER BY sort LIMIT 1", 0)){
+		if($inc = ql("SELECT * FROM {$_GET['r']} WHERE sort>". (int)$dec['sort']. " AND ". (mpdbf($_GET['r'], $_GET['where'], true) ?: 1). " ORDER BY ". ($_GET['order'] ?: "sort"). " LIMIT 1", 0)){
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
-		} exit($dec['id']);
+		} exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
 	}else{ # Правка записи и добавление новой
 		foreach($_POST as $field=>$post){
 			if(array_search($field, array(1=>"time", "last_time", "reg_time", "up"))){
@@ -68,7 +68,8 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 
 		if($_GET['order']){ # Установка временной сортировки
 			$conf['settings'][substr($_GET['r'], strlen($conf['db']['prefix'])). "=>order"] = $_GET['order'];
-		} $tpl['lines'] = call_user_func_array("rb", ($_GET['where'] ? array_merge(array($_GET['r'], 20), array_keys($_GET['where']), array("id"), (array)array_values($_GET['where'])) : array($_GET['r'], 20)));
+		} $where = array_map(function($v){ return "[{$v}]"; }, $_GET['where']);
+		$tpl['lines'] = call_user_func_array("rb", ($where ? array_merge(array($_GET['r'], 20), array_keys($where), array("id"), (array)array_values($where)) : array($_GET['r'], 20)));
 
 		$tpl['spisok'] = array(
 			'hide' => array(0=>"Видим", 1=>"Скрыт"),

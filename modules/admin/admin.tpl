@@ -1,17 +1,4 @@
 <ul class="nl tabs">
-	<? /*foreach($tpl['tables'] as $r): ?>
-		<li class="<?=$r?> <?=($_GET['r'] == $r ? "act" : "")?>">
-			<a href="/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$conf['db']['prefix']?><?=($s = substr($r, strlen($conf['db']['prefix'])))?>">
-				<? if($n = $conf['settings'][$s]): ?>
-					<?=$n?>
-				<? else: ?>
-					<? if($i = substr($r, strlen("{$conf['db']['prefix']}{$arg['modname']}"))): ?>
-						<?=($i == "_index" ? $conf['modules'][$arg['modname']]['name'] : $i)?>
-					<? else: ?>_<? endif; ?>
-				<? endif; ?>
-			</a>
-		</li>
-	<? endforeach;*/ ?>
 	<style>
 		ul.tabs li ul {position:absolute; display:none;}
 		ul.tabs li:hover ul {display:block; width:inherit;}
@@ -20,12 +7,12 @@
 	</style>
 	<? foreach($tpl['menu'] as $k=>$ar): ?>
 		<li class="<?=($r = $tpl['tables'][$k])?> <?=($_GET['r'] == $r ? "act" : "")?> <?=($ar ? "sub" : "")?>">
-			<a href="/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$conf['db']['prefix']?><?=($s = substr($r, strlen($conf['db']['prefix'])))?>">
+			<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$conf['db']['prefix']?><?=($s = substr($r, strlen($conf['db']['prefix'])))?>">
 				<? if($n = $conf['settings'][$s]): ?>
 					<?=$n?>
 				<? else: ?>
-					<? if($i = substr($r, strlen("{$conf['db']['prefix']}{$arg['modname']}"))): ?>
-						<?=($i == "_index" ? $conf['modules'][$arg['modname']]['name'] : $i)?>
+					<? if($i = substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}"))): ?>
+						<?=($i == "_index" ? $conf['modules'][$arg['modpath']]['name'] : $i)?>
 					<? else: ?>_<? endif; ?>
 				<? endif; ?>
 			</a>
@@ -33,12 +20,12 @@
 				<ul>
 					<? foreach($ar as $n=>$v): ?>
 						<li class="<?=($r = $tpl['tables'][$v])?> <?=($_GET['r'] == $r ? "act" : "")?>" style="display:block; min-width:120px;">
-							<a href="/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$conf['db']['prefix']?><?=($s = substr($r, strlen($conf['db']['prefix'])))?>">
+							<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$conf['db']['prefix']?><?=($s = substr($r, strlen($conf['db']['prefix'])))?>">
 								<? if($n = $conf['settings'][$s]): ?>
 									<?=$n?>
 								<? else: ?>
-									<? if($i = substr($r, strlen("{$conf['db']['prefix']}{$arg['modname']}"))): ?>
-										<?=($i == "_index" ? $conf['modules'][$arg['modname']]['name'] : $i)?>
+									<? if($i = substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}"))): ?>
+										<?=($i == "_index" ? $conf['modules'][$arg['modpath']]['name'] : $i)?>
 									<? else: ?>_<? endif; ?>
 								<? endif; ?>
 							</a>
@@ -72,7 +59,7 @@
 				$(script).parent().on("click", "a.del", function(e){
 					if(confirm("Удалить элемент?")){
 						var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
-						$.post("/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/"+line_id+"/null", {id:0}, function(data){
+						$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/"+line_id+"/null", {id:0}, function(data){
 							if(isNaN(data)){ alert(data) }else{
 								$(e.currentTarget).parents("[line_id]").remove();
 							}
@@ -80,24 +67,62 @@
 					}
 				}).on("click", "a.inc", function(e){
 					var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
-					$.post("/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null", {inc:line_id}, function(request){
-						if(isNaN(request)){ alert(request) }else{
+					$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null?<? foreach($_GET['where'] as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>", {inc:line_id}, function(request){
+//						if(isNaN(request)){ alert(request) }else{
 							console.log("request:", request);
-							document.location.reload(true);
-						}
-					})
+							var main = $(e.currentTarget).parents("[line_id]");
+							var prev = $(main).prev("[line_id]");
+
+							if($(prev).length == 0){
+								document.location.reload(true);
+							}else{
+								var main_id = $(main).attr("line_id");
+								var prev_id = $(prev).attr("line_id");
+								$(main).find(".sort span").text(request[main_id].sort);
+								$(prev).find(".sort span").text(request[prev_id].sort);
+								$(main).insertBefore(prev).promise().done(function(){
+									$(main).css("background-color", "#f4f4f4").promise().done(function(){
+										setTimeout(function(){
+											$(main).css("background-color", "inherit");
+										}, 500);
+									});
+								});
+							}
+//						}
+					}, "json").fail(function(error) {
+						console.error("error:", error);
+						alert(error.responseText);
+					});
 				}).on("click", "a.dec", function(e){
 					var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
-					$.post("/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null", {dec:line_id}, function(request){
-						if(isNaN(request)){ alert(request) }else{
+					$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null?<? foreach($_GET['where'] as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>", {dec:line_id}, function(request){
 							console.log("request:", request);
-							document.location.reload(true);
-						}
-					})
+							var main = $(e.currentTarget).parents("[line_id]");
+							var next = $(main).next("[line_id]");
+
+							if($(next).length == 0){
+								document.location.reload(true);
+							}else{
+								var main_id = $(main).attr("line_id");
+								var next_id = $(next).attr("line_id");
+								$(main).find(".sort span").text(request[main_id].sort);
+								$(next).find(".sort span").text(request[next_id].sort);
+								$(main).insertAfter(next).promise().done(function(){
+									$(main).css("background-color", "#f4f4f4").promise().done(function(){
+										setTimeout(function(){
+											$(main).css("background-color", "inherit");
+										}, 500);
+									});
+								});;
+							}
+					}, "json").fail(function(error) {
+						console.error("error:", error);
+						alert(error.responseText);
+					});
 				})
 			})(jQuery, document.scripts[document.scripts.length-1])
 		</script>
-		<form action="/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?><?=(array_key_exists("edit", $_GET) ? "/{$_GET['edit']}" : "")?>/null" method="post" enctype="multipart/form-data">
+		<form action="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?><?=(array_key_exists("edit", $_GET) ? "/{$_GET['edit']}" : "")?>/null" method="post" enctype="multipart/form-data">
 			<script src="/include/jquery/jquery.iframe-post-form.js"></script>
 			<script>
 				(function($, script){
@@ -108,7 +133,7 @@
 									try{
 										if(json = jQuery.parseJSON(data)){
 											console.log("json:", json);
-											document.location.href = "/<?=$arg['modname']?>:<?=$arg['fe']?>/r:<?=$_GET['r']?>?&p=<?=(int)$_GET['p']?><? if($_GET['where']): ?>&<? endif; ?><? foreach($_GET['where'] as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>";
+											document.location.href = "/<?=$arg['modpath']?>:<?=$arg['fe']?>/r:<?=$_GET['r']?>?<? foreach($_GET['where'] as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>&p=<?=(int)$_GET['p']?>";
 										}
 									}catch(e){
 										if(isNaN(data)){
@@ -128,7 +153,7 @@
 				<div>
 					<? if($tpl['title'] && !array_key_exists("edit", $_GET)): ?>
 						<span style="width:10%; padding-left:20px;">
-							<a href="/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?><?=($_GET['p'] ? "/p:{$_GET['p']}" : "")?>/edit">
+							<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/edit?<? foreach($_GET['where'] as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=($_GET['p'] ? "&p={$_GET['p']}" : "")?>">
 								<button type="button">Добавить</button>
 							</a>
 						</span>
@@ -137,9 +162,9 @@
 						<span><?=$tpl['pager']?></span>
 					<? endif; ?>
 					<span style="width:30%; padding-right:20px; text-align:right;">
-						<? foreach(mpreaddir("/modules/{$arg['modname']}/", true) as $_file): ?>
+						<? foreach(mpreaddir("/modules/{$arg['modpath']}/", true) as $_file): ?>
 							<? if((strpos($_file, "admin_") === 0) && (array_pop(explode(".", $_file)) == "tpl")): ?>
-								<a href="/<?=$arg['modname']?>:<?=($_short = array_shift(explode(".", $_file)))?>"><?=implode("_", (array_slice(explode("_", $_short), 1)))?></a>
+								<a href="/<?=$arg['modpath']?>:<?=($_short = array_shift(explode(".", $_file)))?>"><?=implode("_", (array_slice(explode("_", $_short), 1)))?></a>
 							<? endif; ?>
 						<? endforeach; ?>
 						<a href="/sqlanaliz:admin/r:1/tab:<?=$_GET['r']?>">
@@ -163,13 +188,13 @@
 								<? if($tpl['etitle'][$field['Field']]): ?>
 									<?=$tpl['etitle'][$field['Field']]?>
 								<? elseif(substr($field['Field'], -3) == "_id"): ?>
-									<?=($conf['settings']["{$arg['modname']}_". substr($field['Field'], 0, -3)] ?: substr($field['Field'], 0, -3))?>
+									<?=($conf['settings']["{$arg['modpath']}_". substr($field['Field'], 0, -3)] ?: substr($field['Field'], 0, -3))?>
 								<? else: ?>
-									<?=$field['Field']?>
+									<?=htmlspecialchars($field['Field'])?>
 								<? endif; ?>
 							</span>
 							<span>
-								<? if($field['Field'] == "id"): ?>
+								<? if($field['Field'] == "id"): # Вертикальное отображение ?>
 									<?=($tpl['edit']['id'] ?: "Номер записи назначаеся ситемой")?>
 								<? elseif(array_search($field['Field'], array(1=>"img", "img2"))): ?>
 									<input type="file" name="<?=$field['Field']?>">
@@ -193,11 +218,11 @@
 								<? elseif(substr($field['Field'], -3) == "_id"): # Поле вторичного ключа связанной таблицы ?>
 									<select name="<?=$field['Field']?>" style="width:100%;">
 										<? if(!rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($field['Field'], 0, -3), "id", $tpl['edit'][$field['Field']])): ?>
-											<option><?=$tpl['edit'][$field['Field']]?></option>
+											<option><?=htmlspecialchars($tpl['edit'][$field['Field']])?></option>
 										<? endif; ?>
 										<option></option>
 										<? foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($field['Field'], 0, -3)) as $ln): ?>
-											<option value="<?=$ln['id']?>" <?=(($tpl['edit'] && ($tpl['edit'][ $field['Field'] ] == $ln['id'])) || (!$tpl['edit'] && ($field['Default'] == $ln['id'])) ? "selected" : "")?>>
+											<option value="<?=$ln['id']?>" <?=(($tpl['edit'] && ($tpl['edit'][ $field['Field'] ] == $ln['id'])) || (!$tpl['edit'] && ($ln['id'] == $_GET['where'][ $field['Field'] ] ?: $field['Default'])) ? "selected" : "")?>>
 												<?=$ln['id']?>&nbsp;<?=$ln['name']?>
 											</option>
 										<? endforeach; ?>
@@ -213,7 +238,7 @@
 										<? endforeach; ?>
 									</select>
 								<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>
-									<input type="text" name="<?=$field['Field']?>" value="<?=($tpl['edit'] ? rb($_GET['r'], "id", $_GET['edit'], $field['Field']) : $field['Default'])?>" placeholder="<?=($tpl['etitle'][$field['Field']] ?: $field['Field'])?>">
+									<input type="text" name="<?=$field['Field']?>" value="<?=htmlspecialchars($tpl['edit'] ? rb($_GET['r'], "id", $_GET['edit'], $field['Field']) : $field['Default'])?>" placeholder="<?=($tpl['etitle'][$field['Field']] ?: $field['Field'])?>">
 								<? endif; ?>
 							</span>
 						</div>
@@ -232,15 +257,15 @@
 									<? if(substr($fiel, 0, 2) == "__"): ?>
 										<span title="Количество записей во внешних модулях">_<?=($conf['settings'][substr($fiel, 2)] ?: substr($fiel, 2))?></span>
 									<? elseif(substr($fiel, 0, 1) == "_"): ?>
-										<?=($conf['settings']["{$arg['modname']}_". substr($fiel, 1)] ?: substr($fiel, 1))?>
+										<?=($conf['settings']["{$arg['modpath']}_". substr($fiel, 1)] ?: substr($fiel, 1))?>
 									<? elseif($tpl['etitle'][$fiel]): ?>
-									<a href="/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?order=<?=$fiel?>">
+									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?order=<?=$fiel?>">
 											<?=$tpl['etitle'][$fiel]?>
 									</a>
 									<? elseif(substr($fiel, -3) == "_id"): ?>
-										<?=($conf['settings']["{$arg['modname']}_". substr($fiel, 0, -3)] ?: substr($fiel, 0, -3))?>
+										<?=($conf['settings']["{$arg['modpath']}_". substr($fiel, 0, -3)] ?: substr($fiel, 0, -3))?>
 									<? else: ?>
-								<a href="/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?order=<?=$fiel?>">
+								<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?order=<?=$fiel?>">
 										<?=$fiel?>
 								</a>
 									<? endif; ?>
@@ -259,27 +284,27 @@
 												</a>
 											<? endif; ?>
 										<? elseif(substr($k, 0, 1) == "_"): // $tpl['counter'] ?>
-											<a href="/<?=$arg['modname']?>:admin/r:<?="{$conf['db']['prefix']}{$arg['modpath']}{$k}?where[". (($_GET['r'] == "{$conf['db']['prefix']}users") && ($k == "_mem") ? "uid" : substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "_id"). "]={$lines['id']}"?>">
+											<a href="/<?=$arg['modpath']?>:admin/r:<?="{$conf['db']['prefix']}{$arg['modpath']}{$k}?where[". (($_GET['r'] == "{$conf['db']['prefix']}users") && ($k == "_mem") ? "uid" : substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "_id"). "]={$lines['id']}"?>">
 												<?=($tpl['counter'][$k][ $lines['id'] ] ? "{$tpl['counter'][$k][ $lines['id'] ]}&nbspшт" : "Нет")?>
 											</a>
 										<? elseif($k == "id"): ?>
 											<span style="white-space:nowrap;">
 												<a class="del" href="javascript:"></a>
-												<a class="edit" href="/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?edit=<?=$v?><? foreach($_GET['where'] as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=($_GET['p'] ? "&p={$_GET['p']}" : "")?>"></a>
-												<a href="/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?where[id]=<?=$v?>"><?=$v?></a>
+												<a class="edit" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?edit=<?=$v?><? foreach($_GET['where'] as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=($_GET['p'] ? "&p={$_GET['p']}" : "")?>"></a>
+												<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?where[id]=<?=$v?>"><?=$v?></a>
 											</span>
 										<? elseif(array_search($k, array(1=>"img", "img2"))): ?>
-											<a target="blank" href="/<?=$arg['modname']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?>/w:800/h:600/null/img.png" title="<?=$v?>">
-												<img src="/<?=$arg['modname']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?>/w:65/h:65/null/img.png" style="border:1px solid #aaa; padding:2px;">
+											<a target="blank" href="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?>/w:800/h:600/null/img.png" title="<?=$v?>">
+												<img src="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?>/w:65/h:65/null/img.png" style="border:1px solid #aaa; padding:2px;">
 											</a>
 										<? elseif($k == "file"): ?>
-											<a target="blank" href="/<?=$arg['modname']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:img/w:800/h:600/null/img.png" title="<?=$v?>">
+											<a target="blank" href="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:img/w:800/h:600/null/img.png" title="<?=$v?>">
 												<?=$v?>
 											</a>
 										<? elseif($k == "sort"): ?>
-											<div style="white-space:nowrap;">
+											<div class="sort" style="white-space:nowrap;">
 												<a class="inc" href="javascript:void(0);" style="background:url(i/mgif.gif); background-position:-18px -90px; width: 10px; height: 14px; display:inline-block;"></a>
-												<?=$v?>
+												<span><?=$v?></span>
 												<a class="dec" href="javascript:void(0);" style="background:url(i/mgif.gif); background-position:0 -90px; width: 10px; height: 14px; display:inline-block;"></a>
 											</div>
 										<? elseif($k == "hide"): ?>
@@ -303,7 +328,9 @@
 												<? if($el = rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($k, 0, -3), "id", $v)): ?>
 <!--													<span style="color:#ccc;"><?=$el['id']?></span>-->
 													<span style="white-space:nowrap;">
-														<a class="key" href="/<?=$arg['modname']?>:<?=$arg['fn']?>/r:<?="{$conf['db']['prefix']}{$arg['modpath']}_"?><?=substr($k, 0, -3)?>?where[id]=<?=$v?>" title="<?=$v?>"></a>&nbsp;<?=$el['name']?>
+														<a class="key" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?="{$conf['db']['prefix']}{$arg['modpath']}_"?>
+															<?=substr($k, 0, -3)?>?where[id]=<?=$v?>" title="<?=$v?>">
+														</a>&nbsp;<?=htmlspecialchars($el['name'])?>
 													</span>
 												<? elseif($v): ?>
 													<span style="color:red;"><?=$v?></span>
@@ -312,9 +339,11 @@
 											<a class="ekey" href="/<?=array_shift(explode("_", $k))?>:admin/r:<?=$conf['db']['prefix']?><?=$k?>?where[id]=<?=$v?>" title="<?=$v?>"></a>
 											<?=(strlen($tpl['espisok'][$k][$v]['name']) > 16 ? mb_substr($tpl['espisok'][$k][$v]['name'], 0, 16, "UTF-8"). "..." : $tpl['espisok'][$k][$v]['name'])?>
 										<? elseif($k == "name"): ?>
-											<a href="/<?=$arg['modname']?><?=(($substr = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))) == "index" ? "" : ":{$substr}")?>/<?=$lines['id']?>"><?=$v?></a>
+											<a href="/<?=$arg['modpath']?>
+												<?=(($substr = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))) == "index" ? "" : ":{$substr}")?>/<?=$lines['id']?>"><?=htmlspecialchars($v)?>
+											</a>
 										<? else: ?>
-											<?=$v?>
+											<?=htmlspecialchars($v)?>
 										<? endif; ?>
 									</span>
 								<? endforeach; ?>
@@ -356,12 +385,13 @@
 									<? elseif((substr($fiel, -3) == "_id") && (false === array_search(substr($fiel, 0, strlen($fiel)-3), explode(",", $conf['settings']["{$arg['modpath']}_tpl_exceptions"])))): # Поле вторичного ключа связанной таблицы ?>
 										<select name="<?=$fiel?>" style="width:100%;">
 											<? if(!rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($fiel, 0, -3), "id", $tpl['edit'][$fiel])): ?>
-												<option><?=$tpl['edit'][$fiel]?></option>
+												<option><?=htmlspecialchars($tpl['edit'][$fiel])?></option>
+											<? else: ?>
+												<option></option>
 											<? endif; ?>
-											<option></option>
 											<? foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($fiel, 0, -3)) as $ln): ?>
 												<option value="<?=$ln['id']?>" <?=(($tpl['edit'] && ($tpl['edit'][$fiel] == $ln['id'])) || (!$tpl['edit'] && ($ln['id'] == ($_GET['where'][$fiel] ?: $field['Default']))) ? "selected" : "")?>>
-													<?=$ln['id']?>&nbsp;<?=$ln['name']?>
+													<?=$ln['id']?>&nbsp;<?=htmlspecialchars($ln['name'])?>
 												</option>
 											<? endforeach; ?>
 										</select>
@@ -373,7 +403,7 @@
 											<? endforeach; ?>
 										</select>
 									<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>
-										<input type="text" name="<?=$fiel?>" value="<?=($tpl['edit'] ? rb($_GET['r'], "id", $_GET['edit'], $fiel) : $field['Default'])?>" placeholder="<?=($tpl['etitle'][$fiel] ?: $fiel)?>">
+										<input type="text" name="<?=$fiel?>" value="<?=htmlspecialchars($tpl['edit'] ? rb($_GET['r'], "id", $_GET['edit'], $fiel) : $field['Default'])?>" placeholder="<?=($tpl['etitle'][$fiel] ?: $fiel)?>">
 									<? endif; ?>
 								</span>
 							<? endforeach; ?>

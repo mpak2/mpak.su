@@ -8,7 +8,7 @@ $conf['db']['type'] = 'mysql';
 $conf['db']['prefix'] = 'mp_';
 $conf['db']['host'] = 'localhost';
 $conf['db']['login'] = 'username';
-$conf['db']['pass'] = 'password';
 $conf['db']['name'] = 'basename';
+$conf['db']['pass'] = 'password';
 
 //$conf["db"]["open_basedir"] = '.:core:/tmp';
