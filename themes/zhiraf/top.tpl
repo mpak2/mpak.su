@@ -3,7 +3,7 @@
 		(function($, script){
 			$(script).parent().one("init", function(e){
 				setTimeout(function(){
-					$(e.delegateTarget).find("a[href='<?=$_SERVER['REDIRECT_URL']?>']").addClass("nav__link_active");
+					$(e.delegateTarget).find("a[href='"+location.pathname+"']").addClass("active");
 				}, 100)
 			}).trigger("init")
 		})(jQuery, document.scripts[document.scripts.length-1])

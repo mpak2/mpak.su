@@ -57,7 +57,7 @@
 		<script>
 			(function($, script){
 				$(script).parent().on("click", "a.del", function(e){
-					if(confirm("Удалить элемент?")){
+					if(e.ctrlKey || confirm("Удалить элемент?")){
 						var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
 						$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/"+line_id+"/null", {id:0}, function(data){
 							if(isNaN(data)){ alert(data) }else{
@@ -196,10 +196,10 @@
 							<span>
 								<? if($field['Field'] == "id"): # Вертикальное отображение ?>
 									<?=($tpl['edit']['id'] ?: "Номер записи назначаеся ситемой")?>
-								<? elseif(array_search($field['Field'], array(1=>"img", "img2"))): ?>
-									<input type="file" name="<?=$field['Field']?>">
+								<? elseif(array_search($field['Field'], array(1=>"img", "img2", "img3"))): ?>
+									<input type="file" name="<?=$field['Field']?>[]" multiple="true">
 								<? elseif($field['Field'] == "file"): ?>
-									<input type="file" name="file">
+									<input type="file" name="file[]" multiple="true">
 								<? elseif($field['Field'] == "hide"): ?>
 									<select name="hide">
 										<? foreach($tpl['spisok']['hide'] as $k=>$v): ?>
@@ -234,7 +234,7 @@
 									<select name="<?=$field['Field']?>">
 										<option></option>
 										<? foreach($tpl['espisok'][$field['Field']] as $espisok): ?>
-											<option value="<?=$espisok['id']?>" <?=((!$tpl['edit'] && ($field['Default'] == $espisok['id'])) || ($espisok['id'] == $tpl['edit'][$field['Field']]) ? "selected" : "")?>><?=$espisok['id']?> <?=$espisok['name']?></option>
+											<option value="<?=$espisok['id']?>" <?=((!$tpl['edit'] && ($field['Default'] == $espisok['id'])) || ($espisok['id'] == $tpl['edit'][$field['Field']]) || (!$tpl['edit']['id'] && ($_GET['where'][ $field['Field'] ] == $espisok['id'])) ? "selected" : "")?>><?=$espisok['id']?> <?=$espisok['name']?></option>
 										<? endforeach; ?>
 									</select>
 								<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>
@@ -293,12 +293,12 @@
 												<a class="edit" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?edit=<?=$v?><? foreach($_GET['where'] as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=($_GET['p'] ? "&p={$_GET['p']}" : "")?>"></a>
 												<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?where[id]=<?=$v?>"><?=$v?></a>
 											</span>
-										<? elseif(array_search($k, array(1=>"img", "img2"))): ?>
+										<? elseif(array_search($k, array(1=>"img", "img2", "img3"))): ?>
 											<a target="blank" href="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?>/w:800/h:600/null/img.png" title="<?=$v?>">
 												<img src="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?>/w:65/h:65/null/img.png" style="border:1px solid #aaa; padding:2px;">
 											</a>
 										<? elseif($k == "file"): ?>
-											<a target="blank" href="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:img/w:800/h:600/null/img.png" title="<?=$v?>">
+											<a target="blank" href="/<?=$arg['modpath']?>:file/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:file/null/<?=basename($lines[$k])?>" title="<?=$v?>">
 												<?=$v?>
 											</a>
 										<? elseif($k == "sort"): ?>
@@ -359,9 +359,9 @@
 									<? elseif($fiel == "id"): ?>
 										<button type="submit"><?=(array_key_exists("edit", $_GET) ? "Редактировать" : "Добавить")?></button>
 									<? elseif($fiel == "img"): ?>
-										<input type="file" name="img">
+										<input type="file" name="img[]" multiple="true">
 									<? elseif($fiel == "file"): ?>
-										<input type="file" name="file">
+										<input type="file" name="file[]" multiple="true">
 									<? elseif($fiel == "hide"): ?>
 										<select name="hide">
 											<? foreach($tpl['spisok']['hide'] as $k=>$v): ?>

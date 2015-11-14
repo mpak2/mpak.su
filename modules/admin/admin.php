@@ -1,7 +1,6 @@
 <?
 
 if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляющие данные
-//	exit(mpre($_POST));
 	if($_GET['id'] && !$_POST['id'] && array_key_exists("id", $_POST)){ # Удаление элемента
 		exit(qw("DELETE FROM {$_GET['r']} WHERE id=". (int)$_GET['id']));
 	}elseif(array_key_exists("inc", $_POST) && ($inc = rb($_GET['r'], "id", $_POST['inc']))){ # Правка записи и добавление новой
@@ -35,14 +34,27 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 		foreach(array(
 			"img"=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp'),
 			"img2"=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp'),
+			"img3"=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp'),
 			"file"=>array("*"=>"*")
 		) as $f=>$ext){
-			if(($file = $_FILES[$f]) && $file['name']){ # POST содержащий  файл
-				if($file_id = mpfid($_GET['r'], $f, $el['id'], null, $ext)){
+			if(($file = $_FILES[$f]) /*&& $file['name']*/){ # POST содержащий  файл
+				if(is_array($file['error'])){ # Множественная загрузка
+					foreach($file['error'] as $key=>$error){
+						if($file['name'][$key]){
+							if($error){
+								exit("Ошибка загрузки файла {$file['name'][$key]}");
+							}else{
+								if($key > 0){
+									$el = fk($_GET['r'], null, $w = array_diff_key($el, array_flip(array("id", "sort"))), $w);
+								} if(array_key_exists("sort", $el) && ($el['sort'] == 0)){
+									$el = fk($_GET['r'], array("id"=>$el['id']), null, array("sort"=>$el['id']));
+								} $file_id = mpfid($_GET['r'], $f, $el['id'], $key, $ext);
+							}
+						}
+					}
+				}else if($file_id = mpfid($_GET['r'], $f, $el['id'], null, $ext)){
 					# Файл загружен
-				}else{
-					exit("Ошибка загрузки файла {$file['name']}");
-				}
+				}else{ exit("Ошибка загрузки файла {$file['name']}"); }
 			}elseif($_POST[$f]){ # Адрес внешнего изображения
 				$file_id = mphid($class, $f, $el['id'], $_POST[$f], $ext);
 			}
@@ -101,7 +113,7 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 				}
 			}
 
-			$tpl['etitle'] = array("id"=>"Номер", 'time'=>'Время', 'up'=>'Обновление', 'uid'=>'Пользователь', 'count'=>'Количество', 'level'=>'Уровень', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'img2'=>'Изображение2', 'file'=>'Файл', 'hide'=>'Видим', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'duration'=>'Длительность', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', "article"=>"Артикул", 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', "users_sity"=>'Город', 'log'=>'Лог', 'min'=>'Мин', 'max'=>'Макс', 'own'=>'Владелец', 'period'=>'Период', "from"=>"Откуда", "to"=>"Куда", "percentage"=>"Процент", 'description'=>'Описание', 'text'=>'Текст');
+			$tpl['etitle'] = array("id"=>"Номер", 'time'=>'Время', 'up'=>'Обновление', 'uid'=>'Пользователь', 'count'=>'Количество', 'level'=>'Уровень', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'img2'=>'Изображение2', 'img3'=>'Изображение3', 'file'=>'Файл', 'hide'=>'Видим', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'duration'=>'Длительность', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', "article"=>"Артикул", 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', "users_sity"=>'Город', 'log'=>'Лог', 'min'=>'Мин', 'max'=>'Макс', 'own'=>'Владелец', 'period'=>'Период', "from"=>"Откуда", "to"=>"Куда", "percentage"=>"Процент", 'description'=>'Описание', 'text'=>'Текст');
 			if($title = $conf['settings']["{$arg['modpath']}_{$tab}=>title"]){
 				$tpl['title'] = array_merge(array("id"), explode(",", $title));
 			}elseif(array_key_exists("text", $tpl['fields'])){

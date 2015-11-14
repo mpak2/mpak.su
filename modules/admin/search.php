@@ -14,14 +14,14 @@
 // Purpose of file:
 // ----------------------------------------------------------------------
 
-include_once("include/idna_convert.class.inc");
-$IDN = new idna_convert();
+//include_once("include/idna_convert.class.inc");
+//$IDN = new idna_convert();
 
 $sql = "SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = ".(int)$_REQUEST['search_block_num'];
 $res = mpql(mpqw($sql));
 $param = unserialize($res['0']['param']);
 
-$conf['tpl']['http_host'] = $IDN->decode($_SERVER['HTTP_HOST']);
+$conf['tpl']['http_host'] = $_SERVER['HTTP_HOST'];
 
 # Сохраняем историю поиска
 if ((int)$_REQUEST['search_block_num']){

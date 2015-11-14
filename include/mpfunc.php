@@ -1,10 +1,12 @@
 <?
 
-function seo($href){ # Функция определения seo вдреса страницы. Если адрес не определен в таблице seo_redirect то false
+# Функция определения seo вдреса страницы. Если адрес не определен в таблице seo_redirect то false
+# Параметр return определяет возвращать ли ссылку обратно если переадресация не найдена
+function seo($href, $return = true){
 	global $conf;
-	if($seo_redirect = rb("{$conf['db']['prefix']}seo_redirect", "to", "[{$href}]")){
-		return $seo_redirect['from'];
-	}else{ return false; }
+	if(($seo_location = rb("{$conf['db']['prefix']}seo_location", "name", "[{$href}]")) && ($seo_index = rb("{$conf['db']['prefix']}seo_index", "location_id", $seo_location['id']))){
+		return $seo_index['name'];
+	}else{ return ($return ? $href : false); }
 }
 
 if (!function_exists('mcont')){
@@ -19,7 +21,7 @@ if (!function_exists('mcont')){
 			}
 
 			$v = $v != 'del' && $v != 'init' && $v != 'sql' && strlen($v) ? $v : 'index';
-			if ( ((strpos($v, 'admin') === 0) ? $conf['modules'][$k]['access'] >= 4 : $conf['modules'][$k]['access'] >= 1) ){
+			if(((strpos($v, 'admin') === 0) ? $conf['modules'][$k]['access'] >= 4 : $conf['modules'][$k]['access'] >= 1)){
 				$conf['db']['info'] = "Модуль '". ($name = $mod['name']). "'";
 
 				if(preg_match("/[a-z]/", $v)){ $g = "/{$v}.*.php"; }else{ $g = "/*.{$v}.php"; }// pre($g);
@@ -544,8 +546,8 @@ function mpdk($tn, $insert, $update = array()){
 }
 function mpevent($name, $description = null, $own = null){
 	global $conf, $argv;
+	$debug_backtrace = debug_backtrace();
 	if(empty($name)){
-		$debug_backtrace = debug_backtrace();
 		if($args = $debug_backtrace[1]['args'][0]){
 			$src = "/{$args['modpath']}:{$args['fn']}". ($args['blocknum'] ? "/blocknum:{$args['blocknum']}" : "");
 //			mpevent("Неизвестное событие", $src, $conf['user']['uid'], $debug_backtrace);
@@ -553,7 +555,6 @@ function mpevent($name, $description = null, $own = null){
 	}
 	if(empty($argv) && empty($conf['settings']['users_log'])) return;
 	$func_get_args = func_get_args();
-	$debug_backtrace = debug_backtrace();
 	if(!empty($debug_backtrace[1]['args'][0]) && ($param = $debug_backtrace[1]['args'][0]) && $param['modpath']){
 		$desc = "{$param['modpath']}:{$param['fn']}";
 	}else{
@@ -927,6 +928,7 @@ function mpct($file_name, $arg = array(), $vr = 1){
 	foreach(explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) as $k=>$v)
 		if (file_exists($file = "$v/$file_name")) break;
 	if (!file_exists($file = "$v/$file_name")) return false;
+	$conf['settings']['data-file'] = $file;
 	$func_name = create_function('$arg', "global \$conf, \$tpl;\n". strtr(file_get_contents($file), $vr ? array('<? die;'=>'', '<?'=>'', '?>'=>'') : array()));
 	ob_start(); $func_name($arg);
 	$content = ob_get_contents(); ob_end_clean();
@@ -938,6 +940,7 @@ function mpeval($file_name, $arg = array(), $vr = 1){
 		if (file_exists($file = "$v/$file_name")) break;
 	if (!file_exists($file = "$v/$file_name")) return "<div style=\"margin-top:100px; text-align:center;\"><span style=color:red;>Ошибка доступа к файлу</span> $v/$file_name</div>";
 	ob_start();
+	$conf['settings']['data-file'] = $file;
 	eval('?>'. strtr(file_get_contents($file), array('<? die;'=>'<?', '<?php die;'=>'<?php')));
 	$content = ob_get_contents();
 	ob_end_clean();

@@ -22,14 +22,15 @@ if(strpos($f = __FILE__, "phar://") === 0){ # Фал index.php внутри phar
 	}else{
 		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: dirname($f));
 	}
-} if (!isset($index) && file_exists($index = array_shift(explode(':', $conf["db"]["open_basedir"])). '/index.php')){
-	include($index); if($content) die;
+}
+if (!isset($index) && file_exists($index = array_shift(explode(':', $conf["db"]["open_basedir"])). '/index.php')){
+	include $index; if($content) die;
 } if(!function_exists('mp_require_once')){
 	function mp_require_once($link){
 		global $conf, $arg, $tpl;
 		foreach(explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) as $k=>$v){
 			if (!file_exists($file_name = "$v/$link")) continue;
-			include_once($file_name); return;
+			require_once $file_name; return;
 		}
 	}
 }
@@ -50,7 +51,7 @@ try{
 		$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
 	} $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI'], $_GET);
 }catch(Exception $e){
-	pre($e->message);
+	pre("Ошибка подключения к базе данных");
 }
 
 if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(qn("SHOW TABLES"))){
@@ -107,6 +108,7 @@ if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аут
 	mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess_post WHERE time < ".(time() - $conf['settings']['sess_time']), 'Удаление данных сессии');
 //	}
 }
+
 $user = mpql(mpqw("SELECT *, id AS uid, name AS uname FROM {$conf['db']['prefix']}users WHERE id={$sess['uid']}", 'Проверка пользователя'));
 list($k, $conf['user']) = each($user);
 if(($conf['settings']['users_uname'] = $conf['user']['uname']) == $conf['settings']['default_usr']){
@@ -125,52 +127,56 @@ foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE enabled=2"
 	$conf['modules'][ mb_strtolower($v['name']) ] = &$conf['modules'][ $v['folder'] ];
 	$conf['modules'][ $v['id'] ] = &$conf['modules'][ $v['folder'] ];
 }
+//mpre($_SERVER['REQUEST_URI'], $_GET);
 if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страница
 	if(strpos($conf['settings']['start_mod'], "http://") === 0){
 		header("Location: {$conf['settings']['start_mod']}"); exit;
-	}elseif(($redirect = erb("{$conf['db']['prefix']}seo_redirect", "from", "[/]")) /*&& array_key_exists("themes_index", $redirect)*/){
-		if((!$redirect['themes_index'] && $redirect['redirect_type_id']) && ($redirect_type = rb("{$conf['db']['prefix']}seo_redirect_type", "id", $redirect['redirect_type_id']))){
-			$_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $redirect['to']));
+	}elseif(($seo_index = erb("{$conf['db']['prefix']}seo_index", "hide", "name", 0, "[/]")) /*&& array_key_exists("themes_index", $redirect)*/){
+		if($index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $seo_index['index_type_id'])){
+			$_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $seo_index['to']));
 		}else{
 			$_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $conf['settings']['start_mod']));
 		}
 	}else{
 		$_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $conf['settings']['start_mod']));
 	} $_SERVER['SCRIPT_URL'] = "/";
-//mpre($_SERVER['REQUEST_URI']);
-}elseif(!array_key_exists("null", $_GET) && $conf['modules']['seo']){
+}elseif(!array_key_exists("null", $_GET) /*&& !is_array($_GET['m'])*/ && $conf['modules']['seo']){
 	if($_GET['p']){
 		$r = strtr($_SERVER['REQUEST_URI'], array("?p={$_GET['p']}"=>"", "&p={$_GET['p']}"=>"", "/p:{$_GET['p']}"=>""));
 	}else{ $r = urldecode(preg_replace("#([\#\?].*)?$#",'',$_SERVER['REQUEST_URI'])); }	
 
-	foreach(rb("{$conf['db']['prefix']}seo_redirect") as $rule){
-		if(preg_match("#^{$rule['from']}$#iu",$r)){
+	foreach(rb("{$conf['db']['prefix']}seo_index", "hide", "id", 0) as $rule){
+		if(preg_match("#^{$rule['name']}$#iu",$r)){
 			$redirect = $rule;
 		}
 	}
 
 	if(isset($redirect)){
-		$redirect['to'] = preg_replace("#^{$redirect['from']}$#iu",$redirect['to'],$r);
+		$redirect['name'] = preg_replace("#^{$redirect['from']}$#iu",$redirect['to'],$r);
 		if(strpos($redirect['to'], "http://") === 0){
 			exit(header("Location: {$redirect['to']}"));
-		}else if(!$redirect['redirect_type_id'] || ($redirect_type = rb("{$conf['db']['prefix']}seo_redirect_type", "id", $redirect['redirect_type_id']))){
-			$conf['settings']['description'] = $redirect['description'] ?: $conf['settings']['description'];
-			$conf['settings']['keywords'] = $redirect['keywords'] ?: $conf['settings']['keywords'];
-			$_REQUEST = ($_GET = mpgt($conf['settings']['canonical'] = $redirect['to'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"))+$_REQUEST);
+		}else if($seo_index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $redirect['index_type_id'])){
+			if($seo_location = rb("{$conf['db']['prefix']}seo_location", "id", $redirect['location_id'])){
+				$conf['settings']['description'] = $redirect['description'] ?: $conf['settings']['description'];
+				$conf['settings']['keywords'] = $redirect['keywords'] ?: $conf['settings']['keywords'];
+				$_REQUEST = ($_GET = mpgt($conf['settings']['canonical'] = $seo_location['name'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"))+$_REQUEST);
+			}
 		}
 	}elseif($conf['settings']['start_mod'] == $_SERVER['REQUEST_URI']){ # Заглавная страница
 		$conf['settings']['canonical'] = "/";
-	}elseif(!$conf['modules'][ array_shift(array_keys($_GET['m'])) ]['folder']){
-		exit(header("Location: /themes:404{$_SERVER['REQUEST_URI']}"));
+	}elseif(!array_key_exists("404", $conf['settings']) || ($_404 = $conf['settings']['404'])){ # Если не прописан адрес 404 ошибки, то его обработку оставляем для init.php
+		if(!$conf['modules'][ array_shift(array_keys($_GET['m'])) ]['folder']){
+			exit(header("Location: /". ($_404 ?: "themes:404"). "{$_SERVER['REQUEST_URI']}"));
+		}
 	}else{ # Ссылка на основную страницу
 		$conf['settings']['canonical'] = $_SERVER['REQUEST_URI'];
 	}
 
-	if($redirect = erb("{$conf['db']['prefix']}seo_redirect", "to", "[{$_SERVER['REQUEST_URI']}]")){
-		if(!$redirect['themes_index']){
-			if($redirect['redirect_status_id'] && ($redirect_status = rb("{$conf['db']['prefix']}seo_redirect_status", "id", $redirect['redirect_status_id']))){
-				header("HTTP/1.1 {$redirect_status['name']} {$redirect_status['description']}");
-				exit(header("Location: {$redirect['from']}"));
+	if($seo_location = erb("{$conf['db']['prefix']}seo_location", "hide", "name", 0, "[{$_SERVER['REQUEST_URI']}]")){
+		if($seo_location['location_status_id'] && ($seo_location_status = rb("{$conf['db']['prefix']}seo_location_status", "id", $redirect['location_status_id']))){
+			if($seo_index = rb("{$conf['db']['prefix']}seo_index", "id", $seo_location['index_id'])){
+				header("HTTP/1.1 {$seo_location_status['name']} {$seo_location_status['description']}");
+				exit(header("Location: {$seo_index['name']}"));
 			}
 		}
 	}
@@ -201,7 +207,6 @@ if($_GET['id'] && $conf['settings']['modules_default'] && empty($conf['modules']
 	$_GET['m'] = array($conf['settings']['modules_default']=>$_GET['m'][ $mp ]);
 } # Устанавливаем дефолтный раздел. Если нет среди установленных то он считает что страничка оттуда
 
-
 foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_gaccess", 'Права доступа группы к модулю')) as $k=>$v){
 	if ( $conf['user']['gid'][ $v['gid'] ] && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false)
 		$conf['modules'][ $v['mid'] ]['access'] = $v['access'];
@@ -211,15 +216,11 @@ foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_uaccess O
 		$conf['modules'][ $v['mid'] ]['access'] = $v['access'];
 }
 
-$m = array_shift(array_keys($_GET['m']));
-$f = array_shift(array_values($_GET['m']));
+if (!empty($conf['settings']["theme/*:{$conf['settings']['fn']}"])) $conf['settings']['theme'] = $conf['settings']["theme/*:{$conf['settings']['fn']}"];
+if (!empty($conf['settings']["theme/{$conf['settings']['modpath']}:*"])) $conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:*"];
+if (!empty($conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"])) $conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"];
 
-if (empty($f)) $f = 'index';
-if (!empty($conf['settings']["theme/*:$f"])) $conf['settings']['theme'] = $conf['settings']["theme/*:$f"];
-if (!empty($conf['settings']["theme/$m:*"])) $conf['settings']['theme'] = $conf['settings']["theme/$m:*"];
-if (!empty($conf['settings']["theme/$m:$f"])) $conf['settings']['theme'] = $conf['settings']["theme/$m:$f"];
-
-if ((strpos($f, "admin") === 0) && $conf['settings']["theme/*:admin"]){
+if ((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]){
 	$conf['settings']['theme'] = $conf['settings']["theme/*:admin"];
 }
  
@@ -239,7 +240,9 @@ if(isset($_GET['m']['sqlanaliz'])){
 }else{
 	$content = mcont($content);
 	$zblocks = bcont();
-} if(!array_key_exists('null', $_GET)){
+}
+
+if(!array_key_exists('null', $_GET)){
 	$content = str_replace('<!-- [modules] -->', $content, $tc);
 } $content = strtr($content, (array)$zblocks);
 

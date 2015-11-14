@@ -1,6 +1,10 @@
 <?
 
-if(($conf['settings']['theme'] == "vk") && array_key_exists('hash', $_GET)){
+/*if(($url = preg_replace("#\/p\:[0-9]+#", "", $_SERVER['REQUEST_URI'])) && array_key_exists("null", $_GET)){
+	# Ресурсы не трогаем
+}else*/if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && !array_search("Зарегистрированные", $conf['user']['gid'])){
+	exit(header('HTTP/1.0 304 Not Modified'));
+}elseif(($conf['settings']['theme'] == "vk") && array_key_exists('hash', $_GET)){
 	$_REQUEST = $_GET = mpgt(($_SERVER['REQUEST_URI'] = urldecode($_GET['hash'])), $_GET);
 	if($mod = array_shift(array_keys($_REQUEST['m']))){
 		if($viewer = fk("{$conf['db']['prefix']}{$mod}_viewer", $w = array("name"=>$_REQUEST['viewer_id']), $w, array("up"=>time()))){
@@ -16,4 +20,7 @@ if(($conf['settings']['theme'] == "vk") && array_key_exists('hash', $_GET)){
 			}
 		}
 	}
+} if(!array_search("Зарегистрированные", $conf['user']['gid'])){ # Исключаем админстраницу из кеширования
+	header('Last-Modified: '. date("r"));
+	header("Expires: ".gmdate("r", time() + 86400));
 }
