@@ -222,15 +222,15 @@ set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 		error_log($_SERVER['HTTP_HOST']. $_SERVER['REQUEST_URI']. " ". $filename.":".$linenum."($errno) $errmsg"/*. print_r($vars, true)*/, 0) or die("Ошибка записи сообщения об ошибке в файл");
 	}
 });
-function mpzam($ar, $prefix = "{", $postfix = "}"){ # Создание из много мерного массиива - одномерного. Применяется для подставки в текстах отправляемых писем данных из массивов
-	$f = function($ar, $prx = "") use(&$f, $prefix, $postfix){
+function mpzam($ar, $name = null, $prefix = "{", $postfix = "}", $separator = ":"){ # Создание из много мерного массиива - одномерного. Применяется для подставки в текстах отправляемых писем данных из массивов
+	$f = function($ar, $prx = "") use(&$f, $prefix, $postfix, $name){
 		$r = array();
 		foreach($ar as $k=>$v){
 			$pr = ($prx ? $prx.":".$k : $k);
 			if(is_array($v)){
 				$r += $f($v, $pr);
 			}else{
-				$r[$prefix. $pr. $postfix] = $v;
+				$r[$prefix. ($name ? "{$name}". ($separator ?: ":") : ""). $pr. $postfix] = $v;
 			}
 		} return $r;
 	}; return $f($ar);
@@ -457,7 +457,12 @@ function erb($src, $key = 'id'){
 		if(is_numeric($v) || empty($v)){ # Выборка по целочисленному ключу
 			$return = (array)$return[ $v ];
 		}else if(is_array($v)){ # Сортировка по ключям массива
-			foreach(array_keys($v) as $k){
+			foreach($return as $key=>$val){
+				if(array_key_exists($key, $v)){
+					$r = array_replace_recursive($r, $val);
+				}
+			} $return = $r;
+/*			foreach(array_keys($v) as $k){
 				if(!empty($return[ $k ])){
 					if($intersect = array_intersect_key($return[ $k ], $r)){
 						$t = array_map(function($k, $v1, $v2){
@@ -469,7 +474,7 @@ function erb($src, $key = 'id'){
 						}
 					}else{ $r += $return[ $k ]; }
 				}
-			} $return = $r;
+			} $return = $r;*/
 		}else if($v === true){ # Выстраивание ключей по порядку
 			$inc = 0;
 			foreach($return as $k){
@@ -656,7 +661,7 @@ function mpidn($value, $enc = 0){
 		return $IDN->decode($value);
 	}
 }
-function mpsettings($name, $value = null){
+function mpsettings($name, $value = null, $aid = null){
 	global $conf, $arg;
 	if($value === null){
 		return mpql(mpqw($sql = "SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"". mpquot($name). "\""), 0, "value");
@@ -664,7 +669,7 @@ function mpsettings($name, $value = null){
 		if(mpql(mpqw($sql = "SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"". mpquot($name). "\""), 0)){
 			mpqw($sql = "UPDATE {$conf['db']['prefix']}settings SET value=\"". mpquot($value). "\" WHERE name=\"". mpquot($name). "\"");
 		}else{
-			mpqw($sql = "INSERT INTO {$conf['db']['prefix']}settings SET modpath=\"". mpquot(array_shift(explode("_", $name))). "\", aid=5, name=\"". mpquot($name). "\", value=\"". mpquot($value). "\"");
+			mpqw($sql = "INSERT INTO {$conf['db']['prefix']}settings SET modpath=\"". mpquot(array_shift(explode("_", $name))). "\", aid=". (int)($aid ?: 4). ", name=\"". mpquot($name). "\", value=\"". mpquot($value). "\"");
 		} return $value;
 	} return !empty($name) && !empty($conf['settings'][$name]) ? $conf['settings'][$name] : null;
 }
@@ -792,7 +797,7 @@ function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.p
 	}elseif(empty($file)){
 		echo "file error {$file['error']}";
 		mpevent("Ошибка загрузки файла", $_SERVER['REQUEST_URI'], $conf['user']['uid'], $file);
-	} mpre($file); return null;
+	} return null;
 }
 function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf;

@@ -255,18 +255,18 @@
 									<span class="info" title="<?=$field['Comment']?>">?</span>
 								<? endif; ?>
 									<? if(substr($fiel, 0, 2) == "__"): ?>
-										<span title="Количество записей во внешних модулях">_<?=($conf['settings'][substr($fiel, 2)] ?: substr($fiel, 2))?></span>
+										<span title="<?=substr($fiel, 2)?>">_<?=($conf['settings'][substr($fiel, 2)] ?: substr($fiel, 2))?></span>
 									<? elseif(substr($fiel, 0, 1) == "_"): ?>
-										<?=($conf['settings']["{$arg['modpath']}_". substr($fiel, 1)] ?: substr($fiel, 1))?>
+										<span title="<?=substr($fiel, 1)?>"><?=($conf['settings']["{$arg['modpath']}_". substr($fiel, 1)] ?: substr($fiel, 1))?></span>
 									<? elseif($tpl['etitle'][$fiel]): ?>
-									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?order=<?=$fiel?>">
-											<?=$tpl['etitle'][$fiel]?>
+									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?order=<?=$fiel?>" title="<?=$fiel?>">
+										<?=$tpl['etitle'][$fiel]?>
 									</a>
 									<? elseif(substr($fiel, -3) == "_id"): ?>
-										<?=($conf['settings']["{$arg['modpath']}_". substr($fiel, 0, -3)] ?: substr($fiel, 0, -3))?>
+										<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?order=<?=$fiel?>" title="<?=$fiel?>"><?=($conf['settings']["{$arg['modpath']}_". substr($fiel, 0, -3)] ?: substr($fiel, 0, -3))?></a>
 									<? else: ?>
-								<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?order=<?=$fiel?>">
-										<?=$fiel?>
+								<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?order=<?=$fiel?>" title="<?=$fiel?>">
+									<?=$fiel?>
 								</a>
 									<? endif; ?>
 							</span>
@@ -403,7 +403,7 @@
 											<? endforeach; ?>
 										</select>
 									<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>
-										<input type="text" name="<?=$fiel?>" value="<?=htmlspecialchars($tpl['edit'] ? rb($_GET['r'], "id", $_GET['edit'], $fiel) : $field['Default'])?>" placeholder="<?=($tpl['etitle'][$fiel] ?: $fiel)?>">
+										<input type="text" name="<?=$fiel?>" value="<?=htmlspecialchars($tpl['edit'] ? rb($_GET['r'], "id", $_GET['edit'], $fiel) : $field['Default']?:$_GET['where'][$fiel])?>" placeholder="<?=($tpl['etitle'][$fiel] ?: $fiel)?>">
 									<? endif; ?>
 								</span>
 							<? endforeach; ?>
@@ -420,7 +420,7 @@
 						if(value = prompt("Название таблицы")){
 							$.get("/?m[sqlanaliz]=admin&r=1&new=<?=$_GET['r']?>&null", function(data){
 								console.log("get:", data);
-								$.post("/?m[settings]=admin", {modpath:"<?=$arg['modpath']?>", name:"<?=substr($_GET['r'], strlen($conf['db']['prefix']))?>", value:value, aid:4, add:'добавить'}, function(data){
+								$.post("/settings:admin/r:mp_settings/null", {modpath:"<?=$arg['modpath']?>", name:"<?=substr($_GET['r'], strlen($conf['db']['prefix']))?>", value:value, aid:4}, function(data){
 									console.log("post:", data);
 									document.location.reload(true);
 								});

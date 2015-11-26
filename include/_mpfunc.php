@@ -4,10 +4,8 @@
 # Параметр return определяет возвращать ли ссылку обратно если переадресация не найдена
 function seo($href, $return = true){
 	global $conf;
-	if($seo_location = rb("{$conf['db']['prefix']}seo_location", "name", "[{$href}]")){
-		if($seo_index = rb("{$conf['db']['prefix']}seo_index", "location_id", $seo_location['id'])){
-			return $seo_index['name'];
-		}
+	if(($seo_location = rb("{$conf['db']['prefix']}seo_location", "name", "[{$href}]")) && ($seo_index = rb("{$conf['db']['prefix']}seo_index", "location_id", $seo_location['id']))){
+		return $seo_index['name'];
 	}else{ return ($return ? $href : false); }
 }
 
@@ -224,15 +222,15 @@ set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 		error_log($_SERVER['HTTP_HOST']. $_SERVER['REQUEST_URI']. " ". $filename.":".$linenum."($errno) $errmsg"/*. print_r($vars, true)*/, 0) or die("Ошибка записи сообщения об ошибке в файл");
 	}
 });
-function mpzam($ar, $prefix = "{", $postfix = "}"){ # Создание из много мерного массиива - одномерного. Применяется для подставки в текстах отправляемых писем данных из массивов
-	$f = function($ar, $prx = "") use(&$f, $prefix, $postfix){
+function mpzam($ar, $name = null, $prefix = "{", $postfix = "}", $separator = ":"){ # Создание из много мерного массиива - одномерного. Применяется для подставки в текстах отправляемых писем данных из массивов
+	$f = function($ar, $prx = "") use(&$f, $prefix, $postfix, $name){
 		$r = array();
 		foreach($ar as $k=>$v){
 			$pr = ($prx ? $prx.":".$k : $k);
 			if(is_array($v)){
 				$r += $f($v, $pr);
 			}else{
-				$r[$prefix. $pr. $postfix] = $v;
+				$r[$prefix. ($name ? "{$name}". ($separator ?: ":") : ""). $pr. $postfix] = $v;
 			}
 		} return $r;
 	}; return $f($ar);
@@ -794,7 +792,7 @@ function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.p
 	}elseif(empty($file)){
 		echo "file error {$file['error']}";
 		mpevent("Ошибка загрузки файла", $_SERVER['REQUEST_URI'], $conf['user']['uid'], $file);
-	} mpre($file); return null;
+	} return null;
 }
 function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf;

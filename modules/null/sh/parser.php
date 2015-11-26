@@ -34,6 +34,7 @@ if($argv){
 	include "phar://../../../index.phar/include/parse/simple_html_dom.php";
 	$html = new simple_html_dom();
 } chdir(__DIR__); # Изменяем текущую директорию для запуска из крона
+$conf['user']['gid'] = array(1=>"Администратор");
 
 if (strlen($conf['db']['error'] = mysql_error())){
 #		echo "Ошибка соединения с базой данных<p>";

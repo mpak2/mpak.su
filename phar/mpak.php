@@ -11,17 +11,16 @@ try {
     echo 'technically, this cannot happen';
 }
 
-function apr($folder){
+function apr($folder, $phar){
 	if(is_dir($folder)){
 		$dir = opendir($folder);
 		while($file = readdir($dir)){
 			if (($file[0] != '.') && ($f = "$folder/$file")){
-				apr($f);
+				apr($f, $phar);
 			}
 		}
 	}else{
-		if($f = "phar://index.phar/". preg_replace("#(\..*+\.)#i",'.',$folder)){
-
+		if($f = "phar://{$phar}/". preg_replace("#(\..*+\.)#i",'.',$folder)){
 			echo "copy(\"$folder\", \"$f\")\n";
 			copy("$folder", $f);
 		}
@@ -54,10 +53,10 @@ foreach( $dolders = array(
 //	'include/vkontakte',
 ) as $k=>$v){
 	echo "\nadded: $v\n\n";
-	apr("../$v");
+	apr("../$v", $phar);
 } if(file_exists($f = "./index.php")){
 	echo "$f\n";
-	copy($f, "phar://index.phar/index.php");
+	copy($f, "phar://{$phar}/index.php");
 }
 
 
@@ -68,11 +67,11 @@ foreach( $dolders = array(
 \$conf['db']['open_basedir'] = dirname(dirname(__FILE__));// echo \$conf['db']['open_basedir']. "<br>";
 
 EOF;*/
-$p->setStub('<?php Phar::mapPhar(); ini_set("include_path", "phar://". __FILE__); include "index.php"; __HALT_COMPILER(); ?>');
+$p->setStub('<?php Phar::mapPhar(); include "phar://". basename(__FILE__). "/index.php"; __HALT_COMPILER(); ?>');
 /*$p->setStub('<?php Phar::mapPhar(); ini_set("include_path", "phar://". __FILE__); include "index.php"; __HALT_COMPILER(); ?>');*/
 $p->stopBuffering();
 
-$dir = opendir($folder = 'phar://index.phar/');
+$dir = opendir($folder = "phar://{$phar}/");
 echo "\n\n". $folder;
 while($fn = readdir($dir)){
 	echo "\n". $fn;

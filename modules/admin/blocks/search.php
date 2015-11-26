@@ -10,7 +10,7 @@ if ((int)$arg['confnum']){
 		if (count($res = mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"))))
 			$param = unserialize($res[0]['param']);
 	}
-
+	
 ?>
 	<script type="text/javascript" src="/include/jquery/toggleformtext.js"></script>
 	<script language="javascript">
@@ -46,8 +46,8 @@ if ((int)$arg['confnum']){
 		<? if ($tr %4 == 0): ?><tr valign='top'><? endif; ?>
 		<td style="padding:5px;">
 			<div id="<?=$row["Tables_in_{$conf['db']['name']}"]?>">
-				<input type='text' id="search_name" name='param[search_name][<?=$row["Tables_in_{$conf['db']['name']}"]?>]' value='<?=$param['search_name'][$row["Tables_in_{$conf['db']['name']}"]]?>' style='width:100%'>
-				<input type='text' id="search_query" name='param[search_query][<?=$row["Tables_in_{$conf['db']['name']}"]?>]' value='<?=$param['search_query'][$row["Tables_in_{$conf['db']['name']}"]]?>' style='width:100%'>
+				<input type='text' id="search_name" name='param[search_name][<?=$row["Tables_in_{$conf['db']['name']}"]?>]' value='<?=($param['search_name'][$row["Tables_in_{$conf['db']['name']}"]] ?: $conf['settings'][$n = implode("_", array_slice(explode("_", $row["Tables_in_{$conf['db']['name']}"]), 1))] ?: $conf['settings'][ $n ])?>' style='width:100%'>
+				<input type='text' id="search_query" name='param[search_query][<?=$row["Tables_in_{$conf['db']['name']}"]?>]' value='<?=($param['search_query'][$row["Tables_in_{$conf['db']['name']}"]] ?: "/". array_pop(array_slice(explode("_", $row["Tables_in_{$conf['db']['name']}"]), 1, 1)). ":admin/r:{$row["Tables_in_{$conf['db']['name']}"]}?where[id]={id}")?>' style='width:100%'>
 				<center><b><?=$row["Tables_in_{$conf['db']['name']}"]?></b></center>
 				<? foreach(mpql(mpqw("SHOW COLUMNS FROM ". $row['Tables_in_'. $conf['db']['name']])) as $k=>$v): /*if ($v['Field'] == 'id') continue;*/ ?>
 					<div id="<?=$v['Field']?>">
@@ -61,7 +61,13 @@ if ((int)$arg['confnum']){
 	<tr><td colspan='4' align='right'><input type='submit' name='update_param' value='Сохранить'></td></tr>
 	</table></form>
 
-<? return;} ?>
+<? return;}else{
+	if(($arg['modpath'] == "admin") && ($arg['fn'] == "search") && ($_GET['search_block_num'] == $arg['blocknum'])){
+		$search = fk("search", $w = array("uid"=>$conf['user']['uid']), $w += array("name"=>$_GET['search']), $w);
+	}else{
+		$search = rb("search", "uid", $conf['user']['uid']);
+	}
+} ?>
 
 <h2>АдминПоиск</h2>
 <form action='/<?=$arg['modpath']?>:<?=$arg['fn']?>' method='get'>
@@ -69,7 +75,7 @@ if ((int)$arg['confnum']){
 		<tr>
 		<td align='center'>
 			<input type='hidden' name='search_block_num' value='<?=$arg['blocknum']?>'>
-			<input type='text' name='search' style="width:100%" value='<?=$_REQUEST['search']?>' title="Поиск" placeholder="Поиск по админке">
+			<input type='text' name='search' style="width:100%" value='<?=$search['name']?>' title="Поиск" placeholder="Поиск по админке">
 			<input type='submit' value='Искать'>
 		</td>
 		</tr>

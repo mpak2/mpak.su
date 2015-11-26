@@ -265,7 +265,7 @@ if ($m[(int)$_GET['r']] == 'Модули'){ # Добавление модуля
 				if ($fil == 'id') continue;
 				$fields[] = "`$fil`";
 				$values[] = "'".((($arg['access'] < $z['aid']) && ($fil == 'value')) ? '' : strtr(mpquot($val), array('$'=>'\\$')))."'";
-			} $init .= "\nmpqw(\"INSERT INTO `{\$conf['db']['prefix']}settings` (".implode(', ', $fields).") VALUES (".implode(', ', $values).")\");";
+			} $init .= "\nmpsettings(\"{$fields}\", \"{$values}\");";
 		}
 		if (count($settings)) $del .= "\n\nmpqw(\"DELETE FROM `{\$conf['db']['prefix']}settings` WHERE `modpath`='{\$arg['modpath']}'\");";
 

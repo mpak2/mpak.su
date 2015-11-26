@@ -15,17 +15,17 @@ header('Content-Type: text/html;charset=UTF-8');
 date_default_timezone_set('Europe/Moscow');
 
 if(strpos($f = __FILE__, "phar://") === 0){ # Фал index.php внутри phar архива
-	$conf["db"]["open_basedir"] = implode("/", array_slice(explode("/", dirname(dirname($f))), 2)). ":". dirname($f);
-}elseif(empty($conf["db"]["open_basedir"])){ # Не в phar
-	if(($backtrace = array_shift(debug_backtrace())) && (strpos($backtrace['file'], "phar://") === 0)){
-		$conf["db"]["open_basedir"] = dirname($f). ":". dirname($backtrace['file']);
-	}else{
-		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: dirname($f));
-	}
+	if(!isset($index) && ($index = implode("/", array_slice(explode("/", dirname(dirname($f))), 2)). '/index.php') /*&& print_r($index)*/ && file_exists($index)){
+		include $index; if($content) die;
+	} $conf["db"]["open_basedir"] = dirname($index). ":". dirname($f). ":". dirname($f);
+}else{ # Не в phar
+	if(file_exists($phar = __DIR__. "/index.phar")){
+		$conf["db"]["open_basedir"] = "phar://{$phar}";
+	} $conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: dirname($f)). ":". $conf["db"]["open_basedir"];
 }
-if (!isset($index) && file_exists($index = array_shift(explode(':', $conf["db"]["open_basedir"])). '/index.php')){
-	include $index; if($content) die;
-} if(!function_exists('mp_require_once')){
+
+
+if(!function_exists('mp_require_once')){
 	function mp_require_once($link){
 		global $conf, $arg, $tpl;
 		foreach(explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) as $k=>$v){
@@ -127,7 +127,7 @@ foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE enabled=2"
 	$conf['modules'][ mb_strtolower($v['name']) ] = &$conf['modules'][ $v['folder'] ];
 	$conf['modules'][ $v['id'] ] = &$conf['modules'][ $v['folder'] ];
 }
-//mpre($_SERVER['REQUEST_URI'], $_GET);
+
 if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страница
 	if(strpos($conf['settings']['start_mod'], "http://") === 0){
 		header("Location: {$conf['settings']['start_mod']}"); exit;
@@ -166,6 +166,7 @@ if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страни
 		$conf['settings']['canonical'] = "/";
 	}elseif(!array_key_exists("404", $conf['settings']) || ($_404 = $conf['settings']['404'])){ # Если не прописан адрес 404 ошибки, то его обработку оставляем для init.php
 		if(!$conf['modules'][ array_shift(array_keys($_GET['m'])) ]['folder']){
+			header('HTTP/1.1 404 Not Found');
 			exit(header("Location: /". ($_404 ?: "themes:404"). "{$_SERVER['REQUEST_URI']}"));
 		}
 	}else{ # Ссылка на основную страницу

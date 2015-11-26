@@ -42,6 +42,13 @@ $logo = array(
 	"exabot.png"=>"exabot",
 	"openlinkprofiler.png"=>"OpenLinkProfiler",
 	"surly.png"=>"SurdotlyBot",
+	"queryseekerspider.png"=>"queryseeker",
+	"cliqzbot.png"=>"cliqzbot",
+	"twitterbot.png"=>"twitterbot",
+	"miralinks.png"=>"Miralinks",
+	"wotbox.png"=>"wotbox",
+	"digincore.png"=>"digincore",
+
 	"bot.png"=>"bot",
 );// mpre($logo);
 
