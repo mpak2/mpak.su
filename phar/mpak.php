@@ -30,6 +30,7 @@ function apr($folder, $phar){
 foreach( $dolders = array(
 	'index.php',
 //	'phpinfo.php',
+	'include/init.php', # Кеширование и обработка раздела в контакте
 	'include/func.php',
 	'include/mpfunc.php',
 	'include/install.php',

@@ -1194,17 +1194,16 @@ function pre(){
 		}
 	} foreach($list as $k=>$v){
 		if(true){ # Комментарии выводим для javascript шаблонов. Чтобы они игнорировались как код
-			echo "/*\n<fieldset><legend>[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()</legend>*/";
+			echo "/*<fieldset><legend>[$k] {$v['file']}:{$v['line']} <b>{$v['function']}</b> ()</legend>*/";
 		}else{
-			echo "/*\n[$k] {$v['file']}:{$v['line']} function <b>{$v['function']}</b> ()<br>\n*/";
+			echo "/*\n[$k] {$v['file']}:{$v['line']} <b>{$v['function']}</b> ()<br>\n*/";
 		}
 		foreach($v['args'] as $n=>$z){
-			echo "/*<pre>\n"; print_r($z); echo "\n</pre>*/";
+			echo "/*<pre>\n\t"; print_r($z); echo "\n</pre>*/";
 		}
-		if(true) echo "/*</fieldset>\n*/";
+		if(true) echo "/*</fieldset>*/\n";
 	}
-}
-function mpre(){
+} function mpre(){
 	global $conf, $arg, $argv;
 	if(!array_search("Администратор", $conf['user']['gid'])){
 		return;

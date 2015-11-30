@@ -279,19 +279,19 @@
 									<span>
 										<? if(substr($k, 0, 2) == "__"): // $tpl['ecounter'] ?>
 											<? if(($f = substr($k, 2)) && ($m = array_shift(explode("_", $f)))): ?>
-												<a href="/<?=$m?>:admin/r:<?=$conf['db']['prefix']?><?=$f?>?where[<?=($_GET['r'] == "{$conf['db']['prefix']}users" ? "uid" : substr($_GET['r'], strlen($conf['db']['prefix'])))?>]=<?=$lines['id']?>">
+												<a href="/<?=$m?>:admin/r:<?=$conf['db']['prefix']?><?=$f?>?&where[<?=($_GET['r'] == "{$conf['db']['prefix']}users" ? "uid" : substr($_GET['r'], strlen($conf['db']['prefix'])))?>]=<?=$lines['id']?>">
 													<?=($v[$lines['id']]['cnt'] ? "{$v[$lines['id']]['cnt']}&nbspшт" : "Нет")?>
 												</a>
 											<? endif; ?>
 										<? elseif(substr($k, 0, 1) == "_"): // $tpl['counter'] ?>
-											<a href="/<?=$arg['modpath']?>:admin/r:<?="{$conf['db']['prefix']}{$arg['modpath']}{$k}?where[". (($_GET['r'] == "{$conf['db']['prefix']}users") && ($k == "_mem") ? "uid" : substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "_id"). "]={$lines['id']}"?>">
+											<a href="/<?=$arg['modpath']?>:admin/r:<?="{$conf['db']['prefix']}{$arg['modpath']}{$k}?&where[". (($_GET['r'] == "{$conf['db']['prefix']}users") && ($k == "_mem") ? "uid" : substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "_id"). "]={$lines['id']}"?>">
 												<?=($tpl['counter'][$k][ $lines['id'] ] ? "{$tpl['counter'][$k][ $lines['id'] ]}&nbspшт" : "Нет")?>
 											</a>
 										<? elseif($k == "id"): ?>
 											<span style="white-space:nowrap;">
 												<a class="del" href="javascript:"></a>
 												<a class="edit" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?edit=<?=$v?><? foreach($_GET['where'] as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=($_GET['p'] ? "&p={$_GET['p']}" : "")?>"></a>
-												<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?where[id]=<?=$v?>"><?=$v?></a>
+												<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&where[id]=<?=$v?>"><?=$v?></a>
 											</span>
 										<? elseif(array_search($k, array(1=>"img", "img2", "img3"))): ?>
 											<a target="blank" href="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?>/w:800/h:600/null/img.png" title="<?=$v?>">
@@ -313,7 +313,7 @@
 											<span style="white-space:nowrap;">
 												<? if($uid = rb("{$conf['db']['prefix']}users", "id", (int)$v)): ?>
 <!--													<span style="color:#ddd;"><?=$v?></span>-->
-													<a class="key" href="/users:admin/r:<?=$conf['db']['prefix']?>users?where[id]=<?=(int)$v?>" title="<?=$v?>"></a><?=$uid['name']?>
+													<a class="key" href="/users:admin/r:<?=$conf['db']['prefix']?>users?&where[id]=<?=(int)$v?>" title="<?=$v?>"></a><?=$uid['name']?>
 												<? elseif($v): ?>
 													<span style="color:red;" title="<?=$v?>">
 														<?=$v?>
@@ -329,14 +329,14 @@
 <!--													<span style="color:#ccc;"><?=$el['id']?></span>-->
 													<span style="white-space:nowrap;">
 														<a class="key" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?="{$conf['db']['prefix']}{$arg['modpath']}_"?>
-															<?=substr($k, 0, -3)?>?where[id]=<?=$v?>" title="<?=$v?>">
+															<?=substr($k, 0, -3)?>?&where[id]=<?=$v?>" title="<?=$v?>">
 														</a>&nbsp;<?=htmlspecialchars($el['name'])?>
 													</span>
 												<? elseif($v): ?>
 													<span style="color:red;"><?=$v?></span>
 												<? endif; ?>
 										<? elseif($tpl['espisok'][$k]): ?>
-											<a class="ekey" href="/<?=array_shift(explode("_", $k))?>:admin/r:<?=$conf['db']['prefix']?><?=$k?>?where[id]=<?=$v?>" title="<?=$v?>"></a>
+											<a class="ekey" href="/<?=array_shift(explode("_", $k))?>:admin/r:<?=$conf['db']['prefix']?><?=$k?>?&where[id]=<?=$v?>" title="<?=$v?>"></a>
 											<?=(strlen($tpl['espisok'][$k][$v]['name']) > 16 ? mb_substr($tpl['espisok'][$k][$v]['name'], 0, 16, "UTF-8"). "..." : $tpl['espisok'][$k][$v]['name'])?>
 										<? elseif($k == "name"): ?>
 											<a href="/<?=$arg['modpath']?>

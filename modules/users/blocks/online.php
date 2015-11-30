@@ -48,6 +48,8 @@ $logo = array(
 	"miralinks.png"=>"Miralinks",
 	"wotbox.png"=>"wotbox",
 	"digincore.png"=>"digincore",
+	"ct.png"=>"C-T bot",
+	"linkdex.png"=>"linkdexbot",
 
 	"bot.png"=>"bot",
 );// mpre($logo);

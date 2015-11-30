@@ -80,7 +80,8 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 
 		if($_GET['order']){ # Установка временной сортировки
 			$conf['settings'][substr($_GET['r'], strlen($conf['db']['prefix'])). "=>order"] = $_GET['order'];
-		} $where = array_map(function($v){ return "[{$v}]"; }, $_GET['where']);
+		}
+		$where = array_map(function($v){ return "[{$v}]"; }, $_GET['where']);
 		$tpl['lines'] = call_user_func_array("rb", ($where ? array_merge(array($_GET['r'], 20), array_keys($where), array("id"), (array)array_values($where)) : array($_GET['r'], 20)));
 
 		$tpl['spisok'] = array(

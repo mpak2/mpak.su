@@ -1,8 +1,6 @@
 <?
 
-/*if(($url = preg_replace("#\/p\:[0-9]+#", "", $_SERVER['REQUEST_URI'])) && array_key_exists("null", $_GET)){
-	# Ресурсы не трогаем
-}else*/if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && !array_search("Зарегистрированные", $conf['user']['gid'])){
+if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && !array_search("Зарегистрированные", $conf['user']['gid'])){
 	exit(header('HTTP/1.0 304 Not Modified'));
 }elseif(($conf['settings']['theme'] == "vk") && array_key_exists('hash', $_GET)){
 	$_REQUEST = $_GET = mpgt(($_SERVER['REQUEST_URI'] = urldecode($_GET['hash'])), $_GET);
@@ -14,9 +12,7 @@
 
 				if(!$viewer['viewer_id'] && !$viewer['up'] && ($user = rb("{$conf['db']['prefix']}{$mod}_viewer", "name", "[{$_REQUEST['user_id']}]")) && ($user['name'] != $viewer['name'])){
 					$viewer = fk("{$conf['db']['prefix']}{$mod}_viewer", array("id"=>$viewer['id']), null, array("viewer_id"=>$user['id']));
-				}// pre($sess);
-			}else{
-//				pre($conf['user']['sess']);
+				}
 			}
 		}
 	}
