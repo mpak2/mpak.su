@@ -26,25 +26,26 @@
 				}, this));
 			}
 		});
-		$.each(<?=json_encode($tpl['index'])?>, function(){
+/*		$.each(<?=json_encode($tpl['index'])?>, function(){
 			$(".data_index").trigger("img", this.id);
-		});
+		});*/
 	})
 </script>
 <style>
 	.data_index > span {display:inline-block; position:relative; min-height:80px; min-width:80px; vertical-align:bottom; text-align:right;}
 	.data_index > span .del {position:absolute; top:5px; right:5px; width:13px; height:13px; background-image:url(/img/del.png); background-color:white;}
 </style>
-<div class="data_index"></div>
-<form id="data_index" action="/data:ajax/class:index" enctype="multipart/form-data" method="post">
-	<div class="table">
-		<div>
-			<span>Файл:</span>
-			<span><input type="file" name="img"></span>
-		</div>
-		<div style="text-align:right;">
-			<span>&nbsp;</span>
-			<span><input type="submit" value="Добавить"></span>
-		</div>
-	</div>
+<div class="data_index" style="overflow:hidden;">
+	<? foreach(rb("index") as $index): ?>
+		<? if($index['img']): ?>
+			<div style="width:70px; height:70px; float:left; padding:4px; margin:2px; border:1px solid gray; text-align:center;">
+				<img src="/<?=$arg['modname']?>:img/<?=$index['id']?>/tn:index/fn:img/w:60/h:60/null/img.png" style="border:1px solid #aaa; padding:2px">
+			</div>
+		<? endif; ?>
+	<? endforeach; ?>
+</div>
+<form id="data_index" action="/data:ajax/class:index" enctype="multipart/form-data" method="post" style="margin-top:20px;">
+	<span>Файл:</span>
+	<span><input type="file" name="img"></span>
+	<span><input type="submit" value="Добавить"></span>
 </form>

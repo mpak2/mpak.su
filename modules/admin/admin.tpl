@@ -50,13 +50,13 @@
 			.table input[type="text"], .table select {width:100%;}
 			.table textarea {width:100%; height:150px;}
 			.table a.edit {display:inline-block; background:url(i/mgif.gif); background-position:0 0; width:16px; height:16px;}
-			.table a.del {display:inline-block; background:url(i/mgif.gif); background-position:0 -56px; width:16px; height:16px;}
+			.table .control a.del {display:inline-block; background:url(i/mgif.gif); background-position:0 -56px; width:16px; height:16px;}
 			.table a.key {display:inline-block; background:url(i/mgif.gif); background-position:-2px -155px; width:16px; height:16px; opacity:0.3}
 			.table a.ekey {display:inline-block; background:url(i/mgif.gif); background-position:-20px -155px; width:16px; height:16px; opacity:0.3}
 		</style>
 		<script>
 			(function($, script){
-				$(script).parent().on("click", "a.del", function(e){
+				$(script).parent().on("click", ".control a.del", function(e){
 					if(e.ctrlKey || confirm("Удалить элемент?")){
 						var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
 						$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/"+line_id+"/null", {id:0}, function(data){
@@ -119,6 +119,14 @@
 						console.error("error:", error);
 						alert(error.responseText);
 					});
+				}).on("click", ".imgs a.del", function(e){
+					if(e.ctrlKey || confirm("Удалить элемент?")){
+						var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
+						$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/"+ line_id+ "/null", {img:""}, function(response){
+							console.log("line_id:", line_id, "response:", response);
+							document.location.reload(true);
+						})
+					}
 				})
 			})(jQuery, document.scripts[document.scripts.length-1])
 		</script>
@@ -288,15 +296,20 @@
 												<?=($tpl['counter'][$k][ $lines['id'] ] ? "{$tpl['counter'][$k][ $lines['id'] ]}&nbspшт" : "Нет")?>
 											</a>
 										<? elseif($k == "id"): ?>
-											<span style="white-space:nowrap;">
+											<span class="control" style="white-space:nowrap;">
 												<a class="del" href="javascript:"></a>
 												<a class="edit" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?edit=<?=$v?><? foreach($_GET['where'] as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=($_GET['p'] ? "&p={$_GET['p']}" : "")?>"></a>
 												<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&where[id]=<?=$v?>"><?=$v?></a>
 											</span>
 										<? elseif(array_search($k, array(1=>"img", "img2", "img3"))): ?>
-											<a target="blank" href="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?>/w:800/h:600/null/img.png" title="<?=$v?>">
-												<img src="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?>/w:65/h:65/null/img.png" style="border:1px solid #aaa; padding:2px;">
-											</a>
+											<div class="imgs" style="position:relative; width:70px; height:70px;">
+<!--												<a target="blank" href="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?>/w:800/h:600/null/img.png" title="<?=$v?>">-->
+													<? if($lines['img']): ?>
+														<a class="del" href="javascript:void(0)" style="position:absolute; top:5px; right:5px;"><img src="/img/del.png"></a>
+													<? endif; ?>
+													<img src="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?>/rand:<?=time()?>/w:65/h:65/null/img.png" style="border:1px solid #aaa; padding:2px;">
+<!--												</a>-->
+											</div>
 										<? elseif($k == "file"): ?>
 											<a target="blank" href="/<?=$arg['modpath']?>:file/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:file/null/<?=basename($lines[$k])?>" title="<?=$v?>">
 												<?=$v?>
@@ -325,16 +338,16 @@
 												<?=($v ? date("Y-m-d H:i:s", $v) : "")?>
 											</span>
 										<? elseif(substr($k, -3) == "_id"): ?>
-												<? if($el = rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($k, 0, -3), "id", $v)): ?>
-<!--													<span style="color:#ccc;"><?=$el['id']?></span>-->
-													<span style="white-space:nowrap;">
-														<a class="key" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?="{$conf['db']['prefix']}{$arg['modpath']}_"?>
-															<?=substr($k, 0, -3)?>?&where[id]=<?=$v?>" title="<?=$v?>">
-														</a>&nbsp;<?=htmlspecialchars($el['name'])?>
-													</span>
-												<? elseif($v): ?>
-													<span style="color:red;"><?=$v?></span>
-												<? endif; ?>
+											<? if($el = rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($k, 0, -3), "id", $v)): ?>
+<!--												<span style="color:#ccc;"><?=$el['id']?></span>-->
+												<span style="white-space:nowrap;">
+													<a class="key" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?="{$conf['db']['prefix']}{$arg['modpath']}_"?>
+														<?=substr($k, 0, -3)?>?&where[id]=<?=$v?>" title="<?=$v?>">
+													</a>&nbsp;<?=htmlspecialchars($el['name'])?>
+												</span>
+											<? elseif($v): ?>
+												<span style="color:red;"><?=$v?></span>
+											<? endif; ?>
 										<? elseif($tpl['espisok'][$k]): ?>
 											<a class="ekey" href="/<?=array_shift(explode("_", $k))?>:admin/r:<?=$conf['db']['prefix']?><?=$k?>?&where[id]=<?=$v?>" title="<?=$v?>"></a>
 											<?=(strlen($tpl['espisok'][$k][$v]['name']) > 16 ? mb_substr($tpl['espisok'][$k][$v]['name'], 0, 16, "UTF-8"). "..." : $tpl['espisok'][$k][$v]['name'])?>

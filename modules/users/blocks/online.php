@@ -50,6 +50,9 @@ $logo = array(
 	"digincore.png"=>"digincore",
 	"ct.png"=>"C-T bot",
 	"linkdex.png"=>"linkdexbot",
+	"yesup.png"=>"yesup.net",
+	"meanpath.png"=>"meanpathbot",
+	"robot.png"=>"robot",
 
 	"bot.png"=>"bot",
 );// mpre($logo);

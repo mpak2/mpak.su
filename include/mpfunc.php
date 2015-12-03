@@ -1083,7 +1083,7 @@ function mpfile($filename, $description = null){
 		header("Content-Transfer-Encoding: binary");
 		header("Content-Length: ".filesize("$file_name"));
 		header("Content-Disposition: attachment; filename=\"".($description ? "$description". (substr($description, strlen($ext)*-1) == $ext ? "" : ".". $ext) : basename($file_name))."\"");
-		header("Expires: ".date('r'));
+		header("Expires: ".gmdate("r", time() + 86400*10));
 		header('Cache-Control: max-age=28800');
 //		header("Cache-Control: max-age=3600, must-revalidate");
 //		header("Pragma: no-cache");
@@ -1266,11 +1266,11 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 		header('HTTP/1.0 304 Not Modified');
 	}else if(file_exists("$cache_name/$host_name/$prx/$fl_name") && (($filectime = filectime("$cache_name/$host_name/$prx/$fl_name")) > ($sfilectime = filectime($file_name)))){
 		header('Last-Modified: '. date("r", $filectime));
-		header("Expires: ".gmdate("r", time() + 86400));
+		header("Expires: ".gmdate("r", time() + 86400*10));
 		return file_get_contents("$cache_name/$host_name/$prx/$fl_name");
 	}else if($src = imagecreatefromstring(file_get_contents($file_name))){
 		header('Last-Modified: '. date("r", filectime($file_name)));
-		header("Expires: ".gmdate("r", time() + 86400));
+		header("Expires: ".gmdate("r", time() + 86400*10));
 		$width = imagesx($src);
 		$height = imagesy($src);
 		if(!array_key_exists('water', $_GET) && (empty($max_width) || empty($max_height) || (($width <= $max_width) && ($height <= $max_height)))){
