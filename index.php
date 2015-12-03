@@ -231,10 +231,6 @@ if(isset($_GET['theme']) && $_GET['theme'] != $conf['user']['sess']['theme']){
 	$conf['settings']['theme'] = $conf['user']['sess']['theme'];
 }
 
-if($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". ($_GET['index'] ? basename($_GET['index']) : "index"). ".html")){
-	$tc = ($conf['settings']['theme_exec'] ? mpeval($f) : file_get_contents($t));
-}else{ die("Шаблон {$f} не найден"); }
-
 if(isset($_GET['m']['sqlanaliz'])){
 	$zblocks = bcont();
 	$content = mcont($content);
@@ -242,6 +238,10 @@ if(isset($_GET['m']['sqlanaliz'])){
 	$content = mcont($content);
 	$zblocks = bcont();
 }
+
+if($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". ($conf['settings']['index']?:($_GET['index'] ? basename($_GET['index']) : "index" )) . ".html")){
+	$tc = ($conf['settings']['theme_exec'] ? mpeval($f) : file_get_contents($t));
+}else{ die("Шаблон {$f} не найден"); }
 
 if(!array_key_exists('null', $_GET)){
 	$content = str_replace('<!-- [modules] -->', $content, $tc);
