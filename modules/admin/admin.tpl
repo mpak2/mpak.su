@@ -122,7 +122,9 @@
 				}).on("click", ".imgs a.del", function(e){
 					if(e.ctrlKey || confirm("Удалить элемент?")){
 						var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
-						$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/"+ line_id+ "/null", {img:""}, function(response){
+						var fn = $(e.currentTarget).parents("[fn]").attr("fn");
+						var post = {}; post[fn] = "";
+						$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/"+ line_id+ "/null", post, function(response){
 							console.log("line_id:", line_id, "response:", response);
 							document.location.reload(true);
 						})
@@ -302,12 +304,12 @@
 												<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&where[id]=<?=$v?>"><?=$v?></a>
 											</span>
 										<? elseif(array_search($k, array(1=>"img", "img2", "img3"))): ?>
-											<div class="imgs" style="position:relative; width:70px; height:70px;">
+											<div class="imgs" fn="<?=$k?>" style="position:relative; width:70px; height:70px;">
 <!--												<a target="blank" href="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?>/w:800/h:600/null/img.png" title="<?=$v?>">-->
-													<? if($lines['img']): ?>
+													<? if($lines[$k]): ?>
 														<a class="del" href="javascript:void(0)" style="position:absolute; top:5px; right:5px;"><img src="/img/del.png"></a>
 													<? endif; ?>
-													<img src="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?>/rand:<?=time()?>/w:65/h:65/null/img.png" style="border:1px solid #aaa; padding:2px;">
+													<img src="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?><?=($lines[$k] ? "" : "/rand:". time())?>/w:65/h:65/null/img.png" style="border:1px solid #aaa; padding:2px;">
 <!--												</a>-->
 											</div>
 										<? elseif($k == "file"): ?>
@@ -371,8 +373,8 @@
 										<input type="text" disabled>
 									<? elseif($fiel == "id"): ?>
 										<button type="submit"><?=(array_key_exists("edit", $_GET) ? "Редактировать" : "Добавить")?></button>
-									<? elseif($fiel == "img"): ?>
-										<input type="file" name="img[]" multiple="true">
+									<? elseif(array_search($fiel, array(1=>"img", "img2", "img3"))): ?>
+										<input type="file" name="<?=$fiel?>[]" multiple="true">
 									<? elseif($fiel == "file"): ?>
 										<input type="file" name="file[]" multiple="true">
 									<? elseif($fiel == "hide"): ?>
