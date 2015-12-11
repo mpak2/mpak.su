@@ -437,14 +437,14 @@ function erb($src, $key = 'id'){
 	}// mpre($purpose); mpre($keys); mpre($field);
 	if(is_numeric($key)){ # Второй параметр число строим пагинатор
 		global $arg, $conf, $tpl;
-		if(is_array($src)){
+		if(is_array($tab = $src)){
 			$src = array_slice($src, 0, $key);
 		}else{
 			$where = array_map(function($key, $val){
 				return "`{$key}`". (is_array($val) ? " IN (". in($val). ")" : "=". (int)$val);
 			}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
-			$src = qn($sql = "SELECT * FROM `{$src}`". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings'][substr($src, strlen($conf['db']['prefix'])). "=>order"]) ? " ORDER BY ". mpquot($order) : ""). " LIMIT ". (int)($_GET['p']*$key). ",". (int)$key,$IdName);
-			$tpl['pager'] = mpager(ql("SELECT COUNT(*) AS cnt FROM `{$src}`", 0, "cnt"));
+			$src = qn($sql = "SELECT * FROM `{$tab}`". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings'][substr($src, strlen($conf['db']['prefix'])). "=>order"]) ? " ORDER BY ". mpquot($order) : ""). " LIMIT ". (int)($_GET['p']*$key). ",". (int)$key,$IdName);
+			$tpl['pager'] = mpager(ql("SELECT COUNT(*) AS cnt FROM `{$tab}`", 0, "cnt")/(int)($_GET['p']*$key));
 		}
 	}else if(is_string($src)){
 		global $arg, $conf;
