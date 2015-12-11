@@ -4,11 +4,11 @@ mb_internal_encoding("UTF-8");
 date_default_timezone_set('Europe/Moscow');
 
 $conf['db']['conn'] = null;
-$conf['db']['type'] = 'mysql';
+$conf['db']['type'] = 'sqlite';
 $conf['db']['prefix'] = 'mp_';
 $conf['db']['host'] = 'localhost';
-$conf['db']['login'] = 'username';
-$conf['db']['name'] = 'db/sqlite';
-$conf['db']['pass'] = 'password';
+$conf['db']['login'] = '';
+$conf['db']['name'] = '.htdb';
+$conf['db']['pass'] = '';
 
 //$conf["db"]["open_basedir"] = '.:core:/tmp';

@@ -65,25 +65,30 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 		} exit(htmlspecialchars(json_encode($el)));
 	}
 }else{ # Выборка таблицы
-	foreach($tpl['tables'] = array_column(ql("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\""), "Tables_in_{$conf['db']['name']}") as $key=>$tables){
+	if($conf['db']['type'] == "sqlite"){
+		$tpl['tables'] = array_column(qn("SELECT * FROM sqlite_master WHERE type='table' AND name LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\"", "name"), "name");
+	}else{
+		$tpl['tables'] = array_column(ql("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\""), "Tables_in_{$conf['db']['name']}");
+	} foreach($tpl['tables'] as $key=>$tables){
 		$short = implode("_", array_slice(explode("_", $tables), 0, -1));
 		if(($top = array_search($short, $tpl['tables'])) !== false){
 			$tpl['menu'][$top][] = $key;
 		}else{ $tpl['menu'][$key] = array(); }
-	}// mpre($tpl['menu']);
-	if(empty($_GET['r'])){
+	} if(empty($_GET['r'])){
 		if($table = array_shift($tables = $tpl['tables'])){
 			exit(header("Location:/{$arg['modpath']}:admin/r:{$table}"));
 		}
 	}elseif(array_search($_GET['r'], $tpl['tables']) !== false){
-		$tpl['fields'] = qn("SHOW FULL COLUMNS FROM {$_GET['r']}", "Field");
-
+		if($conf['db']['type'] == "sqlite"){
+			$tpl['fields'] = qn("pragma table_info ('". $_GET['r']. "')", "name");
+		}else{
+			$tpl['fields'] = qn("SHOW FULL COLUMNS FROM {$_GET['r']}", "Field");
+		}
 		if($_GET['order']){ # Установка временной сортировки
 			$conf['settings'][substr($_GET['r'], strlen($conf['db']['prefix'])). "=>order"] = $_GET['order'];
 		}
 		$where = array_map(function($v){ return "[{$v}]"; }, $_GET['where']);
 		$tpl['lines'] = call_user_func_array("rb", ($where ? array_merge(array($_GET['r'], 20), array_keys($where), array("id"), (array)array_values($where)) : array($_GET['r'], 20)));
-
 		$tpl['spisok'] = array(
 			'hide' => array(0=>"Видим", 1=>"Скрыт"),
 		);

@@ -21,5 +21,3 @@ $tpl['cnt'] = mpql(mpqw("SELECT FOUND_ROWS()/10 AS cnt"), 0, 'cnt');
 foreach((array)$tpl['modules'] as $k=>$v){
 	if($conf['modules'][$v['id']]['access'] < 4) unset($tpl['modules'][$k]);
 }
-
-?>

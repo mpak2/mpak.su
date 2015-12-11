@@ -1,5 +1,21 @@
 <?
 
+# Подключение страницы
+function inc($file_name, $variables = array(), $req = false){
+	global $arg, $conf; extract($variables);
+	if($f = mpopendir($file_name)){
+		if(array_search("Администратор", $conf['user']['gid'])){
+			echo strtr($conf['settings']['modules_start'], array('{path}'=>$f));
+		} if($req){
+			require $f;
+		}else{
+			include $f;
+		} if(array_search("Администратор", $conf['user']['gid'])){
+			echo strtr($conf['settings']['modules_stop'], array('{path}'=>$f));
+		}  return true;
+	} return false;
+}
+
 # Функция определения seo вдреса страницы. Если адрес не определен в таблице seo_redirect то false
 # Параметр return определяет возвращать ли ссылку обратно если переадресация не найдена
 function seo($href, $return = true){
@@ -371,6 +387,7 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 function rb($src, $key = 'id'){
 	global $conf, $arg;
 	$func_get_args = func_get_args();
+//	echo "<pre>"; print_r($func_get_args); echo "</pre>"; exit;
 	if(is_string($src)){
 		//проверка полное или коротное название таблицы
 		if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$func_get_args[0]))
@@ -388,6 +405,7 @@ function rb($src, $key = 'id'){
 #	erb('table',10,........ПАРАМЕТРЫ ВЫБОКИ..........);
 #	erb('table',........ПАРАМЕТРЫ ВЫБОКИ..........);
 #####################################################################################
+
 function erb($src, $key = 'id'){
 	global $arg;
 	$purpose = $keys = $return = array();
@@ -425,8 +443,8 @@ function erb($src, $key = 'id'){
 			$where = array_map(function($key, $val){
 				return "`{$key}`". (is_array($val) ? " IN (". in($val). ")" : "=". (int)$val);
 			}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
-			$src = qn($sql = "SELECT SQL_CALC_FOUND_ROWS * FROM `{$src}`". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings'][substr($src, strlen($conf['db']['prefix'])). "=>order"]) ? " ORDER BY ". mpquot($order) : ""). " LIMIT ". (int)($_GET['p']*$key). ",". (int)$key,$IdName);
-			$tpl['pager'] = mpager(ql("SELECT FOUND_ROWS()/". (int)$key. " AS cnt", 0, "cnt"));
+			$src = qn($sql = "SELECT * FROM `{$src}`". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings'][substr($src, strlen($conf['db']['prefix'])). "=>order"]) ? " ORDER BY ". mpquot($order) : ""). " LIMIT ". (int)($_GET['p']*$key). ",". (int)$key,$IdName);
+			$tpl['pager'] = mpager(ql("SELECT COUNT(*) AS cnt FROM `{$src}`", 0, "cnt"));
 		}
 	}else if(is_string($src)){
 		global $arg, $conf;
@@ -1010,7 +1028,8 @@ function mpql($dbres, $ln = null, $fd = null){
 function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 	$result = array();
 	if($dbres){
-		while($line = $dbres->fetch()){
+		while($line = $dbres->fetch(PDO::FETCH_ASSOC)){
+//		while(($line = $dbres->fetch(PDO::FETCH_COLUMN)) !== false){
 			if($z){
 				$result[ $line[$x] ][ $line[$y] ][ $line[$n] ][ $line[$z] ] = $line;
 			}elseif($n){
@@ -1056,7 +1075,6 @@ function mpqw($sql, $info = null, $conn = null){
 } function qw($sql, $info = null, $conn = null){
 	global $conf;
 	$mt = microtime(true);
-//	pre($sql);
 	$stm = $conf['db']['conn']->prepare($sql);
 	try{
 		$return = $stm->execute();

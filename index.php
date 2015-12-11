@@ -48,15 +48,15 @@ if(!function_exists('__autoload')){
 try{
 	if($conf['db']['type'] == "sqlite"){
 		$conf['db']['conn'] = new PDO("{$conf['db']['type']}:". mpopendir($conf['db']['name']));
+		$tpl['tables'] = array_column(qn("SELECT * FROM sqlite_master WHERE type='table' AND name LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\"", "name"), "name");
 	}else{
 		$conf['db']['conn'] = new PDO("{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC));
 		$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
+		$tpl['tables'] = array_column(ql("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\""), "Tables_in_{$conf['db']['name']}");
 	} $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI'], $_GET);
 }catch(Exception $e){
 	pre("Ошибка подключения к базе данных");
-}
-
-if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !count(qn("SHOW TABLES"))){
+} if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !$tpl['tables']){
 	exit(mpopendir('include/install.php') ? mpct('include/install.php') : "Файл установки не найден");
 }
 
@@ -176,7 +176,7 @@ if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страни
 	}
 
 	if($seo_location = erb("{$conf['db']['prefix']}seo_location", "hide", "name", 0, "[{$_SERVER['REQUEST_URI']}]")){
-		if($seo_location['location_status_id'] && ($seo_location_status = rb("{$conf['db']['prefix']}seo_location_status", "id", $redirect['location_status_id']))){
+		if($seo_location['location_status_id'] && ($seo_location_status = rb("{$conf['db']['prefix']}seo_location_status", "id", $seo_location['location_status_id']))){
 			if($seo_index = rb("{$conf['db']['prefix']}seo_index", "id", $seo_location['index_id'])){
 				header("HTTP/1.1 {$seo_location_status['name']} {$seo_location_status['description']}");
 				exit(header("Location: {$seo_index['name']}"));
@@ -256,4 +256,9 @@ if ($conf['settings']['microtime']){
 $aid = spisok("SELECT id, aid FROM {$conf['db']['prefix']}settings");
 foreach($conf['settings'] as $k=>$v){
 	$content = str_replace("<!-- [settings:$k] -->", $v, $content);
+} if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && !array_search("Зарегистрированные", $conf['user']['gid'])){
+	exit(header('HTTP/1.0 304 Not Modified'));
+}else if(!array_search("Зарегистрированные", $conf['user']['gid'])){ # Исключаем админстраницу из кеширования
+	header('Last-Modified: '. date("r"));
+	header("Expires: ".gmdate("r", time() + 86400));
 } echo $content;
