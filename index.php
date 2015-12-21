@@ -15,7 +15,7 @@ header('Content-Type: text/html;charset=UTF-8');
 date_default_timezone_set('Europe/Moscow');
 
 if(strpos($f = __FILE__, "phar://") === 0){ # Фал index.php внутри phar архива
-	if(!isset($index) && ($index = implode("/", array_slice(explode("/", dirname(dirname($f))), 2)). '/index.php') /*&& print_r($index)*/ && file_exists($index)){
+	if(!isset($index) && ($index = implode("/", array_slice(explode("/", dirname(dirname($f))), 2)). '/index.php') && file_exists($index)){
 		include $index; if($content) die;
 	} $conf["db"]["open_basedir"] = dirname($index). ":". dirname($f). ":". dirname($f);
 }else{ # Не в phar
@@ -23,7 +23,6 @@ if(strpos($f = __FILE__, "phar://") === 0){ # Фал index.php внутри phar
 		$conf["db"]["open_basedir"] = "phar://{$phar}";
 	} $conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: dirname($f)). ":". $conf["db"]["open_basedir"];
 }
-
 
 if(!function_exists('mp_require_once')){
 	function mp_require_once($link){
@@ -35,7 +34,7 @@ if(!function_exists('mp_require_once')){
 	}
 }
 
-require_once("include/config.php"); # Конфигурация
+//require_once("include/config.php"); # Конфигурация
 mp_require_once("include/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
 
@@ -61,7 +60,7 @@ try{
 }
 
 $conf['db']['info'] = 'Загрузка свойств модулей';
-$conf['settings'] = array('http_host'=>$_SERVER['HTTP_HOST'])+array_column(rb("{$conf['db']['prefix']}settings"), "value", "name");
+$conf['settings'] = array('http_host'=>(function_exists("idn_to_utf8") ? idn_to_utf8($_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST']))+array_column(rb("{$conf['db']['prefix']}settings"), "value", "name");
 $conf['settings']['access_array'] = array('0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ');
 if($conf['settings']['users_log']) $conf['event'] = rb("{$conf['db']['prefix']}users_event", "name");
 if ($conf['settings']['microtime']) $conf['settings']['microtime'] = microtime();
@@ -81,15 +80,12 @@ if (!$guest_id = mpql(mpqw("SELECT id as gid FROM {$conf['db']['prefix']}users W
 	$guest_mem_id = mpfdk("{$conf['db']['prefix']}users", $w = array("uid"=>$guest_id, "grp_id"=>$guest_grp_id), $w);
 }
 
-$sess = ql($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE `ip`='{$_SERVER['REMOTE_ADDR']}' AND last_time>=".(time()-$conf['settings']['sess_time'])." AND `agent`=\"".mpquot($_SERVER['HTTP_USER_AGENT']). "\" AND (". ($_COOKIE["{$conf['db']['prefix']}sess"] ? "sess=\"". mpquot($_COOKIE["{$conf['db']['prefix']}sess"]). "\"" : "uid=". (int)$guest_id).") ORDER BY id DESC", 0);
-if(!$sess){
+if(!($sess = ql($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE `ip`='{$_SERVER['REMOTE_ADDR']}' AND last_time>=".(time()-$conf['settings']['sess_time'])." AND `agent`=\"".mpquot($_SERVER['HTTP_USER_AGENT']). "\" AND ". ($_COOKIE["{$conf['db']['prefix']}sess"] ? "sess=\"". mpquot($_COOKIE["{$conf['db']['prefix']}sess"]). "\"" : "uid=". (int)$guest_id)." ORDER BY id DESC", 0))){
 	$sess = array('uid'=>$guest_id, 'sess'=>md5("{$_SERVER['REMOTE_ADDR']}:".microtime()), 'ref'=>mpidn(urldecode($_SERVER['HTTP_REFERER'])), 'ip'=>$_SERVER['REMOTE_ADDR'], 'agent'=>$_SERVER['HTTP_USER_AGENT'], 'url'=>$_SERVER['REQUEST_URI']);
-	$res = qw($sql = "INSERT INTO {$conf['db']['prefix']}sess (uid, ref, sess, last_time, ip, agent, url) VALUES (". (int)$guest_id. ", '". mpquot($sess['ref']). "', \"". mpquot($_COOKIE["{$conf['db']['prefix']}sess"]). "\", ".time().", '". mpquot($sess['ip']). "', '".mpquot($sess['agent'])."', '".mpquot($sess['url'])."')");
+	qw($sql = "INSERT INTO {$conf['db']['prefix']}sess (uid, ref, sess, last_time, ip, agent, url) VALUES (". (int)$guest_id. ", '". mpquot($sess['ref']). "', \"". mpquot($_COOKIE["{$conf['db']['prefix']}sess"]). "\", ".time().", '". mpquot($sess['ip']). "', '".mpquot($sess['agent'])."', '".mpquot($sess['url'])."')");
 	$sess['id'] = $conf['db']['conn']->lastInsertId();
-}
-
-if($_COOKIE["{$conf['db']['prefix']}sess"] != $sess['sess']){
-	$sess['sess'] = md5("{$_SERVER['REMOTE_ADDR']}:".microtime());
+} if($_COOKIE["{$conf['db']['prefix']}sess"] != $sess['sess']){ # Если сессия с пришедшей кукисой не найдена
+	$sess['sess'] = ($sess['sess'] ?: md5("{$_SERVER['REMOTE_ADDR']}:".microtime()));
 	setcookie("{$conf['db']['prefix']}sess", $sess['sess'], 0, "/");
 }
 
@@ -121,13 +117,15 @@ $conf['db']['info'] = 'Получаем информацию о группах �
 $conf['user']['gid'] = array_column(qn("SELECT g.id, g.name FROM {$conf['db']['prefix']}users_grp as g, {$conf['db']['prefix']}users_mem as m WHERE (g.id=m.grp_id) AND m.uid=". (int)$sess['uid']), "name", "id");
 $conf['user']['sess'] = $sess;
 
-foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE enabled=2", 'Информация о модулях')) as $k=>$v){
-	if (array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) $v['access'] = 5; # Права суперпользователя
-	$conf['modules'][ $v['folder'] ] = $v;
-	$conf['modules'][ $v['folder'] ]['modname'] = (strpos($_SERVER['HTTP_HOST'], "xn--") !== false) ? mb_strtolower($v['name']) : $v['folder'];
-	$conf['modules'][ $v['name'] ] = &$conf['modules'][ $v['folder'] ];
-	$conf['modules'][ mb_strtolower($v['name']) ] = &$conf['modules'][ $v['folder'] ];
-	$conf['modules'][ $v['id'] ] = &$conf['modules'][ $v['folder'] ];
+foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE hide IN (0,2)", 'Информация о модулях', function($error){
+	pre($error, $sql = "ALTER TABLE mp_modules CHANGE `enabled` `hide` smallint(6)"); qw($sql); # Исправляем таблицу, в случае если структура не верная.
+})) as $modules){
+	if (array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) $modules['access'] = 5; # Права суперпользователя
+	$conf['modules'][ $modules['folder'] ] = $modules;
+	$conf['modules'][ $modules['folder'] ]['modname'] = (strpos($_SERVER['HTTP_HOST'], "xn--") !== false) ? mb_strtolower($modules['name']) : $modules['folder'];
+	$conf['modules'][ $modules['name'] ] = &$conf['modules'][ $modules['folder'] ];
+	$conf['modules'][ mb_strtolower($modules['name']) ] = &$conf['modules'][ $modules['folder'] ];
+	$conf['modules'][ $modules['id'] ] = &$conf['modules'][ $modules['folder'] ];
 }
 
 if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страница
@@ -253,7 +251,7 @@ if ($conf['settings']['microtime']){
 	$conf['settings']['microtime'] = (substr(microtime(), strpos(microtime(), ' ')) - substr($conf['settings']['microtime'], strpos($conf['settings']['microtime'], ' ')) + microtime() - $conf['settings']['microtime']);
 }
 
-$aid = spisok("SELECT id, aid FROM {$conf['db']['prefix']}settings");
+$aid = qn("SELECT id, aid FROM {$conf['db']['prefix']}settings", "aid", "id");
 foreach($conf['settings'] as $k=>$v){
 	$content = str_replace("<!-- [settings:$k] -->", $v, $content);
 } if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && !array_search("Зарегистрированные", $conf['user']['gid'])){

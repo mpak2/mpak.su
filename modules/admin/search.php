@@ -1,4 +1,4 @@
-<? die;
+<?
 // ----------------------------------------------------------------------
 // mpak Content Management System
 // Copyright (C) 2007 by the mpak.
@@ -17,7 +17,7 @@
 //include_once("include/idna_convert.class.inc");
 //$IDN = new idna_convert();
 
-$sql = "SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = ".(int)$_REQUEST['search_block_num'];
+$sql = "SELECT param FROM {$conf['db']['prefix']}blocks_index WHERE id = ".(int)$_REQUEST['search_block_num'];
 $res = mpql(mpqw($sql));
 $param = unserialize($res['0']['param']);
 

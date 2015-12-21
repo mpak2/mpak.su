@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($_POST['text']){
 	mpevent("Сообщение в чате", $_POST['text'], $conf['user']['uid']);

@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($_GET['tn']){
 	if(($i = $conf['settings'][$s = "{$arg['modpath']}=>img"]) && ($img = explode(",", $i))){ $tn = array_combine($img, $img); }else{

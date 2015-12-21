@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($_POST){
 	if ($user = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}users WHERE name='".mpquot($_POST['uname']). "' OR id=". (int)$_POST['addr']), 0)){

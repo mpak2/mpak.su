@@ -1,4 +1,4 @@
-<? die;
+<?
 // ----------------------------------------------------------------------
 // mpak Content Management System
 // Copyright (C) 2007 by the mpak.

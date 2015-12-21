@@ -1,4 +1,4 @@
-<? die;
+<?
 
 /*$param = <<<EOF
 a:4:{i:0;a:5:{s:3:"url";s:25:"/(index.php|)?forum(.*)/i";s:4:"mail";s:4:"mpak";s:7:"subject";s:18:"Сообщение в форуме";s:5:"param";s:14:"charset=cp1251";s:4:"text";s:107:"В форуме новое сообещние.

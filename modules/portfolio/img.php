@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if ($_GET['id']){
 	$fn = mpql(mpqw("SELECT img FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE id=".(int)$_GET['id']), 0, 'img');

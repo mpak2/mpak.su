@@ -1,4 +1,4 @@
-<? die; # Нуль
+<?
 
 if ((int)$arg['confnum']){
 /*	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0, 'param'));
@@ -53,6 +53,8 @@ $logo = array(
 	"yesup.png"=>"yesup.net",
 	"meanpath.png"=>"meanpathbot",
 	"robot.png"=>"robot",
+	"semanticbot.png"=>"semanticbot",
+	"tobbot.png"=>"tobbot.com",
 
 	"bot.png"=>"bot",
 );// mpre($logo);

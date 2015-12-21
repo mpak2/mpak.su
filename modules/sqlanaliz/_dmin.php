@@ -1,4 +1,4 @@
-<? die;
+<?
 // ----------------------------------------------------------------------
 // mpak Content Management System
 // Copyright (C) 2007 by the mpak.
@@ -340,7 +340,7 @@ echo '<p /><font style="color:red;">'. $query_error."</font>";
 	}
 }else{
 	echo "<p>";
-	foreach(mpql(mpqw("SELECT folder, name FROM {$conf['db']['prefix']}modules WHERE enabled = 2")) as $k=>$v){
+	foreach(mpql(mpqw("SELECT folder, name FROM {$conf['db']['prefix']}modules WHERE hide=0")) as $k=>$v){
 		if (file_exists("modules/{$v['folder']}/admin.php"))
 			$admin .= "<option value='m[{$v['folder']}]=admin&m[sqlanaliz]=admin'>{$v['name']}</option>";
 		if (file_exists("modules/{$v['folder']}/index.php"))

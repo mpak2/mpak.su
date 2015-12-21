@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $kod = substr(md5("{$_GET['kod']}:{$GLOBALS['conf']['user']['sess']}"), 0, 5);
 header ("Content-type: image/png");

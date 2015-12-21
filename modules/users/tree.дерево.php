@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $readtree = function ($id, $readtree, $tree = array()) use($arg) { global $conf;
 	if($id > 0){

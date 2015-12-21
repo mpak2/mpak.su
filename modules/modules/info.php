@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $conf['modversion']=array(
 	'name'=>'Модули',
@@ -11,5 +11,3 @@ $conf['modversion']=array(
 	'admin'=>'6',
 	'md5'=>'8673d658b94aff9a2374145f7b0f9259',
 );
-
-?>

@@ -1,4 +1,4 @@
-<? die;
+<?
 
 ini_set('display_errors','Off');
 include "include/kcaptcha/index.php";

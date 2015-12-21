@@ -1,4 +1,4 @@
-<? die;
+<?
 
 header("Content-type: text/plain; charset=utf-8");
 $_GET['null'] = '';

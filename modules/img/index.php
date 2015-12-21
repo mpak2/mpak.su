@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $defaultmimes = array(
 	'aif' => 'audio/x-aiff',

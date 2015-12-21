@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $tpl['mess'] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE id=".(int)$_GET['id']), 0);
 $tpl['user'] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE id={$mess['uid']}"), 0);

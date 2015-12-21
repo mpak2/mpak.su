@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $conf['settings'] += array(
 	"{$arg['modpath']}_index"=>"Формы",

@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $conf['db']['back'] = $conf['db']['conn'];
 $conf['db']['conn'] = @mysql_connect('localhost', $conf['settings']['chat_all_login'], $conf['settings']['chat_all_pass']); # Соединение с базой данных

@@ -11,7 +11,7 @@ function tmpopendir($file_name, $merge=1){
 			return $file; break;
 		}
 	}
-}
+} chdir(__DIR__); # Изменяем текущую директорию для запуска из крона
 
 if($argv){
 	if(file_exists(__DIR__. "/../../../index.phar")){
@@ -33,8 +33,7 @@ if($argv){
 
 	include "phar://../../../index.phar/include/parse/simple_html_dom.php";
 	$html = new simple_html_dom();
-} chdir(__DIR__); # Изменяем текущую директорию для запуска из крона
-$conf['user']['gid'] = array(1=>"Администратор");
+} $conf['user']['gid'] = array(1=>"Администратор");
 
 if (strlen($conf['db']['error'] = mysql_error())){
 #		echo "Ошибка соединения с базой данных<p>";

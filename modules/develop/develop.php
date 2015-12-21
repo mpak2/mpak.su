@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($_POST['submit'] && !empty($_POST['plan'])){
 	$max = mpql(mpqw("SELECT MAX(sort)+1 AS max FROM {$conf['db']['prefix']}{$arg['modpath']}_plan"), 0, 'max');

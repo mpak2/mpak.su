@@ -1,4 +1,4 @@
-<? die;
+<?
 
 //if($viewer = rb("viewer", "id", $conf['user']['sess']['vk_viewer'])){
 	if(!empty($_REQUEST['class']) && $class = "{$conf['db']['prefix']}{$arg['modpath']}_". ($t = array_shift(explode(" ", $_REQUEST['class'])))){

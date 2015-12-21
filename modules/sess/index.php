@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $tpl['sess'] = mpqn(mpqw($sql = "SELECT s.*, u.name AS uname
 	FROM {$conf['db']['prefix']}{$arg['modpath']} AS s

@@ -1,4 +1,4 @@
-<? die;
+<?
 
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_cat` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

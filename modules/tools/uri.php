@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($_POST['uri']){
 	echo "<div style=text-align:center;>";

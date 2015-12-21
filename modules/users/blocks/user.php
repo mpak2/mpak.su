@@ -1,10 +1,10 @@
-<? die; # Нуль
+<? # Нуль
 
 if ((int)$arg['confnum']){
-	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0, 'param'));
+	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks_index WHERE id = {$arg['confnum']}"), 0, 'param'));
 	if ($_POST){
 		$param = array($_POST['param']=>$_POST['val'])+(array)$param;
-		mpqw("UPDATE {$conf['db']['prefix']}blocks SET param = '".serialize($param)."' WHERE id = {$arg['confnum']}");
+		mpqw("UPDATE {$conf['db']['prefix']}blocks_index SET param = '".serialize($param)."' WHERE id = {$arg['confnum']}");
 	} if(array_key_exists("null", $_GET)) exit;
 
 	$klesh = array(
@@ -46,7 +46,7 @@ if ((int)$arg['confnum']){
 	</div>
 <? return;
 
-} $param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
+} $param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks_index WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 //if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){};
 

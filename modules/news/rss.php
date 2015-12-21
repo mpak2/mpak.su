@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if (array_key_exists('null', $_GET)) header('Content-type: text/xml');
 mpqw("SET NAMES UTF8");

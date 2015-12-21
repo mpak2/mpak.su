@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($_GET['backup']){
 	include(mpopendir("include/config.php"));

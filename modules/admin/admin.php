@@ -69,12 +69,13 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 		$tpl['tables'] = array_column(qn("SELECT * FROM sqlite_master WHERE type='table' AND name LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\"", "name"), "name");
 	}else{
 		$tpl['tables'] = array_column(ql("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\""), "Tables_in_{$conf['db']['name']}");
-	} foreach($tpl['tables'] as $key=>$tables){
+	}
+	foreach($tpl['tables'] as $key=>$tables){
 		$short = implode("_", array_slice(explode("_", $tables), 0, -1));
 		if(($top = array_search($short, $tpl['tables'])) !== false){
 			$tpl['menu'][$top][] = $key;
 		}else{ $tpl['menu'][$key] = array(); }
-	} if(empty($_GET['r'])){
+	} /*mpre($tpl['tables']);*/ if(empty($_GET['r'])){
 		if($table = array_shift($tables = $tpl['tables'])){
 			exit(header("Location:/{$arg['modpath']}:admin/r:{$table}"));
 		}

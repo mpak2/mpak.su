@@ -1,13 +1,10 @@
-<? die; # Поиск
+<? # Поиск
 
 if ((int)$arg['confnum']){
-
-	if (isset($_POST['update_param'])){
-		$param = $_POST['param'];
-		$sql = "UPDATE {$conf['db']['prefix']}blocks SET param = '".serialize($param)."' WHERE id = {$arg['confnum']}";
-		mpqw($sql);
+	if(isset($_POST['update_param'])){
+		mpqw("UPDATE {$conf['db']['prefix']}blocks_index SET param_index = '".serialize($param = $_POST['param'])."' WHERE id=". (int)$arg['confnum']);
 	}else{
-		if (count($res = mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"))))
+		if (count($res = mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks_index WHERE id = {$arg['confnum']}"))))
 			$param = unserialize($res[0]['param']);
 	}
 	
@@ -63,9 +60,9 @@ if ((int)$arg['confnum']){
 
 <? return;}else{
 	if(($arg['modpath'] == "admin") && ($arg['fn'] == "search") && ($_GET['search_block_num'] == $arg['blocknum'])){
-		$search = fk("search", $w = array("uid"=>$conf['user']['uid']), $w += array("name"=>$_GET['search']), $w);
+//		$search = fk("search", $w = array("uid"=>$conf['user']['uid']), $w += array("name"=>$_GET['search']), $w);
 	}else{
-		$search = rb("search", "uid", $conf['user']['uid']);
+//		$search = rb("search", "uid", $conf['user']['uid']);
 	}
 } ?>
 

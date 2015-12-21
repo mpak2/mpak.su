@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($_POST['gbook']){
 	if ($_COOKIE['captcha_keystring'] == md5($_POST['gbook']['kod'])){

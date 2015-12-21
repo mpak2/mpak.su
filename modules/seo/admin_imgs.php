@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if(array_key_exists("null", $_GET) && $_POST){
 	include "/srv/www/vhosts/mpak.cms/include/parse/simple_html_dom.php";

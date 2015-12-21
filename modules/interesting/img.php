@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $tn = array('index'=>'_index');
 $sql = "SELECT img FROM {$conf['db']['prefix']}{$arg['modpath']}{$tn[$_GET['tn']]} WHERE id=".(int)$_GET['id'];

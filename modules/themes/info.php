@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $conf['modversion']=array(
 	'name'=>'Редактор тем',
@@ -11,5 +11,3 @@ $conf['modversion']=array(
 	'admin'=>'4',
 	'md5'=>'41bda5dcf3b363d6fd55664d0df7f05f',
 );
-
-?>

@@ -1,8 +1,8 @@
-<? die; # Верхнее
+<? # Верхнее
 
 if ((int)$arg['confnum']){
-	$block = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0);
-	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0, 'param'));
+	$block = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}blocks_index WHERE id = {$arg['confnum']}"), 0);
+	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks_index WHERE id = {$arg['confnum']}"), 0, 'param'));
 
 	if(substr($block['theme'], 0, 1) == '!'){
 		$block['theme'] = mpql(mpqw("SELECT value FROM {$conf['db']['prefix']}settings WHERE name=\"theme\""), 0, 'value');
@@ -21,10 +21,10 @@ if ((int)$arg['confnum']){
 	}
 	echo "</select><br /><br /><input type=\"submit\" value=\"Изменить\"></form></div>";
 
-	mpqw($sql = "UPDATE {$conf['db']['prefix']}blocks SET param = '".serialize($param)."' WHERE id = {$arg['confnum']}");
+	mpqw($sql = "UPDATE {$conf['db']['prefix']}blocks_index SET param = '".serialize($param)."' WHERE id = {$arg['confnum']}");
 	return;
 }
-$param = unserialize(mpql(mpqw($sql = "SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
+$param = unserialize(mpql(mpqw($sql = "SELECT param FROM {$conf['db']['prefix']}blocks_index WHERE id = {$arg['blocknum']}"), 0, 'param'));
 
 $menu = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE region_id=". (int)(is_numeric($param) ? $param : $param['menu'])." ORDER BY sort"));
 

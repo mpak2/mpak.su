@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if(isset($_GET[''])) $_GET['q'] = $_GET[''];
 

@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($_GET['id']){
 	$defaultmimes = array(

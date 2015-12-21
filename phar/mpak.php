@@ -1,6 +1,7 @@
 <?
 
 setlocale(LC_CTYPE, 'ru_RU.utf-8'); 
+chdir(__DIR__);
 
 try {
 	rename($phar = "index.phar", (ini_get('upload_tmp_dir') ?: "/tmp/"). $phar);
@@ -31,7 +32,7 @@ foreach( $dolders = array(
 	'index.php',
 //	'include/init.php', # Кеширование и обработка раздела в контакте
 	'include/config.php',
-	'include/func.php',
+//	'include/func.php',
 	'include/mpfunc.php',
 	'include/install.php',
 	'include/parse/simple_html_dom.php',
@@ -45,7 +46,7 @@ foreach( $dolders = array(
 	'include/class',
 	'include/mail',
 	'include/jquery/tiny_mce',
-	'include/jquery/tiny_mce/inputmask', # <!-- [settings:inputmask] --> Скрипты для маск ввода в формы, в разделе тема создана переменная для ввода всех скриптов
+	'include/jquery/inputmask', # <!-- [settings:inputmask] --> Скрипты для маск ввода в формы, в разделе тема создана переменная для ввода всех скриптов
 	'include/dhonishow',
 //	'include/image-menu-1',
 	'include/jquery-lightbox-0.5',

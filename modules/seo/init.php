@@ -1,4 +1,4 @@
-<? die;
+<?
 
 qw("CREATE TABLE IF NOT EXISTS `{$conf['db']['prefix']}{$arg['modpath']}_index` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `hide` smallint(6) NOT NULL, `index_type_id` int(11) NOT NULL, `priority` float NOT NULL DEFAULT '0.8' COMMENT 'Приоритет ссылки в sitemap.xml', `name` varchar(255) NOT NULL, `location_id` int(11) NOT NULL COMMENT 'Врутреняя страница', `cat_id` int(11) NOT NULL, PRIMARY KEY (`id`), KEY `index_type_id` (`index_type_id`), KEY `uid` (`uid`), KEY `cat_id` (`cat_id`), KEY `name` (`name`), KEY `hide` (`hide`), KEY `location_id` (`location_id`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251");
 qw("CREATE TABLE IF NOT EXISTS `{$conf['db']['prefix']}{$arg['modpath']}_index_type` ( `id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `description` text NOT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=cp1251");

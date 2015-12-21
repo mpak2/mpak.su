@@ -1,4 +1,4 @@
-<? die; # Верхнее
+<? # Верхнее
 
 if ((int)$arg['confnum']){
 	$block = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0);

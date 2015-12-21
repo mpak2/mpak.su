@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $conf['modversion']=array(
 	'name'=>'Новости',
@@ -11,5 +11,3 @@ $conf['modversion']=array(
 	'admin'=>'3',
 	'md5'=>'55de46beaa3aa12b300f2b6c8038f7fe',
 );
-
-?>

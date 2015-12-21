@@ -1,4 +1,4 @@
-<? die;
+<?
 
 //$tpl[ $arg['fe'] ] = qn("SELECT SQL_CALC_FOUND_ROWS * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fe']}". ($_GET['id'] ? " WHERE id=". (int)$_GET['id'] : " LIMIT ". ($_GET['p']*20). ",20"));
 //$tpl['mpager'] = mpager(ql("SELECT FOUND_ROWS()/20 AS cnt", 0, 'cnt'));

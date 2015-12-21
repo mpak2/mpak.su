@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if ($_REQUEST['search_block_num'] || empty($_GET['tabs_id'])){
 	$index = ql("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE (id=". (int)$_GET['id']. " OR name=\"". mpquot($_REQUEST['search']). "\") AND num=". (int)$_GET['search_block_num'], 0);

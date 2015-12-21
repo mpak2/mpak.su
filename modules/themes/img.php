@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($_GET['tn']){
 	$_GET['tn'] = urldecode($_GET['tn']);

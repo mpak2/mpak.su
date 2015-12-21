@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($_GET['id'] == 0){
 	if($conf['user']['uid'] > 0){

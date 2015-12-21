@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $users = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE folder=\"users\""), 0);
 

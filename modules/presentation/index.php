@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $conf['tpl']['img'] = mpqn(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']}_img ORDER BY sort"), 'index_id', 'id');
 

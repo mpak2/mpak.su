@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($_GET['id']){
 	$conf['tpl'][$arg['fn']] = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE id=".(int)$_GET['id']. ($arg['access'] < 5 ? " AND uid=".(int)$conf['user']['uid'] : '')), 0);

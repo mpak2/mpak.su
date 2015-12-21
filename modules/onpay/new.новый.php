@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($_POST['sum']){
 	$mpdbf = mpdbf($tn = "{$conf['db']['prefix']}{$arg['modpath']}_operations", $_POST);

@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($_POST['text']){
 	if($_POST['backfid_id']){

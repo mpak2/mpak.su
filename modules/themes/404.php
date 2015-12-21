@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $tpl['location'] = strtr("/". implode("/", array_slice(explode("/", urldecode($_SERVER['REQUEST_URI'])), 2)), array("/katalog/"=>"/catalog/"));
 

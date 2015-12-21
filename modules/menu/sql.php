@@ -1,4 +1,4 @@
-<? die;
+<?
 
 mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_region SET id=1, name=\"Основное\", description=\"Меню в боковой колонке блоков\"");
 mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_region SET id=2, name=\"Верхнее\", description=\"Меню в верхней части сайта\"");

@@ -1,4 +1,4 @@
-<? die;
+<?
 
 function geton($one, $two){
 	global $_POST, $conf, $modules;

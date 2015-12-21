@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if(array_key_exists('null', $_GET) && $_POST['desc_id'] && $_POST['range_id']){
 	$tn = "{$conf['db']['prefix']}{$arg['modpath']}_desc_range";

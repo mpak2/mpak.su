@@ -9,13 +9,13 @@
 		<div class="cb"></div>
 	<? endif; ?>
 	<ul class="nl MdlsList">
-		<? foreach($conf['tpl']['modules'] as $k=>$v): ?>
+		<? foreach(rb("{$conf['db']['prefix']}modules", "admin", "id", $_GET['id']) as $modules): ?>
 			<li>
-				<a href="/<?=$conf['modules'][ $v['folder'] ]['modname']?>"><img src="/admin:img/<?=$v['id']?>/null/img.jpg" alt="" /></a>
-				<h1><a href="/<?=$v['folder']?>:admin"><?=$v['name']?></a></h1>
-				<p><?=$v['description']?></p>
-				<div class="button"><a href="/admin/hide:<?=$v['id']?>/<?=$_GET['id']?>">скрыть</a></div>
-				<div class="button"><a href="/settings:admin/r:mp_settings/?where[modpath]=<?=$v['folder']?>">настройки</a></div>
+				<a href="/<?=$conf['modules'][ $modules['folder'] ]['modname']?>"><img src="/admin:img/<?=$modules['id']?>/null/img.jpg" alt="" /></a>
+				<h1><a href="/<?=$modules['folder']?>:admin"><?=$modules['name']?></a></h1>
+				<p><?=$modules['description']?></p>
+				<div class="button"><a href="/admin/hide:<?=$modules['id']?>/<?=$_GET['id']?>">скрыть</a></div>
+				<div class="button"><a href="/settings:admin/r:mp_settings/?where[modpath]=<?=$modules['folder']?>">настройки</a></div>
 			</li>
 		<? endforeach; ?>
 	</ul>

@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($_GET['anket_id']){
 	$tpl['anket'] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_anket WHERE id=". (int)$_GET['anket_id']), 0);

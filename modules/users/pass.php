@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($conf['user']['uid'] > 0){
 	if((mphash($conf['user']['uname'], $_POST['old']) == $conf['user']['pass']) || ($arg['access'] >= 5) || $conf['user']['flush']){

@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($_GET['id']){
 	$conf['tpl']['operation'] = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_operations".($_GET['id'] ? " WHERE id=".(int)$_GET['id'] : '')." ORDER BY id DESC LIMIT 1"), 0);

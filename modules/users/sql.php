@@ -1,4 +1,4 @@
-<? die;
+<?
 
 mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_auth (`id` ,`name` ,`auth` ,`description`) VALUES ('1' ,'Логин' ,'1' ,'Авторизация посредством логина и пароля'), ('2' ,'OpenID' ,'1' ,'Открытая децентрализованная система единого входа');");
 

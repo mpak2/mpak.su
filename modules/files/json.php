@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if(!empty($_REQUEST['class']) && $class = explode(" ", $_REQUEST['class'])){ # klesh запросы
 	if($arg['access'] >= 3){

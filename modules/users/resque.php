@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($_POST['email']){
 	if($conf['tpl']['user'] = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE email=\"". mpquot($_POST['email']). "\""), 0)){

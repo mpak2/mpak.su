@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $tpl['geoname'] = mpql(mpqw("SELECT g1.id AS g1_id, g2.id AS g2_id, g1.lat AS g1_lat, g2.lat AS g2_lat, g1.lng AS g1_lng, g2.lng AS g2_lng FROM {$conf['db']['prefix']}{$arg['modpath']}_geoname AS g1 INNER JOIN {$conf['db']['prefix']}{$arg['modpath']}_geoname AS g2 WHERE g1.id<>g2.id"));
 

@@ -1,4 +1,4 @@
-<? die;
+<?
 
 //$tpl['cat'] = spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_cat ORDER BY sort DESC")+array('0'=>'Новое');
 $tpl['cat'] = array(0=>array('id'=>'0', 'name'=>'Новое'))+mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_cat ORDER BY sort DESC"));

@@ -1,4 +1,4 @@
-<? die;
+<?
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('themes', 'theme', 'mpak.su', '1', 'Текущая тема')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('themes', 'title', 'Создание сайтов', '1', 'Заголовок страницы')");

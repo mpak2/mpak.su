@@ -1,4 +1,4 @@
-<? die;
+<?
 // ----------------------------------------------------------------------
 // mpak Content Management System
 // Copyright (C) 2007 by the mpak.
@@ -51,7 +51,7 @@ if($_GET['r'] == "{$conf['db']['prefix']}blocks"){ #Блоки
 		echo mpeval("modules/{$bl[0]['file']}", array('confnum'=>$_GET['conf'], "blocknum"=>$_GET['conf'], 'modpath'=>basename(dirname(dirname($bl[0]['file']))), "fn"=>array_shift(explode(".", basename($bl[0]['file'])))));
 	}else{
 		$block[''] = '';
-		$modules = array(0=>'../include')+spisok("SELECT id, folder FROM {$conf['db']['prefix']}modules WHERE enabled = '2'");
+		$modules = array(0=>'../include')+spisok("SELECT id, folder FROM {$conf['db']['prefix']}modules WHERE hide=0");
 		foreach($modules as $k=>$f){
 			foreach(mpreaddir("modules/$f/blocks", 1) as $k=>$file_name){
 				$fd = fopen (mpopendir("modules/$f/blocks/$file_name"), 'r');

@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if(!function_exists("strpos_array")){
 	function strpos_array($haystack, $needles) {

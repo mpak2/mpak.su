@@ -223,6 +223,20 @@
 											<option value="<?=$uid['id']?>" <?=((array_key_exists("edit", $tpl) && ($tpl['edit'][ $field['Field'] ] == $uid['id'])) || (!array_key_exists("edit", $tpl) && ($conf['user']['uid'] == $uid['id'])) ? "selected" : "")?>><?=$uid['name']?></option>
 										<? endforeach; ?>
 									</select>
+								<? elseif($field['Field'] == "gid"): ?>
+									<select name="<?=$field['Field']?>">
+										<option></option>
+										<? foreach(rb("{$conf['db']['prefix']}users_grp") as $gid): ?>
+											<option value="<?=$gid['id']?>" <?=((array_key_exists("edit", $tpl) && ($tpl['edit'][ $field['Field'] ] == $gid['id'])) || (!array_key_exists("edit", $tpl) && ($conf['user']['uid'] == $uid['id'])) ? "selected" : "")?>><?=$uid['name']?></option>
+										<? endforeach; ?>
+									</select>
+								<? elseif($field['Field'] == "mid"): ?>
+									<select name="<?=$field['Field']?>">
+										<option></option>
+										<? foreach(rb("{$conf['db']['prefix']}modules") as $modules): ?>
+											<option value="<?=$mid['id']?>" <?=((array_key_exists("edit", $tpl) && ($tpl['edit'][ $field['Field'] ] == $modules['id'])) || (!array_key_exists("edit", $tpl) && ($conf['user']['uid'] == $modules['id'])) ? "selected" : "")?>><?=$modules['name']?></option>
+										<? endforeach; ?>
+									</select>
 								<? elseif(array_search($field['Field'], array(1=>"time", "last_time", "reg_time", "up"))): # Поле времени ?>
 									<input type="text" name="<?=$field['Field']?>" value="<?=date("Y-m-d H:i:s", ($tpl['edit'][ $field['Field'] ] ? $tpl['edit'][ $field['Field'] ] : time()))?>" placeholder="<?=($tpl['etitle'][$field['Field']] ?: $field['Field'])?>">
 								<? elseif(substr($field['Field'], -3) == "_id"): # Поле вторичного ключа связанной таблицы ?>
@@ -327,12 +341,25 @@
 										<? elseif($k == "uid"): ?>
 											<span style="white-space:nowrap;">
 												<? if($uid = rb("{$conf['db']['prefix']}users", "id", (int)$v)): ?>
-<!--													<span style="color:#ddd;"><?=$v?></span>-->
 													<a class="key" href="/users:admin/r:<?=$conf['db']['prefix']?>users?&where[id]=<?=(int)$v?>" title="<?=$v?>"></a><?=$uid['name']?>
 												<? elseif($v): ?>
-													<span style="color:red;" title="<?=$v?>">
-														<?=$v?>
-													</span>
+													<span style="color:red;" title="<?=$v?>"><?=$v?></span>
+												<? endif; ?>
+											</span>
+										<? elseif($k == "gid"): ?>
+											<span style="white-space:nowrap;">
+												<? if($gid = rb("{$conf['db']['prefix']}users_grp", "id", (int)$v)): ?>
+													<a class="key" href="/users:admin/r:<?=$conf['db']['prefix']?>users?&where[id]=<?=(int)$v?>" title="<?=$v?>"></a><?=$gid['name']?>
+												<? elseif($v): ?>
+													<span style="color:red;" title="<?=$v?>"><?=$v?></span>
+												<? endif; ?>
+											</span>
+										<? elseif($k == "mid"): ?>
+											<span style="white-space:nowrap;">
+												<? if($mid = rb("{$conf['db']['prefix']}modules", "id", (int)$v)): ?>
+													<a class="key" href="/users:admin/r:<?=$conf['db']['prefix']?>users?&where[id]=<?=(int)$v?>" title="<?=$v?>"></a><?=$mid['name']?>
+												<? elseif($v): ?>
+													<span style="color:red;" title="<?=$v?>"><?=$v?></span>
 												<? endif; ?>
 											</span>
 										<? elseif(array_search($k, array(1=>"time", "last_time", "reg_time", "up"))): # Поле времени ?>
@@ -392,6 +419,30 @@
 											<? foreach(rb("{$conf['db']['prefix']}users") as $uid): ?>
 												<option value="<?=$uid['id']?>" <?=(($tpl['edit'] && ($tpl['edit'][ $fiel ] == $uid['id'])) || (!$tpl['edit'] && ($uid['id'] == $conf['user']['uid'])) ? "selected" : "")?>>
 													<?=$uid['id']?> <?=$uid['name']?>
+												</option>
+											<? endforeach; ?>
+										</select>
+									<? elseif($fiel == "gid"): ?>
+										<select name="<?=$fiel?>">
+											<? if($tpl['edit'][$fiel] && !rb("{$conf['db']['prefix']}users", "id", $tpl['edit'][$fiel])): ?>
+												<option value="<?=$tpl['edit'][$fiel]?>" selected><?=$tpl['edit'][$fiel]?></option>
+											<? endif; ?>
+											<option></option>
+											<? foreach(rb("{$conf['db']['prefix']}users_grp") as $gid): ?>
+												<option value="<?=$gid['id']?>" <?=(($tpl['edit'] && ($tpl['edit'][ $fiel ] == $gid['id'])) || (!$tpl['edit'] && ($gid['id'] == $conf['user']['uid'])) ? "selected" : "")?>>
+													<?=$gid['id']?> <?=$gid['name']?>
+												</option>
+											<? endforeach; ?>
+										</select>
+									<? elseif($fiel == "mid"): ?>
+										<select name="<?=$fiel?>">
+											<? if($tpl['edit'][$fiel] && !rb("{$conf['db']['prefix']}modules", "id", $tpl['edit'][$fiel])): ?>
+												<option value="<?=$tpl['edit'][$fiel]?>" selected><?=$tpl['edit'][$fiel]?></option>
+											<? endif; ?>
+											<option></option>
+											<? foreach(rb("{$conf['db']['prefix']}modules") as $mid): ?>
+												<option value="<?=$mid['id']?>" <?=(($tpl['edit'] && ($tpl['edit'][ $fiel ] == $uid['id'])) || (!$tpl['edit'] && ($mid['id'] == $conf['user']['uid'])) ? "selected" : "")?>>
+													<?=$mid['id']?> <?=$mid['name']?>
 												</option>
 											<? endforeach; ?>
 										</select>

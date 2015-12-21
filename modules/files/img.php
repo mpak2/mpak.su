@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if(array_search($_GET['tn'] ?: $_POST['tn'], explode(',', $conf['settings'][$arg['modpath']. "_img_tn"])) === false) exit("Ошибка доступа к данным");
 

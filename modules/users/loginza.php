@@ -1,4 +1,4 @@
-<? die;
+<?
 
 session_start();
 

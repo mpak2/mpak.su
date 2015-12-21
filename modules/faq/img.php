@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if(false && $_GET['tn']){
 	$tn = array(

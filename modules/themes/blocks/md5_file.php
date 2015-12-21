@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
 	$request_uri = array_pop(explode($_SERVER['HTTP_HOST'], $_SERVER['HTTP_REFERER']));

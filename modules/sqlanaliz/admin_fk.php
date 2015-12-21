@@ -1,4 +1,4 @@
-<? die;
+<?
 
 //$f = "series"; $s = "series_fields";
 //$f = "series_fields"; $s = "desc_series_fields";

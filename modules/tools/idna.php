@@ -1,4 +1,4 @@
-<? die;
+<?
 
 require_once(mpopendir('include/idna_convert.class.inc'));
 $IDN = new idna_convert();

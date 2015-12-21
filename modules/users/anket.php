@@ -1,4 +1,4 @@
-<? die; # Нуль
+<? # Нуль
 
 if($conf['user']['uid'] > 0){
 	if(array_key_exists('null', $_GET) && $_POST){

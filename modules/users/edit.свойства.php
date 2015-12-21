@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $conf['tpl']['uid'] = (($arg['access'] >= 5) && ((int)$_GET['id'] ? (int)$_GET['id'] : $conf['user']['uid']));
 

@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $conf['tpl']['delemiter'] = array(
 	','=>'Запятая',

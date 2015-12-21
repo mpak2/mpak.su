@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if ((int)$_GET['del']){
 	mpqw("DELETE FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE addr={$conf['user']['uid']} AND id=".(int)$_GET['del']);

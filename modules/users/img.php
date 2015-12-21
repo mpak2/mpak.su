@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if(($_GET['id'] > 0) && ($img = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}{$tn[$_GET['tn']]} WHERE img<>'' AND id=".(int)$_GET['id']), 0))){
 	$file_name = mpopendir("include/". ($fn = $img['img']));
@@ -15,5 +15,3 @@ if(($_GET['id'] > 0) && ($img = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}
 	header ("Content-type: image/". array_pop(explode('.', $fn)));
 	echo mprs($fn, $_GET['w'], $_GET['h'], $_GET['c']);
 }
-
-?>

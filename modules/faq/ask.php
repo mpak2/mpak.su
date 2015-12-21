@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($_POST && array_key_exists('null', $_GET)){
 	$href = "/". implode('/', array_slice((explode('/', urldecode($_SERVER['HTTP_REFERER']))), 3));

@@ -1,4 +1,4 @@
-<? die; # Свойства
+<? # Свойства
 
 if ((int)$arg['confnum']){
 /*	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0, 'param'));

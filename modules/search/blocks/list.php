@@ -1,4 +1,4 @@
-<? die; # Нуль
+<? # Нуль
 
 $param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id=". (int)max($arg['blocknum'], $arg['confnum'])), 0, 'param'));
 if($klesh = array(

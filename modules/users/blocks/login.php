@@ -1,4 +1,4 @@
-<? die; #Логин
+<? #Логин
 
 if ((int)$arg['confnum']) return;
 

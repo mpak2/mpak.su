@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if(array_key_exists("null", $_GET)){
 	$referer = urldecode("/". array_pop(explode("/", $_SERVER['HTTP_REFERER'], 4)));

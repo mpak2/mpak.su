@@ -1,4 +1,4 @@
-<? die;
+<?
 
 mp_require_once("/modules/{$arg['modpath']}/onpay/onpay_functions.php");
 

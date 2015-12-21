@@ -1,4 +1,4 @@
-<? die;
+<?
 
 echo '<p>'.$sql = "DROP Table {$conf['db']['prefix']}{$arg['modpath']}_anket";
 mpqw($sql);

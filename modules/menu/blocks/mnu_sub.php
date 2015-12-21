@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $tpl['menu_index'] = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modname']}_index");
 

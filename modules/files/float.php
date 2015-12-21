@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if(array_key_exists("null", $_GET) && $_FILES){
 	foreach($_FILES['img']['error'] as $k=>$v){

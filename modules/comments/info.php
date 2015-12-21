@@ -1,4 +1,4 @@
-<? die;
+<?
 
 $conf['modversion']=array(
 	'name'=>'Коменты',

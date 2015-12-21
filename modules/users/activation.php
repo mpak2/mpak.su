@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if($user = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE id=". (int)$_GET['uid']), 0)){
 	if(strpos($user['pass'], $conf['settings']['users_activation']. $_GET['activation']) === 0){
