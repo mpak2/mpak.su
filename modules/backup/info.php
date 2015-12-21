@@ -8,7 +8,7 @@ $conf['modversion']=array(
 	'description'=>'Создание и откат резервных копий',
 	'enabled'=>'2',
 	'access'=>'0',
-	'admin'=>'4',
+	'admin'=>6,
 	'md5'=>'1e21159b34a9e0494e4caf4804b94087',
 );
 

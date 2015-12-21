@@ -16,6 +16,7 @@
 			}).trigger("init")
 		})(jQuery, document.scripts[document.scripts.length-1])
 	</script>
+	
 	<div style="width:80%; margin-left:20px;">
 		<? $tpl['admin'] = rb("{$conf['db']['prefix']}admin") ?>
 		<h1>Разделы установленные на сайте</h1>
@@ -45,7 +46,6 @@
 				</div>
 			<? endforeach; ?>
 		</div>
-
 		<h1>Доступные для устновки разделы сайта</h1>
 		<div class="table brd">
 			<div class="th">
@@ -56,22 +56,22 @@
 				<span>Раздел</span>
 				<span>Установка</span>
 			</div>
-			<? foreach(array_diff_key(array_flip(mpreaddir("modules")), rb($tpl['modules'], "folder")) as $m=>$k): ?>
-					<? mpct(mpopendir("modules/{$m}/info.php")); ?>
-					<div>
-						<span><?=$m?></span>
-						<span><?=$conf['modversion']['name']?></span>
-						<span><?=$conf['modversion']['author']?></span>
-						<span><?=$conf['modversion']['version']?></span>
-						<span>
-						<? if($admin = rb($tpl['admin'], "id", $conf['modversion']['admin'])): ?>
-							<?=$admin['name']?>
-						<? else: ?>
-							<span style="color:red;"><?=$conf['modversion']['admin']?></span>
-						<? endif; ?>
-						</span>
-						<span><a class="install" modpath="<?=$m?>" href="javascript:void(0)">Установить</a></span>
-					</div>
+			<? foreach(array_diff_key(array_flip(mpreaddir("modules", 1)), rb("{$conf['db']['prefix']}{$arg['modpath']}", "folder")) as $m=>$k): ?>
+				<div>
+					<? include mpopendir("modules/{$m}/info.php") ?>
+					<span><?=$m?></span>
+					<span><?=$conf['modversion']['name']?></span>
+					<span><?=$conf['modversion']['author']?></span>
+					<span><?=$conf['modversion']['version']?></span>
+					<span>
+					<? if($admin = rb($tpl['admin'], "id", $conf['modversion']['admin'])): ?>
+						<?=$admin['name']?>
+					<? else: ?>
+						<span style="color:red;"><?=$conf['modversion']['admin']?></span>
+					<? endif; ?>
+					</span>
+					<span><a class="install" modpath="<?=$m?>" href="javascript:void(0)">Установить</a></span>
+				</div>
 			<? endforeach; ?>
 		</div>
 	</div>
