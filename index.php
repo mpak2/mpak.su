@@ -96,10 +96,10 @@ if(!isset($_REQUEST['NoUpSes']) OR !isset($_REQUEST['null'])){ # Обновле�
 if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аутентификация' && $uid = mpql(mpqw("SELECT id FROM {$conf['db']['prefix']}users WHERE type_id=1 AND name = \"".mpquot($_POST['name'])."\" AND pass='".mphash($_POST['name'], $_POST['pass'])."'", 'Проверка существования пользователя'), 0, 'id')){
 	qw($sql = "UPDATE {$conf['db']['prefix']}sess SET uid=".($sess['uid'] = $uid)." WHERE id=". (int)$sess['id']);
 	qw($sql = "UPDATE {$conf['db']['prefix']}users SET last_time=". time(). " WHERE id=".(int)$uid);
-//	header("Location: ". $_SERVER['REQUEST_URI']); exit;
 }elseif(isset($_GET['logoff'])){ # Если пользователь покидает сайт
 	mpqw("UPDATE {$conf['db']['prefix']}sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
 	if(!empty($_SERVER['HTTP_REFERER'])){
+		header("Debug info:". __FILE__. ":". __LINE__);
 		header("Location: ". ($conf['settings']['users_logoff_location'] ? $conf['settings']['users_logoff_location'] : $_SERVER['HTTP_REFERER'])); exit;
 	}// if($conf['settings']['del_sess'] == 0){ # Стираем просроченные сессии
 	mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление сессий');
@@ -130,6 +130,7 @@ foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE hide IN (0
 
 if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страница
 	if(strpos($conf['settings']['start_mod'], "http://") === 0){
+		header("Debug info:". __FILE__. ":". __LINE__);
 		header("Location: {$conf['settings']['start_mod']}"); exit;
 	}elseif(($seo_index = erb("{$conf['db']['prefix']}seo_index", "hide", "name", 0, "[/]")) /*&& array_key_exists("themes_index", $redirect)*/){
 		if($index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $seo_index['index_type_id'])){
@@ -142,8 +143,10 @@ if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страни
 	} $_SERVER['SCRIPT_URL'] = "/";
 }elseif(!array_key_exists("null", $_GET) /*&& !is_array($_GET['m'])*/ && $conf['modules']['seo']){
 	if($_GET['p']){
-		$r = strtr($_SERVER['REQUEST_URI'], array("?p={$_GET['p']}"=>"", "&p={$_GET['p']}"=>"", "/p:{$_GET['p']}"=>""));
-	}else{ $r = urldecode(preg_replace("#([\#\?].*)?$#",'',$_SERVER['REQUEST_URI'])); }	
+		$r = urldecode(preg_replace("#([\#\?].*)?$#",'',strtr($_SERVER['REQUEST_URI'], array("?p={$_GET['p']}"=>"", "&p={$_GET['p']}"=>"", "/p:{$_GET['p']}"=>""))));
+	}else{
+		$r = urldecode(preg_replace("#([\#\?].*)?$#",'',$_SERVER['REQUEST_URI']));
+	}
 
 	foreach(rb("{$conf['db']['prefix']}seo_index", "hide", "id", 0) as $rule){
 		if(preg_match("#^{$rule['name']}$#iu",$r)){
@@ -154,6 +157,7 @@ if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страни
 	if(isset($redirect)){
 		$redirect['name'] = preg_replace("#^{$redirect['from']}$#iu",$redirect['to'],$r);
 		if(strpos($redirect['to'], "http://") === 0){
+			header("Debug info:". __FILE__. ":". __LINE__);
 			exit(header("Location: {$redirect['to']}"));
 		}else if($seo_index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $redirect['index_type_id'])){
 			if($seo_location = rb("{$conf['db']['prefix']}seo_location", "id", $redirect['location_id'])){
@@ -166,6 +170,7 @@ if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страни
 		$conf['settings']['canonical'] = "/";
 	}elseif(!array_key_exists("404", $conf['settings']) || ($_404 = $conf['settings']['404'])){ # Если не прописан адрес 404 ошибки, то его обработку оставляем для init.php
 		if(!$conf['modules'][ array_shift(array_keys($_GET['m'])) ]['folder']){
+			header("Debug info:". __FILE__. ":". __LINE__);
 			header('HTTP/1.1 404 Not Found');
 			exit(header("Location: /". ($_404 ?: "themes:404"). "{$_SERVER['REQUEST_URI']}"));
 		}
@@ -176,6 +181,7 @@ if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страни
 	if($seo_location = erb("{$conf['db']['prefix']}seo_location", "hide", "name", 0, "[{$_SERVER['REQUEST_URI']}]")){
 		if($seo_location['location_status_id'] && ($seo_location_status = rb("{$conf['db']['prefix']}seo_location_status", "id", $seo_location['location_status_id']))){
 			if($seo_index = rb("{$conf['db']['prefix']}seo_index", "id", $seo_location['index_id'])){
+				header("Debug info:". __FILE__. ":". __LINE__);
 				header("HTTP/1.1 {$seo_location_status['name']} {$seo_location_status['description']}");
 				exit(header("Location: {$seo_index['name']}"));
 			}

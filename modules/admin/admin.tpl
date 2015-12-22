@@ -177,7 +177,7 @@
 								<a href="/<?=$arg['modpath']?>:<?=($_short = array_shift(explode(".", $_file)))?>"><?=implode("_", (array_slice(explode("_", $_short), 1)))?></a>
 							<? endif; ?>
 						<? endforeach; ?>
-						<a href="/sqlanaliz:admin/r:1/tab:<?=$_GET['r']?>">
+						<a href="/sqlanaliz:admin_sql/r:<?=$_GET['r']?>">
 							<?=($conf['settings'][ $t = implode("_", array_slice(explode("_", $_GET['r']), 1)) ] ?: $t)?>
 						</a>
 					</span>
