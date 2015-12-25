@@ -21,7 +21,7 @@ function tables($table = null){
 	} return $tpl['fields'];
 }
 
-# Подключение страницы
+# Подключение страницы если расширение не установлено пытается подключить сперва .php файл потом .tpl
 function inc($file_name, $variables = array(), $req = false){
 //	pre($file_name, microtime(true), debug_backtrace());
 	global $tpl, $arg, $conf; extract($variables);
@@ -67,15 +67,15 @@ if (!function_exists('mcont')){
 	function mcont($content){ # Загрузка содержимого модуля
 		global $conf, $arg, $tpl;
 		foreach($_GET['m'] as $k=>$v){ $k = urldecode($k);
-			$mod = $conf['modules'][ $k ];
+			$mod = array_key_exists($k, $conf['modules']) ? $conf['modules'][ $k ] : array("folder"=>"", "access"=>0);
 			$mod['link'] = (is_link($f = mpopendir("modules/{$mod['folder']}")) ? readlink($f) : $mod['folder']);
 			ini_set("include_path" ,mpopendir("modules/{$mod['link']}"). ":./modules/{$mod['link']}:". ini_get("include_path"));
-			if($conf['settings']['modules_title']){
+			if(array_key_exists('modules_title', $conf['settings'])){
 				$conf['settings']['title'] = $conf['modules'][ $k ]['name']. ' : '. $conf['settings']['title'];
 			}
 
 			$v = $v != 'del' && $v != 'init' && $v != 'sql' && strlen($v) ? $v : 'index';
-			if(((strpos($v, 'admin') === 0) ? $conf['modules'][$k]['access'] >= 4 : $conf['modules'][$k]['access'] >= 1)){
+			if((strpos($v, 'admin') === 0) ? $mod['access'] >= 4 : $mod['access'] >= 1){
 				$conf['db']['info'] = "Модуль '". ($name = $mod['name']). "'";
 
 				if(preg_match("/[a-z]/", $v)){ $g = "/{$v}.*.php"; }else{ $g = "/*.{$v}.php"; }// pre($g);
@@ -91,12 +91,14 @@ if (!function_exists('mcont')){
 				ob_start();
 					if($glob){
 //						$content .= mpct("modules/{$mod['link']}/{$glob}", $arg);
-					}elseif(($v == "admin") /*&& mpre("modules/{$mod['link']}/admin")*/ && !inc("modules/{$mod['link']}/admin")){
-						inc("modules/admin/admin");
+					}elseif($v == "admin"){
+						if(!inc("modules/{$mod['link']}/admin")){
+							inc("modules/admin/admin");
+						}
 					}elseif(!inc("modules/{$mod['link']}/{$v}")){
 						inc("modules/{$mod['link']}/default");
 					}
-				$content .= ob_get_contents(); ob_end_clean();
+				$content = ob_get_contents(); ob_end_clean();
 			}else if(array_key_exists($k, $conf['modules']) && ($_SERVER['REQUEST_URI'] != "/admin")){
 				header("HTTP/1.0 403 Access Denied");
 				header("Location: /users:login");
@@ -146,15 +148,15 @@ if (!function_exists('bcont')){
 				$reg[ $r['id'] ] = $r;
 			}else{
 				$brm = rb($blocks_reg_modules, "reg_id", "id", $r['id']);
-				if(max(array_column($brm, 'name'))){ # Если стоит страница
+				if(($array_column = array_column($brm, 'name')) && max($array_column)){ # Если стоит страница
 					$br = array_shift($brm = rb($brm, "name", "id", array_flip($md)));
-				} if(max(array_column($brm, 'modules_index'))){
+				} if(($array_column = array_column($brm, 'modules_index')) && max($array_column)){
 					$brm = rb($brm, "modules_index", "id", array("all")+rb($conf['modules'], "folder", "id", $md));
-				} if(max(array_column($brm, 'theme'))){ # Условие на тему
+				} if(($array_column = array_column($brm, 'theme')) && max($array_column)){ # Условие на тему
 					$brm = rb($brm, "theme", "id", array_flip(array("", $conf['settings']['theme'])));
-				} if(max(array_column($brm, 'uri'))){ # Адрес страницы в системе. Всегда не главная. (может быть не равен $_SERVER['REDIRECT_URL'])
+				} if(($column = array_column($brm, 'uri')) && max($column)){ # Адрес страницы в системе. Всегда не главная. (может быть не равен $_SERVER['REDIRECT_URL'])
 					$brm = rb($brm, "uri", "id", array_flip(array("", $_SERVER['REQUEST_URI'])));
-				} if(max(array_column($brm, 'url'))){ # Адрес страницы из адресной строки браузера работает если нужно поставил условием главную страницу
+				} if(($column = array_column($brm, 'url')) && max($column)){ # Адрес страницы из адресной строки браузера работает если нужно поставил условием главную страницу
 					$brm = rb($brm, "url", "id", array_flip(array("", $_SERVER['REDIRECT_URL'])));
 				}// mpre(array_flip($md)); mpre($br);
 
@@ -165,15 +167,15 @@ if (!function_exists('bcont')){
 				}
 			} # Условие исключая не срабатывает
 		}
-
-		$gt = mpgt(urldecode(array_pop(explode("/{$_SERVER['HTTP_HOST']}", $_SERVER['HTTP_REFERER']))));
-		$uid = array_key_exists('blocks', $_GET['m']) ? $gt['id'] : $_GET['id'];
-		$uid = (array_intersect_key(array($conf['modules']['users']['folder']=>1, $conf['modules']['users']['modname']=>2), (array_key_exists('blocks', $_GET['m']) ? (array)$gt['m'] : array())+$_GET['m']) && $uid) ? $uid : $conf['user']['uid'];
+		$gt = mpgt(urldecode(array_pop(array_key_exists('HTTP_REFERER', $_SERVER) ? explode("/{$_SERVER['HTTP_HOST']}", $_SERVER['HTTP_REFERER']) : array("/"))));
+//		$uid = array_key_exists('blocks', $_GET['m']) ? $gt['id'] : $_GET['id'];
+//		$uid = (array_intersect_key(array($conf['modules']['users']['folder']=>1, $conf['modules']['users']['modname']=>2), (array_key_exists('blocks', $_GET['m']) ? (array)$gt['m'] : array())+$_GET['m']) && $uid) ? $uid : $conf['user']['uid'];
 
 		foreach(rb($blocks, "reg_id", "id", $reg+array(0=>array("id"=>0))) as $k=>$v){
 			$conf['blocks']['info'][$v['id']] = $v;
 			if(($v['access'] < 0)){
-				$conf['blocks']['info'][ $v['id'] ]['access'] = (int)$conf['modules'][array_shift(explode('/', $v['src']))]['access'];
+				$keys = array_keys($ar = explode('/', $v['src']));
+				$conf['blocks']['info'][ $v['id'] ]['access'] = (int)$conf['modules'][ $ar[ $keys[0] ] ]['access'];
 			}
 		}
 
@@ -184,8 +186,9 @@ if (!function_exists('bcont')){
 				qw("ALTER TABLE {$conf['db']['prefix']}blocks_index_gaccess CHANGE `bid` `index_id` int(11) NOT NULL");
 			}else{ mpre("Ошибка не определена", $error); }
 			mpre($error);
-		})) as $k=>$v)
-			if ($conf['user']['gid'][ $v['gid'] ]) $conf['blocks']['info'][ $v['index_id'] ]['access'] = $v['access'];
+		})) as $k=>$v){
+			if (array_key_exists($v['gid'], $conf['user']['gid'])) $conf['blocks']['info'][ $v['index_id'] ]['access'] = $v['access'];
+		}
 
 		foreach(mpql(mpqw("SELECT *, index_id AS index_id FROM {$conf['db']['prefix']}blocks_index_uaccess ORDER BY id", 'Права доступа пользователя к блоку', function($error, $conf){
 			if(strpos($error, ".{$conf['db']['prefix']}blocks_index_uaccess' doesn't exist")){
@@ -195,14 +198,15 @@ if (!function_exists('bcont')){
 			}else{ mpre("Ошибка не определена", $error); }
 			mpre($error);
 		})) as $k=>$v)
-			if ($conf['user']['uid'] == $v['uid'] || (!$v['uid'] && ($conf['user']['uid'] == $uid)))
+			if ($conf['user']['uid'] == $v['uid'] || (!$v['uid'] && ($conf['user']['uid'] == 0)))
 				$conf['blocks']['info'][ $v['index_id'] ]['access'] = $v['access'];
 
 		foreach(rb($blocks, "reg_id", "id", $reg+array(0=>array("id"=>0))) as $k=>$v){
 			if(($conf['settings']['theme'] == $v['theme']) || ((substr($v['theme'], 0, 1) == "!") && ($conf['settings']['theme'] != substr($v['theme'], 1)))){
-				$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
-				$mod = $conf['modules'][ $modpath = basename(dirname(dirname($v['src']))) ];
-				$arg = array('blocknum'=>$v['id'], 'modpath'=>$mod['folder'], 'modname'=>$mod['modname'], 'fn'=>basename(array_shift(explode('.', $v['src']))), 'uid'=>$uid, 'access'=>$conf['blocks']['info'][ $v['id'] ]['access']);
+				$conf['db']['info'] = (array_key_exists($v['id'], $conf['blocks']['info']) ? "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'" : "");
+				$mod = array_key_exists($modpath = basename(dirname(dirname($v['src']))), $conf['modules']) ? $conf['modules'][ $modpath ] : array("folder"=>"", "modname"=>"");
+				$keys = array_keys($ar = explode('.', basename($v['src'])));
+				$arg = array('blocknum'=>$v['id'], 'modpath'=>$mod['folder'], 'modname'=>$mod['modname'], 'fn'=>$ar[$keys[0]], 'uid'=>0, 'access'=>$conf['blocks']['info'][ $v['id'] ]['access']);
 				if ($conf['blocks']['info'][ $v['id'] ]['access'] && strlen($cb = mpeval("modules/{$v['src']}", $arg))){
 					if($bid){ $result = $cb; }else{
 						if (!is_numeric($v['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($v['shablon'] ? $v['shablon'] : "block.html")))){
@@ -216,10 +220,10 @@ if (!function_exists('bcont')){
 							'<!-- [block:fn] -->'=>$arg['fn'],
 							'<!-- [block:title] -->'=>$v['name']
 						));
-						$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$v['name'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
-						$result["<!-- [block:". (int)$v['id'] . "] -->"] = strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
-						$result["<!-- [blocks:". (int)$v['reg_id'] . "] -->"] .= $result["<!-- [block:". (int)$v['id'] . "] -->"];
-						$result["<!-- [blocks:". (int)$reg[ $v['reg_id'] ]['reg_id']. "] -->"] .= strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
+						$section = array("{modpath}"=>$arg['modpath'], "{modname}"=>$arg['modname'], "{name}"=>$v['name'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
+						$result["<!-- [block:". (int)$v['id'] . "] -->"] = (array_key_exists('blocks_start', $conf['settings']) ? strtr($conf['settings']['blocks_start'], $section) : ""). $cb. (array_key_exists('blocks_stop', $conf['settings']) ? strtr($conf['settings']['blocks_stop'] , $section) : "");
+						$result[$n = "<!-- [blocks:". (int)$v['reg_id'] . "] -->"] = (array_key_exists($n, $result) ? $result[$n]. $result["<!-- [block:". (int)$v['id'] . "] -->"] : $result["<!-- [block:". (int)$v['id'] . "] -->"]);
+//						$result[$n = "<!-- [blocks:". (int)(array_key_exists('reg_id', $v) ? $reg[ $v['reg_id'] ]['reg_id'] : 0). "] -->"] = array_key_exists($n, $result) ? $result[$n]. strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section) : strtr($conf['settings']['blocks_start'], $section). $cb. strtr($conf['settings']['blocks_stop'], $section);
 					}
 				}
 			}
@@ -242,7 +246,7 @@ function mp_array_format($array,$array_format){
 		foreach($array as $key => $value){
 			if(is_array($array_format)){
 				if(!isset($buf[$key])) $buf[$key] = array();
-				foreach($array_format as $key_from => $key_to){						
+				foreach($array_format as $key_from => $key_to){
 					if(is_string($key_from)){	
 						if(isset($value[(string)$key_from]))
 							$buf[$key][(string)$key_to] = $value[(string)$key_from];
@@ -251,10 +255,10 @@ function mp_array_format($array,$array_format){
 							$buf[$key][(string)$key_to] = $value[(string)$key_to];
 					}					
 				}
-			}else if(is_string($array_format)){				
-				if(!isset($buf[$key])) $buf[$key] = array();					
+			}else if(is_string($array_format)){
+				if(!isset($buf[$key])) $buf[$key] = array();
 				if(isset($value[$array_format])) 
-					$buf[$key][(string)$array_format] = $value[(string)$array_format];				
+					$buf[$key][(string)$array_format] = $value[(string)$array_format];
 			}
 		}
 	}
@@ -262,6 +266,7 @@ function mp_array_format($array,$array_format){
 }
 
 set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
+	global $conf;
     $errortype = array (
 		1   =>  "Ошибка",
 		2   =>  "Предупреждение",
@@ -277,9 +282,12 @@ set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 		2048=> "Обратная совместимость",
 	);
 	if(!empty($conf['user']['uname']) && ($conf['user']['uname'] == "mpak")){
-		error_log($_SERVER['HTTP_HOST']. $_SERVER['REQUEST_URI']. " ". $filename.":".$linenum."($errno) $errmsg"/*. print_r($vars, true)*/, 0) or die("Ошибка записи сообщения об ошибке в файл");
-	}
+		error_log($_SERVER['HTTP_HOST']. $_SERVER['REQUEST_URI']. " ". $filename.":".$linenum."($errno) $errmsg"/*. print_r($vars, true)*/, 0) or mpre("Ошибка записи сообщения об ошибке в файл");
+	}//elseif((!array_key_exists("user", $conf) || !array_key_exists("gid", $conf['user'])) || array_search("Администратор", $conf['user']['gid'])){
+		mpre("{$errortype[$errno]} ($errno)", $errmsg, $filename, $linenum/*, debug_backtrace()*/);
+//	}
 });
+
 function mpzam($ar, $name = null, $prefix = "{", $postfix = "}", $separator = ":"){ # Создание из много мерного массиива - одномерного. Применяется для подставки в текстах отправляемых писем данных из массивов
 	$f = function($ar, $prx = "") use(&$f, $prefix, $postfix, $name){
 		$r = array();
@@ -415,7 +423,7 @@ function mpue($name){
 }
 function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 	global $conf;
-	if($conf['settings']['sql_memcache_disable'] || !function_exists('memcache_connect')) return false;
+	if(array_key_exists('sql_memcache_disable', $conf['settings']) || !function_exists('memcache_connect')) return false;
 	if($memcache = memcache_connect("localhost", 11211)){
 		if($data){
 			memcache_set($memcache, $key, $data, $compress, $limit);
@@ -450,14 +458,17 @@ function rb($src, $key = 'id'){
 #####################################################################################
 function erb($src, $key = 'id'){
 	global $arg, $conf, $tpl;
-//	print_r(array_keys($tpl));
 	$purpose = $keys = $return = array();
 	$ArrayPositions = array(array(1,2),array(2,3));
 	$func_get_args = func_get_args();
-	$FixID = is_string($func_get_args[$ArrayPositions[is_numeric($key)][0]])?intval(preg_match("#^id\|.*$#",$func_get_args[$ArrayPositions[is_numeric($key)][0]])):0;
-	$StartForeach = $ArrayPositions[intval(is_numeric($key))][$FixID];
-	
+
+/*	Не понял как работает. Как нибудь на днях надо будет разобраться что тут происходит
+	$FixID = is_string($func_get_args[$ArrayPositions[is_numeric($key)][0]]) ? intval(preg_match("#^id\|.*$#",$func_get_args[$ArrayPositions[is_numeric($key)][0]])) : 0;
+	$StartForeach = $ArrayPositions[intval(is_numeric($key))][$FixID];*/
+
+	$StartForeach = $ArrayPositions[intval(is_numeric($key))][$FixID = 0];
 	$IdName = $FixID?preg_replace("#^id\|(.*)$#","$1",$func_get_args[$StartForeach-1]):'id';
+	$IdName = "id";
 	
 	foreach(array_slice($func_get_args, $StartForeach) as $a){
 		if(is_string($a)){
@@ -484,7 +495,7 @@ function erb($src, $key = 'id'){
 			$where = array_map(function($key, $val){
 				return "`{$key}`". (is_array($val) ? " IN (". in($val). ")" : "=". (int)$val);
 			}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
-			$src = qn($sql = "SELECT * FROM `{$tab}`". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings'][substr($src, strlen($conf['db']['prefix'])). "=>order"]) ? " ORDER BY ". mpquot($order) : ""). " LIMIT ". (int)($_GET['p']*$key). ",". (int)$key,$IdName);
+			$src = qn($sql = "SELECT * FROM `{$tab}`". ($where ? " WHERE ". implode(" AND ", $where) : ""). ((array_key_exists($n = substr($src, strlen($conf['db']['prefix'])). "=>order", $conf['settings']) && ($order = $conf['settings'][$n])) ? " ORDER BY ". mpquot($order) : ""). " LIMIT ". (int)((array_key_exists("p", $_GET) ? $_GET['p'] : 0)*$key). ",". (int)$key,$IdName);
 			$tpl['pager'] = $conf['pager'] = mpager($cnt = ql($sql = "SELECT COUNT(*) AS cnt FROM `{$tab}`". ($where ? " WHERE ". implode(" AND ", $where) : ""), 0, "cnt")/$key);
 		}
 	}else if(is_string($src)){
@@ -497,7 +508,8 @@ function erb($src, $key = 'id'){
 				return "`{$key}`=". intval($val);
 			}
 		}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
-		$src = qn($sql = "SELECT * FROM {$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = $conf['settings'][substr($src, strlen($conf['db']['prefix'])). "=>order"]) ? " ORDER BY ". mpquot($order) : ""),$IdName);
+		$order = (array_key_exists($n =substr($src, strlen($conf['db']['prefix'])). "=>order", $conf['settings']) ? $conf['settings'][$n] : null);
+		$src = qn($sql = "SELECT * FROM {$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). ($order ? " ORDER BY ". mpquot($order) : ""),$IdName);
 	} if($keys){
 		if(!empty($src)){
 			foreach($src as $v){
@@ -513,7 +525,7 @@ function erb($src, $key = 'id'){
 	foreach($purpose as $v){
 		$r = array();
 		if(is_numeric($v) || empty($v)){ # Выборка по целочисленному ключу
-			$return = (array)$return[ $v ];
+			$return = array_key_exists($v, $return) ? (array)$return[ $v ] : array();
 		}else if(is_array($v)){ # Сортировка по ключям массива
 			foreach($return as $key=>$val){
 				if(array_key_exists($key, $v)){
@@ -734,7 +746,7 @@ function mpsettings($name, $value = null, $aid = null){
 
 # Разбор адресной строки на параметры для использования в $_GET массиве
 function mpgt($REQUEST_URI, $get = array()){
-	$part = explode('//', str_replace("/null/", "//", array_shift(explode('?', $REQUEST_URI))), 2);// mpre($part); exit;
+	$part = explode('//', str_replace("/null/", "//", ($REQUEST_URI && strpos("?", $REQUEST_URI)) ? array_shift(explode('?', $REQUEST_URI)) : $REQUEST_URI), 2);
 	if(!empty($part[1])){
 		$param = explode(':', $part[1], 2);// mpre($param);
 		$val = array_pop($param);// mpre($val); exit;
@@ -742,9 +754,9 @@ function mpgt($REQUEST_URI, $get = array()){
 		$get['null'] = '';
 	}
 	$part = explode('/', $part[0], 3);
-	$mod = explode(':', $part[1]);
-	if(!empty($mod[0])){
-		$get['m'] = array(urldecode(@$mod[0])=>urldecode(@$mod[1]));
+	$mod = array_key_exists(1, $part) ? explode(':', $part[1]) : array();
+	if(array_key_exists(0, $mod)){
+		$get['m'] = array((array_key_exists(0, $mod) ? urldecode($mod[0]) : "")=>(array_key_exists(1, $mod) ? urldecode($mod[1]) : ""));
 		if($mod[0] == 'include' || urldecode($mod[0]) == 'img') $get['null'] = '';
 	}
 	if(!empty($part[2]) && $part[2] != ''){
@@ -945,8 +957,8 @@ function mpdbf($tn, $post = null, $and = false){
 function mpager($count, $null=null, $cur=null, $url=null){
 	global $conf;
 	$p = (strpos($_SERVER['HTTP_HOST'], "xn--") === 0) ? "стр" : "p";
-	if ($cur === null) $cur = $_GET[$p];
-	if ($url === null) $url = strtr($u = urldecode($_SERVER['REQUEST_URI']), array("/{$p}:{$_GET[$p]}"=>'', "&{$p}={$_GET[$p]}"=>''));
+	$cur = ($cur === null ? $cur : (array_key_exists($p, $_GET) ? $_GET[$p] : 0));
+	if ($url === null) $url = strtr($u = urldecode($_SERVER['REQUEST_URI']), array("/{$p}:{$cur}"=>'', "&{$p}={$cur}"=>''));
 	if ($null){
 		$url = str_replace($u, $u. (strpos($url, '&') || strpos($url, '?') ? "&null" : "/null"), $url);
 	}else if($null === false){
@@ -1132,7 +1144,7 @@ function mpqw($sql, $info = null, $callback = null, $conn = null){
 		if(!empty($conf['settings']['sqlanaliz_time_log']) && $q['time'] > $conf['settings']['sqlanaliz_time_log']){
 			mpevent("Долгий запрос к базе данных", $sql. " {$q['time']}c.", $conf['user']['uid'], $q);
 		}
-	} return($result);
+	} return; //($result);
 }
 function mpfile($filename, $description = null){
 //	$file_name = strtr($file_name, array('../'=>'', '/./'=>'/', '//'=>'/'));
@@ -1167,6 +1179,7 @@ function mpgc($value, $param = null){
 	ob_end_clean();
 	return $str;
 }
+
 function mpwysiwyg($name, $content = null, $tpl = ""){
 	global $conf;
 	if(!empty($conf['modules']['redactor']['access'])){
@@ -1239,7 +1252,8 @@ EOF;
 
 function pre(){
 	$lines = false;
-	if(is_bool($bool = array_shift(array_slice($func_get_args = func_get_args(), -1, 1))) && ($lines = $bool)){
+	$keys = array_keys($ar = array_slice($func_get_args = func_get_args(), -1, 1));
+	if(is_bool($bool = $ar[max($keys)]) && ($lines = $bool)){
 		$func_get_args = array_slice(func_get_args(), -1, 1);
 	}else{ /*exit(var_dump($lines));*/ }
 
@@ -1266,11 +1280,9 @@ function pre(){
 	}
 } function mpre(){
 	global $conf, $arg, $argv;
-	if(!array_search("Администратор", $conf['user']['gid'])){
-		return;
+	if(array_key_exists("user", $conf) && array_key_exists("gid", $conf['user']) && array_search("Администратор", $conf['user']['gid'])){
+		return call_user_func_array('pre', func_get_args());
 	}
-//	if(empty($argv) && ($arg['access'] < $access)) return;
-	return call_user_func_array('pre', func_get_args());
 }
 function mpqwt($result){
 	echo "<table style='background-color:#888;' cellspacing=0 cellpadding=3 border=1><tr>";
@@ -1318,7 +1330,8 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 		'png' => 'imagepng',
 		'gif' => 'imagegif',
 	);
-	$ext = array_pop(explode('.', $file_name));
+	$keys = array_keys($ar = explode('.', $file_name));
+	$ext = $ar[max($keys)];
 	$cache_name = (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/images";
 	$host_name = strpos('www.', $_SERVER['SERVER_NAME']) === 0 ? substr($_SERVER['SERVER_NAME'], 4) : $_SERVER['SERVER_NAME'];
 	$fl_name = (int)$max_width. "x". (int)$max_height. "x". (int)$crop. "_" .basename($file_name);
@@ -1375,10 +1388,10 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 				$w = array_shift($lg); $h = array_shift($lg);
 				imagecopyresampled($dst, $logo, ($w < 0 ? imagesx($dst)-imagesx($logo)+$w : $w), ($h < 0 ? imagesy($dst)-imagesy($logo)+$h : $h), 0, 0, imagesx($logo), imagesy($logo), imagesx($logo), imagesy($logo));
 			}
-			ob_start();
-				$func[ strtolower(array_pop(explode('.', $file_name))) ]($dst, null, -1);
-				$content = ob_get_contents();
-			ob_end_clean();
+//			ob_start();
+//				$func[ strtolower(array_pop(explode('.', $file_name))) ]($dst, null, -1);
+//				$content = ob_get_contents();
+//			ob_end_clean();
 			ImageDestroy($src);
 			ImageDestroy($dst);
 		}

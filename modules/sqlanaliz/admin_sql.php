@@ -1,13 +1,15 @@
 <?
 
 if(array_key_exists("null", $_GET) && $_POST){
-	if(($table = $_POST['del']) && ($fields = fields($table))){
+	if($sql = $_POST['sql']){
+		exit(mpre($sql, qn($sql)));
+	}elseif(($table = $_POST['del']) && ($fields = fields($table))){
 		exit(qw("DROP TABLE `{$table}`"));
 	}elseif($table = $_POST['table']){
 		qw("CREATE TABLE `$table` (
-			id INT(8) AUTO_INCREMENT PRIMARY KEY,
-			time INT(8) NOT NULL,
-			uid INT(8) NOT NULL,
+			id INT(11) AUTO_INCREMENT PRIMARY KEY,
+			time INT(11) NOT NULL,
+			uid INT(11) NOT NULL,
 			name VARCHAR(255) NOT NULL
 		)"); exit(json_encode(array("table"=>$table)));
 	} exit(mpre("Ошибочный запрос", $_POST));
@@ -15,14 +17,12 @@ if(array_key_exists("null", $_GET) && $_POST){
 	foreach($fil as $f=>$fld){
 		if(!$fld['name']){
 			qw($sql = "ALTER TABLE `". mpquot($table). "` DROP COLUMN `". mpquot($f). "`"); mpre($sql);
-		}elseif($fld['after']){
-			qw($sql = "ALTER TABLE `". mpquot($table). "` CHANGE `". mpquot($f). "` `". mpquot($f). "` ". ($fld['type'] ?: $fields[$f]['Type']). " ". ($fields[$f]['Null'] == "NO" ? " NOT NULL" : " NULL"). " AFTER `". mpquot($fld['after']). "`"); mpre($sql);
-		}elseif($fields[$f]['Type'] != $fld['type']){
-			qw($sql = "ALTER TABLE `". mpquot($table). "` CHANGE `". mpquot($f). "` `". mpquot($f). "` ". mpquot($fld['type']). " ". ($fields[$f]['Null'] == "NO" ? " NOT NULL" : " NULL")); mpre($sql);
+		}elseif($fld['after'] || ($fields[$f]['Type'] != $fld['type']) || ($fields[$f]['Comment'] != $fld['comment']) || ($fields[$f]['Default'] != $fld['default']) || ($fld['name'] && ($fld['name'] != $f))){
+			qw($sql = "ALTER TABLE `". mpquot($table). "` CHANGE `". mpquot($f). "` `". mpquot($fld['name'] ?: $f). "` ". mpquot($fld['type'] ?: $fields[$f]['Type']). ($fields[$f]['Null'] == "NO" ? " NOT NULL" : " NULL"). ($fld['default'] ? " DEFAULT '". mpquot($fld['default']). "'" : ""). " COMMENT '". mpquot($fld['comment']). "'"); mpre($sql);
 		}
 	} if($new = $_POST['$']){
 		if($f = $new['name']){
-			qw($sql = "ALTER TABLE `". mpquot($table). "` ADD `". mpquot($f). "` ". mpquot($new['type']). " NOT NULL AFTER `". mpquot($new['after']). "`"); mpre($sql);
+			qw($sql = "ALTER TABLE `". mpquot($table). "` ADD `". mpquot($f). "` ". mpquot($new['type']). " NOT NULL ". ($new['default'] ? " DEFAULT '". mpquot($new['default']). "'" : ""). " COMMENT '". mpquot($new['comment']). "' AFTER `". mpquot($new['after']). "`"); mpre($sql);
 		}
 	}
 }

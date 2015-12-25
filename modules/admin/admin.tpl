@@ -16,7 +16,7 @@
 					<? else: ?>_<? endif; ?>
 				<? endif; ?>
 			</a>
-			<? if($ar): ?>
+			<? if(!empty($ar)): ?>
 				<ul>
 					<? foreach($ar as $n=>$v): ?>
 						<li class="<?=($r = $tpl['tables'][$v])?> <?=($_GET['r'] == $r ? "act" : "")?>" style="display:block; min-width:120px;">
@@ -129,6 +129,24 @@
 							document.location.reload(true);
 						})
 					}
+				}).on("click", "select", function(e){
+					if(e.metaKey){
+						if($(e.currentTarget).is("[multiple]")){
+							$(e.currentTarget).removeAttr("multiple");
+							$(e.currentTarget).css({height:"", position:"inherit", top:""});
+						}else{
+							var name = $(e.currentTarget).attr("name");
+							$(e.currentTarget).data("name", name);
+							$(e.currentTarget).attr("name", name+"[]");
+
+							var width = $(e.currentTarget).parent().width();
+							$(e.currentTarget).parent().css("width", width+"px");
+							$(e.currentTarget).attr("multiple", "multiple");
+							$(e.currentTarget).parent().css({position:"relative"});
+							var width = $(e.currentTarget).width();
+							$(e.currentTarget).css({height:"200px", position:"absolute", top:"7px", width:width+"px"});
+						}
+					}// console.log("is:", $(e.currentTarget).is("[multiple]"), $(e));
 				})
 			})(jQuery, document.scripts[document.scripts.length-1])
 		</script>
@@ -161,14 +179,14 @@
 			</script>
 			<div class="table">
 				<div>
-					<? if($tpl['title'] && !array_key_exists("edit", $_GET)): ?>
+					<? if(array_key_exists('title', $tpl) && !array_key_exists("edit", $_GET)): ?>
 						<span style="width:10%; padding-left:20px;">
 							<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/edit?<? foreach($_GET['where'] as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=($_GET['p'] ? "&p={$_GET['p']}" : "")?>">
 								<button type="button">Добавить</button>
 							</a>
 						</span>
 					<? endif; ?>
-					<? if(!$tpl['edit']): ?>
+					<? if(!array_key_exists('edit', $tpl)): ?>
 						<span><?=$tpl['pager']?></span>
 					<? endif; ?>
 					<span style="width:30%; padding-right:20px; text-align:right;">
@@ -184,7 +202,7 @@
 				</div>
 			</div>
 			<div class="table">
-				<? if($tpl['title'] && array_key_exists("edit", $_GET)): ?>
+				<? if(array_key_exists('title', $tpl) && array_key_exists("edit", $_GET)): ?>
 					<div class="th">
 						<span style="width:15%;">Поле</span>
 						<span>Значение</span>
@@ -273,16 +291,16 @@
 					</div>
 				<? else: # Горизонтальный вариант таблицы ?>
 					<div class="th">
-						<? foreach(array_merge(($tpl['title'] ? array_intersect_key($tpl['fields'], array_flip($tpl['title'])) : $tpl['fields']), (array)$tpl['counter'], (array)$tpl['ecounter']) as $fiel=>$field): ?>
+						<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($tpl['fields'], array_flip($tpl['title'])) : $tpl['fields']), (array_key_exists('counter', $tpl) ? $tpl['counter'] : array()), (array_key_exists('ecounter', $tpl) ? $tpl['ecounter'] : array())) as $fiel=>$field): ?>
 							<span>
-								<? if($field['Comment']): ?>
+								<? if(array_key_exists('Comment', $field)): ?>
 									<span class="info" title="<?=$field['Comment']?>">?</span>
 								<? endif; ?>
 									<? if(substr($fiel, 0, 2) == "__"): ?>
 										<span title="<?=substr($fiel, 2)?>">_<?=($conf['settings'][substr($fiel, 2)] ?: substr($fiel, 2))?></span>
 									<? elseif(substr($fiel, 0, 1) == "_"): ?>
 										<span title="<?=substr($fiel, 1)?>"><?=($conf['settings']["{$arg['modpath']}_". substr($fiel, 1)] ?: substr($fiel, 1))?></span>
-									<? elseif($tpl['etitle'][$fiel]): ?>
+									<? elseif(array_key_exists('etitle', $tpl['etitle'])): ?>
 									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?order=<?=$fiel?>" title="<?=$fiel?>">
 										<?=$tpl['etitle'][$fiel]?>
 									</a>
@@ -299,7 +317,7 @@
 					<? if(!array_key_exists("edit", $_GET)): ?>
 						<? foreach($tpl['lines'] as $lines): ?>
 							<div line_id="<?=$lines['id']?>">
-								<? foreach(array_merge(($tpl['title'] ? array_intersect_key($lines, array_flip($tpl['title'])) : $lines), (array)$tpl['counter'], (array)$tpl['ecounter']) as $k=>$v): ?>
+								<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($lines, array_flip($tpl['title'])) : $lines), array_key_exists('counter', $tpl) ? $tpl['counter'] : array(), array_key_exists($n = 'ecounter', $tpl) ? $tpl[$n] : array()) as $k=>$v): ?>
 									<span>
 										<? if(substr($k, 0, 2) == "__"): // $tpl['ecounter'] ?>
 											<? if(($f = substr($k, 2)) && ($m = array_shift(explode("_", $f)))): ?>
@@ -309,7 +327,7 @@
 											<? endif; ?>
 										<? elseif(substr($k, 0, 1) == "_"): // $tpl['counter'] ?>
 											<a href="/<?=$arg['modpath']?>:admin/r:<?="{$conf['db']['prefix']}{$arg['modpath']}{$k}?&where[". (($_GET['r'] == "{$conf['db']['prefix']}users") && ($k == "_mem") ? "uid" : substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "_id"). "]={$lines['id']}"?>">
-												<?=($tpl['counter'][$k][ $lines['id'] ] ? "{$tpl['counter'][$k][ $lines['id'] ]}&nbspшт" : "Нет")?>
+												<?=(array_key_exists($lines['id'], $tpl['counter'][$k]) && $tpl['counter'][$k][ $lines['id'] ] ? "{$tpl['counter'][$k][ $lines['id'] ]}&nbspшт" : "Нет")?>
 											</a>
 										<? elseif($k == "id"): ?>
 											<span class="control" style="white-space:nowrap;">
@@ -377,7 +395,7 @@
 											<? elseif($v): ?>
 												<span style="color:red;"><?=$v?></span>
 											<? endif; ?>
-										<? elseif($tpl['espisok'][$k]): ?>
+										<? elseif(array_key_exists('espisok', $tpl) && array_key_exists($k, $tpl['espisok'])): ?>
 											<a class="ekey" href="/<?=array_shift(explode("_", $k))?>:admin/r:<?=$conf['db']['prefix']?><?=$k?>?&where[id]=<?=$v?>" title="<?=$v?>"></a>
 											<?=(strlen($tpl['espisok'][$k][$v]['name']) > 16 ? mb_substr($tpl['espisok'][$k][$v]['name'], 0, 16, "UTF-8"). "..." : $tpl['espisok'][$k][$v]['name'])?>
 										<? elseif($k == "name"): ?>
@@ -394,7 +412,7 @@
 					<? endif; ?>
 					<? if(empty($tpl['title'])): ?>
 						<div>
-							<? foreach(array_merge(($tpl['title'] ? array_intersect_key($tpl['fields'], array_flip($tpl['title'])) : $tpl['fields']), (array)$tpl['counter'], (array)$tpl['ecounter']) as $fiel=>$field): ?>
+							<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($tpl['fields'], array_flip($tpl['title'])) : $tpl['fields']), (array)$tpl['counter'], array_key_exists($n = 'ecounter', $tpl) ? $tpl[$n] : array()) as $fiel=>$field): ?>
 								<span>
 									<? if(substr($fiel, 0, 1) == "_"): ?>
 										<input type="text" disabled>
@@ -448,20 +466,20 @@
 										</select>
 									<? elseif(array_search($field['Field'], array(1=>"time", "last_time", "reg_time", "up"))): # Поле времени ?>
 										<input type="text" name="<?=$fiel?>" value="<?=date("Y-m-d H:i:s", ($edit ? rb($_GET['r'], "id", $_GET['edit'], $fiel) : time()))?>" placeholder="<?=($tpl['etitle'][$fiel] ?: $fiel)?>">
-									<? elseif((substr($fiel, -3) == "_id") && (false === array_search(substr($fiel, 0, strlen($fiel)-3), explode(",", $conf['settings']["{$arg['modpath']}_tpl_exceptions"])))): # Поле вторичного ключа связанной таблицы ?>
+									<? elseif((substr($fiel, -3) == "_id") && (false === array_search(substr($fiel, 0, strlen($fiel)-3), explode(",", (array_key_exists($n = "{$arg['modpath']}_tpl_exceptions", $conf['settings']) ? $conf['settings'][$n] : ""))))): # Поле вторичного ключа связанной таблицы ?>
 										<select name="<?=$fiel?>" style="width:100%;">
-											<? if(!rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($fiel, 0, -3), "id", $tpl['edit'][$fiel])): ?>
+											<? if(array_key_exists("edit", $tpl) && !rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($fiel, 0, -3), "id", $tpl['edit'][$fiel])): ?>
 												<option><?=htmlspecialchars($tpl['edit'][$fiel])?></option>
 											<? else: ?>
 												<option></option>
 											<? endif; ?>
 											<? foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($fiel, 0, -3)) as $ln): ?>
-												<option value="<?=$ln['id']?>" <?=(($tpl['edit'] && ($tpl['edit'][$fiel] == $ln['id'])) || (!$tpl['edit'] && ($ln['id'] == ($_GET['where'][$fiel] ?: $field['Default']))) ? "selected" : "")?>>
+												<option value="<?=$ln['id']?>" <?=((array_key_exists('edit', $tpl) && ($tpl['edit'][$fiel] == $ln['id'])) || (!array_key_exists('edit', $tpl) && ($ln['id'] == ((array_key_exists('where', $_GET) && array_key_exists($fiel, $_GET['where'])) ?: $field['Default']))) ? "selected" : "")?>>
 													<?=$ln['id']?>&nbsp;<?=htmlspecialchars($ln['name'])?>
 												</option>
 											<? endforeach; ?>
 										</select>
-									<? elseif(array_key_exists($fiel, $tpl['espisok'])): ?>
+									<? elseif(array_key_exists('espisok', $tpl) && array_key_exists($fiel, $tpl['espisok'])): ?>
 										<select name="<?=$fiel?>">
 											<option></option>
 											<? foreach($tpl['espisok'][$fiel] as $espisok): ?>
@@ -469,7 +487,7 @@
 											<? endforeach; ?>
 										</select>
 									<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>
-										<input type="text" name="<?=$fiel?>" value="<?=htmlspecialchars($tpl['edit'] ? rb($_GET['r'], "id", $_GET['edit'], $fiel) : $field['Default']?:$_GET['where'][$fiel])?>" placeholder="<?=($tpl['etitle'][$fiel] ?: $fiel)?>">
+										<input type="text" name="<?=$fiel?>" value="<?=htmlspecialchars(array_key_exists('edit', $tpl) ? rb($_GET['r'], "id", $_GET['edit'], $fiel) : $field['Default'] ?: (array_key_exists('where', $_GET) && array_key_exists($fiel, $_GET['where'])) ? $_GET['where'][$fiel] : "")?>" placeholder="<?=(array_key_exists($fiel, $tpl['etitle']) ? $tpl['etitle'][$fiel] : $fiel)?>">
 									<? endif; ?>
 								</span>
 							<? endforeach; ?>
@@ -484,8 +502,7 @@
 				(function($, script){
 					$(script).parent().on("click", "button.table", function(e){
 						if(value = prompt("Название таблицы")){
-							$.get("/?m[sqlanaliz]=admin&r=1&new=<?=$_GET['r']?>&null", function(data){
-								console.log("get:", data);
+							$.post("/sqlanaliz:admin_sql/null", {table:"<?=$_GET['r']?>"}, function(data){
 								$.post("/settings:admin/r:mp_settings/null", {modpath:"<?=$arg['modpath']?>", name:"<?=substr($_GET['r'], strlen($conf['db']['prefix']))?>", value:value, aid:4}, function(data){
 									console.log("post:", data);
 									document.location.reload(true);

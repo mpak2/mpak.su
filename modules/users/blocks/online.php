@@ -1,6 +1,6 @@
 <?
 
-if ((int)$arg['confnum']){
+if(array_key_exists('confnum', $arg)){
 /*	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0, 'param'));
 	if ($_POST) mpqw("UPDATE {$conf['db']['prefix']}blocks SET param = '".serialize($param = $_POST['param'])."' WHERE id = {$arg['confnum']}");
 
@@ -57,7 +57,7 @@ $logo = array(
 	"tobbot.png"=>"tobbot.com",
 
 	"bot.png"=>"bot",
-);// mpre($logo);
+);
 
 $os = array(
 	"mobi.png"=>"Mobi",
@@ -106,8 +106,10 @@ $guest = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE name=\"". m
 	</style>
 	<div style="clear:both;">на сайте <b><?=$count?></b> <?=mpfm($count, 'посетитель', 'посетителя', 'посетителей')?></div>
 	<? foreach($on as $os): ?>
-		<? foreach($os as $s=>$o): $v = array_shift(array_slice($o, 0, 1)); ?>
-			<div style="float:left; margin:1px; border:1px solid #ddd; position:relative;" title="<?=($v['bot'] ? $v['agent'] : $v['name']. ($v['name'] != $conf['settings']['default_usr'] ? "" : "-{$v['sid']}"). (!empty($v['ref']) && ($arg['access'] > 3) ? " {$v['count']}/{$v['cnull']} ({$v['ref']})" : ""))?>">
+		<? foreach($os as $s=>$o): ?>
+			<? $keys = array_keys($ar = array_slice($o, 0, 1)) ?>
+			<? $v = $ar[min($keys)]; ?>
+			<div style="float:left; margin:1px; border:1px solid #ddd; position:relative;" title="<?=(array_key_exists('bot', $v) ? $v['agent'] : $v['name']. ($v['name'] != $conf['settings']['default_usr'] ? "" : "-{$v['sid']}"). (!empty($v['ref']) && ($arg['access'] > 3) ? " {$v['count']}/{$v['cnull']} ({$v['ref']})" : ""))?>">
 				<? if($v['id'] != $guest['id']): ?>
 					<a href="/<?=$arg['modname']?>/<?=$v['id']?>">
 				<? elseif($arg['access'] > 3): ?>
@@ -115,7 +117,7 @@ $guest = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE name=\"". m
 				<? else: ?>
 					<a href="/<?=$arg['modname']?>/<?=$guest['id']?>">
 				<? endif; ?>
-					<? if($v['bot']): ?>
+					<? if(array_key_exists('bot', $v)): ?>
 						<div style="position:absolute; top:1px; left:1px; opacity:0.8;"><?=count($o)?></div>
 						<div style="position:absolute; top:1px; right:1px; opacity:0.8;"><img src="/<?=$arg['modname']?>:img/w:15/h:15/null/bot.png"></div>
 					<? elseif($v['os']): ?>

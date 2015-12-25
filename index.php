@@ -10,7 +10,7 @@
 // Original Author of file: Krivoshlykov Evgeniy (mpak) +7 929 1140042
 // ----------------------------------------------------------------------
 
-ini_set('display_errors', 1); error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT);
+ini_set('display_errors', 1); error_reporting(E_ALL /*& ~E_NOTICE & ~E_STRICT*/);
 header('Content-Type: text/html;charset=UTF-8');
 date_default_timezone_set('Europe/Moscow');
 
@@ -128,7 +128,7 @@ foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE hide IN (0
 	$conf['modules'][ $modules['id'] ] = &$conf['modules'][ $modules['folder'] ];
 }
 
-if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страница
+if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Главная страница
 	if(strpos($conf['settings']['start_mod'], "http://") === 0){
 		header("Debug info:". __FILE__. ":". __LINE__);
 		header("Location: {$conf['settings']['start_mod']}"); exit;
@@ -142,7 +142,7 @@ if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страни
 		$_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $conf['settings']['start_mod']));
 	} $_SERVER['SCRIPT_URL'] = "/";
 }elseif(!array_key_exists("null", $_GET) /*&& !is_array($_GET['m'])*/ && $conf['modules']['seo']){
-	if($_GET['p']){
+	if(array_key_exists("p", $_GET)){
 		$r = urldecode(preg_replace("#([\#\?].*)?$#",'',strtr($_SERVER['REQUEST_URI'], array("?p={$_GET['p']}"=>"", "&p={$_GET['p']}"=>"", "/p:{$_GET['p']}"=>""))));
 	}else{
 		$r = urldecode(preg_replace("#([\#\?].*)?$#",'',$_SERVER['REQUEST_URI']));
@@ -188,14 +188,14 @@ if($conf['settings']['start_mod'] && !$_GET['m']){ # Главная страни
 		}
 	}
 }
+array_key_exists("m", $_GET) ? (list($m) = array_keys($_GET['m'])) : "pages";
+array_key_exists("m", $_GET) ? (list($f) = array_values($_GET['m'])) : "index";
 
-$conf['settings']['modpath'] = $conf['modules'][ array_shift(array_keys($_GET['m'])) ]['folder'];
-$conf['settings']['fn'] = array_shift(array_values($_GET['m'])) ? array_shift(array_values($_GET['m'])) : "index";
+$conf['settings']['modpath'] = array_key_exists($m, $conf['modules']) ? $conf['modules'][ $m ]['folder'] : "";
+$conf['settings']['fn'] = $f ? $f : "index";
 
-if(isset($_GET['theme']) && $_GET['theme'] != $conf['user']['sess']['theme']){
+if(array_key_exists('theme', $_GET)){
 	$conf['user']['sess']['theme'] = $conf['settings']['theme'] = basename($_GET['theme']);
-}elseif($conf['user']['sess']['theme']){
-	$conf['settings']['theme'] = $conf['user']['sess']['theme'];
 }
 
 if(empty($f)){
@@ -207,10 +207,8 @@ if(empty($f)){
 } if(!empty($conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"])){
 	$conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"];
 }
-
 $content = ((mpopendir($init = "include/init.php")) ? mpct($init, $arg = array("access"=>(array_search($conf['settings']['admin_grp'], $conf['user']['gid']) ? 5 : 1))) : ""); # Установка предварительных переменных
-
-if($_GET['id'] && $conf['settings']['modules_default'] && empty($conf['modules'][ ($mp = array_shift(array_keys($_GET['m']))) ])){
+if(!array_key_exists("id", $_GET) && array_key_exists("modules_default", $conf['settings']) && array_key_exists($mp = array_shift(array_keys($_GET['m'])), $conf['modules'])){
 	$_GET['m'] = array($conf['settings']['modules_default']=>$_GET['m'][ $mp ]);
 } # Устанавливаем дефолтный раздел. Если нет среди установленных то он считает что страничка оттуда
 
@@ -230,11 +228,9 @@ if (!empty($conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['setti
 if ((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]){
 	$conf['settings']['theme'] = $conf['settings']["theme/*:admin"];
 }
- 
+
 if(isset($_GET['theme']) && $_GET['theme'] != $conf['user']['sess']['theme']){
 	$conf['user']['sess']['theme'] = $conf['settings']['theme'] = basename($_GET['theme']);
-}elseif($conf['user']['sess']['theme']){
-	$conf['settings']['theme'] = $conf['user']['sess']['theme'];
 }
 
 if(isset($_GET['m']['sqlanaliz'])){
@@ -245,7 +241,7 @@ if(isset($_GET['m']['sqlanaliz'])){
 	$zblocks = bcont();
 }
 
-if($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". ($conf['settings']['index']?:($_GET['index'] ? basename($_GET['index']) : "index" )) . ".html")){
+if($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". (array_key_exists("index", $conf['settings']) ? $conf['settings']['index'] : (array_key_exists("index", $_GET) ? basename($_GET['index']) : "index" )) . ".html")){
 	$tc = ($conf['settings']['theme_exec'] ? mpeval($f) : file_get_contents($t));
 }else{ die("Шаблон {$f} не найден"); }
 
@@ -256,10 +252,13 @@ if(!array_key_exists('null', $_GET)){
 if ($conf['settings']['microtime']){
 	$conf['settings']['microtime'] = (substr(microtime(), strpos(microtime(), ' ')) - substr($conf['settings']['microtime'], strpos($conf['settings']['microtime'], ' ')) + microtime() - $conf['settings']['microtime']);
 }
+ 
 
 $aid = qn("SELECT id, aid FROM {$conf['db']['prefix']}settings", "aid", "id");
 foreach($conf['settings'] as $k=>$v){
-	$content = str_replace("<!-- [settings:$k] -->", $v, $content);
+	if(is_string($v)){
+		$content = str_replace("<!-- [settings:$k] -->", $v, $content);
+	}
 } if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && !array_search("Зарегистрированные", $conf['user']['gid'])){
 	exit(header('HTTP/1.0 304 Not Modified'));
 }else if(!array_search("Зарегистрированные", $conf['user']['gid'])){ # Исключаем админстраницу из кеширования

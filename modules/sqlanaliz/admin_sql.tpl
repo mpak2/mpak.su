@@ -48,6 +48,9 @@
 							<? endforeach; ?>
 						</datalist>
 						<button>Применить</button>
+						<? if($ar = explode("_", $_GET['r'])): ?>
+							<span style="padding:0 10px;"><a href="/<?=array_pop(array_slice($ar, 1, 1))?>:admin/r:<?=$_GET['r']?>"><?=($conf['settings'][ implode("_", array_slice($ar, 1)) ] ?: $_GET['r'])?></a></span>
+						<? endif; ?>
 					</form>
 				</p>
 				
@@ -68,13 +71,13 @@
 									<span>
 										<select name="f[<?=$field?>][type]">
 											<option></option>
-											<? foreach(array("int(8)", "varchar(255)", "text") as $fd): ?>
+											<? foreach(array("int(11)", "float", "varchar(255)", "text", "longtext") as $fd): ?>
 												<option <?=($tpl['fields'][$field]['Type'] == $fd ? "selected" : "")?>><?=$fd?></option>
 											<? endforeach; ?>
 										</select>
 									</span>
-									<span><input type="text" name="f[<?=$field?>][val]" style="width:60px;" placeholder="Значение"></span>
-									<span><input type="text" name="f[<?=$field?>][comment]" placeholder="Коментарий"></span>
+									<span><input type="text" value="<?=$fields[$field]['Default']?>" name="f[<?=$field?>][default]" style="width:60px;" placeholder="Значение"></span>
+									<span><input type="text" value="<?=$fields[$field]['Comment']?>" name="f[<?=$field?>][comment]" placeholder="Коментарий"></span>
 								</div>
 							<? endforeach; ?>
 							<div>
@@ -88,12 +91,12 @@
 								</span>
 								<span>
 									<select name="$[type]">
-										<? foreach(array("int(8)", "varchar(255)", "text") as $fd): ?>
+										<? foreach(array("int(11)", "float", "varchar(255)", "text", "longtext") as $fd): ?>
 											<option><?=$fd?></option>
 										<? endforeach; ?>
 									</select>
 								</span>
-								<span><input type="text" name="$[val]" style="width:60px;" placeholder="Значение"></span>
+								<span><input type="text" name="$[default]" style="width:60px;" placeholder="Значение"></span>
 								<span><input type="text" name="$[comment]" placeholder="Коментарий"></span>
 							</div>
 						</div>
@@ -102,28 +105,35 @@
 				<? endif; ?>
 			</span>
 			<span style="padding-left:20px;">
-				<div class="table" style="width:100%">
-					<? foreach(rb("{$conf['db']['prefix']}modules") + array(0=>array("id"=>0, "modpath"=>"")) as $modules): ?>
-						<? if($tpl['tab'] = rb($tpl['tables'], "modpath", "id", "[{$modules['folder']}]")): ?>
-							<div>
-								<span style="width:140px; vertical-align:top; border-top:1px solid #ddd;">
-									<h1><?=$modules['name']?></h1>
-								</span>
-								<span style="border-top:1px solid #ddd;">
-									<ul>
-										<? foreach($tpl['tab'] as $tables): ?>
-											<li style="float:left; margin-left:25px;">
-												<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$tables["Tables_in_{$conf['db']['name']}"]?>">
-													<?=$tables["Tables_in_{$conf['db']['name']}"]?>
-												</a>
-											</li>
-										<? endforeach; ?>
-									</ul>
-								</span>
-							</div>
-						<? endif; ?>
-					<? endforeach; ?>
-				</div>
+				<h1>Запрос</h1>
+				<form action="/<?=$arg['modname']?>:<?=$arg['fn']?>/null" method="post">
+					<script src="/include/jquery/jquery.iframe-post-form.js"></script>
+					<script sync>
+						(function($, script){
+							$(script).parent().one("init", function(e){
+								setTimeout(function(){
+									$(e.delegateTarget).iframePostForm({
+										complete:function(data){
+											try{if(json = JSON.parse(data)){
+												console.log("json:", json);
+//												document.location.reload(true);
+											}}catch(e){if(isNaN(data)){
+//												alert(data);
+												$(this).next().html(data);
+												console.log("next:", $(this).next());
+											}else{
+												console.log("date:", data)
+											}}
+										}
+									});
+								}, 300)
+							}).trigger("init")
+						})(jQuery, document.scripts[document.scripts.length-1])
+					</script>
+					<p><textarea name="sql" style="width:100%; height:100px;" placeholder="Текст запроса"></textarea></p>
+					<p><button>Выполнить</button></p>
+				</form>
+				<div class="info"></div>
 			</span>
 		</div>
 	</div>

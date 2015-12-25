@@ -46,10 +46,11 @@ $defaultmimes = array(
 );
 
 $path = mpopendir($_SERVER['REDIRECT_URL']);
-//$path = mpopendir($_SERVER['SCRIPT_URL']); # Для работы у хостера sweb.ru
-if(($ext = strtolower(array_pop(explode('.', $path)))) && array_key_exists($ext, $defaultmimes) && file_exists($path)){
-	header("Content-type: {$defaultmimes[$ext]}");
-	$f = fopen($path, "rb");
+$keys = array_keys($ar = explode('.', $path));
+if(($ext = strtolower($ar[max($keys)])) && array_key_exists($ext, $defaultmimes) && file_exists($path)){
+	if(!ob_get_length()){
+		header("Content-type: {$defaultmimes[$ext]}");
+	} $f = fopen($path, "rb");
 	while (!feof($f)) {
 		echo fread($f, 256);
 	}

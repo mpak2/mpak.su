@@ -1,6 +1,6 @@
 <? # Поиск
 
-if ((int)$arg['confnum']){
+if (array_key_exists('confnum', $arg)){
 	if(isset($_POST['update_param'])){
 		mpqw("UPDATE {$conf['db']['prefix']}blocks_index SET param_index = '".serialize($param = $_POST['param'])."' WHERE id=". (int)$arg['confnum']);
 	}else{
@@ -59,7 +59,7 @@ if ((int)$arg['confnum']){
 	</table></form>
 
 <? return;}else{
-	if(($arg['modpath'] == "admin") && ($arg['fn'] == "search") && ($_GET['search_block_num'] == $arg['blocknum'])){
+	if(($arg['modpath'] == "admin") && ($arg['fn'] == "search") && array_key_exists('search_block_num', $_GET) && ($_GET['search_block_num'] == $arg['blocknum'])){
 //		$search = fk("search", $w = array("uid"=>$conf['user']['uid']), $w += array("name"=>$_GET['search']), $w);
 	}else{
 //		$search = rb("search", "uid", $conf['user']['uid']);
@@ -72,7 +72,7 @@ if ((int)$arg['confnum']){
 		<tr>
 		<td align='center'>
 			<input type='hidden' name='search_block_num' value='<?=$arg['blocknum']?>'>
-			<input type='text' name='search' style="width:100%" value='<?=$search['name']?>' title="Поиск" placeholder="Поиск по админке">
+			<input type='text' name='search' style="width:100%" value='<?//=$search['name']?>' title="Поиск" placeholder="Поиск по админке">
 			<input type='submit' value='Искать'>
 		</td>
 		</tr>

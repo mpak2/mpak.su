@@ -21,7 +21,6 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 				$_POST[$field] = mphash($_POST['name'], $_POST['pass']);
 			}
 		}
-//		$el = fk($_GET['r'], ($_GET['id'] ? array("id"=>$_GET['id']) : null), $_POST, $_POST); # Редактирование / Создание
 		if($_GET['id']){
 			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=\"". mpquot(htmlspecialchars_decode($val)). "\""; });
 			qw($sql = "UPDATE `{$_GET['r']}` SET ". implode(", ", array_values($_POST)). " WHERE id=". (int)$_GET['id']);
@@ -30,6 +29,14 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 			qw($sql = "INSERT INTO `{$_GET['r']}` (`". implode("`, `", array_keys($_POST)). "`) VALUE (". implode(", ", array_values($_POST)). ")");
 			$_GET['id'] = $conf['db']['conn']->lastInsertId();
 		} $el = fk($_GET['r'], array("id"=>$_GET['id']));
+
+		array_map(function($e){
+			if(is_array($e)){
+				foreach($e as $v){
+//					pre($e, $el);
+				}
+			}
+		}, $_POST);
 
 		foreach(array(
 			"img"=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp'),
@@ -85,17 +92,17 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 		}else{
 			$tpl['fields'] = qn("SHOW FULL COLUMNS FROM {$_GET['r']}", "Field");
 		}
-		if($_GET['order']){ # Установка временной сортировки
+		if(array_key_exists('order', $_GET)){ # Установка временной сортировки
 			$conf['settings'][substr($_GET['r'], strlen($conf['db']['prefix'])). "=>order"] = $_GET['order'];
 		}
-		$where = array_map(function($v){ return "[{$v}]"; }, $_GET['where']);
+		$where = array_map(function($v){ return "[{$v}]"; }, array_key_exists('where', $_GET) ? $_GET['where'] : array());
 		$tpl['lines'] = call_user_func_array("rb", ($where ? array_merge(array($_GET['r'], 20), array_keys($where), array("id"), (array)array_values($where)) : array($_GET['r'], 20)));
 		$tpl['spisok'] = array(
 			'hide' => array(0=>"Видим", 1=>"Скрыт"),
 		);
-		if($_GET['edit']){
+		if(array_key_exists('edit', $_GET)){
 			$tpl['edit'] = rb($_GET['r'], "id", $_GET['edit']);
-		}elseif($settings = $conf['settings']["{$arg['modpath']}=>ecounter"]){
+		}elseif($settings = (array_key_exists($n = "{$arg['modpath']}=>ecounter", $conf['settings']) ? $conf['settings'][$n] : "")){
 			foreach(explode(",", $settings) as $ecounter){
 				if($fields = qn("SHOW FULL COLUMNS FROM {$conf['db']['prefix']}{$ecounter}", "Field")){
 					if(array_key_exists(substr($_GET['r'], strlen($conf['db']['prefix'])), $fields) || ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}")){
@@ -106,7 +113,7 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 				}else{ mpre("Не удалось получить список полей таблицы {$conf['db']['prefix']}{$ecounter}"); }
 			}
 		}
-		if($conf['settings']["{$arg['modpath']}=>espisok"]){
+		if(array_key_exists($n = "{$arg['modpath']}=>espisok", $conf['settings']) ? $conf['settings'][$n] : ""){
 			foreach(explode(",", $conf['settings']["{$arg['modpath']}=>espisok"]) as $espisok){
 				$tpl['espisok'][$espisok] = rb("{$conf['db']['prefix']}{$espisok}", "id");
 			}
@@ -121,7 +128,7 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 			}
 
 			$tpl['etitle'] = array("id"=>"Номер", 'time'=>'Время', 'up'=>'Обновление', 'uid'=>'Пользователь', 'count'=>'Количество', 'level'=>'Уровень', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'img2'=>'Изображение2', 'img3'=>'Изображение3', 'file'=>'Файл', 'hide'=>'Видим', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'duration'=>'Длительность', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', "article"=>"Артикул", 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', "users_sity"=>'Город', 'log'=>'Лог', 'min'=>'Мин', 'max'=>'Макс', 'own'=>'Владелец', 'period'=>'Период', "from"=>"Откуда", "to"=>"Куда", "percentage"=>"Процент", 'description'=>'Описание', 'text'=>'Текст');
-			if($title = $conf['settings']["{$arg['modpath']}_{$tab}=>title"]){
+			if($title = (array_key_exists($n = "{$arg['modpath']}_{$tab}=>title", $conf['settings']) ? $conf['settings'][$n] : "")){
 				$tpl['title'] = array_merge(array("id"), explode(",", $title));
 			}elseif(array_key_exists("text", $tpl['fields'])){
 				$tpl['title'] = array_keys(array_diff_key($tpl['fields'], array("text"=>false)));
