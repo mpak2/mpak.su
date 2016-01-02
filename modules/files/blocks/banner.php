@@ -1,6 +1,6 @@
 <? # Нуль
 
-if ((int)$arg['confnum']){
+if(array_key_exists('confnum', $arg)){
 	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0, 'param'));
 	if ($_POST){
 		$param = array($_POST['param']=>$_POST['val'])+(array)$param;
@@ -10,10 +10,6 @@ if ((int)$arg['confnum']){
 	$klesh = array(
 		($f = "Ширина")=>($param[ $f ] = $param[ $f ] ?: 200),
 		($f = "Высота")=>($param[ $f ] = $param[ $f ] ?: 200),
-/*		"Список"=>array(
-			1=>"Одын",
-			2=>"Два",
-		),*/
 		"Категория"=>spisok("SELECT id, name FROM {$conf['db']['prefix']}{$arg['modpath']}_cat ORDER BY name"),
 	);// mpre($klesh);
 

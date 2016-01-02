@@ -21,7 +21,10 @@ if(strpos($f = __FILE__, "phar://") === 0){ # Фал index.php внутри phar
 }else{ # Не в phar
 	if(file_exists($phar = __DIR__. "/index.phar")){
 		$conf["db"]["open_basedir"] = "phar://{$phar}";
-	} $conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: dirname($f)). ":". $conf["db"]["open_basedir"];
+		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: dirname($f)). ":". $conf["db"]["open_basedir"];
+	}else{
+		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: dirname($f));
+	}
 }
 
 if(!function_exists('mp_require_once')){
@@ -43,7 +46,6 @@ if(!function_exists('__autoload')){
 		include_once mpopendir("/include/class/$class_name.php");	
 	}
 }
-
 try{
 	if($conf['db']['type'] == "sqlite"){
 		$conf['db']['conn'] = new PDO("{$conf['db']['type']}:". mpopendir($conf['db']['name']));
@@ -134,7 +136,7 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 		header("Location: {$conf['settings']['start_mod']}"); exit;
 	}elseif(($seo_index = erb("{$conf['db']['prefix']}seo_index", "hide", "name", 0, "[/]")) /*&& array_key_exists("themes_index", $redirect)*/){
 		if($index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $seo_index['index_type_id'])){
-			$_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $seo_index['to']));
+			$_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $seo_index['name']));
 		}else{
 			$_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $conf['settings']['start_mod']));
 		}
@@ -155,8 +157,8 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 	}
 
 	if(isset($redirect)){
-		$redirect['name'] = preg_replace("#^{$redirect['from']}$#iu",$redirect['to'],$r);
-		if(strpos($redirect['to'], "http://") === 0){
+//		$redirect['name'] = preg_replace("#^{$redirect['from']}$#iu",$redirect['to'],$r);
+		if(strpos($redirect['name'], "http://") === 0){
 			header("Debug info:". __FILE__. ":". __LINE__);
 			exit(header("Location: {$redirect['to']}"));
 		}else if($seo_index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $redirect['index_type_id'])){
@@ -169,7 +171,8 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 	}elseif($conf['settings']['start_mod'] == $_SERVER['REQUEST_URI']){ # Заглавная страница
 		$conf['settings']['canonical'] = "/";
 	}elseif(!array_key_exists("404", $conf['settings']) || ($_404 = $conf['settings']['404'])){ # Если не прописан адрес 404 ошибки, то его обработку оставляем для init.php
-		if(!$conf['modules'][ array_shift(array_keys($_GET['m'])) ]['folder']){
+		$keys = array_keys($ar = array_keys($_GET['m']));
+		if(!$conf['modules'][ $ar[min($keys)] ]['folder']){
 			header("Debug info:". __FILE__. ":". __LINE__);
 			header('HTTP/1.1 404 Not Found');
 			exit(header("Location: /". ($_404 ?: "themes:404"). "{$_SERVER['REQUEST_URI']}"));
@@ -188,10 +191,11 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 		}
 	}
 }
+
 array_key_exists("m", $_GET) ? (list($m) = array_keys($_GET['m'])) : "pages";
 array_key_exists("m", $_GET) ? (list($f) = array_values($_GET['m'])) : "index";
 
-$conf['settings']['modpath'] = array_key_exists($m, $conf['modules']) ? $conf['modules'][ $m ]['folder'] : "";
+$conf['settings']['modpath'] = !empty($m) && array_key_exists($m, $conf['modules']) ? $conf['modules'][ $m ]['folder'] : "";
 $conf['settings']['fn'] = $f ? $f : "index";
 
 if(array_key_exists('theme', $_GET)){
@@ -208,12 +212,12 @@ if(empty($f)){
 	$conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"];
 }
 $content = ((mpopendir($init = "include/init.php")) ? mpct($init, $arg = array("access"=>(array_search($conf['settings']['admin_grp'], $conf['user']['gid']) ? 5 : 1))) : ""); # Установка предварительных переменных
-if(!array_key_exists("id", $_GET) && array_key_exists("modules_default", $conf['settings']) && array_key_exists($mp = array_shift(array_keys($_GET['m'])), $conf['modules'])){
+/*if(!array_key_exists("id", $_GET) && array_key_exists("modules_default", $conf['settings']) && array_key_exists($mp = array_shift(array_keys($_GET['m'])), $conf['modules'])){
 	$_GET['m'] = array($conf['settings']['modules_default']=>$_GET['m'][ $mp ]);
-} # Устанавливаем дефолтный раздел. Если нет среди установленных то он считает что страничка оттуда
+}*/ # Устанавливаем дефолтный раздел. Если нет среди установленных то он считает что страничка оттуда
 
 foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_gaccess", 'Права доступа группы к модулю')) as $k=>$v){
-	if ( $conf['user']['gid'][ $v['gid'] ] && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false)
+	if(array_key_exists($v['gid'], $conf['user']['gid']) && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false)
 		$conf['modules'][ $v['mid'] ]['access'] = $v['access'];
 }
 foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_uaccess ORDER BY uid", 'Права доступа пользователя к модулю')) as $k=>$v){
@@ -228,11 +232,9 @@ if (!empty($conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['setti
 if ((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]){
 	$conf['settings']['theme'] = $conf['settings']["theme/*:admin"];
 }
-
 if(isset($_GET['theme']) && $_GET['theme'] != $conf['user']['sess']['theme']){
 	$conf['user']['sess']['theme'] = $conf['settings']['theme'] = basename($_GET['theme']);
 }
-
 if(isset($_GET['m']['sqlanaliz'])){
 	$zblocks = bcont();
 	$content = mcont($content);
@@ -242,7 +244,7 @@ if(isset($_GET['m']['sqlanaliz'])){
 }
 
 if($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". (array_key_exists("index", $conf['settings']) ? $conf['settings']['index'] : (array_key_exists("index", $_GET) ? basename($_GET['index']) : "index" )) . ".html")){
-	$tc = ($conf['settings']['theme_exec'] ? mpeval($f) : file_get_contents($t));
+	$tc = (array_key_exists('theme_exec', $conf['settings']) && $conf['settings']['theme_exec'] ? mpeval($f) : file_get_contents($t));
 }else{ die("Шаблон {$f} не найден"); }
 
 if(!array_key_exists('null', $_GET)){
@@ -263,5 +265,5 @@ foreach($conf['settings'] as $k=>$v){
 	exit(header('HTTP/1.0 304 Not Modified'));
 }else if(!array_search("Зарегистрированные", $conf['user']['gid'])){ # Исключаем админстраницу из кеширования
 	header('Last-Modified: '. date("r"));
-	header("Expires: ".gmdate("r", time() + 86400));
+	header("Expires: ".gmdate("r", time() + array_key_exists("themes_expires", $conf['settings']) ? $conf['settings']['themes_expires'] : 86400));
 } echo $content;

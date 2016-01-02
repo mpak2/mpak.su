@@ -1,6 +1,6 @@
 <? # Поиск
 
-if ((int)$arg['confnum']){
+if(array_key_exists('confnum', $arg)){
 
 	if (isset($_POST['update_param'])){
 		$param = $_POST['param'];

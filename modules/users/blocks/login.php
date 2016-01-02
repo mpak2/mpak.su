@@ -1,6 +1,6 @@
 <? #Логин
 
-if ((int)$arg['confnum']) return;
+if (array_key_exists('confnum', $arg) && $arg['confnum']) return;
 
 if ($conf['user']['uname'] != $conf['settings']['default_usr']){
 	$gname = array_flip($conf['user']['gid']);
@@ -10,7 +10,7 @@ if ($conf['user']['uname'] != $conf['settings']['default_usr']){
 //$anket = mpql(mpqw("SELECT id, COUNT(*) AS cnt FROM {$conf['db']['prefix']}{$arg['modpath']}_anket"), 0);
 
 ?>
-<? if($conf['user']['flush']): ?>
+<? if(array_key_exists('flush', $conf['user']) && $conf['user']['flush']): ?>
 	<script type="text/javascript" src="/include/jquery/simplemodal-demo-basic/js/jquery.simplemodal.js"></script>
 	<script type="text/javascript">
 		$(document).ready(function(){
@@ -58,8 +58,7 @@ if ($conf['user']['uname'] != $conf['settings']['default_usr']){
 
 <? if($conf['user']['uname'] != $conf['settings']['default_usr']): ?>
 	<div class="user_links">
-		<a href='/?logoff'>Выход</a> <a href="<?=($conf['settings']["{$arg['modpath']}_edit_link"] ?: "/{$arg['modname']}")?>">Кабинет</a>
-		<?// if($conf['modules'][ $conf['modules']['admin']['id'] ]['access']	|| ($conf['user']['uname'] == $conf['settings']['admin_usr'] )): ?>
+		<a href='/?logoff'>Выход</a> <a href="<?=(array_key_exists($n = "{$arg['modpath']}_edit_link", $conf['settings']) && $conf['settings'][$n] ? $conf['settings'][$n] : "/{$arg['modname']}")?>">Кабинет</a>
 		<? if(array_search($conf['settings']['admin_grp'], $conf['user']['gid'])): ?>
 			<a href='/admin'>Управление</a>
 		<? endif; ?>

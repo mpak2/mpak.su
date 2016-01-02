@@ -1,4 +1,4 @@
-<? if(!$conf['tpl']['elm']): ?>
+<? if(!array_key_exists('tpl', $conf) || !array_key_exists('elm', $conf['tpl'])): ?>
 	<script type="text/javascript" src="//www.google.com/jsapi"></script>
 	<script type="text/javascript"> google.load("jquery", "1"); </script>
 	<script type="text/javascript" src="/include/jquery/tiny_mce/jquery.tinymce.js"></script>

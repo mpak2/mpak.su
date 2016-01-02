@@ -1,6 +1,6 @@
 <? # КатегорииНовостей
 
-if ((int)$arg['confnum']){
+if(array_key_exists('confnum', $arg)){
 	# Сохранение и востановление параметров модуля
 //	print_r($_POST['param']);
 /*	if (isset($_POST['param'])){

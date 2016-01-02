@@ -5,7 +5,7 @@ qw("CREATE TABLE IF NOT EXISTS `{$conf['db']['prefix']}{$arg['modpath']}_index_t
 qw("CREATE TABLE IF NOT EXISTS `{$conf['db']['prefix']}{$arg['modpath']}_location` ( `id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) NOT NULL, `uid` int(11) NOT NULL, `hide` smallint(6) NOT NULL, `location_status_id` int(11) NOT NULL, `index_id` int(11) NOT NULL, `name` varchar(255) NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `name_2` (`name`,`index_id`), KEY `location_status_id` (`location_status_id`), KEY `name` (`name`), KEY `uid` (`uid`), KEY `hide` (`hide`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251");
 qw("CREATE TABLE IF NOT EXISTS `{$conf['db']['prefix']}{$arg['modpath']}_location_status` ( `id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `description` text NOT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=cp1251");
 
-qw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_index', 'Адреса', '4', '')");
+qw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_index', 'Внешние', '4', '')");
 qw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_index_type', 'Типы', '4', '')");
-qw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_location', 'Перенаправление', '4', '')");
+qw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_location', 'Внутренние', '4', '')");
 qw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_location_status', 'Статус', '4', '')");

@@ -1,6 +1,6 @@
 <? # Верхнее
 
-if ((int)$arg['confnum']){
+if(array_key_exists('confnum', $arg)){
 	$block = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}blocks_index WHERE id = {$arg['confnum']}"), 0);
 	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks_index WHERE id = {$arg['confnum']}"), 0, 'param'));
 

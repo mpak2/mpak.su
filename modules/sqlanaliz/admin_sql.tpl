@@ -78,6 +78,7 @@
 									</span>
 									<span><input type="text" value="<?=$fields[$field]['Default']?>" name="f[<?=$field?>][default]" style="width:60px;" placeholder="Значение"></span>
 									<span><input type="text" value="<?=$fields[$field]['Comment']?>" name="f[<?=$field?>][comment]" placeholder="Коментарий"></span>
+									<span><input type="checkbox" name="f[<?=$field?>][index]" <?=(array_key_exists($field, $tpl['indexes']) ? "checked" : "")?>></span>
 								</div>
 							<? endforeach; ?>
 							<div>
@@ -98,6 +99,7 @@
 								</span>
 								<span><input type="text" name="$[default]" style="width:60px;" placeholder="Значение"></span>
 								<span><input type="text" name="$[comment]" placeholder="Коментарий"></span>
+								<span><input type="checkbox" name="$[index]"></span>
 							</div>
 						</div>
 						<p><button>Сохранить</button></p>

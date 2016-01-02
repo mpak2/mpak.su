@@ -12,7 +12,7 @@ if($klesh = array(
 //	"Таблица" => array(),
 ));
 
-if ((int)$arg['confnum']){
+if(array_key_exists('confnum', $arg)){
 	if(array_key_exists("Таблица", $klesh)){ # Если есть таблица то загружаем список таблиц
 		foreach(ql("SHOW TABLES") as $v){
 			$f = array_shift($v);

@@ -1,6 +1,6 @@
 <? # Статистика
 
-if ((int)$arg['confnum']){
+if(array_key_exists('confnum', $arg)){
 	# Сохранение и востановление параметров модуля
 	if (isset($_POST['param'])){
 		$param = $_POST['param'];

@@ -1,6 +1,6 @@
 <? # Статьи
 
-if ((int)$arg['confnum']){
+if(array_key_exists('confnum', $arg)){
 	# Востановление параметров модуля
 	if (count($res = mpql(mpqw("SELECT param FROM {$GLOBALS['conf']['db']['prefix']}blocks WHERE id = {$arg['confnum']}")))) $param = unserialize($res[0]['param']);
 

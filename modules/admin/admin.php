@@ -1,7 +1,7 @@
 <?
 
 if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляющие данные
-	if($_GET['id'] && !$_POST['id'] && array_key_exists("id", $_POST)){ # Удаление элемента
+	if(array_key_exists("id", $_GET) && array_key_exists("id", $_POST) && !$_POST['id']){ # Удаление элемента
 		exit(qw("DELETE FROM {$_GET['r']} WHERE id=". (int)$_GET['id']));
 	}elseif(array_key_exists("inc", $_POST) && ($inc = rb($_GET['r'], "id", $_POST['inc']))){ # Правка записи и добавление новой
 		if($dec = ql($sql = "SELECT * FROM {$_GET['r']} WHERE sort<". (int)$inc['sort']. " AND ". (mpdbf($_GET['r'], $_GET['where'], true) ?: 1). " ORDER BY ". ($_GET['order'] ?: "sort"). " DESC LIMIT 1", 0)){
@@ -21,22 +21,35 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 				$_POST[$field] = mphash($_POST['name'], $_POST['pass']);
 			}
 		}
-		if($_GET['id']){
+		if(array_key_exists('id', $_GET)){
 			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=\"". mpquot(htmlspecialchars_decode($val)). "\""; });
 			qw($sql = "UPDATE `{$_GET['r']}` SET ". implode(", ", array_values($_POST)). " WHERE id=". (int)$_GET['id']);
+			$el = rb($_GET['r'], "id", $_GET['id']);
 		}else{
-			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "\"". mpquot(htmlspecialchars_decode($val)). "\""; });
-			qw($sql = "INSERT INTO `{$_GET['r']}` (`". implode("`, `", array_keys($_POST)). "`) VALUE (". implode(", ", array_values($_POST)). ")");
-			$_GET['id'] = $conf['db']['conn']->lastInsertId();
-		} $el = fk($_GET['r'], array("id"=>$_GET['id']));
+			if($ar = array_filter($_POST, function($e){ return is_array($e); })){
+				array_walk($_POST, function($val, $key){
+					if(is_array($val)){
+						$_POST[$key] = null;
+					}else{
+						$_POST[$key] = "\"". mpquot(htmlspecialchars_decode($val)). "\"";
+					}
+				}); $_POST = array_filter($_POST);
 
-		array_map(function($e){
-			if(is_array($e)){
-				foreach($e as $v){
-//					pre($e, $el);
-				}
+				foreach($ar as $a=>$r){
+					foreach($r as $v){
+						if($post = $_POST + array($a=>$v)){
+							qw($sql = "INSERT INTO `{$_GET['r']}` (`". implode("`, `", array_keys($post)). "`) VALUE (". implode(", ", array_values($post)). ")");
+							$_GET['id'] = $conf['db']['conn']->lastInsertId();
+						}
+					}
+				} $el = rb($_GET['r'], "id", $_GET['id']);
+			}else{
+				array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "\"". mpquot(htmlspecialchars_decode($val)). "\""; });
+				qw($sql = "INSERT INTO `{$_GET['r']}` (`". implode("`, `", array_keys($_POST)). "`) VALUE (". implode(", ", array_values($_POST)). ")");
+				$_GET['id'] = $conf['db']['conn']->lastInsertId();
+				$el = rb($_GET['r'], "id", $_GET['id']);
 			}
-		}, $_POST);
+		}
 
 		foreach(array(
 			"img"=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp'),
@@ -44,7 +57,7 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 			"img3"=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp'),
 			"file"=>array("*"=>"*")
 		) as $f=>$ext){
-			if(($file = $_FILES[$f]) /*&& $file['name']*/){ # POST содержащий  файл
+			if(array_key_exists($f, $_FILES) && ($file = $_FILES[$f]) /*&& $file['name']*/){ # POST содержащий  файл
 				if(is_array($file['error'])){ # Множественная загрузка
 					foreach($file['error'] as $key=>$error){
 						if($file['name'][$key]){
@@ -62,7 +75,7 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 				}else if($file_id = mpfid($_GET['r'], $f, $el['id'], null, $ext)){
 					# Файл загружен
 				}else{ exit("Ошибка загрузки файла {$file['name']}"); }
-			}elseif($_POST[$f]){ # Адрес внешнего изображения
+			}elseif(array_key_exists($f, $_POST)){ # Адрес внешнего изображения
 				$file_id = mphid($class, $f, $el['id'], $_POST[$f], $ext);
 			}
 		}
@@ -82,8 +95,10 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 		if(($top = array_search($short, $tpl['tables'])) !== false){
 			$tpl['menu'][$top][] = $key;
 		}else{ $tpl['menu'][$key] = array(); }
-	} /*mpre($tpl['tables']);*/ if(empty($_GET['r'])){
-		if($table = array_shift($tables = $tpl['tables'])){
+	} if(empty($_GET['r'])){
+		if($tpl['tables'] && ($table = array_shift($tables = $tpl['tables']))){
+			exit(header("Location:/{$arg['modpath']}:admin/r:{$table}"));
+		}elseif($table = "{$conf['db']['prefix']}{$arg['modpath']}_index"){
 			exit(header("Location:/{$arg['modpath']}:admin/r:{$table}"));
 		}
 	}elseif(array_search($_GET['r'], $tpl['tables']) !== false){

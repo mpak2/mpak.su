@@ -1,6 +1,6 @@
 <? # Основное
 
-if ((int)$arg['confnum']){
+if(array_key_exists('confnum', $arg)){
 	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0, 'param'));
 
 	if(!empty($_POST['menu'])) $param = $_POST['menu'];
