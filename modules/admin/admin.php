@@ -1,14 +1,14 @@
 <?
 
-if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляющие данные
-	if(array_key_exists("id", $_GET) && array_key_exists("id", $_POST) && !$_POST['id']){ # Удаление элемента
+if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управляющие данные
+	if(get($_GET, "id") && array_key_exists("id", $_POST) && !$_POST['id']){ # Удаление элемента
 		exit(qw("DELETE FROM {$_GET['r']} WHERE id=". (int)$_GET['id']));
-	}elseif(array_key_exists("inc", $_POST) && ($inc = rb($_GET['r'], "id", $_POST['inc']))){ # Правка записи и добавление новой
+	}elseif(get($_POST, "inc") && ($inc = rb($_GET['r'], "id", $_POST['inc']))){ # Правка записи и добавление новой
 		if($dec = ql($sql = "SELECT * FROM {$_GET['r']} WHERE sort<". (int)$inc['sort']. " AND ". (mpdbf($_GET['r'], $_GET['where'], true) ?: 1). " ORDER BY ". ($_GET['order'] ?: "sort"). " DESC LIMIT 1", 0)){
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
 		} exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
-	}elseif(array_key_exists("dec", $_POST) && ($dec = rb($_GET['r'], "id", $_POST['dec']))){ # Правка записи и добавление новой
+	}elseif(get($_POST, "dec") && ($dec = rb($_GET['r'], "id", $_POST['dec']))){ # Правка записи и добавление новой
 		if($inc = ql("SELECT * FROM {$_GET['r']} WHERE sort>". (int)$dec['sort']. " AND ". (mpdbf($_GET['r'], $_GET['where'], true) ?: 1). " ORDER BY ". ($_GET['order'] ?: "sort"). " LIMIT 1", 0)){
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
@@ -21,7 +21,7 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 				$_POST[$field] = mphash($_POST['name'], $_POST['pass']);
 			}
 		}
-		if(array_key_exists('id', $_GET)){
+		if(get($_GET, 'id')){
 			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=\"". mpquot(htmlspecialchars_decode($val)). "\""; });
 			qw($sql = "UPDATE `{$_GET['r']}` SET ". implode(", ", array_values($_POST)). " WHERE id=". (int)$_GET['id']);
 			$el = rb($_GET['r'], "id", $_GET['id']);
@@ -57,7 +57,7 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 			"img3"=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp'),
 			"file"=>array("*"=>"*")
 		) as $f=>$ext){
-			if(array_key_exists($f, $_FILES) && ($file = $_FILES[$f]) /*&& $file['name']*/){ # POST содержащий  файл
+			if($file = get($_FILES, $f)){ # POST содержащий  файл
 				if(is_array($file['error'])){ # Множественная загрузка
 					foreach($file['error'] as $key=>$error){
 						if($file['name'][$key]){
@@ -75,7 +75,7 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 				}else if($file_id = mpfid($_GET['r'], $f, $el['id'], null, $ext)){
 					# Файл загружен
 				}else{ exit("Ошибка загрузки файла {$file['name']}"); }
-			}elseif(array_key_exists($f, $_POST)){ # Адрес внешнего изображения
+			}elseif(get($_POST, $f)){ # Адрес внешнего изображения
 				$file_id = mphid($class, $f, $el['id'], $_POST[$f], $ext);
 			}
 		}
@@ -107,20 +107,20 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 		}else{
 			$tpl['fields'] = qn("SHOW FULL COLUMNS FROM {$_GET['r']}", "Field");
 		}
-		if(array_key_exists('order', $_GET)){ # Установка временной сортировки
+		if(get($_GET, 'order')){ # Установка временной сортировки
 			$conf['settings'][substr($_GET['r'], strlen($conf['db']['prefix'])). "=>order"] = $_GET['order'];
 		}
-		$where = array_map(function($v){ return "[{$v}]"; }, array_key_exists('where', $_GET) ? $_GET['where'] : array());
+		$where = array_map(function($v){ return "[{$v}]"; }, get($_GET, 'where') ?: array());
 		$tpl['lines'] = call_user_func_array("rb", ($where ? array_merge(array($_GET['r'], 20), array_keys($where), array("id"), (array)array_values($where)) : array($_GET['r'], 20)));
 		$tpl['spisok'] = array(
 			'hide' => array(0=>"Видим", 1=>"Скрыт"),
 		);
-		if(array_key_exists('edit', $_GET)){
+		if(get($_GET, 'edit')){
 			$tpl['edit'] = rb($_GET['r'], "id", $_GET['edit']);
-		}elseif($settings = (array_key_exists($n = "{$arg['modpath']}=>ecounter", $conf['settings']) ? $conf['settings'][$n] : "")){
+		}elseif($settings = get($conf, 'settings', "{$arg['modpath']}=>ecounter")){
 			foreach(explode(",", $settings) as $ecounter){
 				if($fields = qn("SHOW FULL COLUMNS FROM {$conf['db']['prefix']}{$ecounter}", "Field")){
-					if(array_key_exists(substr($_GET['r'], strlen($conf['db']['prefix'])), $fields) || ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}")){
+					if(get($fields, substr($_GET['r'], strlen($conf['db']['prefix']))) || ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}")){
 						if($fl = ($_GET['r'] != "{$conf['db']['prefix']}{$arg['modpath']}" ? substr($_GET['r'], strlen($conf['db']['prefix'])) : "uid")){
 							$tpl['ecounter']["__". $ecounter] = qn($sql = "SELECT `id`, `{$fl}`, COUNT(id) AS cnt FROM `{$conf['db']['prefix']}{$ecounter}` WHERE `{$fl}` IN (". in($tpl['lines']). ") GROUP BY `{$fl}`", $fl);
 						}else{ mpre("Поле не определено ". substr($_GET['r'], strlen($conf['db']['prefix']))); }
@@ -128,8 +128,8 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 				}else{ mpre("Не удалось получить список полей таблицы {$conf['db']['prefix']}{$ecounter}"); }
 			}
 		}
-		if(array_key_exists($n = "{$arg['modpath']}=>espisok", $conf['settings']) ? $conf['settings'][$n] : ""){
-			foreach(explode(",", $conf['settings']["{$arg['modpath']}=>espisok"]) as $espisok){
+		if($settings_espisok = get($conf, 'settings', "{$arg['modpath']}=>espisok")){
+			foreach(explode(",", $settings_espisok) as $espisok){
 				$tpl['espisok'][$espisok] = rb("{$conf['db']['prefix']}{$espisok}", "id");
 			}
 		}
@@ -137,15 +137,15 @@ if(array_key_exists("null", $_GET) && $_GET['r'] && $_POST){ # Управляю�
 			foreach($tpl['tables'] as $tables){
 				$ft = substr($tables, strlen("{$conf['db']['prefix']}{$arg['modpath']}_"));
 				$fields = qn("SHOW FULL COLUMNS FROM {$tables}", "Field");
-				if(array_key_exists(($t = "{$tab}_id"), $fields)){
+				if(get($fields, ($t = "{$tab}_id"))){
 					$tpl['counter']["_{$ft}"] = array_column(ql("SELECT `{$t}`, COUNT(*) AS cnt FROM `{$conf['db']['prefix']}{$arg['modpath']}". ($ft ? "_{$ft}" : ""). "` WHERE `{$t}` IN (". in($tpl['lines']). ") GROUP BY `{$t}`"), "cnt", $t);
 				}
 			}
 
 			$tpl['etitle'] = array("id"=>"Номер", 'time'=>'Время', 'up'=>'Обновление', 'uid'=>'Пользователь', 'count'=>'Количество', 'level'=>'Уровень', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'img2'=>'Изображение2', 'img3'=>'Изображение3', 'file'=>'Файл', 'hide'=>'Видим', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'duration'=>'Длительность', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', "article"=>"Артикул", 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', "users_sity"=>'Город', 'log'=>'Лог', 'min'=>'Мин', 'max'=>'Макс', 'own'=>'Владелец', 'period'=>'Период', "from"=>"Откуда", "to"=>"Куда", "percentage"=>"Процент", 'description'=>'Описание', 'text'=>'Текст');
-			if($title = (array_key_exists($n = "{$arg['modpath']}_{$tab}=>title", $conf['settings']) ? $conf['settings'][$n] : "")){
+			if($title = get($conf, 'settings', "{$arg['modpath']}_{$tab}=>title")){
 				$tpl['title'] = array_merge(array("id"), explode(",", $title));
-			}elseif(array_key_exists("text", $tpl['fields'])){
+			}elseif(get($tpl, 'fields', "text")){
 				$tpl['title'] = array_keys(array_diff_key($tpl['fields'], array("text"=>false)));
 			}
 		}elseif($_GET['r'] == "{$conf['db']['prefix']}users"){ # Количество групп в которых состоит человек

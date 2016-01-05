@@ -1,5 +1,17 @@
 <?
 
+function get($ar){
+	foreach(array_slice(func_get_args(), 1) as $key){
+		if(is_array($ar) && array_key_exists($key, $ar)){
+			$ar = $ar[ $key ];
+		}else{ return false; }
+	} return $ar;
+} function first($ar){
+	return get($ar, min(array_keys($ar)));
+} function last($ar){
+	return get($ar, max(array_keys($ar)));
+}
+
 function tables($table = null){
 	global $conf;
 	if($conf['db']['type'] == "sqlite"){
@@ -27,13 +39,13 @@ function inc($file_name, $variables = array(), $req = false){
 	global $tpl, $arg, $conf; extract($variables);
 	 if(preg_match("#(.*)(\.php|\.tpl)$#", $file_name, $match)){
 		if($f = mpopendir($file_name)){
-			if(($match[2] == ".tpl") && array_search("Администратор", $conf['user']['gid']) && array_key_exists('modules_start', $conf['settings'])){
+			if(($match[2] == ".tpl") && array_search("Администратор", $conf['user']['gid']) && get($conf, 'settings', 'modules_start')){
 				echo strtr($conf['settings']['modules_start'], array('{path}'=>$f));
 			} if($req){
 				require $f;
 			}else{
 				include $f;
-			} if(($match[2] == ".tpl") && array_search("Администратор", $conf['user']['gid']) && array_key_exists('modules_stop', $conf['settings'])){
+			} if(($match[2] == ".tpl") && array_search("Администратор", $conf['user']['gid']) && get($conf, 'settings', 'modules_stop')){
 				echo strtr($conf['settings']['modules_stop'], array('{path}'=>$f));
 			} return true;
 		} return false;
@@ -70,7 +82,7 @@ if (!function_exists('mcont')){
 			$mod = $conf['modules'][ $k ];
 			$mod['link'] = (is_link($f = mpopendir("modules/{$mod['folder']}")) ? readlink($f) : $mod['folder']);
 			ini_set("include_path" ,mpopendir("modules/{$mod['link']}"). ":./modules/{$mod['link']}:". ini_get("include_path"));
-			if(array_key_exists('modules_title', $conf['settings']) && $conf['settings']['modules_title']){
+			if(get($conf, 'settings', 'modules_title')){
 				$conf['settings']['title'] = $conf['modules'][ $k ]['name']. ' : '. $conf['settings']['title'];
 			}
 
@@ -98,7 +110,7 @@ if (!function_exists('mcont')){
 						inc("modules/{$mod['link']}/default");
 					}
 				$content .= ob_get_contents(); ob_end_clean();
-			}else if(array_key_exists($k, $conf['modules']) && ($_SERVER['REQUEST_URI'] != "/admin")){
+			}else if(get($conf, 'modules', $k) && ($_SERVER['REQUEST_URI'] != "/admin")){
 				header("HTTP/1.0 403 Access Denied");
 				header("Location: /users:login");
 			}else{
@@ -170,16 +182,14 @@ if (!function_exists('bcont')){
 			} # Условие исключая не срабатывает
 		}
 
-		if(array_key_exists('HTTP_REFERER', $_SERVER)){
-			$keys = array_keys($ar = explode($_SERVER['HTTP_HOST'], $_SERVER['HTTP_REFERER']));
-			$gt = mpgt(urldecode($ar[max($keys)]));
+		if(get($_SERVER, 'HTTP_REFERER')){
+			$gt = mpgt(urldecode(last(explode($_SERVER['HTTP_HOST'], $_SERVER['HTTP_REFERER']))));
 		}else{ $gt = mpgt("/"); }
 
 		foreach(rb($blocks, "reg_id", "id", $reg+array(0=>array("id"=>0))) as $k=>$v){
 			$conf['blocks']['info'][$v['id']] = $v;
 			if(($v['access'] < 0)){
-				$keys = array_keys($ar = explode('/', $v['src']));
-				$conf['blocks']['info'][ $v['id'] ]['access'] = (int)$conf['modules'][ $ar[min($keys)] ]['access'];
+				$conf['blocks']['info'][ $v['id'] ]['access'] = (int)$conf['modules'][ first(explode('/', $v['src'])) ]['access'];
 			}
 		}
 
@@ -191,8 +201,8 @@ if (!function_exists('bcont')){
 			}else{ mpre("Ошибка не определена", $error); }
 			mpre($error);
 		})) as $k=>$v){
-			if(array_key_exists('user', $conf) && array_key_exists('gid', $conf['user']) && array_key_exists($v['gid'], $conf['user']['gid']) && $conf['user']['gid'][ $v['gid'] ]){
-				if(array_key_exists($v['index_id'], $conf['blocks']['info'])){
+			if(get($conf, 'user', 'gid', $v['gid'])){
+				if(get($conf, 'blocks', 'info', $v['index_id'])){
 					$conf['blocks']['info'][ $v['index_id'] ]['access'] = $v['access'];
 				}
 			}
@@ -210,9 +220,8 @@ if (!function_exists('bcont')){
 		foreach(rb($blocks, "reg_id", "id", $reg+array(0=>array("id"=>0))) as $k=>$v){
 			if(($conf['settings']['theme'] == $v['theme']) || ((substr($v['theme'], 0, 1) == "!") && ($conf['settings']['theme'] != substr($v['theme'], 1)))){
 				$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
-				$mod = array_key_exists($modpath = basename(dirname(dirname($v['src']))), $conf['modules']) ? $conf['modules'][ $modpath ] : array("folder"=>'');
-				$keys = array_keys($ar = explode('.', $v['src']));
-				$arg = array('blocknum'=>$v['id'], 'modpath'=>$mod['folder'], 'modname'=>(array_key_exists('modname', $mod) ? $mod['modname'] : ""), 'fn'=>basename($ar[min($keys)]), 'uid'=>0, 'access'=>$conf['blocks']['info'][ $v['id'] ]['access']);
+				$mod = get($conf, 'modules', basename(dirname(dirname($v['src'])))) ?: array("folder"=>'');
+				$arg = array('blocknum'=>$v['id'], 'modpath'=>$mod['folder'], 'modname'=>(get($mod, 'modname') ?: ""), 'fn'=>basename(first(explode('.', $v['src']))), 'uid'=>0, 'access'=>$conf['blocks']['info'][ $v['id'] ]['access']);
 				if ($conf['blocks']['info'][ $v['id'] ]['access'] /*&& strlen($cb = mpeval("modules/{$v['src']}", $arg))*/){
 					ob_start();
 						inc("modules/{$v['src']}", array('arg'=>$arg));
@@ -231,15 +240,15 @@ if (!function_exists('bcont')){
 							'<!-- [block:title] -->'=>$v['name']
 						));
 						$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$v['name'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
-						$result["<!-- [block:". $v['id'] . "] -->"] = (array_key_exists('blocks_start', $conf['settings']) ? strtr($conf['settings']['blocks_start'], $section) : ""). $cb. (array_key_exists('blocks_stop', $conf['settings']) ? strtr($conf['settings']['blocks_stop'], $section) : "");
+						$result["<!-- [block:". $v['id'] . "] -->"] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
 						if(array_key_exists($n = "<!-- [blocks:". $v['reg_id'] . "] -->", $result)){
 							$result[$n] .= $result["<!-- [block:". $v['id'] . "] -->"];
 						}else{
 							$result[$n] = $result["<!-- [block:". $v['id'] . "] -->"];
 						} if(array_key_exists($v['reg_id'], $reg) && array_key_exists($n = "<!-- [blocks:". $reg[ $v['reg_id'] ]['reg_id']. "] -->", $result)){
-							$result[$n] .= (array_key_exists('blocks_start', $conf['settings']) ? strtr($conf['settings']['blocks_start'], $section) : ""). $cb. (array_key_exists('blocks_stop', $conf['settings']) ? strtr($conf['settings']['blocks_stop'], $section) : "");
+							$result[$n] .= strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
 						}else{
-							$result[$n] = (array_key_exists('blocks_start', $conf['settings']) ? strtr($conf['settings']['blocks_start'], $section) : ""). $cb. (array_key_exists('blocks_stop', $conf['settings']) ? strtr($conf['settings']['blocks_stop'], $section) : "");
+							$result[$n] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
 						}
 					}
 				}
@@ -436,7 +445,7 @@ function mpue($name){
 }
 function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 	global $conf;
-	if((array_key_exists('sql_memcache_disable', $conf['settings']) && $conf['settings']['sql_memcache_disable']) || !function_exists('memcache_connect')) return false;
+	if(get($conf, 'settings', 'sql_memcache_disable') || !function_exists('memcache_connect')) return false;
 	if($memcache = memcache_connect("localhost", 11211)){
 		if($data){
 			memcache_set($memcache, $key, $data, $compress, $limit);
@@ -471,14 +480,13 @@ function rb($src, $key = 'id'){
 #####################################################################################
 function erb($src, $key = 'id'){
 	global $arg, $conf, $tpl;
-//	print_r(array_keys($tpl));
 	$purpose = $keys = $return = array();
 	$ArrayPositions = array(array(1,2),array(2,3));
 	$func_get_args = func_get_args();
 /*	$FixID = is_string($func_get_args[$ArrayPositions[is_numeric($key)][0]])?intval(preg_match("#^id\|.*$#",$func_get_args[$ArrayPositions[is_numeric($key)][0]])):0;
 	$StartForeach = $ArrayPositions[intval(is_numeric($key))][$FixID];
 	$IdName = $FixID?preg_replace("#^id\|(.*)$#","$1",$func_get_args[$StartForeach-1]):'id';*/
-	$IdName = "id"; ($StartForeach = (array_key_exists(1, $func_get_args) && is_numeric($func_get_args[1]) ? 2 : 1));
+	$IdName = "id"; ($StartForeach = (is_numeric(get($func_get_args, 1)) ? 2 : 1));
 
 	foreach(array_slice($func_get_args, $StartForeach) as $a){
 		if(is_string($a)){
@@ -533,7 +541,7 @@ function erb($src, $key = 'id'){
 	}else{ $return = $src; }
 	foreach($purpose as $v){
 		$r = array();
-		if(is_numeric($v) || empty($v)){ # Выборка по целочисленному ключу
+		if(is_numeric($v) /*|| empty($v)*/){ # Выборка по целочисленному ключу
 			$return = array_key_exists($v, $return) ? $return[ $v ] : array();
 		}else if(is_array($v)){ # Сортировка по ключям массива
 			foreach($return as $key=>$val){
@@ -541,19 +549,6 @@ function erb($src, $key = 'id'){
 					$r = array_replace_recursive($r, $val);
 				}
 			} $return = $r;
-/*			foreach(array_keys($v) as $k){
-				if(!empty($return[ $k ])){
-					if($intersect = array_intersect_key($return[ $k ], $r)){
-						$t = array_map(function($k, $v1, $v2){
-							return array($k=>($v1 + $v2));
-						}, array_keys($intersect), array_intersect_key($r, $return[ $k ]), array_intersect_key($return[ $k ], $r));
-						$r += $return[ $k ];
-						foreach($t as $k=>$m){
-							$r[ array_shift(array_keys($m)) ] = array_shift($m);
-						}
-					}else{ $r += $return[ $k ]; }
-				}
-			} $return = $r;*/
 		}else if($v === true){ # Выстраивание ключей по порядку
 			$inc = 0;
 			foreach($return as $k){

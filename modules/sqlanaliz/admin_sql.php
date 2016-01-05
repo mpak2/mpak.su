@@ -1,6 +1,6 @@
 <?
 
-if($table = $_GET['r']){
+if($table = get($_GET, 'r')){
 	$tpl['fields'] = fields($table);
 	$tpl['indexes'] = qn("SHOW INDEXES IN {$_GET['r']}", "Column_name");
 }
@@ -49,7 +49,6 @@ if(array_key_exists("null", $_GET) && $_POST){
 
 foreach($tpl['tables'] = tables() as $table=>&$info){
 	$info['id'] = (empty($nn) ? ($nn = 1) : ++$nn);
-	$keys = array_keys($ar = array_slice(explode("_", $table), 1, 1));
-	$info['modpath'] = $conf['modules'][ $ar[min($keys)] ]['folder'];
+	$info['modpath'] = get($conf, 'modules', first(array_slice(explode("_", $table), 1, 1)), 'folder');
 }
 

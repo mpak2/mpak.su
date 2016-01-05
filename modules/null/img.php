@@ -7,7 +7,7 @@ if(array_key_exists('tn', $_GET)){
 	} $sql = "SELECT `". mpquot($_GET['fn'] ? $_GET['fn'] : "img"). "` FROM {$conf['db']['prefix']}{$arg['modpath']}_{$tn[$_GET['tn']]} WHERE id=".(int)$_GET['id'];
 	$file_name = mpopendir("include")."/".($fn = mpql(mpqw($sql) , 0, ($_GET['fn'] ? $_GET['fn'] : "img")));
 	$keys = array_keys($ar = explode('.', $file_name));
-	if(!array_search($exp = $ar[max($keys)], array(1=>"jpg", "jpeg", "png", "gif"))){
+	if(!array_search($exp = strtolower($ar[max($keys)]), array(1=>"jpg", "jpeg", "png", "gif"))){
 		$file_name = mpopendir("img/ext/". array_pop(explode('.', $file_name)). ".png");
 	} if(!ob_get_length()){
 		header ("Content-type: image/{$exp}");

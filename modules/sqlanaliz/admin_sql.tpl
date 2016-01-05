@@ -49,7 +49,11 @@
 						</datalist>
 						<button>Применить</button>
 						<? if($ar = explode("_", $_GET['r'])): ?>
-							<span style="padding:0 10px;"><a href="/<?=array_pop(array_slice($ar, 1, 1))?>:admin/r:<?=$_GET['r']?>"><?=($conf['settings'][ implode("_", array_slice($ar, 1)) ] ?: $_GET['r'])?></a></span>
+							<span style="padding:0 10px;">
+								<a href="/<?=last(array_slice($ar, 1, 1))?>:admin/r:<?=$_GET['r']?>">
+									<?=(get($conf, 'settings', implode("_", array_slice($ar, 1))) ?: $_GET['r'])?>
+								</a>
+							</span>
 						<? endif; ?>
 					</form>
 				</p>
