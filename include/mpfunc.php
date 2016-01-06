@@ -548,19 +548,6 @@ function erb($src, $key = 'id'){
 					$r = array_replace_recursive($r, $val);
 				}
 			} $return = $r;
-/*			foreach(array_keys($v) as $k){
-				if(!empty($return[ $k ])){
-					if($intersect = array_intersect_key($return[ $k ], $r)){
-						$t = array_map(function($k, $v1, $v2){
-							return array($k=>($v1 + $v2));
-						}, array_keys($intersect), array_intersect_key($r, $return[ $k ]), array_intersect_key($return[ $k ], $r));
-						$r += $return[ $k ];
-						foreach($t as $k=>$m){
-							$r[ array_shift(array_keys($m)) ] = array_shift($m);
-						}
-					}else{ $r += $return[ $k ]; }
-				}
-			} $return = $r;*/
 		}else if($v === true){ # Выстраивание ключей по порядку
 			$inc = 0;
 			foreach($return as $k){
