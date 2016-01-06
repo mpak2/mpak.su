@@ -3,7 +3,7 @@
 function get($ar){
 //	if(is_array($ar)){
 		foreach(array_slice(func_get_args(), 1) as $key){
-			if(is_array($ar) && array_key_exists($key, $ar)){
+			if(is_array($ar) && isset($ar[$key])){
 				$ar = $ar[ $key ];
 			}else{ return false; }
 		} return $ar;
@@ -307,7 +307,7 @@ set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 		512 =>  "Предупреждение пользователя",
 		1024=>  "Замечание пользователя",
 		2048=> "Обратная совместимость",
-	); mpre($errortype[$errno]. " ($errno)", $errmsg, $filename, $linenum/*, debug_backtrace()*/);
+	); mpre(get($errortype,$errno). " ($errno)", $errmsg, $filename, $linenum/*, debug_backtrace()*/);
 });
 function mpzam($ar, $name = null, $prefix = "{", $postfix = "}", $separator = ":"){ # Создание из много мерного массиива - одномерного. Применяется для подставки в текстах отправляемых писем данных из массивов
 	$f = function($ar, $prx = "") use(&$f, $prefix, $postfix, $name){
@@ -1439,7 +1439,7 @@ if(!function_exists("array_column")){
 				$result = array_values($input);
 			}else{
 				foreach($input as $row){
-					$result[] = $row[$columnKey];
+					$result[] = get($row,$columnKey);
 				}
 			}
 		}else{

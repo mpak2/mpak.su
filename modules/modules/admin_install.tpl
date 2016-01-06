@@ -58,16 +58,16 @@
 			</div>
 			<? foreach(array_diff_key(array_flip(mpreaddir("modules", 1)), rb("{$conf['db']['prefix']}{$arg['modpath']}", "folder")) as $m=>$k): ?>
 				<div>
-					<? include mpopendir("modules/{$m}/info.php") ?>
+					<? inc("modules/{$m}/info.php");?>
 					<span><?=$m?></span>
-					<span><?=$conf['modversion']['name']?></span>
-					<span><?=$conf['modversion']['author']?></span>
-					<span><?=$conf['modversion']['version']?></span>
+					<span><?=get($conf,'modversion','name')?></span>
+					<span><?=get($conf,'modversion','author')?></span>
+					<span><?=get($conf,'modversion','version')?></span>
 					<span>
-					<? if($admin = rb($tpl['admin'], "id", $conf['modversion']['admin'])): ?>
+					<? if($admin = rb($tpl['admin'], "id", get($conf,'modversion','admin'))): ?>
 						<?=$admin['name']?>
 					<? else: ?>
-						<span style="color:red;"><?=$conf['modversion']['admin']?></span>
+						<span style="color:red;"><?=get($conf,'modversion','admin')?></span>
 					<? endif; ?>
 					</span>
 					<span><a class="install" modpath="<?=$m?>" href="javascript:void(0)">Установить</a></span>
