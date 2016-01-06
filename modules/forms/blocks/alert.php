@@ -1,10 +1,10 @@
 <? # Нуль
 
 if(array_key_exists('confnum', $arg)){
-	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['confnum']}"), 0, 'param'));
+	$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks_index WHERE id = {$arg['confnum']}"), 0, 'param'));
 	if ($_POST){
 		$param = array($_POST['param']=>$_POST['val'])+(array)$param;
-		mpqw("UPDATE {$conf['db']['prefix']}blocks SET param = '".serialize($param)."' WHERE id = {$arg['confnum']}");
+		mpqw("UPDATE {$conf['db']['prefix']}blocks_index SET param = '".serialize($param)."' WHERE id = {$arg['confnum']}");
 	} if(array_key_exists("null", $_GET)) exit;
 
 	$klesh = array(
@@ -46,13 +46,13 @@ if(array_key_exists('confnum', $arg)){
 	</div>
 <? return;
 
-} $param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
+} $param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks_index WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 
 $form = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE id=". (int)$param["Форма"]), 0);
 if($tn = $form['tn']){
 	if($fields = mpqn(mpqw("SHOW FIELDS FROM `{$tn}`"), 'Field')){
-		$data = mpqn(mpqw("SELECT * FROM `{$tn}` WHERE 1". ($fields['hide'] ? " AND hide=0" : ""). " ORDER BY id DESC LIMIT 10"));
+		$data = mpqn(mpqw("SELECT * FROM `{$tn}` WHERE 1". (get($fields, 'hide') ? " AND hide=0" : ""). " ORDER BY id DESC LIMIT 10"));
 	}
 }
 
@@ -95,7 +95,7 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 					<? endif; ?>
 				</span>
 				<span title="<?=$v['description']?>">
-					<a href="/?m[<?=(array_shift(array_slice(explode("_", $form['tn']), 1, 1)))?>]=admin&r=<?=$form['tn']?>&edit=<?=$v['id']?>"><?=$v['name']?></a>
+					<a href="/?m[<?=(first(array_slice(explode("_", $form['tn']), 1, 1)))?>]=admin&r=<?=$form['tn']?>&edit=<?=$v['id']?>"><?=$v['name']?></a>
 				</span>
 			</li>
 		<? endforeach; ?>

@@ -62,7 +62,7 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 
 $seo = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_redirect WHERE `from`=\"". mpquot(urldecode($_SERVER['REQUEST_URI'])). "\" OR `to`=\"". mpquot(urldecode($_SERVER['REQUEST_URI'])). "\" LIMIT 1"), 0);
 
-$to = $seo['id'] ? $seo['to'] : urldecode($_SERVER['REQUEST_URI']);
+$to = get($seo, 'id') ?: urldecode($_SERVER['REQUEST_URI']);
 
 ?>
 <script src="/include/jquery/my/jquery.klesh.select.js"></script>
@@ -73,5 +73,5 @@ $to = $seo['id'] ? $seo['to'] : urldecode($_SERVER['REQUEST_URI']);
 </script>
 <div>
 	<div style="padding-left:18px;"><a href="<?=$to?>"><?=$to?></a></div>
-	<div class="klesh" to="<?=$to?>" redirect_id="<?=$seo['id']?>"><?=$seo['from']?></div>
+	<div class="klesh" to="<?=$to?>" redirect_id="<?=get($seo, 'id')?>"><?=get($seo, 'from')?></div>
 </div>

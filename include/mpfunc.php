@@ -1,11 +1,13 @@
 <?
 
 function get($ar){
-	foreach(array_slice(func_get_args(), 1) as $key){
-		if(is_array($ar) && array_key_exists($key, $ar)){
-			$ar = $ar[ $key ];
-		}else{ return false; }
-	} return $ar;
+//	if(is_array($ar)){
+		foreach(array_slice(func_get_args(), 1) as $key){
+			if(is_array($ar) && array_key_exists($key, $ar)){
+				$ar = $ar[ $key ];
+			}else{ return false; }
+		} return $ar;
+//	}else{ return false; }
 } function first($ar){
 	return get($ar, min(array_keys($ar)));
 } function last($ar){
@@ -79,7 +81,7 @@ if (!function_exists('mcont')){
 	function mcont($content){ # Загрузка содержимого модуля
 		global $conf, $arg, $tpl;
 		foreach($_GET['m'] as $k=>$v){ $k = urldecode($k);
-			$mod = $conf['modules'][ $k ];
+			$mod = get($conf, 'modules', $k);
 			$mod['link'] = (is_link($f = mpopendir("modules/{$mod['folder']}")) ? readlink($f) : $mod['folder']);
 			ini_set("include_path" ,mpopendir("modules/{$mod['link']}"). ":./modules/{$mod['link']}:". ini_get("include_path"));
 			if(get($conf, 'settings', 'modules_title')){
@@ -87,7 +89,7 @@ if (!function_exists('mcont')){
 			}
 
 			$v = $v != 'del' && $v != 'init' && $v != 'sql' && strlen($v) ? $v : 'index';
-			if(((strpos($v, 'admin') === 0) ? $conf['modules'][$k]['access'] >= 4 : $conf['modules'][$k]['access'] >= 1)){
+			if(get($conf, 'modules', $k, 'access') >= ((strpos($v, 'admin') === 0) ? 4 : 1)){
 				$conf['db']['info'] = "Модуль '". ($name = $mod['name']). "'";
 				if(preg_match("/[a-z]/", $v)){ $g = "/{$v}.*.php"; }else{ $g = "/*.{$v}.php"; }// pre($g);
 				if(($glob = glob($gb = (mpopendir("modules/{$mod['link']}"). $g)))
@@ -305,10 +307,7 @@ set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 		512 =>  "Предупреждение пользователя",
 		1024=>  "Замечание пользователя",
 		2048=> "Обратная совместимость",
-	);
-	if(!empty($conf['user']['uname']) && ($conf['user']['uname'] == "mpak")){
-		error_log($_SERVER['HTTP_HOST']. $_SERVER['REQUEST_URI']. " ". $filename.":".$linenum."($errno) $errmsg"/*. print_r($vars, true)*/, 0) or die("Ошибка записи сообщения об ошибке в файл");
-	} mpre($errortype[$errno]. " ($errno)", $errmsg, $filename, $linenum/*, debug_backtrace()*/);
+	); mpre($errortype[$errno]. " ($errno)", $errmsg, $filename, $linenum/*, debug_backtrace()*/);
 });
 function mpzam($ar, $name = null, $prefix = "{", $postfix = "}", $separator = ":"){ # Создание из много мерного массиива - одномерного. Применяется для подставки в текстах отправляемых писем данных из массивов
 	$f = function($ar, $prx = "") use(&$f, $prefix, $postfix, $name){
@@ -541,14 +540,27 @@ function erb($src, $key = 'id'){
 	}else{ $return = $src; }
 	foreach($purpose as $v){
 		$r = array();
-		if(is_numeric($v) /*|| empty($v)*/){ # Выборка по целочисленному ключу
-			$return = array_key_exists($v, $return) ? $return[ $v ] : array();
+		if(is_numeric($v) || empty($v)){ # Выборка по целочисленному ключу
+			$return = get($return, $v) ? $return[ $v ] : array();
 		}else if(is_array($v)){ # Сортировка по ключям массива
 			foreach($return as $key=>$val){
 				if(array_key_exists($key, $v)){
 					$r = array_replace_recursive($r, $val);
 				}
 			} $return = $r;
+/*			foreach(array_keys($v) as $k){
+				if(!empty($return[ $k ])){
+					if($intersect = array_intersect_key($return[ $k ], $r)){
+						$t = array_map(function($k, $v1, $v2){
+							return array($k=>($v1 + $v2));
+						}, array_keys($intersect), array_intersect_key($r, $return[ $k ]), array_intersect_key($return[ $k ], $r));
+						$r += $return[ $k ];
+						foreach($t as $k=>$m){
+							$r[ array_shift(array_keys($m)) ] = array_shift($m);
+						}
+					}else{ $r += $return[ $k ]; }
+				}
+			} $return = $r;*/
 		}else if($v === true){ # Выстраивание ключей по порядку
 			$inc = 0;
 			foreach($return as $k){

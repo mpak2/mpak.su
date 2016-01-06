@@ -41,24 +41,24 @@
 						<span style="float:right;">
 							<a class="del" href="javascript:void(0)">Удалить</a>
 						</span>
-						<input type="text" name="table" value="" list="tables" placeholder="<?=$_GET['r']?>">
+						<input type="text" name="table" value="" list="tables" placeholder="<?=get($_GET, 'r')?>">
 						<datalist id="tables">
 							<? foreach($tpl['tables'] as $table=>$row): ?>
 								<option><?=$table?></option>
 							<? endforeach; ?>
 						</datalist>
 						<button>Применить</button>
-						<? if($ar = explode("_", $_GET['r'])): ?>
+						<? if($ar = explode("_", get($_GET, 'r'))): ?>
 							<span style="padding:0 10px;">
 								<a href="/<?=last(array_slice($ar, 1, 1))?>:admin/r:<?=$_GET['r']?>">
-									<?=(get($conf, 'settings', implode("_", array_slice($ar, 1))) ?: $_GET['r'])?>
+									<?=(get($conf, 'settings', implode("_", array_slice($ar, 1))) ?: get($_GET, 'r'))?>
 								</a>
 							</span>
 						<? endif; ?>
 					</form>
 				</p>
 				
-				<? if($_GET['r'] && ($fields = fields($_GET['r']))): ?>
+				<? if(get($_GET, 'r') && ($fields = fields($_GET['r']))): ?>
 					<form action="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>" method="post">
 						<div class="table">
 							<? foreach($fields as $field=>$row): ?>
@@ -112,7 +112,7 @@
 			</span>
 			<span style="padding-left:20px;">
 				<h1>Запрос</h1>
-				<form action="/<?=$arg['modname']?>:<?=$arg['fn']?>/null" method="post">
+				<form action="/<?=$arg['modpath']?>:<?=$arg['fn']?>/null" method="post">
 					<script src="/include/jquery/jquery.iframe-post-form.js"></script>
 					<script sync>
 						(function($, script){

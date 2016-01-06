@@ -20,7 +20,7 @@ if(array_key_exists("null", $_GET) && $_POST){
 			name VARCHAR(255) NOT NULL
 		) CHARACTER SET utf8 COLLATE utf8_unicode_ci"); exit(json_encode(array("table"=>$table)));
 	} exit(mpre("Ошибочный запрос", $_POST));
-}elseif(($table = $_GET['r']) && ($fields = fields($table)) && array_key_exists('f', $_POST) && is_array($fil = $_POST['f'])){
+}elseif(($table = get($_GET, 'r')) && ($fields = fields($table)) && array_key_exists('f', $_POST) && is_array($fil = $_POST['f'])){
 	foreach($fil as $f=>$fld){
 		if(!$fld['name']){
 			qw($sql = "ALTER TABLE `". mpquot($table). "` DROP COLUMN `". mpquot($f). "`"); mpre($sql);

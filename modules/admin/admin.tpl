@@ -203,7 +203,7 @@
 				</div>
 			</div>
 			<div class="table">
-				<? if(get($tpl, 'title') && get($_GET, "edit")): ?>
+				<? if(get($tpl, 'title') && array_key_exists("edit", $_GET)): ?>
 					<div class="th">
 						<span style="width:15%;">Поле</span>
 						<span>Значение</span>
@@ -265,22 +265,22 @@
 										<? endif; ?> 
 										<option></option>
 										<? foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($field['Field'], 0, -3)) as $ln): ?> 
-											<option value="<?=$ln['id']?>" <?=(($tpl['edit'] && ($tpl['edit'][ $field['Field'] ] == $ln['id'])) || (!$tpl['edit'] && ($ln['id'] == get($_GET, 'where', $field['Field']) ?: $field['Default'])) ? "selected" : "")?>>
+											<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $field['Field']) == $ln['id']) || ($ln['id'] == (get($_GET, 'where', $field['Field']) ?: $field['Default'])) ? "selected" : "")?>>
 												<?=$ln['id']?>&nbsp;<?=$ln['name']?>
 											</option>
 										<? endforeach; ?> 
 									</select>
 								<? elseif($field['Field'] == "text"): ?>
 									<?=mpwysiwyg($field['Field'], get($tpl, 'edit', $field['Field']) ?: "")?>
-								<? elseif($espisok = get($tpl, 'espisok', $field['Field'])): ?>
+								<? elseif($tpl_espisok = get($tpl, 'espisok', $field['Field'])): ?>
 									<select name="<?=$field['Field']?>">
 										<option></option>
-										<? foreach($tpl['espisok'][$field['Field']] as $espisok): ?>
-											<option value="<?=$espisok['id']?>" <?=((!$tpl['edit'] && ($field['Default'] == $espisok['id'])) || ($espisok['id'] == $tpl['edit'][$field['Field']]) || (!$tpl['edit']['id'] && ($_GET['where'][ $field['Field'] ] == $espisok['id'])) ? "selected" : "")?>><?=$espisok['id']?> <?=$espisok['name']?></option>
+										<? foreach($tpl_espisok as $espisok): ?>
+											<option value="<?=$espisok['id']?>" <?=((!get($tpl, 'edit') && ($field['Default'] == $espisok['id'])) || ($espisok['id'] == get($tpl, 'edit', $field['Field'])) || (!get($tpl, 'edit', 'id') && (get($_GET, 'where', $field['Field']) == $espisok['id'])) ? "selected" : "")?>><?=$espisok['id']?> <?=$espisok['name']?></option>
 										<? endforeach; ?>
 									</select>
 								<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>
-									<input type="text" name="<?=$field['Field']?>" value="<?=htmlspecialchars($tpl['edit'] ? rb($_GET['r'], "id", $_GET['edit'], $field['Field']) : $field['Default'])?>" placeholder="<?=(get($tpl, 'etitle', $field['Field']) ?: $field['Field'])?>">
+									<input type="text" name="<?=$field['Field']?>" value="<?=htmlspecialchars(get($tpl, 'edit') ? rb($_GET['r'], "id", get($_GET, 'edit'), $field['Field']) : $field['Default'])?>" placeholder="<?=(get($tpl, 'etitle', $field['Field']) ?: $field['Field'])?>">
 								<? endif; ?>
 							</span>
 						</div>
@@ -301,13 +301,13 @@
 								<? elseif(substr($fiel, 0, 1) == "_"): ?>
 									<span title="<?=substr($fiel, 1)?>"><?=(get($conf, 'settings', "{$arg['modpath']}_". substr($fiel, 1)) ?: substr($fiel, 1))?></span>
 								<? elseif(get($tpl, 'etitle')): ?>
-									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&order=<?=$fiel?>" title="<?=$fiel?>">
+									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>&order=<?=(get($_GET, "order") == $fiel ? "{$fiel} DESC" : $fiel )?>" title="<?=$fiel?>">
 										<?=(get($tpl, 'etitle', $fiel) ?: $fiel)?>
 									</a>
 								<? elseif(substr($fiel, -3) == "_id"): ?>
-									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&order=<?=$fiel?>" title="<?=$fiel?>"><?=(get($conf, 'settings', "{$arg['modpath']}_". substr($fiel, 0, -3)) ?: substr($fiel, 0, -3))?></a>
+									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>&order=<?=(get($_GET, "order") == $fiel ? "{$fiel} DESC" : $fiel )?>" title="<?=$fiel?>"><?=(get($conf, 'settings', "{$arg['modpath']}_". substr($fiel, 0, -3)) ?: substr($fiel, 0, -3))?></a>
 								<? else: ?>
-									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&order=<?=$fiel?>" title="<?=$fiel?>">
+									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>&order=<?=(get($_GET, "order") == $fiel ? "{$fiel} DESC" : $fiel )?>" title="<?=$fiel?>">
 										<?=$fiel?>
 									</a>
 								<? endif; ?>
@@ -332,7 +332,7 @@
 										<? elseif($k == "id"): ?>
 											<span class="control" style="white-space:nowrap;">
 												<a class="del" href="javascript:"></a>
-												<a class="edit" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&edit=<?=$v?><? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : "")?>"></a>
+												<a class="edit" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&edit=<?=$v?><? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'order') ? "&order={$_GET['order']}" : "")?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : "")?>"></a>
 												<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&where[id]=<?=$v?>"><?=$v?></a>
 											</span>
 										<? elseif(array_search($k, array(1=>"img", "img2", "img3"))): ?>
@@ -476,7 +476,7 @@
 												<option></option>
 											<? endif; ?>
 											<? foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($fiel, 0, -3)) as $ln): ?>
-												<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $fiel) == $ln['id']) || (!get($tpl, 'edit') && ($ln['id'] == (get($_GET, 'where', $fiel) ?: $field['Default'])) ? "selected" : ""))?>>
+												<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $fiel) == $ln['id']) || (($ln['id'] == (get($_GET, 'where', $fiel) ?: $field['Default']))) ? "selected" : "")?>>
 													<?=$ln['id']?>&nbsp;<?=htmlspecialchars($ln['name'])?>
 												</option>
 											<? endforeach; ?>

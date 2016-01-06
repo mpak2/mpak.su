@@ -49,7 +49,7 @@ if($param['tpl']){ include mpopendir("themes/{$conf['settings']['theme']}/{$para
 			<? if($t['href']): ?><a href="<?=$t['href']?>"><? endif; ?>
 				<?=$t['name']?>
 			<? if($t['href']): ?></a><? endif; ?>
-			<? if($menu[ $t['id'] ]): ?>
+			<? if(get($menu, $t['id'])): ?>
 				<ul class="submenu_<?=$arg['blocknum']?>">
 					<? foreach($menu[ $t['id'] ] as $v): ?>
 						<li>

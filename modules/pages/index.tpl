@@ -23,7 +23,7 @@
 		<div><?=aedit("/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_index&where[id]=". (int)$index['id'])?></div>
 		<h1><?=$index['name']?></h1>
 		<div><?=$index['text']?></div>
-		<div style="margin-top:20px;"><?=$conf['settings']['comments']?></div>
+		<div style="margin-top:20px;"><?=get($conf, 'settings', 'comments')?></div>
 	<? else: ?>
 		<div style="margin-top:150px; text-align:center;">
 			Данная страница не найдена на сайте.<br />Возможно она была удалена.
