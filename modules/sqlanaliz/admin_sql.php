@@ -47,7 +47,7 @@ if(array_key_exists("null", $_GET) && $_POST){
 	}
 }
 
-foreach($tpl['tables'] = tables() as $table=>&$info){
+foreach($tpl['tables'] = tables() as $table=>$info){
 	$info['id'] = (empty($nn) ? ($nn = 1) : ++$nn);
 	$info['modpath'] = get($conf, 'modules', first(array_slice(explode("_", $table), 1, 1)), 'folder');
 }
