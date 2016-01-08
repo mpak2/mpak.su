@@ -492,9 +492,12 @@ function erb($src, $key = 'id'){
 			if(preg_match('#^\[.*\]$#',trim($a))){
 				$a = array_flip(preg_split('#\s*,\s*#', preg_replace('#^\[|\]$#','',trim($a))));
 			}
-		} if(is_numeric($a) || is_array($a) || is_bool($a) || empty($a)){
+		}
+		if(is_numeric($a) || is_array($a) || is_bool($a) || empty($a)){
 			if($a === true){ # Удаляем условие на выборку (любые условия)
 				array_splice($keys, count($purpose), 1);
+			}else if(is_array($a)){
+				$purpose[] = mp_is_assoc($a) ? $a : array_flip($a);
 			}else{
 				$purpose[] = $a;
 			}
