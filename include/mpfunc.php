@@ -267,6 +267,10 @@ function mp_is_assoc($array){
 	$keys = array_keys($array);
 	return array_keys($keys) !== $keys;
 }
+//проверка на одномерность массива
+function mp_array_is_simple($array){
+	return count($array, COUNT_NORMAL)===count($array, COUNT_RECURSIVE);
+}
 //форматирование массива - приведение двухмерного массива к нужному формату
 function mp_array_format($array,$array_format){
 	$buf = array();
@@ -497,7 +501,7 @@ function erb($src, $key = 'id'){
 			if($a === true){ # Удаляем условие на выборку (любые условия)
 				array_splice($keys, count($purpose), 1);
 			}else if(is_array($a)){
-				$purpose[] = mp_is_assoc($a) ? $a : array_flip($a);
+				$purpose[] = (!mp_is_assoc($a) && mp_array_is_simple($a)) ? array_flip($a) : $a;
 			}else{
 				$purpose[] = $a;
 			}
