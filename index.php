@@ -134,7 +134,7 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 	if(strpos($conf['settings']['start_mod'], "http://") === 0){
 		header("Debug info:". __FILE__. ":". __LINE__);
 		header("Location: {$conf['settings']['start_mod']}"); exit;
-	}elseif(($seo_index = erb("{$conf['db']['prefix']}seo_index", "hide", "name", 0, "[/]")) /*&& array_key_exists("themes_index", $redirect)*/){
+	}elseif(($seo_index = rb("{$conf['db']['prefix']}seo_index", "hide", "name", 0, "[/]")) /*&& array_key_exists("themes_index", $redirect)*/){
 		if($index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $seo_index['index_type_id'])){
 			$_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $seo_index['name']));
 		}else{
@@ -163,8 +163,8 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 			exit(header("Location: {$redirect['to']}"));
 		}else if($seo_index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $redirect['index_type_id'])){
 			if($seo_location = rb("{$conf['db']['prefix']}seo_location", "id", $redirect['location_id'])){
-				$conf['settings']['description'] = $redirect['description'] ?: $conf['settings']['description'];
-				$conf['settings']['keywords'] = $redirect['keywords'] ?: $conf['settings']['keywords'];
+				$conf['settings']['description'] = get($redirect, 'description') ?: $conf['settings']['description'];
+				$conf['settings']['keywords'] = get($redirect, 'keywords') ?: $conf['settings']['keywords'];
 				$_REQUEST = ($_GET = mpgt($conf['settings']['canonical'] = $seo_location['name'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"))+$_REQUEST);
 			}
 		}
@@ -181,7 +181,7 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 		$conf['settings']['canonical'] = $_SERVER['REQUEST_URI'];
 	}
 
-	if($seo_location = erb("{$conf['db']['prefix']}seo_location", "hide", "name", 0, "[{$_SERVER['REQUEST_URI']}]")){
+	if($seo_location = rb("{$conf['db']['prefix']}seo_location", "hide", "name", 0, "[{$_SERVER['REQUEST_URI']}]")){
 		if($seo_location['location_status_id'] && ($seo_location_status = rb("{$conf['db']['prefix']}seo_location_status", "id", $seo_location['location_status_id']))){
 			if($seo_index = rb("{$conf['db']['prefix']}seo_index", "id", $seo_location['index_id'])){
 				header("Debug info:". __FILE__. ":". __LINE__);

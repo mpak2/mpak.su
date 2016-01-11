@@ -1,4 +1,4 @@
-<? if($_GET['id']): ?>
+<? if(get($_GET, 'id')): ?>
 	<? if($index = rb("index", "id", $_GET['id'])): ?>
 		<?/* if($menu_index = rb($tpl['menu_index'], "href", array_flip(array($_SERVER['REQUEST_URI'])))): ?>
 			<div class="navigation">
@@ -15,7 +15,7 @@
 					<? if($cat = rb("cat", "id", $pages_cat['cat_id'])): ?>
 						<? $f($cat) ?>
 					<? endif; ?>
-					&raquo; <a href="/<?=$arg['modname']?>:cat/<?=$pages_cat['id']?>"><?=$pages_cat['name']?></a>
+					&raquo; <a href="/<?=$arg['modpath']?>:cat/<?=$pages_cat['id']?>"><?=$pages_cat['name']?></a>
 				<? }; $f($pages_cat); ?>
 			</div>
 		<? endif; ?>
@@ -31,7 +31,7 @@
 				<script>
 					$(function(){
 						$("a.add").on("click", function(){
-							$.post("/<?=$arg['modname']?>/<?=$_GET['id']?>/null", {id:<?=$_GET['id']?>}, function(data){
+							$.post("/<?=$arg['modpath']?>/<?=$_GET['id']?>/null", {id:<?=$_GET['id']?>}, function(data){
 								if(isNaN(data)){ alert(data) }else{
 									document.location.reload(true);
 								}
@@ -46,7 +46,10 @@
 <? else: ?>
 	<ul>
 		<? foreach(rb("index", 20) as $index): ?>
-			<li><a href="/<?=$arg['modname']?>/<?=$index['id']?>"><?=$index['name']?></a></li>
+			<li>
+				<a href="/<?=$arg['modpath']?>/<?=$index['id']?>"><?=$index['name']?></a>
+				<p><?=$index['description']?></p>
+			</li>
 		<? endforeach; ?>
 	</ul>
 	<div><?=$tpl['pager']?></div>

@@ -1,17 +1,19 @@
 <?
 
 function get($ar){
-//	if(is_array($ar)){
-		foreach(array_slice(func_get_args(), 1) as $key){
-			if(is_array($ar) && array_key_exists($key, $ar)){
-				$ar = $ar[ $key ];
-			}else{ return false; }
-		} return $ar;
-//	}else{ return false; }
+	foreach(array_slice(func_get_args(), 1) as $key){
+		if(!empty($ar) && is_array($ar) && strlen($key) && array_key_exists($key, $ar)){
+			$ar = $ar[ $key ];
+		}else{ return false; }
+	} return $ar;
 } function first($ar){
-	return get($ar, min(array_keys($ar)));
+	if(!empty($ar) && is_array($ar)){
+		return get($ar, min(array_keys($ar)));
+	}else{ return false; }
 } function last($ar){
-	return get($ar, max(array_keys($ar)));
+	if(!empty($ar) && is_array($ar)){
+		return get($ar, max(array_keys($ar)));
+	}else{ return false; }
 }
 
 function tables($table = null){
@@ -165,7 +167,7 @@ if (!function_exists('bcont')){
 			}else{
 				$brm = rb($blocks_reg_modules, "reg_id", "id", $r['id']);
 				if(($array_column = array_column($brm, 'name')) && max($array_column)){ # Если стоит страница
-					$br = array_shift($brm = rb($brm, "name", "id", array_flip($md)));
+					$br = first($brm = rb($brm, "name", "id", array_flip($md)));
 				} if(($array_column = array_column($brm, 'modules_index')) && max($array_column)){
 					$brm = rb($brm, "modules_index", "id", array("all")+rb($conf['modules'], "folder", "id", $md));
 				} if(($array_column = array_column($brm, 'theme')) && max($array_column)){ # Условие на тему
@@ -190,8 +192,8 @@ if (!function_exists('bcont')){
 
 		foreach(rb($blocks, "reg_id", "id", $reg+array(0=>array("id"=>0))) as $k=>$v){
 			$conf['blocks']['info'][$v['id']] = $v;
-			if(($v['access'] < 0)){
-				$conf['blocks']['info'][ $v['id'] ]['access'] = (int)$conf['modules'][ first(explode('/', $v['src'])) ]['access'];
+			if($v['access'] < 0){
+				$conf['blocks']['info'][ $v['id'] ]['access'] = get($conf, 'modules', first(explode('/', $v['src'])), 'access');
 			}
 		}
 
@@ -294,6 +296,7 @@ function mp_array_format($array,$array_format){
 }
 
 set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
+	global $conf;
     $errortype = array (
 		1   =>  "Ошибка",
 		2   =>  "Предупреждение",
@@ -307,7 +310,7 @@ set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 		512 =>  "Предупреждение пользователя",
 		1024=>  "Замечание пользователя",
 		2048=> "Обратная совместимость",
-	); mpre($errortype[$errno]. " ($errno)", $errmsg, $filename, $linenum/*, debug_backtrace()*/);
+	); mpre(get($errortype, $errno). " ($errno)", $errmsg, $filename/*, get($conf, 'settings', 'data-file')*/, $linenum/*, debug_backtrace()*/);
 });
 function mpzam($ar, $name = null, $prefix = "{", $postfix = "}", $separator = ":"){ # Создание из много мерного массиива - одномерного. Применяется для подставки в текстах отправляемых писем данных из массивов
 	$f = function($ar, $prx = "") use(&$f, $prefix, $postfix, $name){
@@ -453,7 +456,7 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
 			$mc = memcache_get($memcache, $key);
 	//		if($event) mpevent($conf['settings']['users_event_memcache_get'], $key, $conf['user']['uid']);
 		} return $mc;
-	}
+	} return false;
 }
 function rb($src, $key = 'id'){
 	global $conf, $arg, $tpl;
@@ -649,12 +652,12 @@ function mpevent($name, $description = null, $own = null){
 			$event = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event WHERE id=". (int)mysql_insert_id()), 0);
 		} $notice = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event_notice WHERE event_id=". (int)$event['id']));
 		if((!empty($event['log']) && ($event['log'] > 1)) || $notice){
-			if(!is_numeric($func_get_args[2]) && array_key_exists("pass", $func_get_args[2])){
+			if(!is_numeric(get($func_get_args, 2)) && get($func_get_args, 2, "pass")){
 				unset($func_get_args[2]['pass']);
 			} $zam = mpzam($func_get_args);
 		}
 		if(!empty($event['log']) && $event['log']){
-			mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event_logs SET time=". time(). ", event_id=". (int)$event['id']. ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", description=\"". mpquot($description). "\", own=". /*mpquot(is_array($own) ? var_export($own, true) : $own)*/ (int)$func_get_args[2]['id']. ", `return`=\"". (!empty($return) ? mpquot($return) : ""). "\", zam=\"". mpquot(!empty($zam) ? var_export($zam, true) : ""). "\"");
+			mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event_logs SET time=". time(). ", event_id=". (int)$event['id']. ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", description=\"". mpquot($description). "\", own=". /*mpquot(is_array($own) ? var_export($own, true) : $own)*/ (int)get($func_get_args, 2, 'id'). ", `return`=\"". (!empty($return) ? mpquot($return) : ""). "\", zam=\"". mpquot(!empty($zam) ? var_export($zam, true) : ""). "\"");
 			if(array_key_exists('limit', $event)){
 				$remove = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event_logs WHERE event_id=". (int)$event['id']. " AND uid". ($conf['user']['uid'] > 0 ? "=". (int)$conf['user']['uid'] : "<0"). " ORDER BY id DESC LIMIT ". (int)$event['limit']. ",2"));
 				if($remove){ # Удаляем все с журнала пользователя
@@ -1123,7 +1126,7 @@ function mpqw($sql, $info = null, $callback = null, $conn = null){
 	try{
 		$result = $conf['db']['conn']->query($sql);
 	}catch(Exception $e){
-		mpre($sql, $error = $e->getMessage(), true);
+		mpre($sql, $error = $e->getMessage());
 		if(is_callable($callback)){
 			$callback($error, $conf);
 		}
@@ -1439,7 +1442,7 @@ if(!function_exists("array_column")){
 				$result = array_values($input);
 			}else{
 				foreach($input as $row){
-					$result[] = $row[$columnKey];
+					$result[] = get($row, $columnKey);
 				}
 			}
 		}else{

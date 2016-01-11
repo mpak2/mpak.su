@@ -6,7 +6,7 @@
 				<? $function = function($cat) use(&$function, $tpl, $arg){ ?>
 					<? if($c = $tpl['cat'][ $cat['cat_id'] ]): ?>
 						<? $function($c) ?>
-					<? endif; ?> &raquo; <a href="/<?=$arg['modname']?>:cat/<?=$cat['id']?>"><?=$cat['name']?></a>
+					<? endif; ?> &raquo; <a href="/<?=$arg['modpath']?>:cat/<?=$cat['id']?>"><?=$cat['name']?></a>
 				<? }; $function($tpl['cat'][ $cat['cat_id'] ]); ?>
 			</div>
 		<? endif; ?>
@@ -19,12 +19,12 @@
 		<? endif; ?>
 	<? endif; ?>
 	<? foreach(rb($tpl['cat'], "id", "id", ($_GET['id'] ?: $tpl['cat'])) as $cat): ?>
-		<div>
+		<p>
 			<ul>
 				<? foreach(rb($tpl['index'], "cat_id", "id", $cat['id']) as $index): ?>
-					<li><a href="/<?=$arg['modname']?>/<?=$index['id']?>"><?=$index['name']?></a></li>
+					<li><a href="/<?=$arg['modpath']?>/<?=$index['id']?>"><?=$index['name']?></a></li>
 				<? endforeach; ?>
 			</ul>
-		</div>
+		</p>
 	<? endforeach; ?>
 </div>

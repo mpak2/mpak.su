@@ -182,7 +182,7 @@
 				<div>
 					<? if(get($tpl, 'title') && !get($_GET, "edit")): ?>
 						<span style="width:10%; padding-left:20px;">
-							<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/edit?<? foreach(get('where', $_GET) ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : "")?>">
+							<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/edit?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : "")?>">
 								<button type="button">Добавить</button>
 							</a>
 						</span>
@@ -231,8 +231,8 @@
 									<input type="file" name="file[]" multiple="true">
 								<? elseif($field['Field'] == "hide"): ?>
 									<select name="hide">
-										<? foreach($tpl['spisok']['hide'] as $k=>$v): ?>
-											<option value="<?=$k?>" <?=((!$tpl['edit'] && ($field['Default'] == $k)) || ($k == $tpl['edit']['hide']) ? "selected" : "")?>><?=$v?></option>
+										<? foreach(get($tpl, 'spisok', 'hide') as $k=>$v): ?>
+											<option value="<?=$k?>" <?=((!get($tpl, 'edit') && (get($field, 'Default') == $k)) || ($k == get($tpl, 'edit', 'hide')) ? "selected" : "")?>><?=$v?></option>
 										<? endforeach; ?>
 									</select>
 								<? elseif($field['Field'] == "uid"): ?>

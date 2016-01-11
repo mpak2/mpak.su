@@ -94,20 +94,20 @@ $guest = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE name=\"". m
 			<? $v = $ar[min($keys)]; ?>
 			<div style="float:left; margin:1px; border:1px solid #ddd; position:relative;" title="<?=(array_key_exists('bot', $v) ? $v['agent'] : $v['name']. ($v['name'] != $conf['settings']['default_usr'] ? "" : "-{$v['sid']}"). (!empty($v['ref']) && ($arg['access'] > 3) ? " {$v['count']}/{$v['cnull']} ({$v['ref']})" : ""))?>">
 				<? if($v['id'] != $guest['id']): ?>
-					<a href="/<?=$arg['modname']?>/<?=$v['id']?>">
+					<a href="/<?=$arg['modpath']?>/<?=$v['id']?>">
 				<? elseif($arg['access'] > 3): ?>
 					<a href="/?m[sess]=admin&where[id]=<?=$v['sid']?>">
 				<? else: ?>
-					<a href="/<?=$arg['modname']?>/<?=$guest['id']?>">
+					<a href="/<?=$arg['modpath']?>/<?=$guest['id']?>">
 				<? endif; ?>
 					<? if(array_key_exists('bot', $v)): ?>
 						<div style="position:absolute; top:1px; left:1px; opacity:0.8;"><?=count($o)?></div>
-						<div style="position:absolute; top:1px; right:1px; opacity:0.8;"><img src="/<?=$arg['modname']?>:img/w:15/h:15/null/bot.png"></div>
+						<div style="position:absolute; top:1px; right:1px; opacity:0.8;"><img src="/<?=$arg['modpath']?>:img/w:15/h:15/null/bot.png"></div>
 					<? elseif($v['os']): ?>
 						<?// if(($cnt = count($o)) > 1): ?>
 							<div style="position:absolute; top:1px; left:1px; opacity:0.8; background-color:white; width:15px; height:15px;"><?=count($o)?></div>
 						<?// endif; ?>
-						<div style="position:absolute; top:1px; right:1px; opacity:0.8;"><img src="/<?=$arg['modname']?>:img/w:15/h:15/null/<?=$v['os']?>"></div>
+						<div style="position:absolute; top:1px; right:1px; opacity:0.8;"><img src="/<?=$arg['modpath']?>:img/w:15/h:15/null/<?=$v['os']?>"></div>
 					<? endif; ?>
 					<img src="<?=$v['image']?>" style="z-index:-1; padding:1px;">
 				</a>
