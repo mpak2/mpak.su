@@ -40,14 +40,14 @@ if (strlen(trim($_REQUEST['search']))){
 			$where .= " OR `$f` LIKE \"%".mpquot($_REQUEST['search'])."%\"";
 			$fields .= ", `$f`";
 		}
-		$search = mpql(mpqw($sql = "SELECT SQL_CALC_FOUND_ROWS ".implode(', ', $regs[1]).", ".substr($fields, 2)." FROM $k WHERE ".substr($where, 3). " LIMIT ". ($_GET['p']*10). ",10"));
-		$conf['tpl']['cnt'] +=mpql(mpqw("SELECT FOUND_ROWS()/10 AS cnt"), 0, 'cnt');
+		$search = mpql(mpqw($sql = "SELECT SQL_CALC_FOUND_ROWS ".implode(', ', $regs[1]).", ".substr($fields, 2)." FROM $k WHERE ".substr($where, 3). " LIMIT ". (get($_GET, 'p')*10). ",10"));
+		$conf['tpl']['cnt'] = ql("SELECT FOUND_ROWS()/10 AS cnt", 0, 'cnt');
 		foreach(mpql(mpqw($sql)) as $ns=>$r){
 			$lstring = ''; $zamena = array();
 			foreach($r as $t=>$f){
 				$zamena['{'.$t.'}'] = $f;
 				if (isset($param[$k][$t]) && strlen($lstring) < 100)
-					$lstring .= ' '.substr(preg_replace ("/(<\/?)(\w+)([^>]*>)/e", " ", $f), 0, 200 - strlen($lstring));
+					$lstring .= ' '.substr(strip_tags($f), 0, 200 - strlen($lstring));
 			}
 			foreach($regs[1] as $t=>$f)
 				$zamena['{'.$f.'}'] = $r[$f];

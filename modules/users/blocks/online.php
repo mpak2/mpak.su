@@ -16,7 +16,6 @@ $logo = array(
 	"yahoo.png"=>"Yahoo",
  	"google.png"=>"Googlebot",
 	"rambler.png"=>"StackRambler",
-	"yandex.png"=>"Yandex",
 	"msnbot.png"=>"msnbot",
 	"bing.png"=>"bing",
 	"cctld.ru.png"=>"cctld.ru/bot",
@@ -44,6 +43,11 @@ $logo = array(
 	"robot.png"=>"robot",
 	"semanticbot.png"=>"semanticbot",
 	"tobbot.png"=>"tobbot.com",
+
+	"yandexmetrika.png"=>"YandexMetrika",
+	"yandex.png"=>"Yandex",
+	"yadirectfetcher.png"=>"YaDirectFetcher",
+
 	"bot.png"=>"bot",
 );
 $os = array(

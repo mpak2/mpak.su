@@ -67,7 +67,7 @@
 					}
 				}).on("click", "a.inc", function(e){
 					var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
-					$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null?<? foreach(get('where', $_GET) ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>", {inc:line_id}, function(request){
+					$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>", {inc:line_id}, function(request){
 //						if(isNaN(request)){ alert(request) }else{
 							console.log("request:", request);
 							var main = $(e.currentTarget).parents("[line_id]");
@@ -162,7 +162,7 @@
 									try{
 										if(json = jQuery.parseJSON(data)){
 											console.log("json:", json);
-											document.location.href = "/<?=$arg['modpath']?>:<?=$arg['fe']?>/r:<?=$_GET['r']?>?<? foreach(get('where', $_GET) ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : '')?>";
+											document.location.href = "/<?=$arg['modpath']?>:<?=$arg['fe']?>/r:<?=$_GET['r']?>?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'order') ? "&order={$_GET['order']}" : "")?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : '')?>";
 										}
 									}catch(e){
 										if(isNaN(data)){
@@ -390,7 +390,7 @@
 												<span style="white-space:nowrap;">
 													<a class="key" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?="{$conf['db']['prefix']}{$arg['modpath']}_"?>
 														<?=substr($k, 0, -3)?>?&where[id]=<?=$v?>" title="<?=$v?>">
-													</a>&nbsp;<?=htmlspecialchars($el['name'])?>
+													</a>&nbsp;<?=htmlspecialchars(get($el, 'name'))?>
 												</span>
 											<? elseif($v): ?>
 												<span style="color:red;"><?=$v?></span>
@@ -461,7 +461,7 @@
 											<? endif; ?>
 											<option></option>
 											<? foreach(rb("{$conf['db']['prefix']}modules") as $mid): ?>
-												<option value="<?=$mid['id']?>" <?=((get($tpl,'edit', $fiel) == $uid['id']) || (!get($tpl, 'edit') && ($mid['id'] == $conf['user']['uid'])) ? "selected" : "")?>>
+												<option value="<?=$mid['id']?>" <?=((!get($tpl, 'edit', 'uid') && ($mid['id'] == get($conf, 'user', 'uid'))) ? "selected" : "")?>>
 													<?=$mid['id']?> <?=$mid['name']?>
 												</option>
 											<? endforeach; ?>
@@ -477,7 +477,7 @@
 											<? endif; ?>
 											<? foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($fiel, 0, -3)) as $ln): ?>
 												<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $fiel) == $ln['id']) || (($ln['id'] == (get($_GET, 'where', $fiel) ?: $field['Default']))) ? "selected" : "")?>>
-													<?=$ln['id']?>&nbsp;<?=htmlspecialchars($ln['name'])?>
+													<?=$ln['id']?>&nbsp;<?=htmlspecialchars(get($ln, 'name'))?>
 												</option>
 											<? endforeach; ?>
 										</select>

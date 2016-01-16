@@ -1,5 +1,28 @@
 <?
 
+# Проверка вхождения тегов в коде и их корректная вложенность друг в друга
+# Если вложенность тегов верная возвращается false иначе список незакрытых тегов в форме массива
+# Если тегов не найдено, возвращается null
+function nesting($text, $tags = array("\? if", "\? endif", "\? foreach", "\? endforeach", "html", "div", "article", "aside", "span", "table", "ul", "li", "tr", "td", "form", "label", "button", "script", "noscript", "h1", "h2", "h3", "h4", "p", "a")){
+	if(preg_match_all($str = "#<(\/?)(". implode("|", $tags). ")(\s.*?)?>#si", $text, $match)){
+		$nesting = $tags = array();// mpre($str, array_slice($match, 1));
+		foreach($match[2] as $n=>$tag_name){
+			$tn = last($nesting);
+			if(($sl = get($match, 1, $n)) && ($tag_name == $tn)){
+				$tn = array_pop($nesting);
+			}elseif(($tn == "? if") && ($tag_name == "? endif")){
+				$tn = array_pop($nesting);
+			}elseif(($tn == "? foreach") && ($tag_name == "? endforeach")){
+				$tn = array_pop($nesting);
+			}else{
+				$nesting[$n] = $tag_name; //array_push($nesting, $tag_name);
+				$tags[$n] = "&lt;". ($sl ? "/" : ""). $match[2][$n]. $match[3][$n]. "&gt;"; //array_push($tags, "&lt;". $match[2][$n]. $match[3][$n]. "&gt;");
+			}
+		} return empty($nesting) ? false : array_intersect_key($tags, $nesting);
+		// return empty($nesting) ? false : $nesting;
+	}else{ return null; }
+}
+
 function get($ar){
 	foreach(array_slice(func_get_args(), 1) as $key){
 		if(!empty($ar) && is_array($ar) && strlen($key) && array_key_exists($key, $ar)){
@@ -39,18 +62,20 @@ function tables($table = null){
 
 # Подключение страницы
 function inc($file_name, $variables = array(), $req = false){
-//	pre($file_name, microtime(true), debug_backtrace());
 	global $tpl, $arg, $conf; extract($variables);
-	 if(preg_match("#(.*)(\.php|\.tpl)$#", $file_name, $match)){
+	 if(preg_match("#(.*)(\.php|\.tpl|\.html)$#", $file_name, $match)){
 		if($f = mpopendir($file_name)){
-			if(($match[2] == ".tpl") && array_search("Администратор", $conf['user']['gid']) && get($conf, 'settings', 'modules_start')){
-				echo strtr($conf['settings']['modules_start'], array('{path}'=>$f));
-			} if($req){
-				require $f;
+			if(array_search("Администратор", get($conf, 'user', 'gid')) && (".tpl" == get($match, 2))){
+				ob_start();
+					if($req){ require $f; }else{ include $f; }
+				$content = ob_get_contents(); ob_end_clean();
+				echo strtr(get($conf, 'settings', 'modules_start'), array('{path}'=>$f));
+				if($nesting = nesting($content)){
+					mpre("Ошибка верстки. Незакрыте теги", $f, $nesting);
+				} echo $content;
+				echo strtr(get($conf, 'settings', 'modules_stop'), array('{path}'=>$f));
 			}else{
-				include $f;
-			} if(($match[2] == ".tpl") && array_search("Администратор", $conf['user']['gid']) && get($conf, 'settings', 'modules_stop')){
-				echo strtr($conf['settings']['modules_stop'], array('{path}'=>$f));
+				if($req){ require $f; }else{ include $f; }
 			} return true;
 		} return false;
 	}else{
@@ -564,7 +589,7 @@ function erb($src, $key = 'id'){
 				$r[ $inc++ ] = $k;
 			} $return = $r;
 		}
-	} return !empty($field) ? $return[ $field ] : $return;
+	} return !empty($field) ? (array_key_exists($field, $return) ? $return[ $field ] : null) : $return;
 } function arb($index,$params,$return=null){
 	$buff = array($index);
 	foreach($params as $key => $param){

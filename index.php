@@ -210,11 +210,7 @@ if(empty($f)){
 	$conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:*"];
 } if(!empty($conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"])){
 	$conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"];
-}
-$content = ((mpopendir($init = "include/init.php")) ? mpct($init, $arg = array("access"=>(array_search($conf['settings']['admin_grp'], $conf['user']['gid']) ? 5 : 1))) : ""); # Установка предварительных переменных
-/*if(!array_key_exists("id", $_GET) && array_key_exists("modules_default", $conf['settings']) && array_key_exists($mp = array_shift(array_keys($_GET['m'])), $conf['modules'])){
-	$_GET['m'] = array($conf['settings']['modules_default']=>$_GET['m'][ $mp ]);
-}*/ # Устанавливаем дефолтный раздел. Если нет среди установленных то он считает что страничка оттуда
+} inc("include/init.php", array("content"=>($content = "")));
 
 foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_gaccess", 'Права доступа группы к модулю')) as $k=>$v){
 	if(array_key_exists($v['gid'], $conf['user']['gid']) && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false)
@@ -244,7 +240,11 @@ if(isset($_GET['m']['sqlanaliz'])){
 }
 
 if($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". (array_key_exists("index", $conf['settings']) ? $conf['settings']['index'] : (array_key_exists("index", $_GET) ? basename($_GET['index']) : "index" )) . ".html")){
-	$tc = (array_key_exists('theme_exec', $conf['settings']) && $conf['settings']['theme_exec'] ? mpeval($f) : file_get_contents($t));
+	if(get($conf, 'settings', 'theme_exec')){
+		ob_start(); inc($f); $tc = ob_get_contents(); ob_clean();
+	}else{
+		$tc = file_get_contents($t);
+	}
 }else{ die("Шаблон {$f} не найден"); }
 
 if(!array_key_exists('null', $_GET)){
@@ -260,10 +260,12 @@ $aid = qn("SELECT id, aid FROM {$conf['db']['prefix']}settings", "aid", "id");
 foreach($conf['settings'] as $k=>$v){
 	if(is_string($v)){
 		$content = str_replace("<!-- [settings:$k] -->", $v, $content);
+	}	
+} if(!array_key_exists("nocache", $_REQUEST)){
+	if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && !array_search("Зарегистрированные", $conf['user']['gid'])){
+		exit(header('HTTP/1.0 304 Not Modified'));
+	}else if(!array_search("Зарегистрированные", $conf['user']['gid'])){ # Исключаем админстраницу из кеширования
+		header('Last-Modified: '. date("r"));
+		header("Expires: ".gmdate("r", time() + array_key_exists("themes_expires", $conf['settings']) ? $conf['settings']['themes_expires'] : 86400));
 	}
-} if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && !array_search("Зарегистрированные", $conf['user']['gid'])){
-	exit(header('HTTP/1.0 304 Not Modified'));
-}else if(!array_search("Зарегистрированные", $conf['user']['gid'])){ # Исключаем админстраницу из кеширования
-	header('Last-Modified: '. date("r"));
-	header("Expires: ".gmdate("r", time() + array_key_exists("themes_expires", $conf['settings']) ? $conf['settings']['themes_expires'] : 86400));
 } echo $content;
