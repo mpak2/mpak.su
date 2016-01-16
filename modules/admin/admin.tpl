@@ -390,7 +390,7 @@
 												<span style="white-space:nowrap;">
 													<a class="key" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?="{$conf['db']['prefix']}{$arg['modpath']}_"?>
 														<?=substr($k, 0, -3)?>?&where[id]=<?=$v?>" title="<?=$v?>">
-													</a>&nbsp;<?=htmlspecialchars(get($el, 'name')?:"<span style='color:#777'>".get($el,'id')."</span>")?>
+													</a>&nbsp;<?=(isset($el['name']) ? htmlspecialchars($el['name']) : "<span style='color:#777'>_".get($el,'id')."_</span>")?>
 												</span>
 											<? elseif($v): ?>
 												<span style="color:red;"><?=$v?></span>
