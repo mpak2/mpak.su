@@ -290,9 +290,13 @@ function gvk($array = array(), $field=false){
 	return isset($array[$field]) ? $array[$field] : FALSE;
 }
 //проверка на ассоциативность массива
-function mp_is_assoc($array){
-	$keys = array_keys($array);
-	return array_keys($keys) !== $keys;
+function mp_is_assoc($array){	
+	if(key($array)===0){		
+		$keys = array_keys($array);
+		return array_keys(array_keys($array)) !== array_keys($array);
+	}else{
+		return true;
+	}
 }
 //проверка на одномерность массива
 function mp_array_is_simple($array){
