@@ -1,5 +1,31 @@
 <?
-
+//функция скачки файла (чтение файла идет по 5метров)
+function file_download ($file,$filename,$mimetype='application/octet-stream') {
+   if(!$filename) $filename = preg_replace("#.*\/([^\/]+)$#iu",'$1',$file);
+   if (file_exists ($file)) {
+     header ($_SERVER["SERVER_PROTOCOL"] . ' 200 OK');
+     header ('Content-Type: ' . $mimetype);
+     header ('Last-Modified: ' . gmdate ('r', filemtime ($file)));
+     header ('ETag: ' . sprintf ('%x-%x-%x', fileinode ($file), filesize ($file), filemtime ($file)));
+     header ('Content-Length: ' . (filesize ($file)));
+     header ('Connection: close');
+     header ('Content-Disposition: attachment; filename="'.$filename.'";');
+ // Открываем искомый файл
+     $f=fopen ($file, 'r');
+     while (!feof ($f)) {
+ // Читаем килобайтный блок, отдаем его в вывод и сбрасываем в буфер
+       echo fread ($f, 5120);
+       flush ();
+     }
+ // Закрываем файл
+     fclose ($f);
+   } else {
+     header ($_SERVER["SERVER_PROTOCOL"] . ' 404 Not Found');
+     header ('Status: 404 Not Found');
+   }
+exit();
+}//функция скачки файла (чтение файла идет по 5метров)
+ 
 # Проверка вхождения тегов в коде и их корректная вложенность друг в друга
 # Если вложенность тегов верная возвращается false иначе список незакрытых тегов в форме массива
 # Если тегов не найдено, возвращается null
