@@ -41,7 +41,7 @@ mp_require_once("include/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
 
 //Обращение к файлу в корне (webroot)
-if(preg_match("#\/[\w\d\-\_\:\%]+\.\w+$#i",$_SERVER['REDIRECT_URL'])){
+if(preg_match("#\/[\w\d\-\_\:\%\.]+\.\w+$#i",$_SERVER['REDIRECT_URL'])){
 	$REDIRECT_URL = urldecode(preg_replace("#\.\.\/#iu","",$_SERVER['REDIRECT_URL']));
 	foreach(explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) as $v){
 		if(file_exists("$v/webroot$REDIRECT_URL")){
