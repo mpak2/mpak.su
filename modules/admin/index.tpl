@@ -2,7 +2,7 @@
 	<ul class="nl MdlsList">
 		<? foreach(rb("{$conf['db']['prefix']}modules", "admin", "id", $_GET['id']) as $modules): ?>
 			<li>
-				<a href="/<?=$conf['modules'][ $modules['folder'] ]['modname']?>"><img src="/admin:img/<?=$modules['id']?>/null/modules.png" alt="" /></a>
+				<a href="/<?=$modules['folder']?>"><img src="/admin:img/<?=$modules['id']?>/null/modules.png" alt="" /></a>
 				<h1><a href="/<?=$modules['folder']?>:admin"><?=$modules['name']?></a></h1>
 				<p><?=$modules['description']?></p>
 				<div class="button"><a href="/admin/hide:<?=$modules['id']?>/<?=$_GET['id']?>">скрыть</a></div>

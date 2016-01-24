@@ -3,7 +3,7 @@
 # Проверка вхождения тегов в коде и их корректная вложенность друг в друга
 # Если вложенность тегов верная возвращается false иначе список незакрытых тегов в форме массива
 # Если тегов не найдено, возвращается null
-function nesting($text, $tags = array("\? if", "\? endif", "\? foreach", "\? endforeach", "html", "div", "article", "aside", "span", "table", "ul", "li", "tr", "td", "form", "label", "button", "script", "noscript", "h1", "h2", "h3", "h4", "p", "a")){
+function nesting($text, $tags = array("\? if", "\? endif", "\? foreach", "\? endforeach", "html", "div", "span", "table", "ul", "li", "tr", "td", "form", "label", "button", "script", "noscript", "p", "a")){
 	if(preg_match_all($str = "#<(\/?)(". implode("|", $tags). ")(\s.*?)?>#si", $text, $match)){
 		$nesting = $tags = array();// mpre($str, array_slice($match, 1));
 		foreach($match[2] as $n=>$tag_name){
@@ -62,21 +62,45 @@ function tables($table = null){
 
 # Подключение страницы
 function inc($file_name, $variables = array(), $req = false){
-	global $tpl, $arg, $conf; extract($variables);
-	 if(preg_match("#(.*)(\.php|\.tpl|\.html)$#", $file_name, $match)){
+	global $tpl, $arg, $conf;
+	$_arg = $arg; extract($variables);
+	if(preg_match("#(.*)(\.php|\.tpl|\.html)$#", $file_name, $match)){
 		if($f = mpopendir($file_name)){
-			if(array_search("Администратор", get($conf, 'user', 'gid')) && (".tpl" == get($match, 2))){
+			if(empty($arg)){
+				if($path = explode("/", $file_name)){
+					if($path[0] == "modules"){
+						$arg = array("modpath"=>$path[1], "fn"=>first(explode(".", $path[2])));
+					}
+				}
+			} if(array_search("Администратор", get($conf, 'user', 'gid'))){
+/*				if($block = rb($info = get($conf, 'blocks', 'info'), 'alias', "[{$arg['fn']}]")){ # Составление структуры всех подключаемых шаблонов
+					if($backtrace = rb(debug_backtrace(), "function", "[inc]")){
+						if($inc = fk("{$conf['db']['prefix']}themes_inc", $w = array("name"=>$backtrace['file']), $w += array("up"=>time(), "index_id"=>get($conf, 'user', 'sess', 'themes_index', 'id')), $w)){
+							if($themes_inc = fk("{$conf['db']['prefix']}themes_inc", $w = array("name"=>$f), $w += array("up"=>time(), "index_id"=>get($conf, 'user', 'sess', 'themes_index', 'id')), $w)){
+								if($themes_inc_entry = fk("{$conf['db']['prefix']}themes_inc_entry", $w = array("line"=>$backtrace['line'], "inc_id"=>$inc['id'], "themes_inc"=>$themes_inc['id']), $w += array("up"=>time()))){
+									$conf['themes']['inc'][ $inc['id'] ] = $inc;
+									$conf['themes']['inc'][ $themes_inc['id'] ] = $themes_inc;
+									$conf['themes']['inc_entry'][ $themes_inc_entry['id'] ] = $themes_inc_entry;
+								}
+							}
+						}
+					}
+				}*/
 				ob_start();
 					if($req){ require $f; }else{ include $f; }
 				$content = ob_get_contents(); ob_end_clean();
-				echo strtr(get($conf, 'settings', 'modules_start'), array('{path}'=>$f));
-				if($nesting = nesting($content)){
-					mpre("Ошибка верстки. Незакрыте теги", $f, $nesting);
+				if((".tpl" == get($match, 2))){
+					echo strtr(get($conf, 'settings', 'modules_start'), array('{path}'=>$f));
+					if($nesting = nesting($content)){
+						mpre("Ошибка верстки. Нарушена структура вложенности тегов.", $f, $nesting);
+					}
 				} echo $content;
-				echo strtr(get($conf, 'settings', 'modules_stop'), array('{path}'=>$f));
+				if((".tpl" == get($match, 2))){
+					echo strtr(get($conf, 'settings', 'modules_stop'), array('{path}'=>$f));
+				}
 			}else{
 				if($req){ require $f; }else{ include $f; }
-			} return true;
+			} $arg = $_arg; return true;
 		} return false;
 	}else{
 		$p = inc("{$file_name}.php", $variables, $req);
@@ -133,10 +157,10 @@ if (!function_exists('mcont')){
 //						$content .= mpct("modules/{$mod['link']}/{$glob}", $arg);
 					}elseif(($v == "admin")){
 						if(!inc("modules/{$mod['link']}/admin")){
-							inc("modules/admin/admin");
+							inc("modules/admin/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')));
 						}
-					}elseif(!inc("modules/{$mod['link']}/{$v}")){
-						inc("modules/{$mod['link']}/default");
+					}elseif(!inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg))){
+						inc("modules/{$mod['link']}/default", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>$v)));
 					}
 				$content .= ob_get_contents(); ob_end_clean();
 			}else if(get($conf, 'modules', $k) && ($_SERVER['REQUEST_URI'] != "/admin")){
@@ -243,9 +267,9 @@ if (!function_exists('bcont')){
 			}else{ mpre("Ошибка не определена", $error); }
 			mpre($error);
 		})) as $k=>$v)
-			if ($conf['user']['uid'] == $v['uid'] || (!$v['uid'] && ($conf['user']['uid'] == 0)))
+			if(/*get($conf, 'blocks', 'info', $v['index_id']) &&*/ ($conf['user']['uid'] == $v['uid'] || (!$v['uid'] && ($conf['user']['uid'] == 0)))){
 				$conf['blocks']['info'][ $v['index_id'] ]['access'] = $v['access'];
-
+			}
 		foreach(rb($blocks, "reg_id", "id", $reg+array(0=>array("id"=>0))) as $k=>$v){
 			if(($conf['settings']['theme'] == $v['theme']) || ((substr($v['theme'], 0, 1) == "!") && ($conf['settings']['theme'] != substr($v['theme'], 1)))){
 				$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
@@ -255,9 +279,9 @@ if (!function_exists('bcont')){
 					ob_start();
 						inc("modules/{$v['src']}", array('arg'=>$arg));
 					$cb = ob_get_contents(); ob_end_clean();
-					
-					if($bid){ $result = $cb; }else{
-						if (!is_numeric($v['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($v['shablon'] ? $v['shablon'] : "block.html")))){
+
+					if($conf["settings"]["bid"] = $bid){ $result = $cb; }else{
+						if(!is_numeric($v['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($v['shablon'] ?: "block.html")))){
 							$shablon[ $v['shablon'] ] = file_get_contents($file_name);
 						}else{ $shablon[ $v['shablon'] ] = "<!-- [block:content] -->"; }
 						$cb = strtr($shablon[ $v['shablon'] ], $w = array(
@@ -269,12 +293,12 @@ if (!function_exists('bcont')){
 							'<!-- [block:title] -->'=>$v['name']
 						));
 						$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$v['name'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
-						$result["<!-- [block:". $v['id'] . "] -->"] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
-						if(array_key_exists($n = "<!-- [blocks:". $v['reg_id'] . "] -->", $result)){
-							$result[$n] .= $result["<!-- [block:". $v['id'] . "] -->"];
-						}else{
-							$result[$n] = $result["<!-- [block:". $v['id'] . "] -->"];
-						} if(array_key_exists($v['reg_id'], $reg) && array_key_exists($n = "<!-- [blocks:". $reg[ $v['reg_id'] ]['reg_id']. "] -->", $result)){
+						$result["<!-- [block:{$v['id']}] -->"] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
+						if(array_key_exists('alias', $v) && ($alias = get($v, 'alias')) && ($n = "<!-- [block:{$alias}] -->")){ # Подключение блока по его алиасу
+							$result[$n] = get($result, $n). $result["<!-- [block:{$v['id']}] -->"];
+						} if($n = "<!-- [blocks:". $v['reg_id'] . "] -->"){ # Все блоки региона
+							$result[$n] = get($result, $n). $result["<!-- [block:{$v['id']}] -->"];
+						} if(array_key_exists($v['reg_id'], $reg) && array_key_exists($n = "<!-- [blocks:". $reg[ $v['reg_id'] ]['reg_id']. "] -->", $result)){ # Блоки вышестоящего региона
 							$result[$n] .= strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
 						}else{
 							$result[$n] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
@@ -342,7 +366,7 @@ set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 	); mpre(get($errortype, $errno). " ($errno)", $errmsg, $filename/*, get($conf, 'settings', 'data-file')*/, $linenum/*, debug_backtrace()*/);
 });
 function mpzam($ar, $name = null, $prefix = "{", $postfix = "}", $separator = ":"){ # Создание из много мерного массиива - одномерного. Применяется для подставки в текстах отправляемых писем данных из массивов
-	$f = function($ar, $prx = "") use(&$f, $prefix, $postfix, $name){
+	$f = function($ar, $prx = "") use(&$f, $prefix, $postfix, $separator, $name){
 		$r = array();
 		foreach($ar as $k=>$v){
 			$pr = ($prx ? $prx.":".$k : $k);
@@ -618,14 +642,13 @@ function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
 		($sel = qn($sql = "SELECT `id` FROM `". mpquot($tn). "` WHERE ". $fnd))
 	){
 		if((count($sel) == 1) && ($s = array_shift($sel))){
-			if($update && ($upd = mpdbf($tn, $update)))
+			if($update && ($upd = mpdbf($tn, $update))){
 				qw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE `id`=". (int)$s['id']);
-			return $s['id'];
+			} return $s['id'];
 		}else{ # Множественное обновление. Если в качестве условия используется несколько элементов
 			if($update && ($upd = mpdbf($tn, $update))){
 				qw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE `id` IN (". implode(",", array_keys($sel)). ")");
-			}
-			return array_keys($sel);
+			} return array_keys($sel);
 		}
 	}elseif($insert){
 		qw($sql = "INSERT INTO `". mpquot($tn). "` SET ". mpdbf($tn, $insert+array("time"=>time(), "uid"=>(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0))));
@@ -980,10 +1003,14 @@ function mpdbf($tn, $post = null, $and = false){
 			$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
 		}elseif(array_key_exists($k, $fields)){
 			if(is_array($v)){
-				$f[] = "`$k` IN (". mpquot(strtr(implode(",", $v), array("<"=>"&lt;", ">"=>"&gt;"))). ")";
-			}else/* if(gettype($v) == "string")*/{
-				if($v == "NULL"){
-					$f[] = ($and ? "`$k` IS NULL" : "`$k`={$v}");
+				if(mp_is_assoc($v)){
+					$f[] = "`$k` IN (". mpquot(strtr(implode(",", $v), array("<"=>"&lt;", ">"=>"&gt;"))). ")";
+				}else{
+					$f[] = "`$k`=\"". mpquot(strtr(implode(",", $v), array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
+				}
+			}else{
+				if($v === null){
+					$f[] = ($and ? "`$k` IS NULL" : "`$k`=NULL");
 				}elseif(is_int($v)){
 					$f[] = "`$k`=". $v;
 				}else{

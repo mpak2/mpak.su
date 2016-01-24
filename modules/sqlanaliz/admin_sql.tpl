@@ -116,7 +116,10 @@
 					<script src="/include/jquery/jquery.iframe-post-form.js"></script>
 					<script sync>
 						(function($, script){
-							$(script).parent().one("init", function(e){
+							$(script).parent().on("change", "select[name=query]", function(e){
+								var query = $(e.currentTarget).find("option:selected").val();
+								$(e.delegateTarget).find("textarea").val(query);
+							}).one("init", function(e){
 								setTimeout(function(){
 									$(e.delegateTarget).iframePostForm({
 										complete:function(data){
@@ -136,6 +139,14 @@
 							}).trigger("init")
 						})(jQuery, document.scripts[document.scripts.length-1])
 					</script>
+					<p>
+						<select name="query" style="width:100%;">
+							<option></option>
+							<? foreach(rb("query") as $query): ?>
+								<option><?=$query['query']?></option>
+							<? endforeach; ?>
+						</select>
+					</p>
 					<p><textarea name="sql" style="width:100%; height:100px;" placeholder="Текст запроса"></textarea></p>
 					<p><button>Выполнить</button></p>
 				</form>

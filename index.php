@@ -185,7 +185,7 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 		if($seo_location['location_status_id'] && ($seo_location_status = rb("{$conf['db']['prefix']}seo_location_status", "id", $seo_location['location_status_id']))){
 			if($seo_index = rb("{$conf['db']['prefix']}seo_index", "id", $seo_location['index_id'])){
 				header("Debug info:". __FILE__. ":". __LINE__);
-				header("HTTP/1.1 {$seo_location_status['name']} {$seo_location_status['description']}");
+				header("HTTP/1.1 {$seo_location_status['id']} {$seo_location_status['name']}");
 				exit(header("Location: {$seo_index['name']}"));
 			}
 		}

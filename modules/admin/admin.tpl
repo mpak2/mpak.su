@@ -162,7 +162,7 @@
 									try{
 										if(json = jQuery.parseJSON(data)){
 											console.log("json:", json);
-											document.location.href = "/<?=$arg['modpath']?>:<?=$arg['fe']?>/r:<?=$_GET['r']?>?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'order') ? "&order={$_GET['order']}" : "")?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : '')?>";
+											document.location.href = "/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'order') ? "&order={$_GET['order']}" : "")?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : '')?>";
 										}
 									}catch(e){
 										if(isNaN(data)){
@@ -191,7 +191,7 @@
 						<span><?=$tpl['pager']?></span>
 					<? endif; ?>
 					<span style="width:30%; padding-right:20px; text-align:right;">
-						<? foreach(mpreaddir("/modules/{$arg['modpath']}/", true) as $_file): ?>
+						<? foreach(array_unique(mpreaddir("/modules/{$arg['modpath']}", 1)) as $_file): ?>
 							<? if((strpos($_file, "admin_") === 0) && (last(explode(".", $_file)) == "tpl")): ?>
 								<a href="/<?=$arg['modpath']?>:<?=($_short = first(explode(".", $_file)))?>"><?=implode("_", (array_slice(explode("_", $_short), 1)))?></a>
 							<? endif; ?>
@@ -396,7 +396,7 @@
 												<span style="color:red;"><?=$v?></span>
 											<? endif; ?>
 										<? elseif(get($tpl, 'espisok', $k)): ?>
-											<a class="ekey" href="/<?=array_shift(explode("_", $k))?>:admin/r:<?=$conf['db']['prefix']?><?=$k?>?&where[id]=<?=$v?>" title="<?=$v?>"></a>
+											<a class="ekey" href="/<?=first(explode("_", $k))?>:admin/r:<?=$conf['db']['prefix']?><?=$k?>?&where[id]=<?=$v?>" title="<?=$v?>"></a>
 											<? if($name = get($tpl, 'espisok', $k, $v, 'name')): ?>
 												<?=(strlen($name) > 16 ? mb_substr($name, 0, 16, "UTF-8"). "..." : $name)?>
 											<? endif; ?>
