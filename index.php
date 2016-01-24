@@ -11,7 +11,6 @@
 // ----------------------------------------------------------------------
 
 ini_set('display_errors', 1); error_reporting(E_ALL /*& ~E_NOTICE & ~E_STRICT*/);
-header('Content-Type: text/html;charset=UTF-8');
 date_default_timezone_set('Europe/Moscow');
 
 if(strpos($f = __FILE__, "phar://") === 0){ # Файл index.php внутри phar архива
@@ -40,6 +39,23 @@ if(!function_exists('mp_require_once')){
 //require_once("include/config.php"); # Конфигурация
 mp_require_once("include/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
+
+//Обращение к файлу в корне (webroot)
+if(preg_match("#\/[\w\d\-\_\%\.]+\.\w+$#i",$_SERVER['REDIRECT_URL'])){
+	$REDIRECT_URL = urldecode(preg_replace("#\.\.\/#iu","",$_SERVER['REDIRECT_URL']));
+	foreach(explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) as $v){
+		if(file_exists("$v/webroot$REDIRECT_URL")){
+			if(preg_match("#\.php$#iu",$REDIRECT_URL)){
+				include("$v/webroot$REDIRECT_URL");				
+			}else{
+				file_download("$v/webroot$REDIRECT_URL");
+			}
+			exit();
+		}
+	}
+}
+
+header('Content-Type: text/html;charset=UTF-8');
 
 if(!function_exists('__autoload')){
 	function __autoload($class_name){#Автоподгрузка классов
