@@ -92,11 +92,9 @@ function inc($file_name, $variables = array(), $req = false){
 	$_arg = $arg; extract($variables);
 	if(preg_match("#(.*)(\.php|\.tpl|\.html)$#", $file_name, $match)){
 		if($f = mpopendir($file_name)){
-			if(empty($arg)){
-				if($path = explode("/", $file_name)){
-					if($path[0] == "modules"){
-						$arg = array("modpath"=>$path[1], "fn"=>first(explode(".", $path[2])));
-					}
+			if(!array_key_exists('arg', $variables)){ # Если не переопределяем список аргументов
+				if(($path = explode("/", $file_name)) && ($path[0] == "modules")){
+					$arg = array("modpath"=>$path[1], "fn"=>first(explode(".", $path[2])));
 				}
 			} if(array_search("Администратор", get($conf, 'user', 'gid'))){
 /*				if($block = rb($info = get($conf, 'blocks', 'info'), 'alias', "[{$arg['fn']}]")){ # Составление структуры всех подключаемых шаблонов
@@ -1412,7 +1410,9 @@ function mpqwt($result){
 	}; $tree($top, $tree, $func, $level, $line);
 }*/
 function mpquot($data){	
-	$data = stripslashes($data); /*	; Волшебные кавычки для входных данных GET/POST/Cookie. magic_quotes_gpc = On	*/
+	if(ini_get('magic_quotes_gpc')){
+		$data = stripslashes($data); //; Волшебные кавычки для входных данных GET/POST/Cookie. magic_quotes_gpc = On
+	}
 	$data = str_replace("\\", "\\\\", $data); 
 	$data = str_replace("'", "\'", $data); 
 	$data = str_replace('"', '\"', $data); 
