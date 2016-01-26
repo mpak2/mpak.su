@@ -942,7 +942,6 @@ function mpwr($tn, $get = null, $prefix = null){
 function mpmail(){
 	global $conf;
 	$fArgs = func_get_args();
-	exit(var_dump($fArgs));
 	if($conf['settings']['smtp'] OR isset($func_get_args[5])){		
 		return call_user_func_array('mpsmtp',$fArgs);
 	} 
