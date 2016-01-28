@@ -1,7 +1,15 @@
 <ul class="nl tabs">
 	<style>
 		ul.tabs li ul {position:absolute; display:none;}
-		ul.tabs li:hover ul {display:block; width:inherit;}
+		ul.tabs li:hover ul {
+			display: block;
+			width: inherit;
+			border: 1px solid #DBDBDD;
+			border-top: none;
+			-webkit-box-shadow: 0px 14px 16px 0px rgba(50, 50, 50, 0.45);
+			-moz-box-shadow: 0px 14px 16px 0px rgba(50, 50, 50, 0.45);
+			box-shadow: 0px 14px 16px 0px rgba(50, 50, 50, 0.45);
+		}
 		ul.tabs li:hover ul li {background-color:white; z-index:999;}
 		ul.tabs > li.sub > a:after {content:'↵';};
 	</style>
