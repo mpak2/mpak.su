@@ -44,6 +44,8 @@ $logo = array(
 	"semanticbot.png"=>"semanticbot",
 	"tobbot.png"=>"tobbot.com",
 	"studydoc.png"=>"studydoc.ru",
+	"applebot.png"=>"applebot",
+	"mfisoft.png"=>"mfisoft.ru",
 
 	"yandexmetrika.png"=>"YandexMetrika",
 	"yandex.png"=>"Yandex",

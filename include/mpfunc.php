@@ -1,4 +1,41 @@
 <?
+
+# Изменяет мета информацию страницы
+# Первый аргумент (массив) или внешний адрес на сайте $_SERVER['REQUEST_URI'], второй параметр - установка метаинформации, третий - обновление ранее установленной
+//if($meta = meta(array('/внешний-адрес', $_SERVER['REQUEST_URI']), $w = array('title'=>'Заголовок сайта', 'description'=>'Мета описание', 'keywords'=>'Мета ключевики') /*,$w Если надо обновить*/ )){
+//	exit(header("Location: {$meta[0]}")); # Пересылаем на вновь прописанный адрес страницы
+//}
+function meta($where, $insert = null, $update = null){
+	global $conf;
+	if(is_string($where)){ $where = array("index"=>$where); };// mpre($where);
+	if("/" != substr($index = get($where, 0), 0, 1)){
+		mpre("Ошибочный формат внешнего адреса index &laquo;". get($where, 'index'). "&raquo;");
+	}else if("/" != substr($location = get($where, 1), 0, 1)){
+		mpre("Ошибочный формат внутреннего адреса location &laquo;". get($where, 'location'). "&raquo;");
+	}elseif($seo_index = fk("{$conf['db']['prefix']}seo_index", $w = array("name"=>$index), $w)){
+		if(array_key_exists('location_id', $seo_index)){
+			mpre("Односайтовый режим", $seo_index);
+//			$seo_index = rb("{$conf['db']['prefix']}seo_index", 'index_id', 'id', $seo_index['id']);
+		}else if($themes_index = $conf['user']['sess']['themes_index']){
+			if($tpl['seo_index_themes'] = rb("{$conf['db']['prefix']}seo_index_themes", "index_id", "themes_index", "id", $seo_index['id'], $themes_index['id'])){
+				if((1 == count($tpl['seo_index_themes'])) && ($seo_index_themes = array_pop($tpl['seo_index_themes']))){
+					if($update){
+						return fk("{$conf['db']['prefix']}seo_index_themes", array("id"=>$seo_index_themes['id']), null, $update);
+					}else if(!$insert){ return $seo_index_themes; /* Нет не установки не обновления */ }else{ return false; }
+				}else{ mpre("Ошибка структуры метаинформации (множественная информация для одного адреса)", $w); }
+			}elseif($seo_location = fk("{$conf['db']['prefix']}seo_location", $w = array("name"=>$location), $w)){
+				if($seo_index_themes = fk("{$conf['db']['prefix']}seo_index_themes", $w = array("index_id"=>$seo_index['id'], "location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id']), $w + (array)$insert, $w + (array)$update)){
+					if($seo_location_themes = fk("{$conf['db']['prefix']}seo_location_themes", $w = array("location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id'], "index_id"=>$seo_index['id']), $w)){
+						if($seo_index_themes = fk("{$conf['db']['prefix']}seo_index_themes", $w = array("index_id"=>$seo_index['id'], "location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id']), $w)){
+							return $where + $seo_index_themes;
+						}else{ mpre("Ошибка установка метаинформации", $w); }
+					}else{ mpre("Ошибка добавления перенаправления", $w); }
+				}else{ mpre("Ошибка добавления метаинвормауции", $w + $insert + $update); }
+			}else{ mpre("Ошибка добавления внутреннего адреса"); }
+		}else{ return null; }
+	}else{ mpre("Неизвестная ошибка"); }
+}
+
 //функция скачки файла (чтение файла идет по 5метров)
 function file_download ($file,$filename,$mimetype='application/octet-stream') {
    if(!$filename) $filename = preg_replace("#.*\/([^\/]+)$#iu",'$1',$file);
@@ -94,7 +131,7 @@ function inc($file_name, $variables = array(), $req = false){
 		if($f = mpopendir($file_name)){
 			if(!array_key_exists('arg', $variables)){ # Если не переопределяем список аргументов
 				if(($path = explode("/", $file_name)) && ($path[0] == "modules")){
-					$arg = array("modpath"=>$path[1], "fn"=>first(explode(".", $path[2])));
+					$arg = array("modpath"=>$path[1], 'modname'=>mb_strtolower(get($conf, 'modules', $path[1], 'name')), "fn"=>first(explode(".", $path[2])));
 				}
 			} if(array_search("Администратор", get($conf, 'user', 'gid'))){
 /*				if($block = rb($info = get($conf, 'blocks', 'info'), 'alias', "[{$arg['fn']}]")){ # Составление структуры всех подключаемых шаблонов
@@ -135,7 +172,29 @@ function inc($file_name, $variables = array(), $req = false){
 
 # Функция определения seo вдреса страницы. Если адрес не определен в таблице seo_redirect то false
 # Параметр return определяет возвращать ли ссылку обратно если переадресация не найдена
+
 function seo($href, $return = true){
+	global $conf;
+	if($seo_location = rb("{$conf['db']['prefix']}seo_location", "name", "[{$href}]")){
+		if(false && array_key_exists("index_id", $seo_location) && $seo_location['index_id']){ # Односайтовый режим
+			if($tpl['index'] = rb('index', 'id', 'id', $seo_location['index_id'])){
+				if((count($tpl['index']) == 1) && ($index = array_shift($tpl['index']))){
+					return $index['name'];
+				}else{ return $href; }
+			}else{ return $href; }
+		}elseif($themes_index = $conf['user']['sess']['themes_index']){ # МногоСайтов
+			if($tpl['seo_index_themes'] = rb("{$conf['db']['prefix']}seo_index_themes", "location_id", "themes_index", "id", $seo_location['id'], $themes_index['id'])){
+				if((count($tpl['seo_index_themes']) == 1) && ($seo_index_themes = array_shift($tpl['seo_index_themes']))){
+					if($index = rb("{$conf['db']['prefix']}seo_index", "id", $seo_index_themes['index_id'])){
+						return $index['name'];
+					}
+				}else{ return $href; }
+			}else{ return $href; }
+		}else{ return $href; }
+	}else{ return $href; }
+}
+
+/*function seo($href, $return = true){
 	global $conf;
 	if($themes_index = $conf['user']['sess']['themes_index']){
 		if($tpl['seo_location'] = rb("{$conf['db']['prefix']}seo_location", "name", "id", "[{$href}]")){
@@ -150,7 +209,7 @@ function seo($href, $return = true){
 			return $seo_index['name'];
 		}else{ return ($return ? $href : false); }
 	}
-}
+}*/
 
 if (!function_exists('mcont')){
 	function mcont($content){ # Загрузка содержимого модуля
@@ -599,7 +658,7 @@ function erb($src, $key = 'id'){
 			$where = array_map(function($key, $val){
 				return "`{$key}`". (is_array($val) ? " IN (". in($val). ")" : "=". (int)$val);
 			}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
-			$src = qn($sql = "SELECT * FROM `{$tab}`". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = array_key_exists($n = substr($src, strlen($conf['db']['prefix'])). "=>order", $conf['settings']) ? $conf['settings'][$n] : "") ? " ORDER BY ". mpquot($order) : ""). " LIMIT ". (int)(array_key_exists('p', $_GET) ? $_GET['p']*$key : 0). ",". (int)$key,$IdName);
+			$src = qn($sql = "SELECT * FROM `{$tab}`". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = get($conf, 'settings', substr($src, strlen($conf['db']['prefix'])). "=>order") ?: "") ? " ORDER BY ". mpquot($order) : ""). " LIMIT ". (int)(array_key_exists('p', $_GET) ? $_GET['p']*$key : 0). ",". (int)$key,$IdName);
 			$tpl['pager'] = $conf['pager'] = mpager($cnt = ql($sql = "SELECT COUNT(*) AS cnt FROM `{$tab}`". ($where ? " WHERE ". implode(" AND ", $where) : ""), 0, "cnt")/$key);
 		}
 	}else if(is_string($src)){
@@ -937,9 +996,9 @@ function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.p
 		);
 	}// mpre($file);
 	if($file['error'] === 0){
-		if ($exts[ $file['type'] ] || isset($exts['*'])){
-			if(!($ext = $exts[ $file['type'] ])){
-				$ext = '.'. array_pop(explode('.', $file['name']));
+		if(($ext = get($exts, $file['type'] )) || get($exts, '*')){
+			if(!strlen($ext)){
+				$ext = '.'. last(explode('.', $file['name']));
 			} $f = "{$tn}_{$fn}_". (int)($img_id = mpfdk($tn, $w = array("id"=>$id), $w += array("time"=>time(), "uid"=>$conf['user']['uid']), $w)). $ext;
 			if(($ufn = mpopendir('include/images')) && move_uploaded_file($file['tmp_name'], "$ufn/$f")){
 				/*if($img_id != $id)*/ mpqw($sql = "UPDATE {$tn} SET `". mpquot($fn). "`=\"". mpquot($return = "images/$f"). "\" WHERE id=". (int)$img_id);
@@ -1025,7 +1084,7 @@ function mpdbf($tn, $post = null, $and = false){
 	if(!isset($post)) $post = $_POST;
 	foreach(mpql(mpqw("SHOW COLUMNS FROM `$tn`")) as $k=>$v){
 		$fields[$v['Field']] = $v['Type'];
-	} foreach($post AS $k=>$v){
+	} foreach((array)$post AS $k=>$v){
 		if(!empty($conf['settings']['analizsql_autofields']) && $conf['settings']['analizsql_autofields'] && !array_key_exists($k, $fields) && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false){
 			mpqw($sql = "ALTER TABLE `$tn` ADD `$k` ". (is_numeric($v) ? "INT" : "varchar(255)"). " NOT NULL"); echo "\n<br>". $sql;
 			$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
@@ -1050,13 +1109,13 @@ function mpdbf($tn, $post = null, $and = false){
 }
 function mpager($count, $null=null, $cur=null, $url=null){
 	global $conf;
-	$p = (strpos($_SERVER['HTTP_HOST'], "xn--") === 0) ? "стр" : "p";
+	$p = (strpos(get($_SERVER, 'HTTP_HOST'), "xn--") === 0) ? "стр" : "p";
 	if ($cur === null) $cur = (array_key_exists($p, $_GET) ? $_GET[$p] : 0);
 	if ($url === null){
 		if(array_key_exists($p, $_GET)){
 			$url = strtr($u = urldecode($_SERVER['REQUEST_URI']), array("/{$p}:{$_GET[$p]}"=>'', "&{$p}={$_GET[$p]}"=>''));
 		}else{
-			$url = $u = urldecode($_SERVER['REQUEST_URI']);
+			$url = $u = urldecode(get($_SERVER, 'REQUEST_URI'));
 		}
 	}
 	if ($null){
@@ -1065,7 +1124,7 @@ function mpager($count, $null=null, $cur=null, $url=null){
 		$url = strtr($url, array("/null"=>"", "&null"=>"", "?null"=>""));
 	}
 	if(2 > $count = ceil($count)) return;
-	$return = "<script>$(function(){ $(\".pager\").find(\"a[href='". urldecode($_SERVER['REQUEST_URI']). "']\").addClass(\"active\").css(\"font-weight\", \"bold\"); })</script>";
+	$return = "<script>$(function(){ $(\".pager\").find(\"a[href='". urldecode(get($_SERVER, 'REQUEST_URI')). "']\").addClass(\"active\").css(\"font-weight\", \"bold\"); })</script>";
 	$return .=  "<div class=\"pager\">";
 	$mpager['first'] = $url;
 	$return .= "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>";
@@ -1079,7 +1138,7 @@ function mpager($count, $null=null, $cur=null, $url=null){
 	$mpager['next'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". min($max-1, $cur+1)) : '');
 	$mpager['last'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($count-1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". ($count-1)) : '');
 	$return .= "</div>";
-	if(($fn = mpopendir("themes/{$conf['settings']['theme']}/mpager.tpl")) || ($fn = mpopendir("themes/zhiraf/mpager.tpl"))){
+	if((($theme = get($conf, 'settings', 'theme')) && ($fn = mpopendir("themes/{$theme}/mpager.tpl"))) || ($fn = mpopendir("themes/zhiraf/mpager.tpl"))){
 		ob_start();
 		include($fn);
 		$return = ob_get_contents();

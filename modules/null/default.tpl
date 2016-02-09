@@ -1,22 +1,8 @@
-<? if($f = rb($arg['fn'], "id", $_GET['id'])): ?>
-	<?=aedit("/{$arg['modname']}:admin/r:{$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']}?where[id]={$f['id']}")?>
-	<a href="/<?=$arg['modname']?>:<?=$arg['fn']?>"><?=$conf['settings']["{$arg['modname']}_{$arg['fn']}"]?></a> &raquo;
-	<h1><?=$f['name']?></h1>
-	<? if($f['img']): ?>
-		<img src="/<?=$arg['modname']?>:img/<?=$f['id']?>/tn:<?=$arg['fn']?>/fn:img/w:200/h:200/null/img.png" style="float:right;">
-	<? endif; ?>
-	<p><?=$f['description']?></p>
-	<p><?=$f['text']?></p>
-<? else: ?>
-	<h1><?=$conf['settings']["{$arg['modname']}_{$arg['fn']}"]?></h1>
-	<ul>
-		<? foreach(rb($arg['fn']) as $f): ?>
-			<li>
-				<a href="/<?=$arg['modname']?>:<?=$arg['fn']?>/<?=$f['id']?>">
-					<?=$f['name']?>
-				</a>
-				<p><?=$f['description']?></p>
-			</li>
-		<? endforeach; ?>
-	</ul>
+<? if($default = rb($arg['fn'], "id", get($_GET, "id"))): ?>
+	<?=aedit("/{$arg['modpath']}:admin/r:{$conf['db']['prefix']}{$arg['modpath']}_{$arg['fn']}?&where[id]={$default['id']}")?>
+	<h1><?=($conf['settings']['title'] = ($n = get($conf, 'settings', "{$arg['modpath']}_{$arg['fn']}")). " &laquo;{$default['name']}&raquo;")?></h1>
+	<p><?=$default['text']?></p>
+	<div style="margin-left:20px;">
+		<? inc("modules/{$arg['modpath']}/default/{$arg['fn']}.tpl", array('default'=>$default)) ?>
+	</div>
 <? endif; ?>

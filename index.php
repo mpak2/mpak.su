@@ -13,16 +13,16 @@
 ini_set('display_errors', 1); error_reporting(E_ALL /*& ~E_NOTICE & ~E_STRICT*/);
 date_default_timezone_set('Europe/Moscow');
 
-if(strpos($f = __FILE__, "phar://") === 0){ # Файл index.php внутри phar архива
-	if(!isset($index) && ($index = implode("/", array_slice(explode("/", dirname(dirname($f))), 2)). '/index.php') && file_exists($index)){
+if(strpos(__DIR__, "phar://") === 0){ # Файл index.php внутри phar архива
+	if(!isset($index) && ($index = './index.php') && file_exists($index)){
 		include $index; if($content) die;
-	} $conf["db"]["open_basedir"] = dirname($index). ":". dirname($f). ":". dirname($f);
+	} $conf["db"]["open_basedir"] = implode("/", array_slice(explode("/", dirname(__DIR__)), 2)). ":". __DIR__;
 }else{ # Не в phar
 	if(file_exists($phar = __DIR__. "/index.phar")){
 		$conf["db"]["open_basedir"] = "phar://{$phar}";
-		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: dirname($f)). ":". $conf["db"]["open_basedir"];
+		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: __DIR__). ":". $conf["db"]["open_basedir"];
 	}else{
-		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: dirname($f));
+		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: __DIR__);
 	}
 }
 
@@ -36,7 +36,6 @@ if(!function_exists('mp_require_once')){
 	}
 }
 
-//require_once("include/config.php"); # Конфигурация
 mp_require_once("include/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
 
@@ -70,7 +69,7 @@ try{
 		$conf['db']['conn'] = new PDO("{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC));
 		$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
 		$tpl['tables'] = array_column(ql("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\""), "Tables_in_{$conf['db']['name']}");
-	} $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI'], $_GET);
+	} $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']);
 }catch(Exception $e){
 	pre("Ошибка подключения к базе данных");
 } if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !$tpl['tables']){
@@ -80,8 +79,8 @@ try{
 $conf['db']['info'] = 'Загрузка свойств модулей';
 $conf['settings'] = array('http_host'=>(function_exists("idn_to_utf8") ? idn_to_utf8($_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST']))+array_column(rb("{$conf['db']['prefix']}settings"), "value", "name");
 $conf['settings']['access_array'] = array('0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ');
+$conf['settings']['microtime'] = microtime(true);
 if($conf['settings']['users_log']) $conf['event'] = rb("{$conf['db']['prefix']}users_event", "name");
-if ($conf['settings']['microtime']) $conf['settings']['microtime'] = microtime();
 
 if($conf['settings']['del_sess']){
 	$func = create_function('&$val, $key','$val = strtr(stripslashes($val), array("\\\\"=>"&#92;", \'"\'=>"&#34;", "\'"=>"&#39;"));');
@@ -178,7 +177,7 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 			header("Debug info:". __FILE__. ":". __LINE__);
 			exit(header("Location: {$redirect['to']}"));
 		}else if($seo_index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $redirect['index_type_id'])){
-			if($seo_location = rb("{$conf['db']['prefix']}seo_location", "id", $redirect['location_id'])){
+			if(get($redirect, 'location_id') && ($seo_location = rb("{$conf['db']['prefix']}seo_location", "id", $redirect['location_id']))){
 				$conf['settings']['description'] = get($redirect, 'description') ?: $conf['settings']['description'];
 				$conf['settings']['keywords'] = get($redirect, 'keywords') ?: $conf['settings']['keywords'];
 				$_REQUEST = ($_GET = mpgt($conf['settings']['canonical'] = $seo_location['name'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"))+$_REQUEST);
@@ -267,21 +266,17 @@ if(!array_key_exists('null', $_GET)){
 	$content = str_replace('<!-- [modules] -->', $content, $tc);
 } $content = strtr($content, (array)$zblocks);
 
-if ($conf['settings']['microtime']){
-	$conf['settings']['microtime'] = (substr(microtime(), strpos(microtime(), ' ')) - substr($conf['settings']['microtime'], strpos($conf['settings']['microtime'], ' ')) + microtime() - $conf['settings']['microtime']);
-}
- 
+$conf['settings']['microtime'] = substr(microtime(true)-$conf['settings']['microtime'], 0, 8);
 
-$aid = qn("SELECT id, aid FROM {$conf['db']['prefix']}settings", "aid", "id");
-foreach($conf['settings'] as $k=>$v){
+/*foreach($conf['settings'] as $k=>$v){
 	if(is_string($v)){
 		$content = str_replace("<!-- [settings:$k] -->", $v, $content);
 	}	
-} if(!array_key_exists("nocache", $_REQUEST)){
+}*/ if(!array_key_exists("nocache", $_REQUEST)){
 	if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && !array_search("Зарегистрированные", $conf['user']['gid'])){
 		exit(header('HTTP/1.0 304 Not Modified'));
 	}else if(!array_search("Зарегистрированные", $conf['user']['gid'])){ # Исключаем админстраницу из кеширования
 		header('Last-Modified: '. date("r"));
 		header("Expires: ".gmdate("r", time() + array_key_exists("themes_expires", $conf['settings']) ? $conf['settings']['themes_expires'] : 86400));
 	}
-} echo $content;
+} echo array_key_exists("null", $_GET) ? $content : strtr($content, mpzam($conf['settings'], "settings", "<!-- [", "] -->"));

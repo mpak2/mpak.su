@@ -95,7 +95,7 @@
 					});
 				}).on("click", "a.dec", function(e){
 					var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
-					$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null?<? foreach(get('where', $_GET) ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>", {dec:line_id}, function(request){
+					$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>", {dec:line_id}, function(request){
 							console.log("request:", request);
 							var main = $(e.currentTarget).parents("[line_id]");
 							var next = $(main).next("[line_id]");
@@ -191,14 +191,16 @@
 						<span><?=$tpl['pager']?></span>
 					<? endif; ?>
 					<span style="width:30%; padding-right:20px; text-align:right;">
-						<? foreach(array_unique(mpreaddir("/modules/{$arg['modpath']}", 1)) as $_file): ?>
-							<? if((strpos($_file, "admin_") === 0) && (last(explode(".", $_file)) == "tpl")): ?>
-								<a href="/<?=$arg['modpath']?>:<?=($_short = first(explode(".", $_file)))?>"><?=implode("_", (array_slice(explode("_", $_short), 1)))?></a>
-							<? endif; ?>
-						<? endforeach; ?>
-						<a href="/sqlanaliz:admin_sql/r:<?=$_GET['r']?>">
-							<?=(get($conf, 'settings',  $t = implode("_", array_slice(explode("_", $_GET['r']), 1))) ?: $t)?>
-						</a>
+						<? if($t = implode("_", array_slice(explode("_", $_GET['r']), 1))): # Короткое имя текущей таблицы ?>
+							<? foreach(array_unique(array_map(function($f){ return first(explode('.', $f)); }, mpreaddir("/modules/{$arg['modpath']}", 1))) as $f): ?>
+								<? if((strpos($f, "admin_") === 0) && ($fl = implode('_', array_slice(explode('_', $f), 1))) && ($tl = implode('_', array_slice(explode('_', $t), 1))) && (strpos($fl, $tl) === 0)): # Адреса страниц начинающихся на admin_ и совпадающие с текущей таблицуй ?>
+									<a href="/<?=$arg['modpath']?>:<?=$f?><?=(($id = get($_GET, 'where', 'id')) ? "/{$id}" : "")?>"><?=implode("_", (array_slice(explode("_", $f), 1)))?></a>
+								<? endif; ?>
+							<? endforeach; ?>
+							<a href="/sqlanaliz:admin_sql/r:<?=$_GET['r']?>">
+								<?=(get($conf, 'settings',  $t) ?: $t)?>
+							</a>
+						<? endif; ?>
 					</span>
 				</div>
 			</div>
@@ -297,7 +299,7 @@
 									<span class="info" title="<?=$field['Comment']?>">?</span>
 								<? endif; ?>
 								<? if(substr($fiel, 0, 2) == "__"): ?>
-									<span title="<?=substr($fiel, 2)?>">_<?=($conf['settings'][substr($fiel, 2)] ?: substr($fiel, 2))?></span>
+									<span title="<?=substr($fiel, 2)?>">_<?=(get($conf, 'settings', substr($fiel, 2)) ?: substr($fiel, 2))?></span>
 								<? elseif(substr($fiel, 0, 1) == "_"): ?>
 									<span title="<?=substr($fiel, 1)?>"><?=(get($conf, 'settings', "{$arg['modpath']}_". substr($fiel, 1)) ?: substr($fiel, 1))?></span>
 								<? elseif(get($tpl, 'etitle')): ?>

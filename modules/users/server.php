@@ -1,6 +1,6 @@
 <?
 
-echo "<pre>"; print_r($_SERVER); echo "</pre>";
-echo "<pre>"; print_r($conf['user']); echo "</pre>";
+pre(apache_request_headers());
+pre($_SERVER);
+pre($conf['user']);
 
-?>

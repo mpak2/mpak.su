@@ -4,12 +4,12 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 	if(get($_GET, "id") && array_key_exists("id", $_POST) && !$_POST['id']){ # Удаление элемента
 		exit(qw("DELETE FROM {$_GET['r']} WHERE id=". (int)$_GET['id']));
 	}elseif(get($_POST, "inc") && ($inc = rb($_GET['r'], "id", $_POST['inc']))){ # Правка записи и добавление новой
-		if($dec = ql($sql = "SELECT * FROM {$_GET['r']} WHERE sort<". (int)$inc['sort']. " AND ". (mpdbf($_GET['r'], $_GET['where'], true) ?: 1). " ORDER BY ". ($_GET['order'] ?: "sort"). " DESC LIMIT 1", 0)){
+		if($dec = ql($sql = "SELECT * FROM {$_GET['r']} WHERE sort<". (int)$inc['sort']. " AND ". (mpdbf($_GET['r'], get($_GET, 'where'), true) ?: 1). " ORDER BY ". (get($_GET, 'order') ?: "sort"). " DESC LIMIT 1", 0)){
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
 		} exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
 	}elseif(get($_POST, "dec") && ($dec = rb($_GET['r'], "id", $_POST['dec']))){ # Правка записи и добавление новой
-		if($inc = ql("SELECT * FROM {$_GET['r']} WHERE sort>". (int)$dec['sort']. " AND ". (mpdbf($_GET['r'], $_GET['where'], true) ?: 1). " ORDER BY ". ($_GET['order'] ?: "sort"). " LIMIT 1", 0)){
+		if($inc = ql("SELECT * FROM {$_GET['r']} WHERE sort>". (int)$dec['sort']. " AND ". (($where = get($_GET, 'where')) ? mpdbf($_GET['r'], $where, true) : 1). " ORDER BY ". (get($_GET, 'order') ?: "sort"). " LIMIT 1", 0)){
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
 		} exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
