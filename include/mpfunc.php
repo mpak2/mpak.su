@@ -547,39 +547,80 @@ function mc($key, $function, $force = false){
 		if($force !== false) mpre($tmp);
 	} return $tmp;
 }
-function mpsmtp($to, $obj, $text, $login = null){ # Отправка письмо по SMTP протоколу
+function mpsmtp($to, $obj, $text, $from = null, $files = array(), $login = null){ # Отправка письмо по SMTP протоколу
 	global $conf;
 	ini_set("include_path", ini_get("include_path"). ":". "./include/mail/");
-	include_once("PEAR.php");
-	include_once("Mail.php");
+	require 'PHPMailerAutoload.php';
+	$mail = new PHPMailer;
+	$Providers = array(
+		'smtp.mail.ru'=>array('port'=>465,'host'=>'mail.ru'),
+		'smtp.yandex.ru'=>array('port'=>465,'host'=>'yandex.ru'),
+		'smtp.gmail.com'=>array('port'=>465,'host'=>'gmail.com'),
+	);	
 	$param = explode("@", $login ? $login : $conf['settings']['smtp']);
 	$host = explode(":", array_pop($param));
 	$auth = explode(":", implode("@", $param));
-	$mail = Mail::factory(
-		'smtp',
-		(!empty($smtp) ? $smtp : array (
-			'host' => $host[0],
-			'port' => $host[1],
-			'auth' => true,
-			'password' => $auth[1],
-			'username' => $auth[0],
-			'timeout'=>10,
-		))
-	);
-	if (PEAR::isError($mail)){
-		$return = $mail->getMessage();
-	} $m = $mail->send( $to,
-			(!empty($smtp) ? $smtp : array (
-				'From' => $auth[0],
-				'To' => $to,
-				'Subject' => '=?UTF-8?B?'.base64_encode($obj).'?=',
-				'Content-Type' =>'text/html;charset=utf-8',
-			)), $text);
-	if (PEAR::isError($m)){
-		$return = $m->getMessage();
+	if(!$from){
+		if (filter_var($auth[0], FILTER_VALIDATE_EMAIL)) {
+			//берем из логина в случае если это емайл
+			$from = $auth[0];
+		}else if(isset($Providers[$host[0]])){
+			//берем из уже известных нам провайдеров
+			$from = $auth[0] . "@" . $Providers[$host[0]]['host'];
+		}else{
+			//пытаемся угадать сами
+			$from = $auth[0] . "@" . trim(preg_replace("#smtp\.#iu","",$host[0]));
+		}
+	}	
+	$mail->isSMTP();
+	$mail->SMTPAuth = true;
+	$mail->Host = $host[0];
+	$mail->Username = $auth[0];
+	$mail->Password = $auth[1];
+	$mail->isHTML(true); 
+	$mail->setLanguage('ru');
+	$emailRegex = "[\w_\-\.]+@[\w_\-\.]+\.\w+";	
+	if(isset($Providers[$host[0]])){
+		$mail->SMTPSecure = 'ssl';
+		$mail->Port	= $Providers[$host[0]]['port'];
 	}else{
+		if(isset($host[1]) and in_array(intval(trim($host[1])),array(465,587))){
+			$mail->SMTPSecure = 'ssl'; 
+			$mail->Port = intval(trim($host[1]));
+		}else{
+			$mail->SMTPSecure = 'tls';
+			$mail->Port = isset($host[1]) ? intval(trim($host[1])) : 25;
+		}
+	}	
+	if(preg_match("#(.+)\s+?\<($emailRegex)\>#iu",trim($from),$from_))
+		$mail->setFrom($from_[2], $from_[1]);
+	else
+		$mail->setFrom($from);
+	foreach(explode(',',$to) as $recipient){
+		if(preg_match("#(.+)\s+?\<($emailRegex)\>#iu",trim($recipient),$recipient_))
+			$mail->addAddress($recipient_[2], $recipient_[1]);
+		else
+			$mail->addAddress($recipient);
+	}	
+	if(is_string($files))
+		$files = array($files);
+	foreach($files as $key => $filepath){
+		if(file_exists($filepath)){
+			if(is_int($key)){
+				$mail->addAttachment($filepath);
+			}else{
+				$mail->addAttachment($filepath,$key);
+			}
+		}
+	}	
+	$mail->Subject = $obj;
+	$mail->Body    = $text;
+	//$mail->AltBody = '____';
+	if(!$mail->send()) {
+		$return = 'Mailer Error: ' . $mail->ErrorInfo;
+	} else {
 		$return = 0;
-	} mpevent("SMTP электронное сообщение", $to, $conf['user']['uid'], func_get_args(), $return);
+	}
 	return $return;
 }
 function mpue($name){
@@ -956,15 +997,18 @@ function mpwr($tn, $get = null, $prefix = null){
 		}
 	} return $where;
 }*/
-function mpmail($to = '', $subj='Проверка', $text = 'Проверка', $from = ''){
+//mpmail($to = '', $subj='Проверка', $text = 'Проверка', $from = ''){
+function mpmail(){
 	global $conf;
-	if($conf['settings']['smtp']){
-		return mpsmtp($to, $subj, $text);
-	} mpevent("Отправка сообщения", $to, $conf['user']['uid'], debug_backtrace());
+	$fArgs = func_get_args();
+	if($conf['settings']['smtp'] OR isset($func_get_args[5])){		
+		return call_user_func_array('mpsmtp',$fArgs);
+	} 
+	mpevent("Отправка сообщения", $fArgs[0], $conf['user']['uid'], debug_backtrace());
 	if(empty($to)){ return false; }else{
-		$header = "Content-type:text/html; charset=UTF-8;". ($from ? " From: {$from};" : "");
-		mail($to, $subj, $text, $header/*, ($from ? "-f$from" : null)*/);
-		mpevent($conf['settings']['users_event_mail'], $to, $conf['user']['uid'], $subj, $text);
+		$header = "Content-type:text/html; charset=UTF-8;". ($fArgs[3] ? " From: {$fArgs[3]};" : "");
+		call_user_func_array('mail',$fArgs);
+		mpevent($conf['settings']['users_event_mail'], $fArgs[0], $conf['user']['uid'], $fArgs[1], $fArgs[2]);
 		return true;
 	}
 }
