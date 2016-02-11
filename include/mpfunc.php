@@ -547,10 +547,13 @@ function mc($key, $function, $force = false){
 		if($force !== false) mpre($tmp);
 	} return $tmp;
 }
+function mp_is_html($string){
+  return preg_match("/<[^<]+>/",$string,$m) != 0;
+}
 function mpsmtp($to, $obj, $text, $from = null, $files = array(), $login = null){ # Отправка письмо по SMTP протоколу
 	global $conf;
 	ini_set("include_path", ini_get("include_path"). ":". "./include/mail/");
-	require 'PHPMailerAutoload.php';
+	require_once 'PHPMailerAutoload.php';
 	$mail = new PHPMailer;
 	$Providers = array(
 		'smtp.mail.ru'=>array('port'=>465,'host'=>'mail.ru'),
@@ -577,7 +580,7 @@ function mpsmtp($to, $obj, $text, $from = null, $files = array(), $login = null)
 	$mail->Host = $host[0];
 	$mail->Username = $auth[0];
 	$mail->Password = $auth[1];
-	$mail->isHTML(true); 
+	$mail->isHTML(mp_is_html($text));
 	$mail->setLanguage('ru');
 	$emailRegex = "[\w_\-\.]+@[\w_\-\.]+\.\w+";	
 	if(isset($Providers[$host[0]])){
