@@ -2,6 +2,7 @@
 	<div class="themes yandex" yandex_id="<?=$yandex['id']?>">
 		<style>
 			.themes.yandex .active {background-color:#ddd;}
+			.table > div:hover {background-color:#ddd;}
 		</style>
 		<script sync>
 			(function($, script){
@@ -79,17 +80,15 @@
 						<span><?=get($yandex_webmaster, 'tcy')?></span>
 						<span>
 							<? if($yandex_webmaster): ?>
-								<a target="blank" href="https://webmaster.yandex.ru/site/?host=<?=$yandex_webmaster['id']?>"><?=$yandex_webmaster['id']?></a>
+								<a target="blank" href="https://webmaster.yandex.ru/site/verification.xml?host=<?=$yandex_webmaster['id']?>"><?=$yandex_webmaster['id']?></a>
 								<? if(($verification = get($yandex_webmaster, 'verification')) && ("VERIFIED" == $verification)): ?>
 									<?=get($yandex_webmaster, 'crawling')?>
-								<? else: ?>
-									<?=$verification?>
-								<? endif; ?>
+								<? else: echo($verification); endif; ?>
 							<? endif; ?>
 						</span>
 						<span>
 							<? if($yandex_metrika): ?>
-								<a target="blank" href="https://metrika.yandex.ru/dashboard?id=<?=$yandex_metrika['id']?>"><?=$yandex_metrika['id']?></a>
+								<a target="blank" href="=<?=$yandex_metrika['id']?>&host=<?=$yandex_metrika['id']?>"><?=$yandex_metrika['id']?></a>
 								<?=$yandex_metrika['code_status']?>
 							<? endif; ?>
 						</span>

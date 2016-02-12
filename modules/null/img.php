@@ -7,7 +7,7 @@ if(get($_GET, 'tn')){
 	} $sql = "SELECT `". mpquot($_GET['fn'] ? $_GET['fn'] : "img"). "` FROM {$conf['db']['prefix']}{$arg['modpath']}_{$tn[$_GET['tn']]} WHERE id=".(int)$_GET['id'];
 	$file_name = mpopendir("include")."/".($fn = mpql(mpqw($sql) , 0, ($_GET['fn'] ? $_GET['fn'] : "img")));
 	if(!array_search($exp = strtolower(last(explode('.', $file_name))), array(1=>"jpg", "jpeg", "png", "gif"))){
-		$file_name = mpopendir("img/ext/". last(explode('.', $file_name)). ".png");
+		$file_name = mpopendir($f = "img/no.". ($exp = "png"));
 	} if(!ob_get_length()){
 		header ("Content-type: image/{$exp}");
 	} echo mprs($file_name, (get($_GET, "w") ?: 0), (get($_GET, "h") ?: 0), (get($_GET, "c") ?: 0));

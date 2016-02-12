@@ -97,7 +97,7 @@ if($yandex = rb("yandex", "id", get($_GET, 'id'))){
 	}else{ mpre("Не назначен токен"); }
 }
 
-if(!tables($table = "{$conf['db']['prefix']}{$arg['modpath']}_yandex")){
+if(mpsettings($t = "{$arg['modpath']}_yandex", "Яндекс") && !tables($table = "{$conf['db']['prefix']}{$t}")){
 	qw("CREATE TABLE `{$table}` (
 		`id` int(11) NOT NULL AUTO_INCREMENT,
 		`time` int(11) NOT NULL,
@@ -109,7 +109,7 @@ if(!tables($table = "{$conf['db']['prefix']}{$arg['modpath']}_yandex")){
 		PRIMARY KEY (`id`),
 		KEY `yandex_token_id` (`yandex_token_id`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
-} if(!tables($table = "{$conf['db']['prefix']}{$arg['modpath']}_yandex_metrika")){
+} if(mpsettings($t = "{$arg['modpath']}_yandex_metrika", "Яндекс") && !tables($table = "{$conf['db']['prefix']}{$t}")){
 	qw("CREATE TABLE `{$table}` (
 		`id` int(11) NOT NULL AUTO_INCREMENT,
 		`time` int(11) NOT NULL,
@@ -123,7 +123,7 @@ if(!tables($table = "{$conf['db']['prefix']}{$arg['modpath']}_yandex")){
 		PRIMARY KEY (`id`),
 		KEY `index_id` (`index_id`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
-} if(!tables($table = "{$conf['db']['prefix']}{$arg['modpath']}_yandex_token")){
+} if(mpsettings($t = "{$arg['modpath']}_yandex_token", "Токен") && !tables($table = "{$conf['db']['prefix']}{$t}")){
 	qw("CREATE TABLE `{$table}` (
 		`id` int(11) NOT NULL AUTO_INCREMENT,
 		`time` int(11) NOT NULL,
@@ -135,7 +135,7 @@ if(!tables($table = "{$conf['db']['prefix']}{$arg['modpath']}_yandex")){
 		KEY `yandex_id` (`yandex_id`),
 		KEY `uid` (`uid`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
-} if(!tables($table = "{$conf['db']['prefix']}{$arg['modpath']}_yandex_tops")){
+} if(mpsettings($t = "{$arg['modpath']}_yandex_tops", "Запросы") && !tables($table = "{$conf['db']['prefix']}{$t}")){
 	qw("CREATE TABLE `{$table}` (
 		`id` int(11) NOT NULL AUTO_INCREMENT,
 		`time` int(11) NOT NULL,
@@ -145,7 +145,7 @@ if(!tables($table = "{$conf['db']['prefix']}{$arg['modpath']}_yandex")){
 		PRIMARY KEY (`id`),
 		UNIQUE KEY `name` (`name`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
-} if(!tables($table = "{$conf['db']['prefix']}{$arg['modpath']}_yandex_webmaster")){
+} if(mpsettings($t = "{$arg['modpath']}_yandex_webmaster", "Вебмастер") && !tables($table = "{$conf['db']['prefix']}{$t}")){
 	qw("CREATE TABLE `{$table}` (
 		`id` int(11) NOT NULL AUTO_INCREMENT,
 		`time` int(11) NOT NULL,
@@ -166,17 +166,7 @@ if(!tables($table = "{$conf['db']['prefix']}{$arg['modpath']}_yandex")){
 		KEY `url-errors` (`url-errors`),
 		KEY `internal-links-count` (`internal-links-count`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
-} if(!tables($table = "{$conf['db']['prefix']}{$arg['modpath']}_yandex_tops")){
-	qw("CREATE TABLE `{$table}` (
-		`id` int(11) NOT NULL AUTO_INCREMENT,
-		`time` int(11) NOT NULL,
-		`up` int(11) NOT NULL,
-		`uid` int(11) NOT NULL,
-		`name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-		PRIMARY KEY (`id`),
-		UNIQUE KEY `name` (`name`)
-	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
-} if(!tables($table = "{$conf['db']['prefix']}{$arg['modpath']}_yandex_tops_index")){
+} if(mpsettings($t = "{$arg['modpath']}_yandex_tops_index", "Индексация") && !tables($table = "{$conf['db']['prefix']}{$t}")){
 	qw("CREATE TABLE `mp_themes_yandex_tops_index` (
 		`id` int(11) NOT NULL AUTO_INCREMENT,
 		`time` int(11) NOT NULL,
@@ -196,4 +186,13 @@ if(!tables($table = "{$conf['db']['prefix']}{$arg['modpath']}_yandex")){
 		KEY `view` (`view`),
 		KEY `clicks` (`clicks`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+} if(mpsettings($t = "{$arg['modpath']}_yandex_metrika_index", "Счетчики") && !tables($table = "{$conf['db']['prefix']}{$t}")){
+	qw("CREATE TABLE `{$table}` (
+		`id` int(11) NOT NULL AUTO_INCREMENT,
+		`time` int(11) NOT NULL,
+		`uid` int(11) NOT NULL,
+		`index_id` int(11) NOT NULL,
+		`yandex_metrika_id` int(11) NOT NULL,
+		PRIMARY KEY (`id`)
+	) ENGINE=InnoDB AUTO_INCREMENT=140 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
 }

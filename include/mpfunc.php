@@ -13,26 +13,27 @@ function meta($where, $insert = null, $update = null){
 	}else if("/" != substr($location = get($where, 1), 0, 1)){
 		mpre("Ошибочный формат внутреннего адреса location &laquo;". get($where, 'location'). "&raquo;");
 	}elseif($seo_index = fk("{$conf['db']['prefix']}seo_index", $w = array("name"=>$index), $w)){
-		if(array_key_exists('location_id', $seo_index)){
-			mpre("Односайтовый режим", $seo_index);
-//			$seo_index = rb("{$conf['db']['prefix']}seo_index", 'index_id', 'id', $seo_index['id']);
-		}else if($themes_index = $conf['user']['sess']['themes_index']){
-			if($tpl['seo_index_themes'] = rb("{$conf['db']['prefix']}seo_index_themes", "index_id", "themes_index", "id", $seo_index['id'], $themes_index['id'])){
-				if((1 == count($tpl['seo_index_themes'])) && ($seo_index_themes = array_pop($tpl['seo_index_themes']))){
-					if($update){
-						return fk("{$conf['db']['prefix']}seo_index_themes", array("id"=>$seo_index_themes['id']), null, $update);
-					}else if(!$insert){ return $seo_index_themes; /* Нет не установки не обновления */ }else{ return false; }
-				}else{ mpre("Ошибка структуры метаинформации (множественная информация для одного адреса)", $w); }
-			}elseif($seo_location = fk("{$conf['db']['prefix']}seo_location", $w = array("name"=>$location), $w)){
-				if($seo_index_themes = fk("{$conf['db']['prefix']}seo_index_themes", $w = array("index_id"=>$seo_index['id'], "location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id']), $w + (array)$insert, $w + (array)$update)){
+		if($seo_location = fk("{$conf['db']['prefix']}seo_location", $w = array("name"=>$location), $w += array("index_id"=>$seo_index['id']), $w)){
+			if(array_key_exists('location_id', $seo_index)){
+				if($seo_index = fk("{$conf['db']['prefix']}seo_index", array("id"=>$seo_index['id']), null, array("location_id"=>$seo_location['id']))){
+					return $where + $seo_index;
+				}else{ mpre("Ошибка установки внутренней странице односайтового режима"); }
+			}else if($themes_index = $conf['user']['sess']['themes_index']){
+				if($tpl['seo_index_themes'] = rb("{$conf['db']['prefix']}seo_index_themes", "index_id", "themes_index", "id", $seo_index['id'], $themes_index['id'])){
+					if((1 == count($tpl['seo_index_themes'])) && ($seo_index_themes = array_pop($tpl['seo_index_themes']))){
+						if($update){
+							return fk("{$conf['db']['prefix']}seo_index_themes", array("id"=>$seo_index_themes['id']), null, $update);
+						}else if(!$insert){ return $seo_index_themes; /* Нет не установки не обновления */ }else{ return false; }
+					}else{ mpre("Ошибка структуры метаинформации (множественная информация для одного адреса)", $w); }
+				}elseif($seo_index_themes = fk("{$conf['db']['prefix']}seo_index_themes", $w = array("index_id"=>$seo_index['id'], "location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id']), $w + (array)$insert, $w + (array)$update)){
 					if($seo_location_themes = fk("{$conf['db']['prefix']}seo_location_themes", $w = array("location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id'], "index_id"=>$seo_index['id']), $w)){
 						if($seo_index_themes = fk("{$conf['db']['prefix']}seo_index_themes", $w = array("index_id"=>$seo_index['id'], "location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id']), $w)){
 							return $where + $seo_index_themes;
 						}else{ mpre("Ошибка установка метаинформации", $w); }
 					}else{ mpre("Ошибка добавления перенаправления", $w); }
-				}else{ mpre("Ошибка добавления метаинвормауции", $w + $insert + $update); }
-			}else{ mpre("Ошибка добавления внутреннего адреса"); }
-		}else{ return null; }
+				}else{ mpre("Ошибка добавления внутреннего адреса"); }
+			}else{ return null; }
+		}else{ mpre("Ошибка добавления метаинвормауции", $w + $insert + $update); }
 	}else{ mpre("Неизвестная ошибка"); }
 }
 
@@ -131,7 +132,7 @@ function inc($file_name, $variables = array(), $req = false){
 		if($f = mpopendir($file_name)){
 			if(!array_key_exists('arg', $variables)){ # Если не переопределяем список аргументов
 				if(($path = explode("/", $file_name)) && ($path[0] == "modules")){
-					$arg = array("modpath"=>$path[1], 'modname'=>mb_strtolower(get($conf, 'modules', $path[1], 'name')), "fn"=>first(explode(".", $path[2])));
+					$arg = array("modpath"=>$path[1], 'modname'=>get($conf, 'modules', $path[1], 'modname'), "fn"=>first(explode(".", $path[2])));
 				}
 			} if(array_search("Администратор", get($conf, 'user', 'gid'))){
 /*				if($block = rb($info = get($conf, 'blocks', 'info'), 'alias', "[{$arg['fn']}]")){ # Составление структуры всех подключаемых шаблонов
@@ -764,7 +765,35 @@ function mpde($string) {
 	} return null;
 }
 
-function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
+function mpdbf($tn, $post = null, $and = false){
+	global $conf;
+	$fields = $f = array();
+	if(!isset($post)) $post = $_POST;
+	foreach(mpql(mpqw("SHOW COLUMNS FROM `$tn`")) as $k=>$v){
+		$fields[$v['Field']] = $v['Type'];
+	} foreach((array)$post AS $k=>$v){
+		if(!empty($conf['settings']['analizsql_autofields']) && $conf['settings']['analizsql_autofields'] && !array_key_exists($k, $fields) && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false){
+			mpqw($sql = "ALTER TABLE `$tn` ADD `$k` ". (is_numeric($v) ? "INT" : "varchar(255)"). " NOT NULL"); echo "\n<br>". $sql;
+			$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
+		}elseif(array_key_exists($k, $fields)){
+			if(is_array($v)){
+				if(mp_is_assoc($v)){
+					$f[] = "`$k` IN (". mpquot(strtr(implode(",", $v), array("<"=>"&lt;", ">"=>"&gt;"))). ")";
+				}else{
+					$f[] = "`$k`=\"". mpquot(strtr(implode(",", $v), array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
+				}
+			}else{
+				if($v === null){
+					$f[] = ($and ? "`$k` IS NULL" : "`$k`=NULL");
+				}elseif(is_int($v)){
+					$f[] = "`$k`=". $v;
+				}else{
+					$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
+				}
+			}
+		}
+	} /*mpre($post, implode(($and ? " AND " : ', '), (array)$f));*/ return implode(($and ? " AND " : ', '), (array)$f);
+} function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
 	global $conf, $arg;
 	if($find && ($fnd = mpdbf($tn, $find, 1)) &&
 		($sel = qn($sql = "SELECT `id` FROM `". mpquot($tn). "` WHERE ". $fnd))
@@ -805,7 +834,7 @@ function mpdk($tn, $insert, $update = array()){
 		}
 		if("SELECT id FROM `". mpquot($tn). "` WHERE ")
 		mpqw("INSERT INTO `". mpquot($tn). "` SET $ins ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)". ($update ? ", $upd" : ""));
-		return mysql_insert_id();
+		return $conf['db']['conn']->lastInsertId();
 	}
 }
 function mpevent($name, $description = null, $own = null){
@@ -832,7 +861,7 @@ function mpevent($name, $description = null, $own = null){
 		if(!empty($conf['event'][$name])) $event = $conf['event'][$name];
 		mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event SET time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", name=\"". mpquot($name). "\", description=\"". mpquot($desc). "\", count=1 ON DUPLICATE KEY UPDATE time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", count=count+1, last=". (int)$func_get_args[1]. ", max=IF(". (int)$func_get_args[1]. ">max, ". (int)$func_get_args[1]. ", max), min=IF(". (int)$func_get_args[1]. "<min, ". (int)$func_get_args[1]. ", min), description=\"". mpquot($desc). "\", log_last=". (!empty($event['log']) && $event['log'] ? "(SELECT id FROM {$conf['db']['prefix']}users_event_logs WHERE event_id=". (int)$event['id']. " ORDER BY id DESC limit 1)" : 0));
 		if(!empty($argv)){
-			$event = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event WHERE id=". (int)mysql_insert_id()), 0);
+			$event = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event WHERE id=". (int)$conf['db']['conn']->lastInsertId()), 0);
 		} $notice = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event_notice WHERE event_id=". (int)$event['id']));
 		if((!empty($event['log']) && ($event['log'] > 1)) || $notice){
 			if(!is_numeric(get($func_get_args, 2)) && get($func_get_args, 2, "pass")){
@@ -1062,7 +1091,7 @@ function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.p
 		mpevent("Ошибка загрузки файла", $_SERVER['REQUEST_URI'], $conf['user']['uid'], $file);
 	} return null;
 }
-function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
+function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpeg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf;
 	if($data = file_get_contents($href)){
 		if (($ext = '.'. preg_replace("/[\W]+.*/", '', preg_replace("/.*?\./", '', $href))) && (array_search(strtolower($ext), $exts) || isset($exts['*']))){
@@ -1075,11 +1104,11 @@ function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'ima
 			}else{
 				if($img_id != $id){
 					mpqw("DELETE FROM {$tn} WHERE id=". (int)$img_id);
-				} mpevent("Ошибка копирования удаленного файла", $href, $conf['user']['uid'], func_get_args());
+				} mpevent("Ошибка копирования удаленного файла", $href, get($conf, 'user', 'uid'), func_get_args());
 			} return $img_id;
 		}else{
 			echo $ext;
-			mpevent("Ошибка расширения при загрузке удаленного файла", $href, $conf['user']['uid'], func_get_args());
+			mpevent("Ошибка расширения при загрузке удаленного файла", $href, get($conf, 'user', 'uid'), func_get_args());
 			return null;
 		}
 	}else{
@@ -1122,35 +1151,6 @@ function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.pn
 	} return null;
 }
 
-function mpdbf($tn, $post = null, $and = false){
-	global $conf;
-	$fields = $f = array();
-	if(!isset($post)) $post = $_POST;
-	foreach(mpql(mpqw("SHOW COLUMNS FROM `$tn`")) as $k=>$v){
-		$fields[$v['Field']] = $v['Type'];
-	} foreach((array)$post AS $k=>$v){
-		if(!empty($conf['settings']['analizsql_autofields']) && $conf['settings']['analizsql_autofields'] && !array_key_exists($k, $fields) && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false){
-			mpqw($sql = "ALTER TABLE `$tn` ADD `$k` ". (is_numeric($v) ? "INT" : "varchar(255)"). " NOT NULL"); echo "\n<br>". $sql;
-			$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
-		}elseif(array_key_exists($k, $fields)){
-			if(is_array($v)){
-				if(mp_is_assoc($v)){
-					$f[] = "`$k` IN (". mpquot(strtr(implode(",", $v), array("<"=>"&lt;", ">"=>"&gt;"))). ")";
-				}else{
-					$f[] = "`$k`=\"". mpquot(strtr(implode(",", $v), array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
-				}
-			}else{
-				if($v === null){
-					$f[] = ($and ? "`$k` IS NULL" : "`$k`=NULL");
-				}elseif(is_int($v)){
-					$f[] = "`$k`=". $v;
-				}else{
-					$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
-				}
-			}
-		}
-	} /*mpre($post, implode(($and ? " AND " : ', '), (array)$f));*/ return implode(($and ? " AND " : ', '), (array)$f);
-}
 function mpager($count, $null=null, $cur=null, $url=null){
 	global $conf;
 	$p = (strpos(get($_SERVER, 'HTTP_HOST'), "xn--") === 0) ? "стр" : "p";

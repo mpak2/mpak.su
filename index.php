@@ -163,16 +163,8 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 		$r = urldecode(preg_replace("#([\#\?].*)?$#",'',strtr($_SERVER['REQUEST_URI'], array("?p={$_GET['p']}"=>"", "&p={$_GET['p']}"=>"", "/p:{$_GET['p']}"=>""))));
 	}else{
 		$r = urldecode(preg_replace("#([\#\?].*)?$#",'',$_SERVER['REQUEST_URI']));
-	}
-
-	foreach(rb("{$conf['db']['prefix']}seo_index", "hide", "id", 0) as $rule){
-		if(preg_match("#^{$rule['name']}$#iu",$r)){
-			$redirect = $rule;
-		}
-	}
-
-	if(isset($redirect)){
-//		$redirect['name'] = preg_replace("#^{$redirect['from']}$#iu",$redirect['to'],$r);
+	} if($redirect = rb("{$conf['db']['prefix']}seo_index", "hide", "name", 0, "[{$r}]")){
+		// $redirect['name'] = preg_replace("#^{$redirect['from']}$#iu",$redirect['to'],$r);
 		if(strpos($redirect['name'], "http://") === 0){
 			header("Debug info:". __FILE__. ":". __LINE__);
 			exit(header("Location: {$redirect['to']}"));
@@ -277,6 +269,6 @@ $conf['settings']['microtime'] = substr(microtime(true)-$conf['settings']['micro
 		exit(header('HTTP/1.0 304 Not Modified'));
 	}else if(!array_search("Зарегистрированные", $conf['user']['gid'])){ # Исключаем админстраницу из кеширования
 		header('Last-Modified: '. date("r"));
-		header("Expires: ".gmdate("r", time() + array_key_exists("themes_expires", $conf['settings']) ? $conf['settings']['themes_expires'] : 86400));
+		header("Expires: ". gmdate("r", time()+(get($conf, 'settings', "themes_expires") ?: 86400)));
 	}
 } echo array_key_exists("null", $_GET) ? $content : strtr($content, mpzam($conf['settings'], "settings", "<!-- [", "] -->"));
