@@ -1,40 +1,50 @@
 <?
 
-# Изменяет мета информацию страницы
-# Первый аргумент (массив) или внешний адрес на сайте $_SERVER['REQUEST_URI'], второй параметр - установка метаинформации, третий - обновление ранее установленной
-//if($meta = meta(array('/внешний-адрес', $_SERVER['REQUEST_URI']), $w = array('title'=>'Заголовок сайта', 'description'=>'Мета описание', 'keywords'=>'Мета ключевики') /*,$w Если надо обновить*/ )){
-//	exit(header("Location: {$meta[0]}")); # Пересылаем на вновь прописанный адрес страницы
-//}
-function meta($where, $insert = null, $update = null){
+# Изменяет мета информацию страницы записывая ее в раздел seo
+# Первый аргумент массив - array(внутренний, внешний адреса) или строка - внутренний адрес на сайте $_SERVER['REQUEST_URI'], второй параметр - установка метаинформации
+
+//if(!get($conf, "settings", "canonical")){ # Нет перезагрузки страницы адреса
+//	if($meta = meta(array($_SERVER['REQUEST_URI']/*, "/test"*/), $w = array('title'=>'Заголовок сайта', 'description'=>'Мета описание', 'keywords'=>'Мета ключевики'))){
+//		exit(header("Location: {$meta[0]}")); # Пересылаем на вновь установленный адрес страницы
+//	}else{ /*mpre("Мета уже создано");*/ }
+//}else{ /*mpre(get($conf, "settings", "canonical"));*/ }
+function meta($where, $insert = null){
 	global $conf;
-	if(is_string($where)){ $where = array("index"=>$where); };// mpre($where);
-	if("/" != substr($index = get($where, 0), 0, 1)){
-		mpre("Ошибочный формат внешнего адреса index &laquo;". get($where, 'index'). "&raquo;");
-	}else if("/" != substr($location = get($where, 1), 0, 1)){
+	if(is_string($where)){ $where = array($where); };
+	if("/" != substr($location = get($where, 0), 0, 1)){
 		mpre("Ошибочный формат внутреннего адреса location &laquo;". get($where, 'location'). "&raquo;");
-	}elseif($seo_index = fk("{$conf['db']['prefix']}seo_index", $w = array("name"=>$index), $w)){
+	}else if(get($where, 1) && ("/" != substr($index = get($where, 1), 0, 1))){
+		mpre("Ошибочный формат внешнего адреса index &laquo;". get($where, 'location'). "&raquo;");
+	}else{
+		if("/" == substr($index = get($where, 1), 0, 1)){
+			$seo_index = fk("{$conf['db']['prefix']}seo_index", $w = array("name"=>$index), $w);
+		}else{ $seo_index = array('id'=>0); }
+
 		if($seo_location = fk("{$conf['db']['prefix']}seo_location", $w = array("name"=>$location), $w += array("index_id"=>$seo_index['id']), $w)){
-			if(array_key_exists('location_id', $seo_index)){
+			if(empty($seo_index)){
+				return $where + $seo_location;
+			}else if(array_key_exists('location_id', $seo_index)){
 				if($seo_index = fk("{$conf['db']['prefix']}seo_index", array("id"=>$seo_index['id']), null, array("location_id"=>$seo_location['id']))){
 					return $where + $seo_index;
-				}else{ mpre("Ошибка установки внутренней странице односайтового режима"); }
+				}else{ mpre("Ошибка установки внешнего адреса односайтового режима"); }
 			}else if($themes_index = $conf['user']['sess']['themes_index']){
-				if($tpl['seo_index_themes'] = rb("{$conf['db']['prefix']}seo_index_themes", "index_id", "themes_index", "id", $seo_index['id'], $themes_index['id'])){
+				
+				if($tpl['seo_index_themes'] = rb("{$conf['db']['prefix']}seo_index_themes", "index_id", "location_id", "themes_index", "id", $seo_index['id'], $seo_location['id'], $themes_index['id'])){
 					if((1 == count($tpl['seo_index_themes'])) && ($seo_index_themes = array_pop($tpl['seo_index_themes']))){
-						if($update){
-							return fk("{$conf['db']['prefix']}seo_index_themes", array("id"=>$seo_index_themes['id']), null, $update);
-						}else if(!$insert){ return $seo_index_themes; /* Нет не установки не обновления */ }else{ return false; }
+						return ($insert === null ? $insert : false);
 					}else{ mpre("Ошибка структуры метаинформации (множественная информация для одного адреса)", $w); }
-				}elseif($seo_index_themes = fk("{$conf['db']['prefix']}seo_index_themes", $w = array("index_id"=>$seo_index['id'], "location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id']), $w + (array)$insert, $w + (array)$update)){
-					if($seo_location_themes = fk("{$conf['db']['prefix']}seo_location_themes", $w = array("location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id'], "index_id"=>$seo_index['id']), $w)){
-						if($seo_index_themes = fk("{$conf['db']['prefix']}seo_index_themes", $w = array("index_id"=>$seo_index['id'], "location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id']), $w)){
-							return $where + $seo_index_themes;
-						}else{ mpre("Ошибка установка метаинформации", $w); }
-					}else{ mpre("Ошибка добавления перенаправления", $w); }
+				}elseif($seo_index_themes = fk("{$conf['db']['prefix']}seo_index_themes", $w = array("index_id"=>$seo_index['id'], "location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id']), $w + (array)$insert)){
+					if(get($seo_index, "id")){
+						if($seo_location_themes = fk("{$conf['db']['prefix']}seo_location_themes", $w = array("location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id'], "index_id"=>$seo_index['id']), $w)){
+//							if($seo_index_themes = fk("{$conf['db']['prefix']}seo_index_themes", $w = array("index_id"=>$seo_index['id'], "location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id']), $w)){
+								return $where + $seo_index_themes;
+//							}else{ mpre("Ошибка установка метаинформации", $w); }
+						}else{ mpre("Ошибка добавления перенаправления", $w); }
+					}else{ return ($insert !== null ? $seo_index_themes : false); }
 				}else{ mpre("Ошибка добавления внутреннего адреса"); }
 			}else{ return null; }
 		}else{ mpre("Ошибка добавления метаинвормауции", $w + $insert + $update); }
-	}else{ mpre("Неизвестная ошибка"); }
+	}
 }
 
 //функция скачки файла (чтение файла идет по 5метров)
@@ -188,7 +198,7 @@ function seo($href, $return = true){
 				if((count($tpl['seo_index_themes']) == 1) && ($seo_index_themes = array_shift($tpl['seo_index_themes']))){
 					if($index = rb("{$conf['db']['prefix']}seo_index", "id", $seo_index_themes['index_id'])){
 						return $index['name'];
-					}
+					}else{ return $href; }
 				}else{ return $href; }
 			}else{ return $href; }
 		}else{ return $href; }
@@ -216,7 +226,8 @@ if (!function_exists('mcont')){
 	function mcont($content){ # Загрузка содержимого модуля
 		global $conf, $arg, $tpl;
 		foreach($_GET['m'] as $k=>$v){ $k = urldecode($k);
-			$mod = get($conf, 'modules', $k);
+			$mod = get($conf, 'modules', $k) ?: rb(get($conf, 'modules'), "modname", "[{$k}]");
+
 			$mod['link'] = (is_link($f = mpopendir("modules/{$mod['folder']}")) ? readlink($f) : $mod['folder']);
 			ini_set("include_path" ,mpopendir("modules/{$mod['link']}"). ":./modules/{$mod['link']}:". ini_get("include_path"));
 			if(get($conf, 'settings', 'modules_title')){
@@ -224,7 +235,7 @@ if (!function_exists('mcont')){
 			}
 
 			$v = $v != 'del' && $v != 'init' && $v != 'sql' && strlen($v) ? $v : 'index';
-			if(get($conf, 'modules', $k, 'access') >= ((strpos($v, 'admin') === 0) ? 4 : 1)){
+			if(get($mod, 'access') >= ((strpos($v, 'admin') === 0) ? 4 : 1)){
 				$conf['db']['info'] = "Модуль '". ($name = $mod['name']). "'";
 				if(preg_match("/[a-z]/", $v)){ $g = "/{$v}.*.php"; }else{ $g = "/*.{$v}.php"; }// pre($g);
 				if(($glob = glob($gb = (mpopendir("modules/{$mod['link']}"). $g)))
@@ -244,7 +255,7 @@ if (!function_exists('mcont')){
 							inc("modules/admin/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')));
 						}
 					}elseif(!inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg))){
-						inc("modules/{$mod['link']}/default", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>$v)));
+						inc("modules/{$mod['link']}/default", array('arg'=>$arg));
 					}
 				$content .= ob_get_contents(); ob_end_clean();
 			}else if(get($conf, 'modules', $k) && ($_SERVER['REQUEST_URI'] != "/admin")){
@@ -1085,7 +1096,7 @@ function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.p
 				} mpevent("Ошибка копирования файла", $_SERVER['REQUEST_URI'], $conf['user']['uid'], $file);
 			} return $img_id;
 		}else{
-			echo $file['type'];
+			pre("Запрещенное для загрузки расширение", $ext);
 			mpevent("Ошибка расширения загружаемого файла", $_SERVER['REQUEST_URI'], $conf['user']['uid'], $file);
 			return 0;
 		}
@@ -1110,13 +1121,13 @@ function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'ima
 				} mpevent("Ошибка копирования удаленного файла", $href, get($conf, 'user', 'uid'), func_get_args());
 			} return $img_id;
 		}else{
-			echo $ext;
 			mpevent("Ошибка расширения при загрузке удаленного файла", $href, get($conf, 'user', 'uid'), func_get_args());
+			pre("Запрещенное к загрузке расширение", $ext);
 			return null;
 		}
 	}else{
 		mpevent("Ошибка загрузки внешнего файла", $href, $conf['user']['uid'], func_get_args());
-		echo "file href error {$error}";
+		pre("file href error", $error);
 	} return null;
 }
 function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){

@@ -28,14 +28,40 @@ if($yandex = rb("yandex", "id", get($_GET, 'id'))){
 					} exit(json_encode($index));
 				}elseif("stats" == $_REQUEST['api']){
 					if($yandex_webmaster = rb("yandex_webmaster", "index_id", $index['id'])){
-						if($stats = file_get_contents($url = 'https://webmaster.yandex.ru/api/v2/hosts/'. last(explode('/', $yandex_webmaster['href'])). '/stats/', false, stream_context_create(array('http' => array('method'  => 'GET','header'  => "Authorization: OAuth ". $yandex_token['name'],))))){
-							if($xml = json_decode(json_encode(new SimpleXMLElement($stats)), true)){
+						if($data = file_get_contents($url = 'https://webmaster.yandex.ru/api/v2/hosts/'. last(explode('/', $yandex_webmaster['href'])). '/stats/', false, stream_context_create(array('http' => array('method'  => 'GET','header'  => "Authorization: OAuth ". $yandex_token['name'],))))){
+							if($xml = json_decode(json_encode(new SimpleXMLElement($data)), true)){
 								$yandex_webmaster = fk("yandex_webmaster", array("id"=>$yandex_webmaster['id']), $w = array_filter(array_intersect_key($xml, $yandex_webmaster), function($v){ return !is_array($v); }), $w += array("id"=>$xml['@attributes']['id']));
 							}
 						}
 					} exit(json_encode($index));
+				}elseif("indexed" == $_REQUEST['api']){
+					if($yandex_webmaster = rb("yandex_webmaster", "index_id", $index['id'])){
+						if($data = file_get_contents($url = 'https://webmaster.yandex.ru/api/v2/hosts/'. last(explode('/', $yandex_webmaster['href'])). '/indexed/', false, stream_context_create(array('http' => array('method'  => 'GET','header'  => "Authorization: OAuth ". $yandex_token['name'],))))){
+							if($xml = json_decode(json_encode(new SimpleXMLElement($data)), true)){
+								foreach((array)get($xml, 'last-week-index-urls', 'url') as $url){
+									if($url){
+										$yandex_indexed = fk("yandex_indexed", $w = array("name"=>$url, "index_id"=>$index['id']), $w+=array("up"=>time()), $w);
+									}else{ /*mpre($url);*/ }
+								}
+							}
+						}
+					} exit(json_encode($index));
+				}elseif("texts" == $_REQUEST['api']){
+					if($yandex_webmaster = rb("yandex_webmaster", "index_id", $index['id'])){
+						if($data = file_get_contents($url = 'https://webmaster.yandex.ru/api/v2/hosts/'. $yandex_webmaster['id']. '/original-texts/', false, stream_context_create(array('http' => array('method'  => 'GET','header'  => "Authorization: OAuth ". $yandex_token['name'],))))){
+							if($xml = json_decode(json_encode($x = new SimpleXMLElement($data)), true)){
+								if(($texts = get($xml, 'original-text')) && array_key_exists(0, $texts)){
+									foreach($texts as $text){
+										$yandex_texts = fk("yandex_texts", $w = array("name"=>$text['id']), $w+=array('index_id'=>$index['id'], 'href'=>get($text, 'link', '@attributes', 'href'), "up"=>time(), "text"=>$text['content']), $w);
+									}
+								}elseif($text = $texts){
+									$yandex_texts = fk("yandex_texts", $w = array("name"=>$text['id']), $w+=array('index_id'=>$index['id'], 'href'=>get($text, 'link', '@attributes', 'href'), "up"=>time(), "text"=>$text['content']), $w);
+								}
+							}
+						}
+					} exit(json_encode($index));
 				}elseif("webmaster" == $_REQUEST['api']){ # Регистрация в вебмастере
-					$tpl['webmaster'] = file_get_contents($url = 'https://webmaster.yandex.ru/api/v2/hosts', false, stream_context_create(array('http' =>
+					if($data = file_get_contents($url = 'https://webmaster.yandex.ru/api/v2/hosts', false, stream_context_create(array('http' =>
 						($param = array(
 							'method'  => 'POST',
 							'content' => ($content = "<host><name>{$index['name']}</name></host>"),
@@ -45,9 +71,11 @@ if($yandex = rb("yandex", "id", get($_GET, 'id'))){
 								"Content-Length: ". strlen($content),
 							),
 						))
-					)));// mpre($tpl['data'], $url, $param);
+					)))){ exit(0); }else{
+						mpre("Ошибка регистрации вебмастера");
+					}
 				}elseif("metrika" == $_REQUEST['api']){ # Регистрация в метрике
-					$tpl['metrika'] = file_get_contents($url = "https://api-metrika.yandex.ru/counters", false, stream_context_create(array('http' =>
+					if($data = file_get_contents($url = "https://api-metrika.yandex.ru/counters", false, stream_context_create(array('http' =>
 						($param = array(
 							'method'  => 'POST',
 							'content' => ($content = json_encode(array(
@@ -63,11 +91,27 @@ if($yandex = rb("yandex", "id", get($_GET, 'id'))){
 								"Content-Length: ". strlen($content),
 							),
 						))
-					)));// mpre($tpl['metrika'], $url, $param);
+					)))){ exit(0); }else{
+						mpre("Ошибка регистрации метрики");
+					};// mpre($tpl['metrika'], $url, $param);
+				}elseif("verify" == $_REQUEST['api']){ # Регистрация в метрике
+					if($yandex_webmaster = rb("yandex_webmaster", "index_id", $index['id'])){
+						if($data = file_get_contents($url = "https://webmaster.yandex.ru/api/v2/hosts/{$yandex_webmaster['id']}/verify", false, stream_context_create(array('http' =>
+							($param = array(
+								'method'  => 'PUT',
+								'content' => ($content = "<host><type>META_TAG</type></host>"),
+								'header'  => array(
+									"Authorization: OAuth ". $yandex_token['name'],
+									"Content-Type: application/x-www-form-urlencoded",
+									"Content-Length: ". strlen($content),
+								),	
+							))
+						)))){ exit(mpre($data)); }else{ exit(0); }
+					}
 				}else{ mpre($index); }
-			} exit(0);
+			}else{ mpre("Сайт не найден"); }
 		}else{
-			if($metrika = file_get_contents($url = 'https://api-metrika.yandex.ru/counters.json', false, stream_context_create(array('http'=>array( 'method'=>'GET', "Content-Type: application/json", 'header'=>"Authorization: OAuth {$yandex_token['name']}", ))))){
+			if($metrika = file_get_contents($url = 'https://api-metrika.yandex.ru/counters.json?per_page=10000', false, stream_context_create(array('http'=>array( 'method'=>'GET', "Content-Type: application/json", 'header'=>"Authorization: OAuth {$yandex_token['name']}", ))))){
 				if($json = json_decode($metrika, true)){
 					foreach($json['counters'] as $counter){
 						if($index = rb("index", "name", "[{$counter['site']}]")){
@@ -88,7 +132,7 @@ if($yandex = rb("yandex", "id", get($_GET, 'id'))){
 				if($xml = json_decode(json_encode(new SimpleXMLElement($webmaster)), true)){
 					foreach($xml['host'] as $host){// mpre($host);
 						if($index = rb("index", "name", "[{$host['name']}]")){
-							$yandex_webmaster = fk("yandex_webmaster", $w = array("href"=>$host['@attributes']['href']), $w += array('verification'=>get($host, 'verification', '@attributes', 'state'), 'crawling'=>get($host, 'crawling', '@attributes', 'state'), "index_id"=>$index['id'])+$host, $w);
+							$yandex_webmaster = fk("yandex_webmaster", $w = array("href"=>$host['@attributes']['href']), $w += array('verification'=>get($host, 'verification', '@attributes', 'state'), 'crawling'=>get($host, 'crawling', '@attributes', 'state'), "index_id"=>$index['id'], 'id'=>last(explode("/", $host['@attributes']['href'])))+$host, $w);
 						}
 					}
 				}
@@ -109,7 +153,7 @@ if(mpsettings($t = "{$arg['modpath']}_yandex", "Яндекс") && !tables($table
 		PRIMARY KEY (`id`),
 		KEY `yandex_token_id` (`yandex_token_id`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
-} if(mpsettings($t = "{$arg['modpath']}_yandex_metrika", "Яндекс") && !tables($table = "{$conf['db']['prefix']}{$t}")){
+} if(mpsettings($t = "{$arg['modpath']}_yandex_metrika", "Метрика") && !tables($table = "{$conf['db']['prefix']}{$t}")){
 	qw("CREATE TABLE `{$table}` (
 		`id` int(11) NOT NULL AUTO_INCREMENT,
 		`time` int(11) NOT NULL,
@@ -194,5 +238,32 @@ if(mpsettings($t = "{$arg['modpath']}_yandex", "Яндекс") && !tables($table
 		`index_id` int(11) NOT NULL,
 		`yandex_metrika_id` int(11) NOT NULL,
 		PRIMARY KEY (`id`)
-	) ENGINE=InnoDB AUTO_INCREMENT=140 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+} if(mpsettings($t = "{$arg['modpath']}_yandex_indexed", "Индекс") && !tables($table = "{$conf['db']['prefix']}{$t}")){
+	qw("CREATE TABLE `{$table}` (
+		`id` int(11) NOT NULL AUTO_INCREMENT,
+		`time` int(11) NOT NULL,
+		`up` int(11) NOT NULL,
+		`uid` int(11) NOT NULL,
+		`index_id` int(11) NOT NULL,
+		`name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+		PRIMARY KEY (`id`),
+		KEY `uid` (`uid`),
+		KEY `name` (`name`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+} if(mpsettings($t = "{$arg['modpath']}_yandex_texts", "Тексты") && !tables($table = "{$conf['db']['prefix']}{$t}")){
+	qw("CREATE TABLE `mp_themes_yandex_texts` (
+		`id` int(11) NOT NULL AUTO_INCREMENT,
+		`time` int(11) NOT NULL,
+		`up` int(11) NOT NULL,
+		`uid` int(11) NOT NULL,
+		`index_id` int(11) NOT NULL,
+		`name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+		`href` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+		`text` text COLLATE utf8_unicode_ci NOT NULL,
+		PRIMARY KEY (`id`),
+		KEY `up` (`up`),
+		KEY `index_id` (`index_id`),
+		KEY `name` (`name`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
 }

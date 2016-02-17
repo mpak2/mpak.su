@@ -40,7 +40,7 @@ mp_require_once("include/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
 
 //Обращение к файлу в корне (webroot)
-if(preg_match("#\/[\w\d\-\_\%\.]+\.\w+$#i",$_SERVER['REDIRECT_URL'])){
+if(preg_match("#\/[\w\d\-\_\%\.]+\.\w+$#i",$_SERVER['REDIRECT_URI'])){
 	$REDIRECT_URL = urldecode(preg_replace("#\.\.\/#iu","",$_SERVER['REDIRECT_URL']));
 	foreach(explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) as $v){
 		if(file_exists("$v/webroot$REDIRECT_URL")){
@@ -87,8 +87,8 @@ if($conf['settings']['del_sess']){
 	array_walk ($get = $_GET, $func); $post = $_POST;
 	if (isset($post['pass'])) $post['pass'] = 'hide';
 	if (isset($post['pass2'])) $post['pass2'] = 'hide';
-	array_walk ($post, $func); array_walk ($files = $_FILES, $func); array_walk ($server = $_SERVER, $func);
-	$request = serialize(array('$_POST'=>$post, '$_GET'=>$get, '$_FILES'=>$files, '$_SERVER'=>$server));
+//	array_walk ($post, $func); array_walk ($files = $_FILES, $func); array_walk ($server = $_SERVER, $func);
+//	$request = serialize(array('$_POST'=>$post, '$_GET'=>$get, '$_FILES'=>$files, '$_SERVER'=>$server));
 } setlocale (LC_ALL, "Russian"); putenv("LANG=ru_RU");// bindtextdomain("messages", "./locale"); textdomain("messages"); bind_textdomain_codeset('messages', 'CP1251'); //setlocale(LC_ALL, "ru_RU.CP1251")
 
 if (!$guest_id = mpql(mpqw("SELECT id as gid FROM {$conf['db']['prefix']}users WHERE name='{$conf['settings']['default_usr']}'", "Получаем свойства пользователя гость"), 0, "gid")){ # Создаем пользователя в случае если его нет
@@ -137,9 +137,9 @@ $conf['user']['sess'] = $sess;
 foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE hide IN (0,2)", 'Информация о модулях', function($error){
 	pre($error, $sql = "ALTER TABLE mp_modules CHANGE `enabled` `hide` smallint(6)"); qw($sql); # Исправляем таблицу, в случае если структура не верная.
 })) as $modules){
-	if (array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) $modules['access'] = 5; # Права суперпользователя
+	if (array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) $modules['access'] = 5;
 	$conf['modules'][ $modules['folder'] ] = $modules;
-	$conf['modules'][ $modules['folder'] ]['modname'] = (strpos($_SERVER['HTTP_HOST'], "xn--") !== false) ? mb_strtolower($modules['name']) : $modules['folder'];
+	$conf['modules'][ $modules['folder'] ]['modname'] = (strpos($_SERVER['HTTP_HOST'], "xn--") !== false) ? mb_strtolower($modules['name'], 'UTF-8') : $modules['folder'];
 	$conf['modules'][ $modules['name'] ] = &$conf['modules'][ $modules['folder'] ];
 	$conf['modules'][ mb_strtolower($modules['name']) ] = &$conf['modules'][ $modules['folder'] ];
 	$conf['modules'][ $modules['id'] ] = &$conf['modules'][ $modules['folder'] ];
@@ -149,7 +149,7 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 	if(strpos($conf['settings']['start_mod'], "http://") === 0){
 		header("Debug info:". __FILE__. ":". __LINE__);
 		header("Location: {$conf['settings']['start_mod']}"); exit;
-	}elseif(($seo_index = rb("{$conf['db']['prefix']}seo_index", "hide", "name", 0, "[/]")) /*&& array_key_exists("themes_index", $redirect)*/){
+	}elseif(($seo_index = rb("{$conf['db']['prefix']}seo_index", "name", "[/]")) /*&& array_key_exists("themes_index", $redirect)*/){
 		if($index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $seo_index['index_type_id'])){
 			$_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $seo_index['name']));
 		}else{
@@ -159,11 +159,11 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 		$_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $conf['settings']['start_mod']));
 	} $_SERVER['SCRIPT_URL'] = "/";
 }elseif(!array_key_exists("null", $_GET) /*&& !is_array($_GET['m'])*/ && $conf['modules']['seo']){
-	if(array_key_exists("p", $_GET)){
-		$r = urldecode(preg_replace("#([\#\?].*)?$#",'',strtr($_SERVER['REQUEST_URI'], array("?p={$_GET['p']}"=>"", "&p={$_GET['p']}"=>"", "/p:{$_GET['p']}"=>""))));
+	if(array_key_exists(($p = (strpos(get($_SERVER, 'HTTP_HOST'), "xn--") === 0) ? "стр" : "p"), $_GET) && ($_GET['p'] = $_GET[$p])){
+		$r = urldecode(preg_replace("#([\#\?].*)?$#",'',strtr($_SERVER['REQUEST_URI'], array("?{$p}={$_GET[$p]}"=>"", "&{$p}={$_GET[$p]}"=>"", "/{$p}:{$_GET[$p]}"=>""))));
 	}else{
 		$r = urldecode(preg_replace("#([\#\?].*)?$#",'',$_SERVER['REQUEST_URI']));
-	} if($redirect = rb("{$conf['db']['prefix']}seo_index", "hide", "name", 0, "[{$r}]")){
+	} if($redirect = rb("{$conf['db']['prefix']}seo_index", "name", "[{$r}]")){
 		// $redirect['name'] = preg_replace("#^{$redirect['from']}$#iu",$redirect['to'],$r);
 		if(strpos($redirect['name'], "http://") === 0){
 			header("Debug info:". __FILE__. ":". __LINE__);
@@ -184,13 +184,11 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 			header('HTTP/1.1 404 Not Found');
 			exit(header("Location: /". ($_404 ?: "themes:404"). "{$_SERVER['REQUEST_URI']}"));
 		}
-	}else{ # Ссылка на основную страницу
-		$conf['settings']['canonical'] = $_SERVER['REQUEST_URI'];
 	}
 
-	if($seo_location = rb("{$conf['db']['prefix']}seo_location", "hide", "name", 0, "[{$_SERVER['REQUEST_URI']}]")){
+	if($seo_location = rb("{$conf['db']['prefix']}seo_location", "name", "[{$_SERVER['REQUEST_URI']}]")){
 		if($seo_location['location_status_id'] && ($seo_location_status = rb("{$conf['db']['prefix']}seo_location_status", "id", $seo_location['location_status_id']))){
-			if($seo_index = rb("{$conf['db']['prefix']}seo_index", "id", $seo_location['index_id'])){
+			if(get($seo_location, "index_id") && ($seo_index = rb("{$conf['db']['prefix']}seo_index", "id", $seo_location['index_id']))){
 				header("Debug info:". __FILE__. ":". __LINE__);
 				header("HTTP/1.1 {$seo_location_status['id']} {$seo_location_status['name']}");
 				exit(header("Location: {$seo_index['name']}"));
@@ -203,7 +201,7 @@ array_key_exists("m", $_GET) ? (list($m) = array_keys($_GET['m'])) : "pages";
 array_key_exists("m", $_GET) ? (list($f) = array_values($_GET['m'])) : "index";
 
 $conf['settings']['modpath'] = !empty($m) && array_key_exists($m, $conf['modules']) ? $conf['modules'][ $m ]['folder'] : "";
-$conf['settings']['fn'] = $f ? $f : "index";
+$conf['settings']['fn'] = (!empty($f) && ($f != "index")) ? $f : "index";
 
 if(array_key_exists('theme', $_GET)){
 	$conf['user']['sess']['theme'] = $conf['settings']['theme'] = basename($_GET['theme']);

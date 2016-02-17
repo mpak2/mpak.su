@@ -7,7 +7,7 @@
 		<script sync>
 			(function($, script){
 				$(script).parent().on("click", ".reg", function(e){
-					var api = ($(e.currentTarget).is(".metrika") ? "metrika" : "webmaster");
+					var api = $(e.currentTarget).attr("api");
 					var yandex_id = $(e.currentTarget).parents("[yandex_id]").attr("yandex_id");
 					var index_id = $(e.currentTarget).parents("[index_id]").attr("index_id");
 					$.post("/<?=$arg['modname']?>:<?=$arg['fn']?>/"+yandex_id+"/null", {index_id:index_id, api:api}, function(response){
@@ -24,7 +24,7 @@
 						async: false,
 						dataType: 'json',
 						success : function(response){
-							console.log("data:", data);
+							console.log("json:", data);
 						},
 						error:function(response){
 							console.log("error:", response.responseText);
@@ -35,7 +35,7 @@
 						var index_id = $(div).attr("index_id");
 //						console.log("active:", index_id);
 						$(div).addClass("active");
-						$.each({tops:"Запросы", stats:"Статистика"/*, error:'Ошибки', index:'Индекс'*/}, function(api, name){
+						$.each({tops:"Запросы", stats:"Статистика", indexed:"Индекс", texts:"Тексты"/*, error:'Ошибки', index:'Индекс'*/}, function(api, name){
 							$(div).find(".name .status").text(name);
 							$(e.delegateTarget).trigger("upgrade", {index_id:index_id, api:api});
 						})
@@ -60,6 +60,7 @@
 					<span>Загружено</span>
 					<span>Поиск</span>
 					<span>Запр.</span>
+					<span>Текст</span>
 					<span>Ошиб.</span>
 					<span>Внешн.</span>
 					<span>вебм.</span>
@@ -83,44 +84,58 @@
 								<a target="blank" href="https://webmaster.yandex.ru/site/verification.xml?host=<?=$yandex_webmaster['id']?>"><?=$yandex_webmaster['id']?></a>
 								<? if(($verification = get($yandex_webmaster, 'verification')) && ("VERIFIED" == $verification)): ?>
 									<?=get($yandex_webmaster, 'crawling')?>
-								<? else: echo($verification); endif; ?>
+								<? else: ?>
+									<a href="javascript:void(0)" class="reg" api="verify"><strong><?=$verification?></strong></a>
+								<? endif; ?>
 							<? endif; ?>
 						</span>
 						<span>
 							<? if($yandex_metrika): ?>
-								<a target="blank" href="=<?=$yandex_metrika['id']?>&host=<?=$yandex_metrika['id']?>"><?=$yandex_metrika['id']?></a>
+								<a target="blank" href="https://metrika.yandex.ru/dashboard?id=<?=$yandex_metrika['id']?>"><?=$yandex_metrika['id']?></a>
 								<?=$yandex_metrika['code_status']?>
 							<? endif; ?>
 						</span>
 						<span><?=get($yandex_webmaster, 'url-count')?></span>
-						<span><?=get($yandex_webmaster, 'index-count')?></span>
+						<span>
+							<?=get($yandex_webmaster, 'index-count')?>
+							<? if($tpl['yandex_indexed'] = rb("yandex_indexed", "index_id", "id", $index['id'])): ?>
+								<a href="/themes:admin/r:<?=$conf['db']['prefix']?>themes_yandex_indexed?&where[index_id]=<?=$index['id']?>"><?=count($tpl['yandex_indexed'])?></a>
+							<? endif; ?>
+						</span>
 						<span>
 							<a href="/themes:admin/r:<?=$conf['db']['prefix']?>themes_yandex_tops_index?&where[index_id]=<?=$index['id']?>">
 								<?=(count(rb("yandex_tops_index", "index_id", "id", $index['id'])) ?: "")?>
 							</a>
 						</span>
+						<span>
+							<? if($tpl['yandex_texts'] = rb("yandex_texts", "index_id", "id", $index['id'])): ?>
+								<a href="/themes:admin/r:<?=$conf['db']['prefix']?>themes_yandex_texts?&where[index_id]=<?=$index['id']?>"><?=count($tpl['yandex_texts'])?></a>
+							<? endif; ?>
+						</span>
 						<span><?=get($yandex_webmaster, 'url-errors')?></span>
 						<span><?=get($yandex_webmaster, 'internal-links-count')?></span>
 						<span>
 							<? if(empty($yandex_webmaster) && !get($index, 'index_id')): ?>
-								<a href="javascript:void(0)" class="reg webmaster" href=""><strong>рег.</strong></a>
+								<a href="javascript:void(0)" class="reg" api="webmaster" href=""><strong>рег.</strong></a>
 							<? endif; ?>
 						</span>
 						<span>
 							<? if(empty($yandex_metrika) && !get($index, 'index_id')): ?>
-								<a href="javascript:void(0)" class="reg metrika" href=""><strong>рег.</strong></a>
+								<a href="javascript:void(0)" class="reg" api="metrika" href=""><strong>рег.</strong></a>
 							<? endif; ?>
 						</span>
 					</div>
 				<? endforeach; ?>
 			</div>
 	</div>
+<? elseif(count($tpl["yandex"] = rb("yandex")) == 1): # Если одно приложение, сразу же на него перенаправляем ?>
+	<? exit(header("Location: /{$arg['modname']}:{$arg['fn']}/". get(first($tpl["yandex"]), 'id'))) ?>
 <? else: ?>
 	<h1>Список приложений</h1>
 	<ul>
-		<? foreach(rb("yandex") as $yandex): ?>
+		<? foreach($tpl["yandex"] as $yandex): ?>
 			<li>
-				<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/<?=$yandex['id']?>"><?=$yandex['name']?></a>
+				<a href="/<?=$arg['modname']?>:<?=$arg['fn']?>/<?=$yandex['id']?>"><?=$yandex['name']?></a>
 			</li>
 		<? endforeach; ?>
 	</ul>
