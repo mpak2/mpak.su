@@ -38,7 +38,7 @@ if($argv){
 if (strlen($conf['db']['error'] = mysql_error())){
 #		echo "Ошибка соединения с базой данных<p>";
 }else{
-	mysql_select_db($conf['db']['name'], $conf['db']['conn']);
+//	mysql_select_db($conf['db']['name'], $conf['db']['conn']);
 	mpqw("SET NAMES 'utf8'");
 } unset($conf['db']['pass']); $conf['db']['sql'] = array();
 

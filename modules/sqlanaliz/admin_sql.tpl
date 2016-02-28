@@ -75,7 +75,7 @@
 									<span>
 										<select name="f[<?=$field?>][type]">
 											<option></option>
-											<? foreach(array("int(11)", "float", "varchar(255)", "text", "longtext") as $fd): ?>
+											<? foreach(array("int(11)", "smallint(6)", "float", "varchar(255)", "text", "longtext") as $fd): ?>
 												<option <?=($tpl['fields'][$field]['Type'] == $fd ? "selected" : "")?>><?=$fd?></option>
 											<? endforeach; ?>
 										</select>
@@ -135,7 +135,10 @@
 											}}
 										}
 									});
-								}, 300)
+									setTimeout(function(){
+										$(e.delegateTarget).find("button").trigger("click");
+									}, 100);
+								}, 300);
 							}).trigger("init")
 						})(jQuery, document.scripts[document.scripts.length-1])
 					</script>
@@ -147,7 +150,7 @@
 							<? endforeach; ?>
 						</select>
 					</p>
-					<p><textarea name="sql" style="width:100%; height:100px;" placeholder="Текст запроса"></textarea></p>
+					<p><textarea name="sql" style="width:100%; height:100px;" placeholder="Текст запроса"><?=($_GET['r'] ? "SHOW CREATE TABLE `{$_GET['r']}`" : "")?></textarea></p>
 					<p><button>Выполнить</button></p>
 				</form>
 				<div class="info"></div>

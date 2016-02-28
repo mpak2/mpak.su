@@ -98,7 +98,7 @@ if($yandex = rb("yandex", "id", get($_GET, 'id'))){
 					if($yandex_webmaster = rb("yandex_webmaster", "index_id", $index['id'])){
 						if($data = file_get_contents($url = "https://webmaster.yandex.ru/api/v2/hosts/{$yandex_webmaster['id']}/verify", false, stream_context_create(array('http' =>
 							($param = array(
-								'method'  => 'PUT',
+								'method'  => 'GET',
 								'content' => ($content = "<host><type>META_TAG</type></host>"),
 								'header'  => array(
 									"Authorization: OAuth ". $yandex_token['name'],
@@ -106,7 +106,23 @@ if($yandex = rb("yandex", "id", get($_GET, 'id'))){
 									"Content-Length: ". strlen($content),
 								),	
 							))
-						)))){ exit(mpre($data)); }else{ exit(0); }
+						)))){
+							if($xml = json_decode(json_encode(new SimpleXMLElement($data)), true)){
+								if($index = fk("index", array("name"=>$xml['name']), null, array("yandex-verification"=>$xml['verification']['uin']))){
+									if($data = file_get_contents($url = "https://webmaster.yandex.ru/api/v2/hosts/{$yandex_webmaster['id']}/verify", false, stream_context_create(array('http' =>
+										($param = array(
+											'method'  => 'PUT',
+											'content' => ($content = "<host><type>META_TAG</type></host>"),
+											'header'  => array(
+												"Authorization: OAuth ". $yandex_token['name'],
+												"Content-Type: application/x-www-form-urlencoded",
+												"Content-Length: ". strlen($content),
+											),	
+										))
+									)))){ exit(0); }else{ exit(0); }// exit(mpre("Ошибка проверки сайта", $url, $param));
+								}else{ exit(mpre("Ошибка установки кода подтверждения")); }
+							}else{ exit(mpre("Ошика xml парсинга резальтата запроса кода проверки")); }
+						}else{ exit(mpre("Ошибка запроса кода проверки", $param)); }
 					}
 				}else{ mpre($index); }
 			}else{ mpre("Сайт не найден"); }

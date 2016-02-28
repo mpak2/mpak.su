@@ -139,8 +139,8 @@ foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE hide IN (0
 })) as $modules){
 	if (array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) $modules['access'] = 5;
 	$conf['modules'][ $modules['folder'] ] = $modules;
-	$conf['modules'][ $modules['folder'] ]['modname'] = (strpos($_SERVER['HTTP_HOST'], "xn--") !== false) ? mb_strtolower($modules['name'], 'UTF-8') : $modules['folder'];
-	$conf['modules'][ $modules['name'] ] = &$conf['modules'][ $modules['folder'] ];
+	$conf['modules'][ $modules['folder'] ]['modname'] = $modules['modname'] = (strpos($_SERVER['HTTP_HOST'], "xn--") !== false) ? mb_strtolower($modules['name'], 'UTF-8') : $modules['folder'];
+	$conf['modules'][ $modules['modname'] ] = &$conf['modules'][ $modules['folder'] ];
 	$conf['modules'][ mb_strtolower($modules['name']) ] = &$conf['modules'][ $modules['folder'] ];
 	$conf['modules'][ $modules['id'] ] = &$conf['modules'][ $modules['folder'] ];
 }

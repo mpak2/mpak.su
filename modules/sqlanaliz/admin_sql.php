@@ -8,8 +8,8 @@ if($table = get($_GET, 'r')){
 if(array_key_exists("null", $_GET) && $_POST){
 	if($sql = $_POST['sql']){
 		if($query = fk("query", null, array("query"=>$sql))){
-			if($mpqw = mpqw($query['query'])){
-				exit(mpre("Результат вывода запроса", mpql($mpqw)));
+			if(($mpqw = mpqw($query['query'])) && ($data = mpql($mpqw))){
+				exit(mpre("Результат вывода запроса", ((count($data) == 1) ? first($data) : $data)));
 			}else{ exit(mpre("Запрос не предполагает вывода", $query['query'])); }
 		}
 	}elseif(($table = $_POST['del']) && ($fields = fields($table))){

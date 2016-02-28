@@ -17,18 +17,17 @@ function meta($where, $insert = null){
 		mpre("Ошибочный формат внешнего адреса index &laquo;". get($where, 'location'). "&raquo;");
 	}else{
 		if("/" == substr($index = get($where, 1), 0, 1)){
-			$seo_index = fk("{$conf['db']['prefix']}seo_index", $w = array("name"=>$index), $w);
+			$seo_index = fk("{$conf['db']['prefix']}seo_index", $w = array("name"=>$index), $w += array("cat_id"=>$insert['cat_id']));
 		}else{ $seo_index = array('id'=>0); }
 
-		if($seo_location = fk("{$conf['db']['prefix']}seo_location", $w = array("name"=>$location), $w += array("index_id"=>$seo_index['id']), $w)){
+		if($seo_location = fk("{$conf['db']['prefix']}seo_location", $w = array("name"=>$location), $w += array("index_id"=>$seo_index['id'], "cat_id"=>$insert['cat_id']), $w)){
 			if(empty($seo_index)){
 				return $where + $seo_location;
 			}else if(array_key_exists('location_id', $seo_index)){
-				if($seo_index = fk("{$conf['db']['prefix']}seo_index", array("id"=>$seo_index['id']), null, array("location_id"=>$seo_location['id']))){
+				if($seo_index = fk("{$conf['db']['prefix']}seo_index", array("id"=>$seo_index['id']), null, array("location_id"=>$seo_location['id'], "cat_id"=>$insert['cat_id']))){
 					return $where + $seo_index;
 				}else{ mpre("Ошибка установки внешнего адреса односайтового режима"); }
 			}else if($themes_index = $conf['user']['sess']['themes_index']){
-				
 				if($tpl['seo_index_themes'] = rb("{$conf['db']['prefix']}seo_index_themes", "index_id", "location_id", "themes_index", "id", $seo_index['id'], $seo_location['id'], $themes_index['id'])){
 					if((1 == count($tpl['seo_index_themes'])) && ($seo_index_themes = array_pop($tpl['seo_index_themes']))){
 						return ($insert === null ? $insert : false);
@@ -136,13 +135,14 @@ function tables($table = null){
 
 # Подключение страницы
 function inc($file_name, $variables = array(), $req = false){
-	global $tpl, $arg, $conf;
-	$_arg = $arg; extract($variables);
+	global $conf; extract($variables);
 	if(preg_match("#(.*)(\.php|\.tpl|\.html)$#", $file_name, $match)){
+		global $tpl;
 		if($f = mpopendir($file_name)){
+			$_arg = $GLOBALS['arg'];
 			if(!array_key_exists('arg', $variables)){ # Если не переопределяем список аргументов
 				if(($path = explode("/", $file_name)) && ($path[0] == "modules")){
-					$arg = array("modpath"=>$path[1], 'modname'=>get($conf, 'modules', $path[1], 'modname'), "fn"=>first(explode(".", $path[2])));
+					$GLOBALS['arg'] = $arg = array("modpath"=>$path[1], 'modname'=>get($conf, 'modules', $path[1], 'modname'), "fn"=>first(explode(".", $path[2])));
 				}
 			} if(array_search("Администратор", get($conf, 'user', 'gid'))){
 /*				if($block = rb($info = get($conf, 'blocks', 'info'), 'alias', "[{$arg['fn']}]")){ # Составление структуры всех подключаемых шаблонов
@@ -170,14 +170,22 @@ function inc($file_name, $variables = array(), $req = false){
 				if((".tpl" == get($match, 2))){
 					echo strtr(get($conf, 'settings', 'modules_stop'), array('{path}'=>$f));
 				}
+				$GLOBALS['arg'] = $_arg;
+				return true;
 			}else{
 				if($req){ require $f; }else{ include $f; }
-			} $arg = $_arg; return true;
-		} return false;
+				$GLOBALS['arg'] = $_arg;
+				return true;
+			}
+			$GLOBALS['arg'] = $_arg;
+			return false;
+		}else if(!array_key_exists('arg', $variables)){ # Установленная переменная arg признак не выводить ошибку
+			mpre("Подключаемый файл не найден", $file_name);
+		}
 	}else{
-		$p = inc("{$file_name}.php", $variables, $req);
-		$t = inc("{$file_name}.tpl", $variables, $req);
-		return($p || $t);
+		$php = inc("{$file_name}.php", $variables, $req);
+		$tpl = inc("{$file_name}.tpl", $variables, $req);
+		return ($php || $tpl);
 	} return false;
 }
 
@@ -204,23 +212,6 @@ function seo($href, $return = true){
 		}else{ return $href; }
 	}else{ return $href; }
 }
-
-/*function seo($href, $return = true){
-	global $conf;
-	if($themes_index = $conf['user']['sess']['themes_index']){
-		if($tpl['seo_location'] = rb("{$conf['db']['prefix']}seo_location", "name", "id", "[{$href}]")){
-			if($tpl['seo_index'] = rb("{$conf['db']['prefix']}seo_index", "location_id", "id", $tpl['seo_location'])){
-				if($tpl['seo_index_themes'] = rb("{$conf['db']['prefix']}seo_index_themes", "index_id", "themes_index", "id", $tpl['seo_index'], $themes_index['id'])){
-					return rb($tpl['seo_index'], "id", rb($tpl['seo_index_themes'], "index_id"), "name");
-				}else{ return ($return ? $href : false); }
-			}else{ return ($return ? $href : false); }
-		}else{ return ($return ? $href : false); }
-	}else{
-		if(($seo_location = rb("{$conf['db']['prefix']}seo_location", "name", "[{$href}]")) && ($seo_index = rb("{$conf['db']['prefix']}seo_index", "location_id", $seo_location['id']))){
-			return $seo_index['name'];
-		}else{ return ($return ? $href : false); }
-	}
-}*/
 
 if (!function_exists('mcont')){
 	function mcont($content){ # Загрузка содержимого модуля
@@ -251,11 +242,14 @@ if (!function_exists('mcont')){
 					if($glob){
 //						$content .= mpct("modules/{$mod['link']}/{$glob}", $arg);
 					}elseif(($v == "admin")){
-						if(!inc("modules/{$mod['link']}/admin")){
+						if(!inc("modules/{$mod['link']}/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')))){
 							inc("modules/admin/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')));
 						}
-					}elseif(!inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg))){
-						inc("modules/{$mod['link']}/default", array('arg'=>$arg));
+					}else{
+						inc("modules/{$mod['link']}/default.php", array('arg'=>$arg));
+						if(!inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg))){
+							inc("modules/{$mod['link']}/default.tpl", array('arg'=>$arg));
+						}
 					}
 				$content .= ob_get_contents(); ob_end_clean();
 			}else if(get($conf, 'modules', $k) && ($_SERVER['REQUEST_URI'] != "/admin")){
@@ -727,7 +721,7 @@ function erb($src, $key = 'id'){
 				return "`{$key}`=". intval($val);
 			}
 		}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
-		$src = qn($sql = "SELECT * FROM {$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). (array_key_exists($n = substr($src, strlen($conf['db']['prefix'])). "=>order", $conf['settings']) && ($order = $conf['settings'][$n]) ? " ORDER BY ". mpquot($order) : ""),$IdName);
+		$src = qn($sql = "SELECT * FROM {$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). (get($conf, 'settings') && array_key_exists($n = substr($src, strlen($conf['db']['prefix'])). "=>order", $conf['settings']) && ($order = get($conf, 'settings', $n)) ? " ORDER BY ". mpquot($order) : ""),$IdName);
 	} if($keys){
 		if(!empty($src)){
 			foreach($src as $v){
