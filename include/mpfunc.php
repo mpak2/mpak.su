@@ -1487,11 +1487,11 @@ function pre(){
 			echo "/*<pre>\n\t"; print_r($z); echo "\n</pre>*/";
 		}
 		if(true) echo "/*</fieldset>*/\n";
-	}
+	} return get(func_get_args(), 0);
 } function mpre(){
 	global $conf, $arg, $argv;
 	if(array_key_exists('user', $conf) && array_key_exists('gid', $conf['user']) && array_search("Администратор", $conf['user']['gid'])){
-		return call_user_func_array('pre', func_get_args());
+		return call_user_func_array('pre', func_get_args());  # Выводим для возможности использования внутри условных операторов if(true && mpre("То, что смотрим") && true){ echo "Условие сработает"; }
 	}
 //	if(empty($argv) && ($arg['access'] < $access)) return;
 }

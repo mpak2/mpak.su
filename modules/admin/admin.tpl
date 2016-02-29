@@ -201,7 +201,7 @@
 					<span style="width:30%; padding-right:20px; text-align:right;">
 						<? if($t = implode("_", array_slice(explode("_", $_GET['r']), 1))): # Короткое имя текущей таблицы ?>
 							<? foreach(array_unique(array_map(function($f){ return first(explode('.', $f)); }, mpreaddir("/modules/{$arg['modpath']}", 1))) as $f): ?>
-								<? if((strpos($f, "admin_") === 0) && ($fl = implode('_', array_slice(explode('_', $f), 1))) && ($tl = implode('_', array_slice(explode('_', $t), 1))) && (strpos($fl, $tl) === 0)): # Адреса страниц начинающихся на admin_ и совпадающие с текущей таблицуй ?>
+								<? if((strpos($f, "admin_") === 0) && ($fl = implode('_', array_slice(explode('_', $f), 1))) && (!($tt = implode('_', array_slice(explode('_', $t), 1))) || (strpos($fl, "admin_{$arg['modpath']}") === 0))): # Адреса страниц начинающихся на admin_ и совпадающие с текущей таблицуй ?>
 									<a href="/<?=$arg['modpath']?>:<?=$f?><?=(($id = get($_GET, 'where', 'id')) ? "/{$id}" : "")?>"><?=implode("_", (array_slice(explode("_", $f), 1)))?></a>
 								<? endif; ?>
 							<? endforeach; ?>
