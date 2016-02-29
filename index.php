@@ -168,11 +168,15 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 		if(strpos($redirect['name'], "http://") === 0){
 			header("Debug info:". __FILE__. ":". __LINE__);
 			exit(header("Location: {$redirect['to']}"));
-		}else if($seo_index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $redirect['index_type_id'])){
-			if(get($redirect, 'location_id') && ($seo_location = rb("{$conf['db']['prefix']}seo_location", "id", $redirect['location_id']))){
-				$conf['settings']['description'] = get($redirect, 'description') ?: $conf['settings']['description'];
-				$conf['settings']['keywords'] = get($redirect, 'keywords') ?: $conf['settings']['keywords'];
-				$_REQUEST = ($_GET = mpgt($conf['settings']['canonical'] = $seo_location['name'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"))+$_REQUEST);
+		}else if(get($redirect, 'index_id') && ($seo_index = rb("{$conf['db']['prefix']}seo_index", "id", $redirect['index_id']))){ # Перенаправление с внешнего на внешний адрес
+			header('HTTP/1.1 301 Moved Permanently');
+			exit(header("Location: {$seo_index['name']}"));
+		}else if(get($redirect, 'location_id') && ($seo_location = rb("{$conf['db']['prefix']}seo_location", "id", $redirect['location_id']))){
+			$_REQUEST = ($_GET = mpgt($conf['settings']['canonical'] = $seo_location['name'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"))+$_REQUEST);
+			$conf['settings']['description'] = get($redirect, 'description') ?: $conf['settings']['description'];
+			$conf['settings']['keywords'] = get($redirect, 'keywords') ?: $conf['settings']['keywords'];
+			if($seo_index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $redirect['index_type_id'])){
+				header("Content-Type: {$seo_index_type['name']}");
 			}
 		}
 	}elseif($conf['settings']['start_mod'] == $_SERVER['REQUEST_URI']){ # Заглавная страница
