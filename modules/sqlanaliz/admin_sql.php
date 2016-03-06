@@ -5,23 +5,43 @@ if($table = get($_GET, 'r')){
 	$tpl['indexes'] = qn("SHOW INDEXES IN {$_GET['r']}", "Column_name");
 }
 
-if(array_key_exists("null", $_GET) && $_POST){
-	if($sql = $_POST['sql']){
-		if($query = fk("query", null, array("query"=>$sql))){
-			if(($mpqw = mpqw($query['query'])) && ($data = mpql($mpqw))){
-				exit(mpre("Результат вывода запроса", ((count($data) == 1) ? first($data) : $data)));
-			}else{ exit(mpre("Запрос не предполагает вывода", $query['query'])); }
+if($dump = get($_REQUEST, 'dump')){
+	if(get($file = get($_FILES, 'file'), 'name')){
+		if($file['error'] == 0){
+			if(move_uploaded_file($file['tmp_name'], $tmpfile = tempnam(sys_get_temp_dir(), "dump_"))){
+				$tpl['file'] = `mysql -v -u{$conf['db']['name']} -p{$conf['db']['pass']} {$conf['db']['name']} < {$tmpfile}`;
+				exit(mpre($tpl['file']));
+			}else{ mpre("Ошибка создания временного файла"); }
+		}else{ mpre("Ошибка загрузки файла", $file); }
+	}else if(get($_REQUEST, 'upload')){
+		if($cmd = "mysqldump -u{$conf['db']['name']} -p{$conf['db']['pass']} {$conf['db']['name']} ". implode(" ", array_keys($dump))){
+			header("Content-Disposition: attachment; filename=". ((count($dump) == 1) ? first(array_keys($dump)) : $conf['db']['name']). ".sql");
+			exit(passthru($cmd));
 		}
-	}elseif(($table = $_POST['del']) && ($fields = fields($table))){
-		exit(qw("DROP TABLE `{$table}`"));
-	}elseif($table = $_POST['table']){
-		qw("CREATE TABLE `$table` (
-			id INT(11) AUTO_INCREMENT PRIMARY KEY,
-			time INT(11) NOT NULL,
-			uid INT(11) NOT NULL,
-			name VARCHAR(255) NOT NULL
-		) CHARACTER SET utf8 COLLATE utf8_unicode_ci"); exit(json_encode(array("table"=>$table)));
-	} exit(mpre("Ошибочный запрос", $_POST));
+	}else{
+		foreach($dump as $t=>$v){
+			$tpl['dump'][$t] = `mysqldump -u{$conf['db']['name']} -p{$conf['db']['pass']} {$conf['db']['name']} $t`;
+		}
+	}
+}else if(array_key_exists("null", $_GET)){
+	if($_POST){
+		if($sql = $_POST['sql']){
+			if($query = fk("query", null, array("query"=>$sql))){
+				if(($mpqw = mpqw($query['query'])) && ($data = mpql($mpqw))){
+					exit(mpre("Результат вывода запроса", ((count($data) == 1) ? first($data) : $data)));
+				}else{ exit(mpre("Запрос не предполагает вывода", $query['query'])); }
+			}
+		}elseif(($table = $_POST['del']) && ($fields = fields($table))){
+			exit(qw("DROP TABLE `{$table}`"));
+		}elseif($table = $_POST['table']){
+			qw("CREATE TABLE `$table` (
+				id INT(11) AUTO_INCREMENT PRIMARY KEY,
+				time INT(11) NOT NULL,
+				uid INT(11) NOT NULL,
+				name VARCHAR(255) NOT NULL
+			) CHARACTER SET utf8 COLLATE utf8_unicode_ci"); exit(json_encode(array("table"=>$table)));
+		} exit(mpre("Ошибочный запрос", $_POST));
+	}
 }elseif(($table = get($_GET, 'r')) && ($fields = fields($table)) && array_key_exists('f', $_POST) && is_array($fil = $_POST['f'])){
 	foreach($fil as $f=>$fld){
 		if(!$fld['name']){

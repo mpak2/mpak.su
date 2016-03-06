@@ -14,7 +14,6 @@ $logo = array(
 	"ezooms.png"=>"ezooms",
 	"ahrefs.png"=>"ahrefs",
 	"yahoo.png"=>"Yahoo",
- 	"google.png"=>"Googlebot",
 	"rambler.png"=>"StackRambler",
 	"msnbot.png"=>"msnbot",
 	"bing.png"=>"bing",
@@ -50,9 +49,15 @@ $logo = array(
 	"yacybot.png"=>"yacybot",
 	"safedns.png"=>"SafeDNS",
 
+	"google-image.png"=>"Googlebot-Image",
+ 	"google.png"=>"Googlebot",
+
+	"yandeximages.png"=>"YandexImages",
 	"yandexmetrika.png"=>"YandexMetrika",
-	"yandex.png"=>"Yandex",
 	"yadirectfetcher.png"=>"YaDirectFetcher",
+	"yandexmobile.png"=>"YandexMobileBot",
+	"yandexfavicon.png"=>"YandexFavicons",
+	"yandex.png"=>"Yandex",
 
 	"bot.png"=>"bot",
 );
