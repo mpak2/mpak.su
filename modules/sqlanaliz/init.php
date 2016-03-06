@@ -21,5 +21,4 @@ mpqw($sql);
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('sqlanaliz', 'analizsql_log', '1', '5', 'Логирование запросов бд')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('sqlanaliz', 'analizsql_autofields', '0', '5', 'Автоматическое добавление полей в пост запросах форм')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('sqlanaliz', 'sqlanaliz_time_log', '', '5', 'Время выше которого запросы логируются')");
-
-?>
+mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('sqlanaliz', 'sql_memcache_disable', '1', '5', 'Выключение использования кеширования memcache')");

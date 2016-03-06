@@ -653,22 +653,24 @@ function mpsmtp($to, $obj, $text, $from = null, $files = array(), $login = null)
 	}
 	return $return;
 }
+
 function mpue($name){
 	return str_replace('%', '%25', trim($name));
-}
-function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = true){
+} function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = false){
 	global $conf;
-	if(get($conf, 'settings', 'sql_memcache_disable') || !function_exists('memcache_connect')) return false;
-	if($memcache = memcache_connect("localhost", 11211)){
-		if($data){
-			memcache_set($memcache, $key, $data, $compress, $limit);
-	//		if($event) mpevent($conf['settings']['users_event_memcache_set'], $key, $conf['user']['uid']);
-		}else{
-			$mc = memcache_get($memcache, $key);
-	//		if($event) mpevent($conf['settings']['users_event_memcache_get'], $key, $conf['user']['uid']);
-		} return $mc;
-	} return false;
+	if(!get($conf, 'settings', 'sql_memcache_disable') && function_exists('memcache_connect')){
+		if($data = memcache_connect("localhost")){
+			if($data){
+				memcache_set($memcache, $key, $data, $compress, $limit);
+				if($event) mpevent($conf['settings']['users_event_memcache_set'], $key, $conf['user']['uid']);
+			}else{
+				$mc = memcache_get($memcache, $key);
+				if($event) mpevent($conf['settings']['users_event_memcache_get'], $key, $conf['user']['uid']);
+			} return $mc;
+		}else{ return false; }
+	}else{ return false; }
 }
+
 function rb($src, $key = 'id'){
 	global $conf, $arg, $tpl;
 	$func_get_args = func_get_args();
