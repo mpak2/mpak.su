@@ -1,7 +1,7 @@
 <?header("Content-Type: text/plain")?>
 <? foreach(array("Yandex", "*") as $n=>$r): ?>
 <?="User-agent: {$r}\n\n"?>
-<? if(($themes_index = $conf['user']['sess']['themes_index']) && $themes_index['hide']): ?><?="Disallow: /"?><? endif; ?>
+<? if(($themes_index = get($conf, 'user', 'sess', 'themes_index')) && $themes_index['hide']): ?><?="Disallow: /"?><? endif; ?>
 <?="Disallow: /*?*"?> 
 <?="Disallow: /*&p=*"?> 
 <?="Disallow: /*?p=*"?> 
