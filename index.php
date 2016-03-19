@@ -187,10 +187,10 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 		$conf['settings']['canonical'] = "/";
 	}elseif(!array_key_exists("404", $conf['settings']) || ($_404 = $conf['settings']['404'])){ # Если не прописан адрес 404 ошибки, то его обработку оставляем для init.php
 		$keys = array_keys($ar = array_keys($_GET['m']));
-		if(!$conf['modules'][ $ar[min($keys)] ]['folder']){
+		if(!get($conf, 'modules',  $ar[min($keys)] , 'folder')){
 			header("Debug info:". __FILE__. ":". __LINE__);
 			header('HTTP/1.1 404 Not Found');
-			exit(header("Location: /". ($_404 ?: "themes:404"). "{$_SERVER['REQUEST_URI']}"));
+			exit(header("Location: /". (!empty($_404) ?: "themes:404"). "{$_SERVER['REQUEST_URI']}"));
 		}
 	}
 
