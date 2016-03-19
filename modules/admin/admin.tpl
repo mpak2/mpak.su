@@ -286,7 +286,7 @@
 									<select name="<?=$field['Field']?>">
 										<option></option>
 										<? foreach($tpl_espisok as $espisok): ?>
-											<option value="<?=$espisok['id']?>" <?=((!get($tpl, 'edit') && ($field['Default'] == $espisok['id'])) || ($espisok['id'] == get($tpl, 'edit', $field['Field'])) || (!get($tpl, 'edit', 'id') && (get($_GET, 'where', $field['Field']) == $espisok['id'])) ? "selected" : "")?>><?=$espisok['id']?> <?=$espisok['name']?></option>
+											<option value="<?=$espisok['id']?>" <?=(((!get($tpl, 'edit') && ($field['Default'] == $espisok['id'])) || ($espisok['id'] == get($tpl, 'edit', $field['Field'])) || (array_key_exists('edit', $_GET) && (get($_GET, 'where', $field['Field']) == $espisok['id']))) ? "selected" : "")?>><?=$espisok['id']?> <?=$espisok['name']?></option>
 										<? endforeach; ?>
 									</select>
 								<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>
@@ -469,7 +469,7 @@
 											<? endif; ?>
 											<option></option>
 											<? foreach(rb("{$conf['db']['prefix']}modules") as $mid): ?>
-												<option value="<?=$mid['id']?>" <?=((!get($tpl, 'edit', 'uid') && ($mid['id'] == get($conf, 'user', 'uid'))) ? "selected" : "")?>>
+												<option value="<?=$mid['id']?>" <?=((!get($tpl, 'edit', 'uid') && ($mid['id'] == get($conf, 'user', 'uid'))) || ($mid['id'] == get($tpl, 'edit', $fiel)) ? "selected" : "")?>>
 													<?=$mid['id']?> <?=$mid['name']?>
 												</option>
 											<? endforeach; ?>
@@ -493,7 +493,9 @@
 										<select name="<?=$fiel?>">
 											<option></option>
 											<? foreach($tpl['espisok'][$fiel] as $espisok): ?>
-												<option value="<?=$espisok['id']?>" <?=((!get($tpl, 'edit') && ($field['Default'] == $espisok['id'])) || (get($tpl, 'edit', $fiel) == $espisok['id']) ? "selected" : "")?>><?=$espisok['id']?> <?=$espisok['name']?></option>
+												<option value="<?=$espisok['id']?>" <?=((!get($tpl, 'edit') && ($field['Default'] == $espisok['id'])) || (get($tpl, 'edit', $fiel) == $espisok['id']) || (get($_GET, 'where', $fiel) == $espisok['id']) ? "selected" : "")?>>
+													<?=$espisok['id']?> <?=$espisok['name']?>
+												</option>
 											<? endforeach; ?>
 										</select>
 									<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>

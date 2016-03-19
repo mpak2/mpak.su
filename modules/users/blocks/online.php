@@ -48,6 +48,9 @@ $logo = array(
 	"plukkie.png"=>"Plukkie",
 	"yacybot.png"=>"yacybot",
 	"safedns.png"=>"SafeDNS",
+	"irlbot.png"=>"IRLbot",
+	"focusbot.png"=>"focusbot",
+	"gbot.png"=>"gbot",
 
 	"google-image.png"=>"Googlebot-Image",
  	"google.png"=>"Googlebot",

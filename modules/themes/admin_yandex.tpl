@@ -39,7 +39,7 @@
 							$(div).find(".name .status").text(name);
 							$(e.delegateTarget).trigger("upgrade", {index_id:index_id, api:api});
 						})
-						$(div)/*.removeClass("active")*/.find(".name .status").text("");
+						$(div).removeClass("active").find(".name .status").text("");
 //						console.log("remove:", index_id);
 					})
 				})

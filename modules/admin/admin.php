@@ -2,7 +2,17 @@
 
 if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управляющие данные
 	if(get($_GET, "id") && array_key_exists("id", $_POST) && !$_POST['id']){ # Удаление элемента
-		exit(qw("DELETE FROM {$_GET['r']} WHERE id=". (int)$_GET['id']));
+
+		if(get($conf, 'settings', 'admin_history_log')){
+			if($admin_history_type = rb("{$conf['db']['prefix']}admin_history_type", "name", $w = "[Удаление]")){
+				if($data = rb($_GET['r'], "id", $_GET['id'])){
+					if($admin_history_tables = fk("{$conf['db']['prefix']}admin_history_tables", $w = array("name"=>$_GET['r']), $w += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn'], "description"=>get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])))), $w)){
+						$admin_history = fk("{$conf['db']['prefix']}admin_history", null, array("history_type_id"=>$admin_history_type['id'], "name"=>$_GET['id'], "history_tables_id"=>$admin_history_tables['id'], "data"=>json_encode($data)));
+					}else{ mpre("Информация об изменяемой таблице не найдена"); }
+				}else{ mpre("Данные для сохранения не определены"); }
+			}else{ mpre("Тип записи не найден {$w}"); }
+		} exit(qw("DELETE FROM {$_GET['r']} WHERE id=". (int)$_GET['id']));
+
 	}elseif(get($_POST, "inc") && ($inc = rb($_GET['r'], "id", $_POST['inc']))){ # Правка записи и добавление новой
 		if($dec = ql($sql = "SELECT * FROM {$_GET['r']} WHERE sort<". (int)$inc['sort']. " AND ". (mpdbf($_GET['r'], get($_GET, 'where'), true) ?: 1). " ORDER BY ". (get($_GET, 'order') ?: "sort"). " DESC LIMIT 1", 0)){
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
@@ -20,12 +30,23 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 			} if(($_GET['r'] == "{$conf['db']['prefix']}users") && ($field == "pass") && (strlen($_POST['pass']) != 32)){
 				$_POST[$field] = mphash($_POST['name'], $_POST['pass']);
 			}
-		}
-		if(get($_GET, 'id')){
+		} if(get($_GET, 'id')){
+
+			if(get($conf, 'settings', 'admin_history_log')){
+				if($admin_history_type = rb("{$conf['db']['prefix']}admin_history_type", "name", $w = "[Редактирование]")){
+					if($admin_history_tables = fk("{$conf['db']['prefix']}admin_history_tables", $w = array("name"=>$_GET['r']), $w += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn'], "description"=>get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])))), $w)){
+						if($data = rb($_GET['r'], "id", $_GET['id'])){
+							$admin_history = fk("{$conf['db']['prefix']}admin_history", null, array("history_type_id"=>$admin_history_type['id'], "name"=>$_GET['id'], "history_tables_id"=>$admin_history_tables['id'], "diff"=>json_encode(array_diff_key(array_diff_assoc($_POST, $data), array_flip(["id"]))), "data"=>json_encode($data)));
+						}else{ mpre("Ошибка выборки изменяемой записи"); }
+					}else{ mpre("Ошибка сохранения названия таблицы"); }
+				}else{ mpre("Тип записи не найден {$w}"); }
+			}else{ /*mpre("Логирование запросов выключено");*/ }
+
 			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=\"". mpquot(htmlspecialchars_decode($val)). "\""; });
 			qw($sql = "UPDATE `{$_GET['r']}` SET ". implode(", ", array_values($_POST)). " WHERE id=". (int)$_GET['id']);
 			$el = rb($_GET['r'], "id", $_GET['id']);
 		}else{
+
 			if($ar = array_filter($_POST, function($e){ return is_array($e); })){
 				array_walk($_POST, function($val, $key){
 					if(is_array($val)){
@@ -38,8 +59,12 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 				foreach($ar as $a=>$r){
 					foreach($r as $v){
 						if($post = $_POST + array($a=>$v)){
+
+
 							qw($sql = "INSERT INTO `{$_GET['r']}` (`". implode("`, `", array_keys($post)). "`) VALUE (". implode(", ", array_values($post)). ")");
 							$_GET['id'] = $conf['db']['conn']->lastInsertId();
+
+
 						}
 					}
 				} $el = rb($_GET['r'], "id", $_GET['id']);
@@ -49,6 +74,15 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 				$_GET['id'] = $conf['db']['conn']->lastInsertId();
 				$el = rb($_GET['r'], "id", $_GET['id']);
 			}
+			if(get($conf, 'settings', 'admin_history_log')){
+				if($admin_history_type = rb("{$conf['db']['prefix']}admin_history_type", "name", $w = "[Добавление]")){
+					if($admin_history_tables = fk("{$conf['db']['prefix']}admin_history_tables", $w = array("name"=>$_GET['r']), $w += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn'], "description"=>get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])))), $w)){
+//						if($data = rb($_GET['r'], "id", $_POST['id'])){
+							$admin_history = fk("{$conf['db']['prefix']}admin_history", null, array("history_type_id"=>$admin_history_type['id'], "name"=>$el['id'], "history_tables_id"=>$admin_history_tables['id'], "data"=>json_encode($_POST)));
+//						}else{ mpre("Ошибка выборки изменяемой записи"); }
+					}else{ mpre("Ошибка сохранения названия таблицы"); }
+				}else{ mpre("Тип записи не найден {$w}"); }
+			}else{ /*mpre("Логирование запросов выключено");*/ }
 		}
 
 		foreach(array(
