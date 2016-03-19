@@ -24,10 +24,10 @@ function meta($where, $insert = null){
 			if(empty($seo_index)){
 				return $where + $seo_location;
 			}else if(array_key_exists('location_id', $seo_index)){
-				if($seo_index = fk("{$conf['db']['prefix']}seo_index", array("id"=>$seo_index['id']), null, array("location_id"=>$seo_location['id'], "cat_id"=>$insert['cat_id']))){
+				if($seo_index = fk("{$conf['db']['prefix']}seo_index", array("id"=>$seo_index['id']), null, array("location_id"=>$seo_location['id'], "cat_id"=>$insert['cat_id'])+(array)$insert)){
 					return $where + $seo_index;
 				}else{ mpre("Ошибка установки внешнего адреса односайтового режима"); }
-			}else if($themes_index = $conf['user']['sess']['themes_index']){
+			}else if($themes_index = get($conf, 'user', 'sess', 'themes_index')){
 				if($tpl['seo_index_themes'] = rb("{$conf['db']['prefix']}seo_index_themes", "index_id", "location_id", "themes_index", "id", $seo_index['id'], $seo_location['id'], $themes_index['id'])){
 					if((1 == count($tpl['seo_index_themes'])) && ($seo_index_themes = array_pop($tpl['seo_index_themes']))){
 						return ($insert === null ? $insert : false);
@@ -197,13 +197,11 @@ function inc($file_name, $variables = array(), $req = false){
 function seo($href, $return = true){
 	global $conf;
 	if($seo_location = rb("{$conf['db']['prefix']}seo_location", "name", "[{$href}]")){
-		if(false && array_key_exists("index_id", $seo_location) && $seo_location['index_id']){ # Односайтовый режим
-			if($tpl['index'] = rb('index', 'id', 'id', $seo_location['index_id'])){
-				if((count($tpl['index']) == 1) && ($index = array_shift($tpl['index']))){
-					return $index['name'];
-				}else{ return $href; }
+		if(array_key_exists("index_id", $seo_location) && $seo_location['index_id']){ # Односайтовый режим
+			if($index = rb("{$conf['db']['prefix']}seo_index", 'id', $seo_location['index_id'])){
+				return $index['name'];
 			}else{ return $href; }
-		}elseif($themes_index = $conf['user']['sess']['themes_index']){ # МногоСайтов
+		}elseif($themes_index = get($conf, 'user', 'sess', 'themes_index')){ # МногоСайтов
 			if($tpl['seo_index_themes'] = rb("{$conf['db']['prefix']}seo_index_themes", "location_id", "themes_index", "id", $seo_location['id'], $themes_index['id'])){
 				if((count($tpl['seo_index_themes']) == 1) && ($seo_index_themes = array_shift($tpl['seo_index_themes']))){
 					if($index = rb("{$conf['db']['prefix']}seo_index", "id", $seo_index_themes['index_id'])){

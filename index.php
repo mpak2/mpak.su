@@ -155,6 +155,9 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 		}else{
 			$_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $conf['settings']['start_mod']));
 		}
+		$conf['settings']['title'] = get($seo_index, 'title');
+		$conf['settings']['description'] = get($seo_index, 'description');
+		$conf['settings']['keywords'] = get($seo_index, 'keywords');
 	}else{
 		$_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $conf['settings']['start_mod']));
 	} $_SERVER['SCRIPT_URL'] = "/";
@@ -173,8 +176,9 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 			exit(header("Location: {$seo_index['name']}"));
 		}else if(get($redirect, 'location_id') && ($seo_location = rb("{$conf['db']['prefix']}seo_location", "id", $redirect['location_id']))){
 			$_REQUEST = ($_GET = mpgt($conf['settings']['canonical'] = $seo_location['name'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"))+$_REQUEST);
-			$conf['settings']['description'] = get($redirect, 'description') ?: $conf['settings']['description'];
-			$conf['settings']['keywords'] = get($redirect, 'keywords') ?: $conf['settings']['keywords'];
+			$conf['settings']['title'] = get($redirect, 'title');
+			$conf['settings']['description'] = get($redirect, 'description');
+			$conf['settings']['keywords'] = get($redirect, 'keywords');
 			if($seo_index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $redirect['index_type_id'])){
 				header("Content-Type: {$seo_index_type['name']}");
 			}
