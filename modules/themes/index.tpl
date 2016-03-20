@@ -4,10 +4,23 @@
 	<? if($conf['user']['uid'] <= 0): ?>
 		<? exit(header("Location: /users:login")); ?>
 	<? else: ?>
-		<ul>
-			<? foreach(rb("index") as $index): ?>
-				<li style="float:left; margin-left:20px;"><a target="blank" href="http://<?=$index['name']?>"><?=$index['name']?></a></li>
+		<? if(mpsettings("themes_index_cat")): ?>
+			<? foreach(rb("index_cat") as $index_cat): ?>
+				<div>
+					<h2><?=$index_cat['name']?></h2>
+					<ul style="overflow:hidden; padding:0;">
+						<? foreach(rb("index", "index_cat_id", "id", $index_cat['id']) as $index): ?>
+							<li style="float:left; margin-left:20px;"><a target="blank" href="http://<?=$index['name']?>"><?=$index['name']?></a></li>
+						<? endforeach; ?>
+					</ul>
+				</div>
 			<? endforeach; ?>
-		</ul>
+		<? else: ?>
+			<ul>
+				<? foreach(rb("index") as $index): ?>
+					<li style="float:left; margin-left:20px;"><a target="blank" href="http://<?=$index['name']?>"><?=$index['name']?></a></li>
+				<? endforeach; ?>
+			</ul>
+		<? endif; ?>
 	<? endif; ?>
 <? endif; ?>

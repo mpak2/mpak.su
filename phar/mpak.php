@@ -35,7 +35,8 @@ foreach( $dolders = array(
 //	'include/func.php',
 	'include/mpfunc.php',
 	'include/install.php',
-	'include/parse/simple_html_dom.php',
+//	'include/parse/simple_html_dom.php',
+	'include/class/simple_html_dom.php',
 	'include/idna_convert.class.inc',
 	'include/jquery/jquery.iframe-post-form.js',
 

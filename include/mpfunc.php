@@ -250,7 +250,7 @@ if (!function_exists('mcont')){
 							if(!get($conf, "settings", "canonical") && !array_key_exists("null", $_GET) && !array_key_exists("p", $_GET) && ($conf['settings']['theme/*:admin'] != $conf['settings']['theme']) && !array_search($arg['fn'], ['', 'ajax', 'json'])){ # Нет перезагрузки страницы адреса
 								if(get($_GET, 'id') && ($default = rb($arg['fn'], "id", $_GET['id']))){ # Проверка и формирование методанных объекта
 									if($seo_cat = fk("{$conf['db']['prefix']}seo_cat", $w = array("alias"=>"{$arg['modpath']}:{$arg['fn']}"), $w += array("name"=>$conf['modules'][$arg['modpath']]['name']. " » ". (get($conf, 'settings', "{$arg['modpath']}_{$arg['fn']}") ?: $arg['fn']))/*, $w*/)){
-										if($seo_cat['href'] && ("/" == substr($seo_cat['href'], -1, 1)) && ("/" == substr($seo_cat['href'], 0, 1))){
+										if($seo_cat['href'] && ("/" == substr($seo_cat['href'], 0, 1)) /*&& ("/" == substr($seo_cat['href'], -1, 1))*/){
 											if($settings = mpzam($conf['settings'], "settings")){
 												foreach(array_intersect_key($seo_cat, array_flip(array('title', 'description', 'keywords', "href"))) as $n){
 													if(preg_match_all("#{(\w+):(\w+)}#", $n, $match)){
@@ -260,19 +260,19 @@ if (!function_exists('mcont')){
 															}
 														}
 													}
-												} if(!empty($e)){
+												} /*mpre($default, array_column($e, "table"));*/ if(!empty($e)){
 													while(($tabs = array_intersect_key($default, array_flip(array_map(function($v){ return "{$v}_id"; }, array_column($e, "table"))))) && (($loop = /*mpre*/(empty($loop) ? 1 : $loop+1)) < 10 /* Максимальное количество итераций */)){ # Если есть ключи от требующихся тегов
 														foreach($tabs as $k=>$id){
 															$data[$t = substr($k, 0, -3)] = rb($t, "id", $id);
 															$e = array_diff_key($e, rb($e, "table", "id", "[{$t}]"));
 														}
-													}
-												} if($mpzam = mpzam(empty($data) ? $default : array(""=>$default)+$data)){
+													}// mpre($data);
+												} if($mpzam = mpzam(empty($data) ? $default : array(""=>$default)+$data)){// mpre($mpzam);
 													foreach(array_intersect_key($seo_cat, array_flip(array('title', 'description', 'keywords'))) as $k=>$m){
 														if($m){ $meta[$k] = strtr(strtr($m, $settings), $mpzam); }
 													} if($characters_lang = rb("{$conf['db']['prefix']}seo_characters_lang", "name", $w = "[". ((strpos($_SERVER['HTTP_HOST'], "xn--") === 0) ? "Русские" : "Английские"). "]")){
 														if($characters = array_column(rb("{$conf['db']['prefix']}seo_characters", "characters_lang_id", "id", array_flip([$characters_lang['id'],0])), "to", "from")){
-															if($src = strtr($seo_cat['href'], $settings). strtr(htmlspecialchars_decode(strtr($default['name'], $settings)), $characters)){
+															if($src = htmlspecialchars_decode(strtr(strtr($seo_cat['href']. (get($default, 'name') ?: ""), $mpzam+$settings), $characters))){
 																if($meta && ($meta = meta(array(urldecode($_SERVER['REQUEST_URI']), mb_strtolower(strtr(strtr($src, $mpzam), $characters), 'UTF-8')), $meta += array("cat_id"=>$seo_cat['id'])))){
 																	exit(header("Location: {$meta[0]}"));
 																}else{ mpre("Мета информация не установлена"); }
