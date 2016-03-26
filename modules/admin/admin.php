@@ -4,7 +4,8 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 	if(get($_GET, "id") && array_key_exists("id", $_POST) && !$_POST['id']){ # Удаление элемента
 
 		if(get($conf, 'settings', 'admin_history_log')){
-			if($admin_history_type = rb("{$conf['db']['prefix']}admin_history_type", "name", $w = "[Удаление]")){
+//			if($admin_history_type = rb("{$conf['db']['prefix']}admin_history_type", "name", $w = "[Удаление]")){
+			if($admin_history_type = fk("{$conf['db']['prefix']}admin_history_type", $w = array("name"=>"Удаление"), $w)){
 				if($data = rb($_GET['r'], "id", $_GET['id'])){
 					if($admin_history_tables = fk("{$conf['db']['prefix']}admin_history_tables", $w = array("name"=>$_GET['r']), $w += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn'], "description"=>get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])))), $w)){
 						$admin_history = fk("{$conf['db']['prefix']}admin_history", null, array("history_type_id"=>$admin_history_type['id'], "name"=>$_GET['id'], "history_tables_id"=>$admin_history_tables['id'], "data"=>json_encode($data)));
@@ -33,7 +34,8 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 		} if(get($_GET, 'id')){
 
 			if(get($conf, 'settings', 'admin_history_log')){
-				if($admin_history_type = rb("{$conf['db']['prefix']}admin_history_type", "name", $w = "[Редактирование]")){
+//				if($admin_history_type = rb("{$conf['db']['prefix']}admin_history_type", "name", $w = "[Редактирование]")){
+				if($admin_history_type = fk("{$conf['db']['prefix']}admin_history_type", $w = array("name"=>"Редактирование"), $w)){
 					if($admin_history_tables = fk("{$conf['db']['prefix']}admin_history_tables", $w = array("name"=>$_GET['r']), $w += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn'], "description"=>get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])))), $w)){
 						if($data = rb($_GET['r'], "id", $_GET['id'])){
 							$admin_history = fk("{$conf['db']['prefix']}admin_history", null, array("history_type_id"=>$admin_history_type['id'], "name"=>$_GET['id'], "history_tables_id"=>$admin_history_tables['id'], "diff"=>json_encode(array_diff_key(array_diff_assoc($_POST, $data), array_flip(["id"]))), "data"=>json_encode($data)));
@@ -75,7 +77,8 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 				$el = rb($_GET['r'], "id", $_GET['id']);
 			}
 			if(get($conf, 'settings', 'admin_history_log')){
-				if($admin_history_type = rb("{$conf['db']['prefix']}admin_history_type", "name", $w = "[Добавление]")){
+//				if($admin_history_type = rb("{$conf['db']['prefix']}admin_history_type", "name", $w = "[Добавление]")){
+				if($admin_history_type = fk("{$conf['db']['prefix']}admin_history_type", $w = array("name"=>"Добавление"), $w)){
 					if($admin_history_tables = fk("{$conf['db']['prefix']}admin_history_tables", $w = array("name"=>$_GET['r']), $w += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn'], "description"=>get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])))), $w)){
 //						if($data = rb($_GET['r'], "id", $_POST['id'])){
 							$admin_history = fk("{$conf['db']['prefix']}admin_history", null, array("history_type_id"=>$admin_history_type['id'], "name"=>$el['id'], "history_tables_id"=>$admin_history_tables['id'], "data"=>json_encode($_POST)));

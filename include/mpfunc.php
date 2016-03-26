@@ -23,21 +23,19 @@ function meta($where, $insert = null){
 		if($seo_location = fk("{$conf['db']['prefix']}seo_location", $w = array("name"=>$location), $w += array("index_id"=>$seo_index['id'], "cat_id"=>$insert['cat_id']), $w)){
 			if(empty($seo_index)){
 				return $where + $seo_location;
-			}else if(array_key_exists('location_id', $seo_index)){
+			}else if(array_key_exists('location_id', $seo_index)){ # Односайтовый режим работы
 				if($seo_index = fk("{$conf['db']['prefix']}seo_index", array("id"=>$seo_index['id']), null, array("location_id"=>$seo_location['id'], "cat_id"=>$insert['cat_id'])+(array)$insert)){
 					return $where + $seo_index;
 				}else{ mpre("Ошибка установки внешнего адреса односайтового режима"); }
-			}else if($themes_index = get($conf, 'user', 'sess', 'themes_index')){
+			}else if($themes_index = get($conf, 'user', 'sess', 'themes_index')){ # Многосайтовый режим
 				if($tpl['seo_index_themes'] = rb("{$conf['db']['prefix']}seo_index_themes", "index_id", "location_id", "themes_index", "id", $seo_index['id'], $seo_location['id'], $themes_index['id'])){
 					if((1 == count($tpl['seo_index_themes'])) && ($seo_index_themes = array_pop($tpl['seo_index_themes']))){
-						return ($insert === null ? $insert : false);
+						mpre("Данный адрес уже прописан для сайта", $themes_index, $seo_index_themes); // return ($insert === null ? $insert : false);
 					}else{ mpre("Ошибка структуры метаинформации (множественная информация для одного адреса)", $w); }
 				}elseif($seo_index_themes = fk("{$conf['db']['prefix']}seo_index_themes", $w = array("index_id"=>$seo_index['id'], "location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id']), $w + (array)$insert)){
 					if(get($seo_index, "id")){
 						if($seo_location_themes = fk("{$conf['db']['prefix']}seo_location_themes", $w = array("location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id'], "index_id"=>$seo_index['id']), $w)){
-//							if($seo_index_themes = fk("{$conf['db']['prefix']}seo_index_themes", $w = array("index_id"=>$seo_index['id'], "location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id']), $w)){
-								return $where + $seo_index_themes;
-//							}else{ mpre("Ошибка установка метаинформации", $w); }
+							return $where + $seo_index_themes;
 						}else{ mpre("Ошибка добавления перенаправления", $w); }
 					}else{ return ($insert !== null ? $seo_index_themes : false); }
 				}else{ mpre("Ошибка добавления внутреннего адреса"); }
@@ -147,19 +145,6 @@ function inc($file_name, $variables = array(), $req = false){
 					}
 				}
 			} if(array_search("Администратор", get($conf, 'user', 'gid'))){
-/*				if($block = rb($info = get($conf, 'blocks', 'info'), 'alias', "[{$arg['fn']}]")){ # Составление структуры всех подключаемых шаблонов
-					if($backtrace = rb(debug_backtrace(), "function", "[inc]")){
-						if($inc = fk("{$conf['db']['prefix']}themes_inc", $w = array("name"=>$backtrace['file']), $w += array("up"=>time(), "index_id"=>get($conf, 'user', 'sess', 'themes_index', 'id')), $w)){
-							if($themes_inc = fk("{$conf['db']['prefix']}themes_inc", $w = array("name"=>$f), $w += array("up"=>time(), "index_id"=>get($conf, 'user', 'sess', 'themes_index', 'id')), $w)){
-								if($themes_inc_entry = fk("{$conf['db']['prefix']}themes_inc_entry", $w = array("line"=>$backtrace['line'], "inc_id"=>$inc['id'], "themes_inc"=>$themes_inc['id']), $w += array("up"=>time()))){
-									$conf['themes']['inc'][ $inc['id'] ] = $inc;
-									$conf['themes']['inc'][ $themes_inc['id'] ] = $themes_inc;
-									$conf['themes']['inc_entry'][ $themes_inc_entry['id'] ] = $themes_inc_entry;
-								}
-							}
-						}
-					}
-				}*/
 				ob_start();
 					if($req){ require $f; }else{ include $f; }
 				$content = ob_get_contents(); ob_end_clean();
@@ -203,10 +188,10 @@ function seo($href, $return = true){
 			}else{ return $href; }
 		}elseif($themes_index = get($conf, 'user', 'sess', 'themes_index')){ # МногоСайтов
 			if($tpl['seo_index_themes'] = rb("{$conf['db']['prefix']}seo_index_themes", "location_id", "themes_index", "id", $seo_location['id'], $themes_index['id'])){
-				if((count($tpl['seo_index_themes']) == 1) && ($seo_index_themes = array_shift($tpl['seo_index_themes']))){
-					if($index = rb("{$conf['db']['prefix']}seo_index", "id", $seo_index_themes['index_id'])){
-						return $index['name'];
-					}else{ return $href; }
+				if($tpl['index'] = rb("{$conf['db']['prefix']}seo_index", "id", "id", rb($tpl['seo_index_themes'], "index_id"))){
+					if(count($tpl['index']) != 1){
+						mpre("Внешний адрес <a href='/seo:admin/r:mp_seo_index_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>не найден</a>");
+					}else{ return get(first($tpl['index']), 'name'); }
 				}else{ return $href; }
 			}else{ return $href; }
 		}else{ return $href; }
@@ -246,44 +231,53 @@ if (!function_exists('mcont')){
 							inc("modules/admin/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')));
 						}
 					}else{
-						if(get($conf, 'settings', 'seo_meta')){ # Обработчик у каждой страницы всего сайта
+						if(get($conf, 'settings', 'seo_meta') && empty(array_diff_key($_GET, array_flip(["m", "id"])))){ # Обработчик у каждой страницы всего сайта
 							if(!get($conf, "settings", "canonical") && !array_key_exists("null", $_GET) && !array_key_exists("p", $_GET) && ($conf['settings']['theme/*:admin'] != $conf['settings']['theme']) && !array_search($arg['fn'], ['', 'ajax', 'json'])){ # Нет перезагрузки страницы адреса
-								if(get($_GET, 'id') && ($default = rb($arg['fn'], "id", $_GET['id']))){ # Проверка и формирование методанных объекта
-									if($seo_cat = fk("{$conf['db']['prefix']}seo_cat", $w = array("alias"=>"{$arg['modpath']}:{$arg['fn']}"), $w += array("name"=>$conf['modules'][$arg['modpath']]['name']. " » ". (get($conf, 'settings', "{$arg['modpath']}_{$arg['fn']}") ?: $arg['fn']))/*, $w*/)){
-										if($seo_cat['href'] && ("/" == substr($seo_cat['href'], 0, 1)) /*&& ("/" == substr($seo_cat['href'], -1, 1))*/){
-											if($settings = mpzam($conf['settings'], "settings")){
-												foreach(array_intersect_key($seo_cat, array_flip(array('title', 'description', 'keywords', "href"))) as $n){
-													if(preg_match_all("#{(\w+):(\w+)}#", $n, $match)){
-														foreach($match[0] as $n=>$m){
-															if(empty($e) || !rb($e, "table", "field", "[{$match[1][$n]}]", "[{$match[2][$n]}]")){
-																$e[] = array("id"=>(empty($e) ? 0 : count($e)), "table"=>$match[1][$n], "field"=>$match[2][$n]);
+								if($seo_cat = fk("{$conf['db']['prefix']}seo_cat", $w = array("alias"=>"{$arg['modpath']}:{$arg['fn']}"), $w += array("name"=>$conf['modules'][$arg['modpath']]['name']. " » ". (get($conf, 'settings', "{$arg['modpath']}_{$arg['fn']}") ?: $arg['fn']))/*, $w*/)){
+									if($settings = mpzam($conf['settings'], "settings")){
+										if($characters_lang = rb("{$conf['db']['prefix']}seo_characters_lang", "name", $w = "[". ((strpos($_SERVER['HTTP_HOST'], "xn--") === 0) ? "Русские" : "Английские"). "]")){
+											if($characters = array_column(rb("{$conf['db']['prefix']}seo_characters", "characters_lang_id", "id", array_flip([$characters_lang['id'],0])), "to", "from")){
+												if(get($_GET, 'id') && ($default = rb($arg['fn'], "id", $_GET['id']))){ # Проверка и формирование методанных объекта
+													if($seo_cat['href'] && ("/" == substr($seo_cat['href'], 0, 1)) /*&& ("/" == substr($seo_cat['href'], -1, 1))*/){
+														foreach(array_intersect_key($seo_cat, array_flip(array('title', 'description', 'keywords', "href"))) as $n){
+															if(preg_match_all("#{(\w+):(\w+)}#", $n, $match)){
+																foreach($match[0] as $n=>$m){
+																	if(empty($e) || !rb($e, "table", "field", "[{$match[1][$n]}]", "[{$match[2][$n]}]")){
+																		$e[] = array("id"=>(empty($e) ? 0 : count($e)), "table"=>$match[1][$n], "field"=>$match[2][$n]);
+																	}
+																}
 															}
-														}
-													}
-												} /*mpre($default, array_column($e, "table"));*/ if(!empty($e)){
-													while(($tabs = array_intersect_key($default, array_flip(array_map(function($v){ return "{$v}_id"; }, array_column($e, "table"))))) && (($loop = /*mpre*/(empty($loop) ? 1 : $loop+1)) < 10 /* Максимальное количество итераций */)){ # Если есть ключи от требующихся тегов
-														foreach($tabs as $k=>$id){
-															$data[$t = substr($k, 0, -3)] = rb($t, "id", $id);
-															$e = array_diff_key($e, rb($e, "table", "id", "[{$t}]"));
-														}
-													}// mpre($data);
-												} if($mpzam = mpzam(empty($data) ? $default : array(""=>$default)+$data)){// mpre($mpzam);
-													foreach(array_intersect_key($seo_cat, array_flip(array('title', 'description', 'keywords'))) as $k=>$m){
-														if($m){ $meta[$k] = strtr(strtr($m, $settings), $mpzam); }
-													} if($characters_lang = rb("{$conf['db']['prefix']}seo_characters_lang", "name", $w = "[". ((strpos($_SERVER['HTTP_HOST'], "xn--") === 0) ? "Русские" : "Английские"). "]")){
-														if($characters = array_column(rb("{$conf['db']['prefix']}seo_characters", "characters_lang_id", "id", array_flip([$characters_lang['id'],0])), "to", "from")){
-															if($src = htmlspecialchars_decode(strtr(strtr($seo_cat['href']. (get($default, 'name') ?: ""), $mpzam+$settings), $characters))){
-																if($meta && ($meta = meta(array(urldecode($_SERVER['REQUEST_URI']), mb_strtolower(strtr(strtr($src, $mpzam), $characters), 'UTF-8')), $meta += array("cat_id"=>$seo_cat['id'])))){
-																	exit(header("Location: {$meta[0]}"));
-																}else{ mpre("Мета информация не установлена"); }
+														} if(!empty($e)){
+															while(($tabs = array_intersect_key((empty($d) ? ($d = $default) : $d), array_flip(array_map(function($v){ return "{$v}_id"; }, array_column($e, "table"))))) && (($loop = /*mpre*/(empty($loop) ? 1 : $loop+1)) < 10 /* Максимальное количество итераций */)){ # Если есть ключи от требующихся тегов
+																foreach($tabs as $k=>$id){
+																	$data[$t = substr($k, 0, -3)] = rb($t, "id", $id);
+																	$d += $data[$t = substr($k, 0, -3)];
+																	$e = array_diff_key($e, rb($e, "table", "id", "[{$t}]"));
+																}
+															}// mpre($data);
+														} if($mpzam = mpzam(empty($data) ? $default : array(""=>$default)+$data)){// mpre($mpzam);
+															foreach(array_intersect_key($seo_cat, array_flip(array('title', 'description', 'keywords'))) as $k=>$m){
+																if($m){ $meta[$k] = strtr(strtr($m, $settings), $mpzam); }
+															} if($src = htmlspecialchars_decode(strtr($seo_cat['href'], $mpzam+$settings))){
+																if(!preg_match_all("#{(\w+):(\w+)}#", $src. implode("", $meta), $match) && (substr($src, -1) != "/")){
+																	if($meta && ($meta = meta(array(urldecode($_SERVER['REQUEST_URI']), mb_strtolower(strtr($src, $characters), 'UTF-8')), $meta += array("cat_id"=>$seo_cat['id'])))){
+																		exit(header("Location: {$meta[0]}"));
+																	}else{ mpre("Мета информация не установлена"); }
+																}else{ mpre("В адресе категории <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a> и метаинформации заменены не все теги", $src, $meta); }
 															}else{ mpre("Ошибка формирования адреса страницы"); }
-														}else{ mpre("Не установлена таблица перекодировки <a href='/seo:admin/r:mp_seo_characters'>seo_characters</a>"); }
-													}else{ mpre("Ошибка формирования массива замены"); }
-												}else{ mpre("Таблица языка перекодировки не найдена <a href='/seo:admin/r:mp_seo_characters_lang'>{$w}</a>"); }
-											}else{ mpre("Ошибка формирования системных переменных"); }
-										}else{ mpre("Не верный формат seo адреса <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>"); }
-									}else{ mpre("Не найдена категория переадресации"); }
-								}else{ /*mpre("Не найдена информация об объекте");*/ }
+														}else{ mpre("Таблица языка перекодировки не найдена <a href='/seo:admin/r:mp_seo_characters_lang'>{$w}</a>"); }
+													}else{ mpre("Не верный формат seo адреса <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>"); }
+												}else if($src = htmlspecialchars_decode(strtr(implode("/", array_slice(explode("/", $seo_cat['href']), 0, 2)), $settings))){ # Список элементов
+													if(!preg_match_all("#{(\w+):(\w+)}#", $src, $match) && (substr($src, -1) != "/")){
+														if($meta = meta(array(urldecode($_SERVER['REQUEST_URI']), mb_strtolower(strtr($src, $characters), 'UTF-8')), array("title"=>$arg['modname'], "description"=>$arg['modname']) + array("cat_id"=>$seo_cat['id']))){
+															exit(header("Location: {$meta[0]}"));
+														}else{ mpre("Мета информация не установлена"); }
+													}else{ mpre("В адресе заменены не все теги", $src); }
+												}else{ mpre("Элемент не найден и адрес списка не верный"); }
+											}else{ mpre("Не установлена таблица перекодировки <a href='/seo:admin/r:mp_seo_characters'>seo_characters</a>"); }
+										}else{ mpre("Ошибка формирования массива замены"); }
+									}else{ mpre("Ошибка формирования системных переменных"); }
+								}else{ mpre("Не найдена категория переадресации"); }
 							}else{ /*mpre(get($conf, "settings", "canonical"));*/ }
 						} if(!inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg))){ # Если не создано скриптов и шаблона для страницы запускаетм общую
 							inc("modules/{$mod['link']}/default.tpl", array('arg'=>$arg));
@@ -693,9 +687,11 @@ function rb($src, $key = 'id'){
 	$func_get_args = func_get_args();
 //	echo "<pre>"; print_r($func_get_args); echo "</pre>"; exit;
 	if(is_string($src)){
-		//проверка полное или коротное название таблицы
-		if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$func_get_args[0]))
+		if(strpos($func_get_args[0], '-')){ # Разделитель  - (тире) считается разделителем для раздела
+			$func_get_args[0] = $conf['db']['prefix']. implode("_", explode("-", $func_get_args[0]));
+		}else if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$func_get_args[0])){ # Если имя таблицы начинается с префика
 			$func_get_args[0] = "{$conf['db']['prefix']}{$arg['modpath']}_{$func_get_args[0]}";
+		} //проверка полное или коротное название таблицы
 	} return call_user_func_array('erb', $func_get_args);
 }
 
@@ -1158,8 +1154,8 @@ function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'ima
 			return null;
 		}
 	}else{
-		mpevent("Ошибка загрузки внешнего файла", $href, $conf['user']['uid'], func_get_args());
-		pre("file href error", $error);
+		mpevent("Ошибка загрузки внешнего файла", $href, get($conf, 'user', 'uid'), func_get_args());
+		pre("Ошибка загрузки файла", $href);
 	} return null;
 }
 function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
@@ -1198,8 +1194,8 @@ function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.pn
 }
 
 function mpager($count, $null=null, $cur=null, $url=null){
-	global $conf;
-	$p = (strpos(get($_SERVER, 'HTTP_HOST'), "xn--") === 0) ? "стр" : "p";
+	global $conf, $arg;
+	$p = (strpos(get($_SERVER, 'HTTP_HOST'), "xn--") === 0) && ($arg['fn'] != "admin") ? "стр" : "p";
 	if ($cur === null) $cur = (array_key_exists($p, $_GET) ? $_GET[$p] : 0);
 	if ($url === null){
 		if(array_key_exists($p, $_GET)){

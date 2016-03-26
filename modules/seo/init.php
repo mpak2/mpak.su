@@ -38,6 +38,9 @@ qw("CREATE TABLE `{$table}` (
   `priority` float NOT NULL DEFAULT '0.8' COMMENT 'Приоритет ссылки в sitemap.xml',
   `name` varchar(255) NOT NULL,
   `cat_id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` varchar(255) NOT NULL,
+  `keywords` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_2` (`name`),
   KEY `uid` (`uid`),
@@ -72,50 +75,11 @@ qw("CREATE TABLE `{$table}` (
   `name` varchar(255) NOT NULL,
   `description` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251");
-} if(mpsettings($t = "seo_test", "Проверка") && ($table = ("{$conf['db']['prefix']}{$t}"))){
-qw("CREATE TABLE `{$table}` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `time` int(11) NOT NULL,
-  `uid` int(11) NOT NULL,
-  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
-} if(mpsettings($t = "seo_index_themes", "Адресация") && ($table = ("{$conf['db']['prefix']}{$t}"))){
-qw("CREATE TABLE `{$table}` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `time` int(11) NOT NULL,
-  `uid` int(11) NOT NULL,
-  `index_id` int(11) DEFAULT NULL,
-  `location_id` int(11) NOT NULL,
-  `themes_index` int(11) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `description` varchar(255) NOT NULL,
-  `keywords` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `themes_index` (`themes_index`),
-  KEY `location_id` (`location_id`),
-  KEY `index_id` (`index_id`),
-  CONSTRAINT `mp_seo_index_themes_ibfk_1` FOREIGN KEY (`index_id`) REFERENCES `mp_seo_index` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `mp_seo_index_themes_ibfk_2` FOREIGN KEY (`location_id`) REFERENCES `mp_seo_location` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251");
-} if(mpsettings($t = "seo_location_themes", "Перенаправления") && ($table = ("{$conf['db']['prefix']}{$t}"))){
-qw("CREATE TABLE `{$table}` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `time` int(11) NOT NULL,
-  `uid` int(11) NOT NULL,
-  `index_id` int(11) NOT NULL,
-  `location_id` int(11) NOT NULL,
-  `themes_index` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `location_id` (`location_id`),
-  KEY `themes_index` (`themes_index`),
-  KEY `index_id` (`index_id`),
-  KEY `uid` (`uid`),
-  CONSTRAINT `mp_seo_location_themes_ibfk_1` FOREIGN KEY (`location_id`) REFERENCES `mp_seo_location` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `mp_seo_location_themes_ibfk_2` FOREIGN KEY (`index_id`) REFERENCES `mp_seo_index` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251");
-} 
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251;");
+}
+
+$index_type = fk("index_type", $w = array("id"=>1), $w + array("name"=>"text/html", "description"=>"html документ"), $w);
+$location_status = fk("location_status", $w = array("id"=>301), $w + array("name"=>"Moved", "description"=>"Перенаправление"), $w);
 
 mpsettings("{$arg['modpath']}_index_themes=>title", "time,uid,index_id,location_id,themes_index,title");
 mpsettings("{$arg['modpath']}_index=>order", "id DESC");

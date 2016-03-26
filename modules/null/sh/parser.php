@@ -31,7 +31,7 @@ if($argv){
 	$arg['modpath'] = basename(dirname(dirname(__FILE__)));
 	$conf['fs']['path'] = dirname(dirname(dirname(dirname(__FILE__))));
 
-	include "phar://../../../index.phar/include/parse/simple_html_dom.php";
+	include "phar://../../../index.phar/include/class/simple_html_dom.php";
 	$html = new simple_html_dom();
 } $conf['user']['gid'] = array(1=>"Администратор");
 
@@ -44,18 +44,18 @@ if (strlen($conf['db']['error'] = mysql_error())){
 
 ###################################################################################################################################################
 
-$html->load($data = mpde(mpcurl("http://ya.ru")));
+if($html->load($data = mpde(mpcurl($w = "http://ru.aliexpress.com/")))){
+	foreach($html->find(".categories-list-box > dl") as $dl){
+		echo "\n". $html = $dl->outertext;
 
-foreach($html->find("#id") as $e){
-	echo "\n". $html = $e->outertext;
-
-/*	do{ # Поиск следующего элемента
-		mpre($e)
-		$v['href'] = false;
-		if($p = $html->find("#pages p>em", 0)){
-			if($p = $p->parent()->next_sibling()){
-				$v['href'] = $p->find("a", 0)->href;
+	/*	do{ # Поиск следующего элемента
+			mpre($e)
+			$v['href'] = false;
+			if($p = $html->find("#pages p>em", 0)){
+				if($p = $p->parent()->next_sibling()){
+					$v['href'] = $p->find("a", 0)->href;
+				}
 			}
-		}
-	} while($v['href']);*/
-}
+		} while($v['href']);*/
+	}
+}else{ mpre("Ошибка открытия страницы ", $w); }

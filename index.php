@@ -12,6 +12,7 @@
 
 ini_set('display_errors', 1); error_reporting(E_ALL /*& ~E_NOTICE & ~E_STRICT*/);
 date_default_timezone_set('Europe/Moscow');
+header("Cache-Control: no-cache, must-revalidate");
 
 if(strpos(__DIR__, "phar://") === 0){ # Файл index.php внутри phar архива
 	if(!isset($index) && ($index = './index.php') && file_exists($index)){
@@ -225,8 +226,8 @@ if(empty($f)){
 	$conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"];
 } inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($content = "")));
 
-if(get($conf, "settings", "admin_sultisite")){ # Включение режима мультисайт
-	inc("modules/admin/admin_sultisite.php", array("content"=>($content = "")));
+if(get($conf, "settings", "admin_multisite")){ # Включение режима мультисайт
+	inc("modules/admin/admin_multisite.php", array("content"=>($content = "")));
 }
 
 foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_gaccess", 'Права доступа группы к модулю')) as $k=>$v){
@@ -276,8 +277,10 @@ $conf['settings']['microtime'] = substr(microtime(true)-$conf['settings']['micro
 	}	
 }*/ if(!array_key_exists("nocache", $_REQUEST)){
 	if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && !array_search("Зарегистрированные", $conf['user']['gid'])){
+		header("Cache-Control: max-age=86400, private");
 		exit(header('HTTP/1.0 304 Not Modified'));
 	}else if(!array_search("Зарегистрированные", $conf['user']['gid'])){ # Исключаем админстраницу из кеширования
+		header("Cache-Control: max-age=86400, public");
 		header('Last-Modified: '. date("r"));
 		header("Expires: ". gmdate("r", time()+(get($conf, 'settings', "themes_expires") ?: 86400)));
 	}
