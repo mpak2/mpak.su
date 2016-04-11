@@ -48,20 +48,14 @@ if(preg_match("#\/[\w\d\-\_\%\.]+\.\w+$#i",$_SERVER['REDIRECT_URI'])){
 			if(preg_match("#\.php$#iu",$REDIRECT_URL)){
 				include("$v/webroot$REDIRECT_URL");				
 			}else{
-				file_download("$v/webroot$REDIRECT_URL");
+				exit(file_download("$v/webroot$REDIRECT_URL"));
 			}
-			exit();
 		}
 	}
 }
 
 header('Content-Type: text/html;charset=UTF-8');
 
-if(!function_exists('__autoload')){
-	function __autoload($class_name){#Автоподгрузка классов
-		include_once mpopendir("/include/class/$class_name.php");	
-	}
-}
 try{
 	if($conf['db']['type'] == "sqlite"){
 		$conf['db']['conn'] = new PDO("{$conf['db']['type']}:". mpopendir($conf['db']['name']));
@@ -239,17 +233,13 @@ foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_uaccess O
 		$conf['modules'][ $v['mid'] ]['access'] = $v['access'];
 }
 
-if (!empty($conf['settings']["theme/*:{$conf['settings']['fn']}"])) $conf['settings']['theme'] = $conf['settings']["theme/*:{$conf['settings']['fn']}"];
-if (!empty($conf['settings']["theme/{$conf['settings']['modpath']}:*"])) $conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:*"];
-if (!empty($conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"])) $conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"];
+if(!empty($conf['settings']["theme/*:{$conf['settings']['fn']}"])) $conf['settings']['theme'] = $conf['settings']["theme/*:{$conf['settings']['fn']}"];
+if(!empty($conf['settings']["theme/{$conf['settings']['modpath']}:*"])) $conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:*"];
+if(!empty($conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"])) $conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"];
 
-if ((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]){
+if((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]){
 	$conf['settings']['theme'] = $conf['settings']["theme/*:admin"];
-}
-if(isset($_GET['theme']) && $_GET['theme'] != $conf['user']['sess']['theme']){
-	$conf['user']['sess']['theme'] = $conf['settings']['theme'] = basename($_GET['theme']);
-}
-if(isset($_GET['m']['sqlanaliz'])){
+} if(isset($_GET['m']['sqlanaliz'])){
 	$zblocks = bcont();
 	$content = mcont($content);
 }else{

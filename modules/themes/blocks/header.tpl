@@ -16,6 +16,9 @@
 	<? if($verification = get($themes_index, 'yandex-verification')): # Проверка вебмастера яндекса ?> 
 		<meta name='yandex-verification' content='<?=$verification?>' />
 	<? endif; ?> 
+	<? if($verification = get($themes_index, 'google-verification')): # Проверка вебмастера гугл ?> 
+		<meta name="google-site-verification" content="<?=$verification?>" />
+	<? endif; ?> 
 	<? if($themes_cat = rb("{$conf['db']['prefix']}themes_index_cat", "id", $themes_index['index_cat_id'])): ?> 
 		<? if($icon = get($themes_cat, "img")): # Фавикон ?> 
 			<link rel="icon" type="image/png" href="/themes:img/<?=$themes_cat['id']?>/tn:index_cat/fn:img/w:65/h:65/null/img.png" />

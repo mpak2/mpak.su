@@ -140,9 +140,9 @@ if($yandex = rb("yandex", "id", get($_GET, 'id'))){
 			}else{ mpre("Ошибка загрузки данных"); }
 		
 		
-			$tpl['webmaster'] = file_get_contents($url = 'https://webmaster.yandex.ru/api/v2/hosts', false, stream_context_create(array('http' =>
-				($param = array( 'method'  => 'GET', 'header'  => "Authorization: OAuth {$yandex_token['name']}", ))
-			)));// mpre($tpl['data'], $url, $param);
+			$tpl['webmaster'] = file_get_contents($url = 'https://webmaster.yandex.ru/api/v2/hosts', false, stream_context_create(
+				array('http'=>($param = array('method'=>'GET', 'header'=>"Authorization: OAuth {$yandex_token['name']}",)))
+			));// mpre($tpl['data'], $url, $param);
 
 			if($webmaster = get($tpl, 'webmaster')){
 				if($xml = json_decode(json_encode(new SimpleXMLElement($webmaster)), true)){
@@ -282,4 +282,39 @@ if(mpsettings($t = "{$arg['modpath']}_yandex", "Яндекс") && !tables($table
 		KEY `index_id` (`index_id`),
 		KEY `name` (`name`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+} if(mpsettings($t = "themes_yandex_metrika_metrics", "Метрики") && !tables($table = ("{$conf['db']['prefix']}{$t}"))){
+qw("CREATE TABLE `{$table}` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` int(11) NOT NULL,
+  `up` int(11) NOT NULL,
+  `yandex_metrika_id` int(11) NOT NULL,
+  `yandex_metrika_dimensions_id` int(11) NOT NULL,
+  `yandex_metrika_period_id` int(11) NOT NULL,
+  `visits` int(11) NOT NULL COMMENT 'Визитов',
+  `users` int(11) NOT NULL COMMENT 'Пользователей',
+  `pageviews` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `yandex_metrika_dimensions_id` (`yandex_metrika_dimensions_id`),
+  KEY `yandex_metrika_period_id` (`yandex_metrika_period_id`),
+  CONSTRAINT `mp_themes_yandex_metrika_metrics_ibfk_1` FOREIGN KEY (`yandex_metrika_period_id`) REFERENCES `mp_themes_yandex_metrika_period` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+}  if(mpsettings($t = "themes_yandex_metrika_period", "Период") && !tables($table = ("{$conf['db']['prefix']}{$t}"))){
+qw("CREATE TABLE `{$table}` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` int(11) NOT NULL,
+  `uid` int(11) NOT NULL,
+  `date1` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `date2` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `date1` (`date1`),
+  KEY `date2` (`date2`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+} if(mpsettings($t = "themes_yandex_metrika_dimensions", "Измерения") && !tables($table = ("{$conf['db']['prefix']}{$t}"))){
+qw("CREATE TABLE `{$table}` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` int(11) NOT NULL,
+  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `alias` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
 }

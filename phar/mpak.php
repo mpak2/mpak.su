@@ -38,7 +38,9 @@ foreach( $dolders = array(
 //	'include/parse/simple_html_dom.php',
 	'include/class/simple_html_dom.php',
 	'include/idna_convert.class.inc',
-	'include/jquery/jquery.iframe-post-form.js',
+
+	'include/jquery/jquery.iframe-post-form.js', # Нужен для работы демократический.рф
+	'include/jquery/jquery.selection.js',
 
 	'img',
 	'modules',

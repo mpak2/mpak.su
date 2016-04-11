@@ -1,5 +1,12 @@
 <?
 
+# автозагрузка классов из одноименной директории
+if(!function_exists('__autoload')){
+	function __autoload($class_name){#Автоподгрузка классов
+		include_once mpopendir("/include/class/$class_name.php");	
+	}
+}
+
 # Изменяет мета информацию страницы записывая ее в раздел seo
 # Первый аргумент массив - array(внутренний, внешний адреса) или строка - внутренний адрес на сайте $_SERVER['REQUEST_URI'], второй параметр - установка метаинформации
 
@@ -181,7 +188,7 @@ function inc($file_name, $variables = array(), $req = false){
 
 function seo($href, $return = true){
 	global $conf;
-	if($seo_location = rb("{$conf['db']['prefix']}seo_location", "name", "[{$href}]")){
+	if($seo_location = rb("{$conf['db']['prefix']}seo_location", "name", "id", (is_string($href) ? "[$href]" : true), (is_numeric(get($href, "id")) ? $href['id'] : true))){
 		if(array_key_exists("index_id", $seo_location) && $seo_location['index_id']){ # Односайтовый режим
 			if($index = rb("{$conf['db']['prefix']}seo_index", 'id', $seo_location['index_id'])){
 				return $index['name'];
@@ -231,54 +238,8 @@ if (!function_exists('mcont')){
 							inc("modules/admin/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')));
 						}
 					}else{
-						if(get($conf, 'settings', 'seo_meta') && empty(array_diff_key($_GET, array_flip(["m", "id"])))){ # Обработчик у каждой страницы всего сайта
-							if(!get($conf, "settings", "canonical") && !array_key_exists("null", $_GET) && !array_key_exists("p", $_GET) && ($conf['settings']['theme/*:admin'] != $conf['settings']['theme']) && !array_search($arg['fn'], ['', 'ajax', 'json'])){ # Нет перезагрузки страницы адреса
-								if($seo_cat = fk("{$conf['db']['prefix']}seo_cat", $w = array("alias"=>"{$arg['modpath']}:{$arg['fn']}"), $w += array("name"=>$conf['modules'][$arg['modpath']]['name']. " » ". (get($conf, 'settings', "{$arg['modpath']}_{$arg['fn']}") ?: $arg['fn']))/*, $w*/)){
-									if($settings = mpzam($conf['settings'], "settings")){
-										if($characters_lang = rb("{$conf['db']['prefix']}seo_characters_lang", "name", $w = "[". ((strpos($_SERVER['HTTP_HOST'], "xn--") === 0) ? "Русские" : "Английские"). "]")){
-											if($characters = array_column(rb("{$conf['db']['prefix']}seo_characters", "characters_lang_id", "id", array_flip([$characters_lang['id'],0])), "to", "from")){
-												if(get($_GET, 'id') && ($default = rb($arg['fn'], "id", $_GET['id']))){ # Проверка и формирование методанных объекта
-													if($seo_cat['href'] && ("/" == substr($seo_cat['href'], 0, 1)) /*&& ("/" == substr($seo_cat['href'], -1, 1))*/){
-														foreach(array_intersect_key($seo_cat, array_flip(array('title', 'description', 'keywords', "href"))) as $n){
-															if(preg_match_all("#{(\w+):(\w+)}#", $n, $match)){
-																foreach($match[0] as $n=>$m){
-																	if(empty($e) || !rb($e, "table", "field", "[{$match[1][$n]}]", "[{$match[2][$n]}]")){
-																		$e[] = array("id"=>(empty($e) ? 0 : count($e)), "table"=>$match[1][$n], "field"=>$match[2][$n]);
-																	}
-																}
-															}
-														} if(!empty($e)){
-															while(($tabs = array_intersect_key((empty($d) ? ($d = $default) : $d), array_flip(array_map(function($v){ return "{$v}_id"; }, array_column($e, "table"))))) && (($loop = /*mpre*/(empty($loop) ? 1 : $loop+1)) < 10 /* Максимальное количество итераций */)){ # Если есть ключи от требующихся тегов
-																foreach($tabs as $k=>$id){
-																	$data[$t = substr($k, 0, -3)] = rb($t, "id", $id);
-																	$d += $data[$t = substr($k, 0, -3)];
-																	$e = array_diff_key($e, rb($e, "table", "id", "[{$t}]"));
-																}
-															}// mpre($data);
-														} if($mpzam = mpzam(empty($data) ? $default : array(""=>$default)+$data)){// mpre($mpzam);
-															foreach(array_intersect_key($seo_cat, array_flip(array('title', 'description', 'keywords'))) as $k=>$m){
-																if($m){ $meta[$k] = strtr(strtr($m, $settings), $mpzam); }
-															} if($src = htmlspecialchars_decode(strtr($seo_cat['href'], $mpzam+$settings))){
-																if(!preg_match_all("#{(\w+):(\w+)}#", $src. implode("", $meta), $match) && (substr($src, -1) != "/")){
-																	if($meta && ($meta = meta(array(urldecode($_SERVER['REQUEST_URI']), mb_strtolower(strtr($src, $characters), 'UTF-8')), $meta += array("cat_id"=>$seo_cat['id'])))){
-																		exit(header("Location: {$meta[0]}"));
-																	}else{ mpre("Мета информация не установлена"); }
-																}else{ mpre("В адресе категории <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a> и метаинформации заменены не все теги", $src, $meta); }
-															}else{ mpre("Ошибка формирования адреса страницы"); }
-														}else{ mpre("Таблица языка перекодировки не найдена <a href='/seo:admin/r:mp_seo_characters_lang'>{$w}</a>"); }
-													}else{ mpre("Не верный формат seo адреса <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>"); }
-												}else if($src = htmlspecialchars_decode(strtr(implode("/", array_slice(explode("/", $seo_cat['href']), 0, 2)), $settings))){ # Список элементов
-													if(!preg_match_all("#{(\w+):(\w+)}#", $src, $match) && (substr($src, -1) != "/")){
-														if($meta = meta(array(urldecode($_SERVER['REQUEST_URI']), mb_strtolower(strtr($src, $characters), 'UTF-8')), array("title"=>$arg['modname'], "description"=>$arg['modname']) + array("cat_id"=>$seo_cat['id']))){
-															exit(header("Location: {$meta[0]}"));
-														}else{ mpre("Мета информация не установлена"); }
-													}else{ mpre("В адресе заменены не все теги", $src); }
-												}else{ mpre("Элемент не найден и адрес списка не верный"); }
-											}else{ mpre("Не установлена таблица перекодировки <a href='/seo:admin/r:mp_seo_characters'>seo_characters</a>"); }
-										}else{ mpre("Ошибка формирования массива замены"); }
-									}else{ mpre("Ошибка формирования системных переменных"); }
-								}else{ mpre("Не найдена категория переадресации"); }
-							}else{ /*mpre(get($conf, "settings", "canonical"));*/ }
+						if(get($conf, 'settings', 'seo_meta') && !get($conf, "settings", "canonical")){ # Обработчик у каждой страницы всего сайта
+							inc("modules/seo/admin_meta.php", array('arg'=>$arg));
 						} if(!inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg))){ # Если не создано скриптов и шаблона для страницы запускаетм общую
 							inc("modules/{$mod['link']}/default.tpl", array('arg'=>$arg));
 						}
@@ -286,7 +247,7 @@ if (!function_exists('mcont')){
 				$content .= ob_get_contents(); ob_end_clean();
 			}else if(get($conf, 'modules', $k) && ($_SERVER['REQUEST_URI'] != "/admin")){
 				header("HTTP/1.0 403 Access Denied");
-				header("Location: /users:login");
+				exit(header("Location: /users:login"));
 			}else{
 				if (file_exists(mpopendir("modules/{$mod['link']}/deny.php"))){
 //					$content = mpct("modules/{$mod['link']}/deny.php", $conf['arg'] = array('modpath'=>$mod['folder']));

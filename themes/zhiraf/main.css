@@ -514,11 +514,14 @@ h2
 		border:1px solid #f5e1aa;
 		padding:10px;
 		height:125px;
-		min-width:200px;
+/*		min-width:200px;*/
 		width:30%;
 		padding:20px 0 0 150px;
 		position:relative;
-		margin:0 0 15px 0;
+		margin:5px 1%;
+		width: 48%;
+		box-sizing: border-box;
+		max-width:500px;
 	}
 		.MdlsList li img
 		{

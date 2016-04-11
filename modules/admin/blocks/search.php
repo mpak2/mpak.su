@@ -46,7 +46,7 @@
 		</div>
 	</form>
 <? else: ?>
-	<form action="/admin:search/search_block_num:<?=$arg['blocknum']?>" method="post" style="padding:10px;">
+	<form action="/admin:search/search_block_num:<?=$arg['blocknum']?>" method="get" style="padding:10px;">
 		<input type="text" name="search">
 		<button>Искать</button>
 	</form>

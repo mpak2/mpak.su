@@ -1,10 +1,11 @@
 <div style="margin:10px;">
-	<form method="post">
+	<form method="get">
 		<input type="text" value="<?=get($tpl, 'search')?>" name="search" placeholder="Запрос поиска" style="min-width:50%;">
 		<button>Найти</button>
 	</form>
 	<p><div id="resultStats" style="color:#808080;">Результатов: <?=(int)get($tpl, "counter")?><nobr> (<!-- [settings:microtime] --> сек.)&nbsp;</nobr></div></p>
 	<? if($result = get($tpl, 'result')): ?>
+		<div><?=get($tpl, "pager")?></div>
 		<? foreach($result as $table=>$val): ?>
 			<? if($param = get($tpl, "param", $table)): ?>
 				<? foreach($val['list'] as $index): ?>
@@ -21,8 +22,6 @@
 				<? endforeach; ?>
 			<? endif; ?>
 		<? endforeach; ?>
+		<div><?=get($tpl, "pager")?></div>
 	<? endif; ?>
-	<div style="margin:10px;">
-		<?=get($tpl, 'pager')?>
-	</div>
 </div>

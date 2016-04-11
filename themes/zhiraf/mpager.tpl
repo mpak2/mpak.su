@@ -1,6 +1,6 @@
 <div class="pager">
 	<style>
-		#main .pager a.active {color:#fe8e23; font-weight:bold; /*border:1px solid #aaa;*/}
+		.pager a.numeric.active {color:#fe8e23; font-weight:bold; border:1px solid #aaa;}
 	</style>
 	<script>
 		(function($, script){

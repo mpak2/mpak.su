@@ -18,12 +18,12 @@ $tpl['param'] = json_decode($param = ql("SELECT param FROM {$conf['db']['prefix'
 
 # Сохраняем историю поиска
 if($_REQUEST['search_block_num']){
-	mpqw("INSERT INTO {$conf['db']['prefix']}search_index (uid, time, num, name, ip) VALUE ('{$conf['user']['uid']}', '". time(). "', '".(int)$_REQUEST['search_block_num']."', \"".mpquot($_REQUEST['search'])."\", '{$_SERVER['REMOTE_ADDR']}')");
+	mpqw("INSERT INTO {$conf['db']['prefix']}search_index (uid, time, num, name, ip) VALUE ('{$conf['user']['uid']}', '". time(). "', '".(int)$_REQUEST['search_block_num']."', \"".mpquot(get($_REQUEST, 'search'))."\", '{$_SERVER['REMOTE_ADDR']}')");
 }
 
 $search_result = array();
-if (strlen(trim($_REQUEST['search']))){
-	$tpl['search'] = htmlspecialchars($_REQUEST['search']);
+if(strlen(trim(get($_REQUEST, 'search')))){
+	$tpl['search'] = htmlspecialchars(get($_REQUEST, 'search'));
 	foreach($tpl['param'] as $table=>$v){
 		$fields = '`id`';$where = '';
 
@@ -32,7 +32,9 @@ if (strlen(trim($_REQUEST['search']))){
 			$fields .= ", `$f`";
 		}
 
-		if($list = ql($sql = "SELECT SQL_CALC_FOUND_ROWS {$fields} FROM `$table` WHERE ".substr($where, 3). " LIMIT ". (get($_GET, 'p')*10). ",10")){
+		if($list = ql($sql = "SELECT SQL_CALC_FOUND_ROWS {$fields} FROM `$table` WHERE ".substr($where, 3). " LIMIT ". (get($_GET, 'p')*5). ",10")){
+			$tpl['pager'] = mpager(ql("SELECT FOUND_ROWS()/10 AS cnt", 0, 'cnt'));
+
 			$tpl['result'][$table] = array(
 				'list'=>$list,
 				'cnt'=>ql("SELECT FOUND_ROWS()/10 AS cnt", 0, 'cnt'),

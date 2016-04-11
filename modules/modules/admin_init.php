@@ -8,7 +8,7 @@ foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}") as $modules){
 				if(($create = ql($sql = "SHOW CREATE TABLE `{$table}`", 0, 'Create Table')) && ($create = preg_replace("# AUTO_INCREMENT=\d+ #", " ", $create))){
 //					mpre($sql, implode("_", array_slice(explode("_", $table), 2)));
 					($t = implode("_", array_slice(explode("_", $table), 2)));
-					$i = "if(mpsettings(\$t = \"{$modpath}". ($t ? "_{$t}" : ""). "\", ". (($s = get($conf, 'settings', ($params[] = $tabl = "{$modpath}". ($t ? "_{$t}" : "")))) ? "\"{$s}\"" : "null"). ") && (\$table = (\"{\$conf['db']['prefix']}{\$t}\"))){\nqw(\"{$create}\");\n}";
+					$i = "if(mpsettings(\$t = \"{$modpath}". ($t ? "_{$t}" : ""). "\", ". (($s = get($conf, 'settings', ($params[] = $tabl = "{$modpath}". ($t ? "_{$t}" : "")))) ? "\"{$s}\"" : "null"). ") && !tables(\$table = (\"{\$conf['db']['prefix']}{\$t}\"))){\nqw(\"{$create}\");\n}";
 					$init[ strpos($i, "FOREIGN KEY") ? 0 : 1 ][] = strtr($i, $w = array("`{$table}`"=>"`{\$table}`", "\n"=>"\n"/*, "CREATE TABLE"=>"CREATE TABLE IF EXISTS"*/));
 				}
 			}

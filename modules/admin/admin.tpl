@@ -132,6 +132,7 @@
 						var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
 						var fn = $(e.currentTarget).parents("[fn]").attr("fn");
 						var post = {}; post[fn] = "";
+						$(e.currentTarget).find("img").css("opacity", 0.3);
 						$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/"+ line_id+ "/null", post, function(response){
 							console.log("line_id:", line_id, "response:", response);
 							document.location.reload(true);
@@ -268,7 +269,7 @@
 									</select>
 								<? elseif(array_search($field['Field'], array(1=>"time", "last_time", "reg_time", "up"))): # Поле времени ?>
 									<input type="text" name="<?=$field['Field']?>" value="<?=date("Y-m-d H:i:s", get($tpl, 'edit', $field['Field']) ?: time())?>" placeholder="<?=($tpl['etitle'][$field['Field']] ?: $field['Field'])?>">
-								<? elseif(substr($field['Field'], -3) == "_id"): # Поле вторичного ключа связанной таблицы ?>
+								<? elseif((substr($field['Field'], -3) == "_id") && (false === array_search(substr($field['Field'], 0, -3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
 									<select name="<?=$field['Field']?>" style="width:100%;">
 										<? if(get($tpl, 'edit', $field['Field']) && !rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($field['Field'], 0, -3), "id", $tpl['edit'][$field['Field']])): ?> 
 											<option><?=htmlspecialchars($tpl['edit'][$field['Field']])?></option>
@@ -348,7 +349,9 @@
 										<? elseif(array_search($k, array(1=>"img", "img2", "img3"))): ?>
 											<div class="imgs" fn="<?=$k?>" style="position:relative; width:70px; height:70px;">
 													<? if($lines[$k]): ?>
-														<a class="del" href="javascript:void(0)" style="position:absolute; top:5px; right:5px;" title="Удалить изображение"><img src="/img/del.png" style="background-color:#eee; border:1px solid #888; border-radius:3px;"></a>
+														<a class="del" href="javascript:void(0)" style="position:absolute; top:5px; right:5px;" title="Удалить изображение">
+															<img src="/img/del.png" style="background-color:#eee; border:1px solid #888; border-radius:3px;">
+														</a>
 													<? endif; ?>
 													<img src="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?><?=($lines[$k] ? "" : "/rand:". time())?>/w:65/h:65/null/img.png" style="border:1px solid #aaa; padding:2px;"  title="<?=$v?>">
 											</div>
