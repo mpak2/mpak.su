@@ -45,22 +45,19 @@ $defaultmimes = array(
 	'xml' => 'text/xml',
 );
 
+$path = mpopendir("img/". last(explode("/", $_SERVER['REQUEST_URI'])));// exit(mpre($path));
 
-$keys = array_keys($ar = explode("/", $_SERVER['REQUEST_URI']));
-$path = mpopendir("img/". $ar[max($keys)]);
-
-$keys = array_keys($ar = explode('.', $path));
-if(($ext = strtolower($ar[max($keys)])) && array_key_exists($ext, $defaultmimes) && file_exists($path)){
+if(get($_GET, 'w') && get($_GET, 'h') && file_exists($f = mpopendir("img/". basename($_GET[''])))){
+	header("Content-type: ". ($ext = get($defaultmimes, last(explode(".", $f)))) ?: "image/png");
+	echo mprs($f, get($_GET, 'w'), get($_GET, 'h'), get($_GET, 'c'));
+}elseif(($ext = strtolower(last(explode('.', $path)))) && array_key_exists($ext, $defaultmimes) && file_exists($path)){
 	if(!ob_get_length()){
-		header("Content-type: {$defaultmimes[$ext]}");
+		header("Content-type: ". (get($defaultmimes, $ext) ?: "application/download"));
 	} $f = fopen($path, "rb");
 	while (!feof($f)) {
 		echo fread($f, 256);
-	} exit();
-}elseif(file_exists($f = "img/". basename($_GET['']))){
-	header("Content-type: {$defaultmimes[$ext]}");
-	echo mprs($f, $_GET['w'], $_GET['h'], $_GET['c']);
+	} exit(0);
 }else{
 	header("HTTP/1.1 404 Not Found");
-	echo "HTTP/1.1 404 Not Found";
+	exit("HTTP/1.1 404 Not Found");
 }

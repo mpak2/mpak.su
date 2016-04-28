@@ -24,7 +24,7 @@ if($yandex = rb("yandex", "id", get($_GET, 'id'))){
 									}
 								}
 							}
-						}else{ mpre("Ошибка загрузки данных"); }
+						}else{ exit(mpre("Ошибка загрузки данных")); }
 					} exit(json_encode($index));
 				}elseif("stats" == $_REQUEST['api']){
 					if($yandex_webmaster = rb("yandex_webmaster", "index_id", $index['id'])){
@@ -72,7 +72,7 @@ if($yandex = rb("yandex", "id", get($_GET, 'id'))){
 							),
 						))
 					)))){ exit(0); }else{
-						mpre("Ошибка регистрации вебмастера");
+						exit("Ошибка регистрации вебмастера");
 					}
 				}elseif("metrika" == $_REQUEST['api']){ # Регистрация в метрике
 					if($data = file_get_contents($url = "https://api-metrika.yandex.ru/counters", false, stream_context_create(array('http' =>
@@ -92,7 +92,7 @@ if($yandex = rb("yandex", "id", get($_GET, 'id'))){
 							),
 						))
 					)))){ exit(0); }else{
-						mpre("Ошибка регистрации метрики");
+						exit("Ошибка регистрации метрики");
 					};// mpre($tpl['metrika'], $url, $param);
 				}elseif("verify" == $_REQUEST['api']){ # Регистрация в метрике
 					if($yandex_webmaster = rb("yandex_webmaster", "index_id", $index['id'])){
@@ -124,8 +124,8 @@ if($yandex = rb("yandex", "id", get($_GET, 'id'))){
 							}else{ exit(mpre("Ошика xml парсинга резальтата запроса кода проверки")); }
 						}else{ exit(mpre("Ошибка запроса кода проверки", $param)); }
 					}
-				}else{ mpre($index); }
-			}else{ mpre("Сайт не найден"); }
+				}else{ exit(mpre($index)); }
+			}else{ exit(mpre("Сайт не найден")); }
 		}else{
 			if($metrika = file_get_contents($url = 'https://api-metrika.yandex.ru/counters.json?per_page=10000', false, stream_context_create(array('http'=>array( 'method'=>'GET', "Content-Type: application/json", 'header'=>"Authorization: OAuth {$yandex_token['name']}", ))))){
 				if($json = json_decode($metrika, true)){

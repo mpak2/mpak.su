@@ -276,7 +276,7 @@
 										<? endif; ?> 
 										<option></option>
 										<? foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($field['Field'], 0, -3)) as $ln): ?> 
-											<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $field['Field']) == $ln['id']) || ($ln['id'] == (get($_GET, 'where', $field['Field']) ?: $field['Default'])) ? "selected" : "")?>>
+											<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $field['Field']) == $ln['id']) || (!get($tpl, 'edit') && ($ln['id'] == (get($_GET, 'where', $field['Field']) ?: $field['Default']))) ? "selected" : "")?>>
 												<?=$ln['id']?>&nbsp;<?=$ln['name']?>
 											</option>
 										<? endforeach; ?> 
@@ -478,7 +478,7 @@
 											<? endforeach; ?>
 										</select>
 									<? elseif(array_search($field['Field'], array(1=>"time", "last_time", "reg_time", "up"))): # Поле времени ?>
-										<input type="text" name="<?=$fiel?>" value="<?=date("Y-m-d H:i:s", (get($_GET, 'edit') ? rb($_GET['r'], "id", $_GET['edit'], $fiel) : time()))?>" placeholder="<?=($tpl['etitle'][$fiel] ?: $fiel)?>">
+										<input type="text" name="<?=$fiel?>" value="<?=date("Y-m-d H:i:s", (get($_GET, 'edit') ? rb($_GET['r'], "id", $_GET['edit'], $fiel) : time()))?>" placeholder="<?=(get($tpl, 'etitle', $fiel) ?: $fiel)?>">
 									<? elseif((substr($fiel, -3) == "_id") && (false === array_search(substr($fiel, 0, strlen($fiel)-3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
 										<select name="<?=$fiel?>" style="width:100%;">
 											<option></option>

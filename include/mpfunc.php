@@ -1,7 +1,6 @@
 <?
 
-# автозагрузка классов из одноименной директории
-if(!function_exists('__autoload')){
+if(!function_exists('__autoload')){ # автозагрузка классов из одноименной директории
 	function __autoload($class_name){#Автоподгрузка классов
 		include_once mpopendir("/include/class/$class_name.php");	
 	}
@@ -23,21 +22,23 @@ function meta($where, $insert = null){
 	}else if(get($where, 1) && ("/" != substr($index = get($where, 1), 0, 1))){
 		mpre("Ошибочный формат внешнего адреса index &laquo;". get($where, 'location'). "&raquo;");
 	}else{
+		mpre($index, $location);
 		if("/" == substr($index = get($where, 1), 0, 1)){
-			$seo_index = fk("{$conf['db']['prefix']}seo_index", $w = array("name"=>$index), $w += array("cat_id"=>$insert['cat_id']));
+			$seo_index = fk("{$conf['db']['prefix']}seo_index", $w = array("name"=>$index), $w += array("cat_id"=>get($insert, 'cat_id')));
 		}else{ $seo_index = array('id'=>0); }
 
-		if($seo_location = fk("{$conf['db']['prefix']}seo_location", $w = array("name"=>$location), $w += array("index_id"=>$seo_index['id'], "cat_id"=>$insert['cat_id']), $w)){
+		if($seo_location = fk("{$conf['db']['prefix']}seo_location", $w = array("name"=>$location), $w += array("index_id"=>$seo_index['id'], "cat_id"=>get($insert, 'cat_id')), $w)){
+//			exit(mpre($seo_index, $seo_location));
 			if(empty($seo_index)){
 				return $where + $seo_location;
 			}else if(array_key_exists('location_id', $seo_index)){ # Односайтовый режим работы
-				if($seo_index = fk("{$conf['db']['prefix']}seo_index", array("id"=>$seo_index['id']), null, array("location_id"=>$seo_location['id'], "cat_id"=>$insert['cat_id'])+(array)$insert)){
+				if($seo_index = fk("{$conf['db']['prefix']}seo_index", array("id"=>$seo_index['id']), null, array("location_id"=>$seo_location['id'], "cat_id"=>get($insert, 'cat_id'))+array_diff_key($insert, array_flip(["id"])))){
 					return $where + $seo_index;
 				}else{ mpre("Ошибка установки внешнего адреса односайтового режима"); }
 			}else if($themes_index = get($conf, 'user', 'sess', 'themes_index')){ # Многосайтовый режим
-				if($tpl['seo_index_themes'] = rb("{$conf['db']['prefix']}seo_index_themes", "index_id", "location_id", "themes_index", "id", $seo_index['id'], $seo_location['id'], $themes_index['id'])){
+				if($tpl['seo_index_themes'] = rb("seo-index_themes", "index_id", "location_id", "themes_index", "id", $seo_index['id'], $seo_location['id'], $themes_index['id'])){
 					if((1 == count($tpl['seo_index_themes'])) && ($seo_index_themes = array_pop($tpl['seo_index_themes']))){
-						mpre("Данный адрес уже прописан для сайта", $themes_index, $seo_index_themes); // return ($insert === null ? $insert : false);
+						//mpre("Данный адрес уже прописан для сайта", $themes_index, $seo_index_themes); return ($insert !== null ? $seo_index_themes : $insert);
 					}else{ mpre("Ошибка структуры метаинформации (множественная информация для одного адреса)", $w); }
 				}elseif($seo_index_themes = fk("{$conf['db']['prefix']}seo_index_themes", $w = array("index_id"=>$seo_index['id'], "location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id']), $w + (array)$insert)){
 					if(get($seo_index, "id")){
@@ -682,15 +683,16 @@ function erb($src, $key = 'id'){
 			if(preg_match('#^\[.*\]$#',trim($a))){
 				$a = array_flip(preg_split('#\s*,\s*#', preg_replace('#^\[|\]$#','',trim($a))));
 			}
-		}
-		if(is_numeric($a) || is_array($a) || is_bool($a) || empty($a)){
+		} if(is_numeric($a) || is_array($a) || is_bool($a) || empty($a)){
 			if($a === true){ # Удаляем условие на выборку (любые условия)
 				array_splice($keys, count($purpose), 1);
 			}else if(is_array($a)){
 				$purpose[] = (!mp_is_assoc($a) && mp_array_is_simple($a)) ? array_flip($a) : $a;
+			}else if(is_null($a)){
+				$purpose[] = null;
 			}else{
 				$purpose[] = $a;
-			}
+			}// echo "<pre>"; print_r($purpose); echo "</pre>";
 		}else{
 			if(!empty($purpose)){
 				$field = $a;
@@ -718,7 +720,7 @@ function erb($src, $key = 'id'){
 				return "`{$key}`=". intval($val);
 			}
 		}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
-		$src = qn($sql = "SELECT * FROM {$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). (get($conf, 'settings') && array_key_exists($n = substr($src, strlen($conf['db']['prefix'])). "=>order", $conf['settings']) && ($order = get($conf, 'settings', $n)) ? " ORDER BY ". mpquot($order) : ""),$IdName);
+		$src = qn($sql = "SELECT * FROM {$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). (get($conf, 'settings') && array_key_exists($n = substr($src, strlen($conf['db']['prefix'])). "=>order", $conf['settings']) && ($order = get($conf, 'settings', $n)) ? " ORDER BY ". mpquot($order) : ""),$IdName); // mpre($sql, $src);
 	} if($keys){
 		if(!empty($src)){
 			foreach($src as $v){
@@ -731,9 +733,12 @@ function erb($src, $key = 'id'){
 			}
 		}else{ $n = array(); }
 	}else{ $return = $src; }
+
 	foreach($purpose as $v){
 		$r = array();
-		if(is_numeric($v) || empty($v)){ # Выборка по целочисленному ключу
+		if(is_null($v)){ # Сортировка по NULL
+			$return = get($return, "") ? $return[""] : array();
+		}else if(is_numeric($v) || empty($v)){ # Выборка по целочисленному ключу
 			$return = get($return, $v) ? $return[ $v ] : array();
 		}else if(is_array($v)){ # Сортировка по ключям массива
 			foreach($return as $key=>$val){
@@ -790,7 +795,7 @@ function mpdbf($tn, $post = null, $and = false){
 			}else{
 				if($v === null){
 					$f[] = ($and ? "`$k` IS NULL" : "`$k`=NULL");
-				}elseif(is_int($v)){
+				}elseif(is_int($v) || ($v == "NULL")){
 					$f[] = "`$k`=". $v;
 				}else{
 					$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
@@ -836,10 +841,9 @@ function mpdk($tn, $insert, $update = array()){
 		$upd = mpdbf($tn, $update);
 		foreach(mpql(mpqw("SHOW COLUMNS FROM $tn")) as $k=>$v){
 			$fields[$v['Field']] = $v['Type'];
-		}
-		if("SELECT id FROM `". mpquot($tn). "` WHERE ")
-		mpqw("INSERT INTO `". mpquot($tn). "` SET $ins ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)". ($update ? ", $upd" : ""));
-		return $conf['db']['conn']->lastInsertId();
+		} if("SELECT id FROM `". mpquot($tn). "` WHERE "){
+			mpqw("INSERT INTO `". mpquot($tn). "` SET $ins ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)". ($update ? ", $upd" : ""));
+		} return $conf['db']['conn']->lastInsertId();
 	}
 }
 function mpevent($name, $description = null, $own = null){
@@ -1455,6 +1459,7 @@ EOF;
 }
 
 function pre(){
+	global $conf;
 	$lines = false;
 	$keys = array_keys($ar = array_slice($func_get_args = func_get_args(), -1, 1));
 	if(is_bool($bool = $ar[max($keys)]) && ($lines = $bool)){
@@ -1473,7 +1478,7 @@ function pre(){
 		}
 	} foreach($list as $k=>$v){
 		if(true){ # Комментарии выводим для javascript шаблонов. Чтобы они игнорировались как код
-			echo "/*<fieldset><legend>[$k] {$v['file']}:{$v['line']} <b>{$v['function']}</b> ()</legend>*/";
+			echo "/*<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend>[$k] {$v['file']}:{$v['line']} <b>{$v['function']}</b> ()</legend>*/";
 		}else{
 			echo "/*\n[$k] {$v['file']}:{$v['line']} <b>{$v['function']}</b> ()<br>\n*/";
 		}

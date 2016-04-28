@@ -25,13 +25,31 @@ if($dump = get($_REQUEST, 'dump')){
 	}
 }else if(array_key_exists("null", $_GET)){
 	if($_POST){
-		if($sql = $_POST['sql']){
+		if($foreign = get($_POST, 'foreign')){
+			$tpl['key_column_usage'] = ql($sql = "SELECT * FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE (TABLE_NAME='{$_GET['r']}' AND REFERENCED_TABLE_NAME != '') OR REFERENCED_TABLE_NAME = '{$_GET['r']}'");
+			if($key_column_usage = rb($tpl['key_column_usage'], "REFERENCED_TABLE_NAME", "REFERENCED_COLUMN_NAME", "[{$_GET['r']}]", $foreign)){ mpre("Внешний ключ", $key_column_usage);
+				exit(mpre("ALTER TABLE {$key_column_usage['REFERENCED_TABLE_NAME']} DROP KEY "));
+			}elseif($key_column_usage = rb($tpl['key_column_usage'], "TABLE_NAME", "COLUMN_NAME", "[{$_GET['r']}]", $foreign)){// mpre("Внутренний ключ", $key_column_usage);
+				qw("ALTER TABLE `{$key_column_usage['TABLE_NAME']}` DROP FOREIGN KEY `{$key_column_usage['CONSTRAINT_NAME']}`");
+				exit(json_encode($key_column_usage));
+			}elseif("_id" == substr($foreign, -3)){// mpre("Создание ключа", $foreign);
+				if($fields = fields($_GET['r'])){
+					if(get($fields, $foreign, "Null") == "NO"){
+						qw("ALTER TABLE `". mpquot($_GET['r']). "` CHANGE `{$foreign}` `{$foreign}` {$fields[$foreign]['Type']} NULL COMMENT '{$fields[$foreign]['Comment']}'");
+						qw("UPDATE `". mpquot($_GET['r']). "` SET `{$foreign}`=NULL WHERE `{$foreign}`=0");
+					} qw("ALTER TABLE `{$_GET['r']}` ADD FOREIGN KEY (`". mpquot($foreign). "`) REFERENCES `{$conf['db']['prefix']}". first(explode("_", substr($_GET['r'], strlen($conf['db']['prefix'])))). "_". substr($foreign, 0, -3). "` (`id`) ON DELETE ". mpquot($_POST['reference']));
+				}else{ exit(mpre("Ошибка определения структуры таблицы", $_GET['r'])); }
+				exit(json_encode($tpl['key_column_usage']));
+			}else{ exit(mpre("Ошибка подключения вторичного ключа", $_GET['r'], $_POST)); }
+
+			exit(mpre(false, $_GET['r'], $tpl['key_column_usage']));
+		}else if($sql = get($_POST, 'sql')){
 			if($query = fk("query", null, array("query"=>$sql))){
-				if(($mpqw = mpqw($query['query'])) && ($data = mpql($mpqw))){
+				if(($mpqw = mpqw($sql)) && ($data = mpql($mpqw))){
 					exit(mpre("Результат вывода запроса", ((count($data) == 1) ? first($data) : $data)));
 				}else{ exit(mpre("Запрос не предполагает вывода", $query['query'])); }
 			}
-		}elseif(($table = $_POST['del']) && ($fields = fields($table))){
+		}else if(($table = $_POST['del']) && ($fields = fields($table))){
 			exit(qw("DROP TABLE `{$table}`"));
 		}elseif($table = $_POST['table']){
 			qw("CREATE TABLE `$table` (
@@ -48,7 +66,7 @@ if($dump = get($_REQUEST, 'dump')){
 			qw($sql = "ALTER TABLE `". mpquot($table). "` DROP COLUMN `". mpquot($f). "`"); mpre($sql);
 			$tpl['fields'] = fields($table);
 		}elseif($fld['after'] || ($fields[$f]['Type'] != $fld['type']) || ($fields[$f]['Comment'] != $fld['comment']) || ($fields[$f]['Default'] != $fld['default']) || ($fld['name'] && ($fld['name'] != $f))){
-			qw($sql = "ALTER TABLE `". mpquot($table). "` CHANGE `". mpquot($f). "` `". mpquot($fld['name'] ?: $f). "` ". mpquot($fld['type'] ?: $fields[$f]['Type']). ($fields[$f]['Null'] == "NO" ? " NOT NULL" : " NULL"). ($fld['default'] ? " DEFAULT '". mpquot($fld['default']). "'" : ""). " COMMENT '". mpquot($fld['comment']). "'"); mpre($sql);
+			qw($sql = "ALTER TABLE `". mpquot($table). "` CHANGE `". mpquot($f). "` `". mpquot($fld['name'] ?: $f). "` ". mpquot($fld['type'] ?: $fields[$f]['Type']). ($fields[$f]['Null'] == "NO" ? " NOT NULL" : " NULL"). ($fld['default'] ? " DEFAULT ". ($fld['default'] == "NULL" ? mpquot($fld['default']) : "'". mpquot($fld['default']). "'") : ""). " COMMENT '". mpquot($fld['comment']). "'"); mpre($sql);
 			$tpl['fields'] = fields($table);
 		} if(empty($tpl['indexes'][$fld['name']]) && array_key_exists($f, $tpl['fields']) && array_key_exists('index', $fld) && $fld['index']){
 			qw($sql = "ALTER TABLE `{$_GET['r']}` ADD INDEX (`{$fld['name']}`)"); mpre($sql);

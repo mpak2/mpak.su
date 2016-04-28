@@ -83,7 +83,7 @@
 										<span>
 											<select name="f[<?=$field?>][type]">
 												<option></option>
-												<? foreach(array("int(11)", "smallint(6)", "float", "varchar(255)", "text", "longtext") as $fd): ?>
+												<? foreach($types = array("smallint(6)", "int(11)", "bigint(20)", "float", "varchar(255)", "text", "longtext") as $fd): ?>
 													<option <?=($tpl['fields'][$field]['Type'] == $fd ? "selected" : "")?>><?=$fd?></option>
 												<? endforeach; ?>
 											</select>
@@ -104,7 +104,7 @@
 									</span>
 									<span>
 										<select name="$[type]">
-											<? foreach(array("int(11)", "float", "varchar(255)", "text", "longtext") as $fd): ?>
+											<? foreach($types as $fd): ?>
 												<option><?=$fd?></option>
 											<? endforeach; ?>
 										</select>
@@ -117,6 +117,68 @@
 							<p><button>Сохранить</button></p>
 						</form>
 					<? endif; ?>
+
+					<? if(($tpl['key_column_usage'] = ql($sql = "SELECT * FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE (TABLE_NAME='{$_GET['r']}' AND REFERENCED_TABLE_NAME != '') OR REFERENCED_TABLE_NAME = '{$_GET['r']}'"))): ?>
+						<?// mpre("Список вторичных и первичных ключей для вторичных таблиц", $tpl['key_column_usage']); ?>
+					<? endif; ?>
+					<div class="table" style="width:100%;">
+						<script sync>
+							(function($, script){
+								$(script).parent().on("click", "button", function(e){
+									var field = $(e.currentTarget).parents("[field]").attr("field");
+									var reference = $(e.currentTarget).parents("[field]").find("select[name=reference] option:selected").attr("value");
+									console.log("field:", field, "reference:", reference);
+									$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null", {foreign:field, reference:reference}, function(data){
+										console.log("data:", data);
+										document.location.reload(true);
+									}, "json").fail(function(error){ alert(error.responseText); })
+								})
+							})(jQuery, document.scripts[document.scripts.length-1])
+						</script>
+						<div class="th">
+							<span>Поле</span>
+							<span>Таблица</span>
+							<span>Ключ</span>
+							<span>Контроль</span>
+							<span>Действие</span>
+						</div>
+						<? foreach($fields as $fld): ?>
+							<? if($in_column_usage = rb($tpl['key_column_usage'], "REFERENCED_TABLE_NAME", "REFERENCED_COLUMN_NAME", "[{$_GET['r']}]", $fld['Field'])): ?>
+								<?// mpre("Входящие ключи для {$fld['Field']} уже создан вторичный связанный ключ", $in_column_usage) ?>
+							<? endif; if($out_column_usage = rb($tpl['key_column_usage'], "TABLE_NAME", "COLUMN_NAME", "[{$_GET['r']}]", $fld['Field'])): ?>
+								<?// mpre("Исходящие ключи для {$fld['Field']} уже создан вторичный связанный ключ", $out_column_usage) ?>
+							<? endif; if(("_id" == substr($fld['Field'], -3)) || $in_column_usage): ?>
+								<div field="<?=$fld['Field']?>">
+									<span><?=$fld['Field']?></span>
+									<span>
+										<? if($in_column_usage): ?>
+											<?=$in_column_usage['TABLE_NAME']?> 
+										<? elseif($out_column_usage): ?>
+											<?=$out_column_usage['REFERENCED_TABLE_NAME']?>
+										<? else: ?>
+											<?=("{$conf['db']['prefix']}{$arg['modpath']}_". substr($fld['Field'], 0, -3))?>
+										<? endif; ?>
+									</span>
+									<span>
+										<?=($in_column_usage ? $in_column_usage['COLUMN_NAME'] : "id")?>
+									</span>
+									<span>
+										<? if(!($in_column_usage || $out_column_usage)): ?>
+											<select name="reference">
+												<option value="NO ACTION"></option>
+												<option value="SET NULL">Нуль</option>
+												<option value="RESTRICT" selected>Блок</option>
+												<option value="CASCADE">Удалить</option>
+											</select>
+										<? endif; ?>
+									</span>
+									<span style="text-align:center;">
+										<button><?=(($in_column_usage || $out_column_usage) ? "Удалить ключ" : "Создать ключ")?></button>
+									</span>
+								</div>
+							<? endif; ?>
+						<? endforeach; ?>
+					</div>
 				</span>
 				<span style="padding-left:20px;">
 					<div>

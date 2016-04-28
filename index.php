@@ -145,10 +145,10 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 		header("Debug info:". __FILE__. ":". __LINE__);
 		header("Location: {$conf['settings']['start_mod']}"); exit;
 	}elseif(($seo_index = rb("{$conf['db']['prefix']}seo_index", "name", "[/]")) /*&& array_key_exists("themes_index", $redirect)*/){
-		if($index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $seo_index['index_type_id'])){
-			if(get($seo_index, "location_id") && ($seo_location = rb("{$conf['db']['prefix']}seo_location", "id", $seo_index['location_id']))){
-				$_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $seo_location['name']));
-			}else{ $_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $conf['settings']['start_mod'])); }
+		if(get($seo_index, "location_id") && ($seo_location = rb("seo-location", "id", $seo_index['location_id']))){
+			if($index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $seo_index['index_type_id'])){
+				header("Content-Type: {$index_type['name']}; charset=utf-8");
+			} $_REQUEST += $_GET = mpgt($conf['settings']['canonical'] = $seo_location['name']);
 		}else{ $_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $conf['settings']['start_mod'])); }
 		$conf['settings']['title'] = get($seo_index, 'title');
 		$conf['settings']['description'] = get($seo_index, 'description');
@@ -177,7 +177,7 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 			if($seo_index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $redirect['index_type_id'])){
 				header("Content-Type: {$seo_index_type['name']}");
 			}
-		}
+		}else{ $_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = $redirect, 'name'), $_GET); }
 	}elseif($conf['settings']['start_mod'] == $_SERVER['REQUEST_URI']){ # Заглавная страница
 		$conf['settings']['canonical'] = "/";
 	}elseif(!array_key_exists("404", $conf['settings']) || ($_404 = $conf['settings']['404'])){ # Если не прописан адрес 404 ошибки, то его обработку оставляем для init.php
@@ -265,12 +265,12 @@ $conf['settings']['microtime'] = substr(microtime(true)-$conf['settings']['micro
 	if(is_string($v)){
 		$content = str_replace("<!-- [settings:$k] -->", $v, $content);
 	}	
-}*/ if(!array_key_exists("nocache", $_REQUEST)){
+} mpre(get($conf, 'settings', "themes_expires") ?: 86400);*/ if(!array_key_exists("nocache", $_REQUEST)){
 	if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && !array_search("Зарегистрированные", $conf['user']['gid'])){
-		header("Cache-Control: max-age=86400, private");
+		header("Cache-Control: max-age=". (get($conf, 'settings', "themes_expires") ?: 86400). ", private");
 		exit(header('HTTP/1.0 304 Not Modified'));
 	}else if(!array_search("Зарегистрированные", $conf['user']['gid'])){ # Исключаем админстраницу из кеширования
-		header("Cache-Control: max-age=86400, public");
+		header("Cache-Control: max-age=". (get($conf, 'settings', "themes_expires") ?: 86400). ", public");
 		header('Last-Modified: '. date("r"));
 		header("Expires: ". gmdate("r", time()+(get($conf, 'settings', "themes_expires") ?: 86400)));
 	}

@@ -74,7 +74,7 @@
 						<span>
 							<a href='/themes:admin/r:<?=$conf['db']['prefix']?>themes_index?&where[id]=<?=$index['id']?>'><?=$index['id']?></a>
 						</span>
-						<span class="name" style="color:<?=($index['index_id'] ? "#ccc" : "black")?>;">
+						<span class="name" style="color:<?=(get($index, 'index_id') ? "#ccc" : "black")?>;">
 							<span class="status" style="float:right;"></span>
 							<?=$index['name']?>
 						</span>

@@ -46,7 +46,7 @@
 	</script>
 <? endif; ?>
 <div>
-	<textarea id="elm<?=(++$conf['tpl']['elm'])?>" name="<?=$conf['settings']['tinymce_name']?>" rows="15" cols="80" style="width: 100%" class="tinymce">
+	<textarea id="elm<?=($conf['tpl']['elm'] = (get($conf, 'tpl', 'elm') ? ++$conf['tpl']['elm'] : 0))?>" name="<?=$conf['settings']['tinymce_name']?>" rows="15" cols="80" style="width: 100%" class="tinymce">
 		<?=$conf['settings']['tinymce_text']?>
 	</textarea>
 </div>

@@ -1,15 +1,15 @@
 <div class="error" style="text-align:center;">
-	<? if($conf['modules']['pages']['access'] >= 4): ?>
+	<? if($conf['modules'][ first(explode(":", $tpl['link'])) ]['access'] >= 4): ?>
 		<span style="float:right;">
 			<script>
 				(function($, script){
 					$(script).parent().one("init", function(e){
 						setTimeout(function(){
 							$(".error a.newpage").on("click", function(){
-								$.post("/<?=$arg['modname']?>:<?=$arg['fn']?>/null", {uri:"<?=$_SERVER['REQUEST_URI']?>"}, function(data){
+								$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/null", {uri:"<?=$_SERVER['REQUEST_URI']?>"}, function(data){
 									if(isNaN(data)){ alert(data) }else{
 										alert("Создана новая страница на сайте");
-										document.location.href = "<?=$tpl['location']?>";
+										document.location.reload(true);
 									}
 								})
 							});
