@@ -8,7 +8,7 @@ $conf['db']['type'] = 'sqlite';
 $conf['db']['prefix'] = 'mp_';
 $conf['db']['host'] = 'localhost';
 $conf['db']['login'] = '';
-$conf['db']['name'] = '.htdb';
 $conf['db']['pass'] = '';
+$conf['db']['name'] = '.htdb';
 
 //$conf["db"]["open_basedir"] = '.:core:/tmp';

@@ -26,7 +26,6 @@ if(strpos(__DIR__, "phar://") === 0){ # Файл index.php внутри phar а�
 		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: __DIR__);
 	}
 }
-
 if(!function_exists('mp_require_once')){
 	function mp_require_once($link){
 		global $conf, $arg, $tpl;
@@ -68,7 +67,7 @@ try{
 }catch(Exception $e){
 	pre("Ошибка подключения к базе данных");
 } if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !$tpl['tables']){
-	exit(mpopendir('include/install.php') ? mpct('include/install.php') : "Файл установки не найден");
+	exit(inc('include/install.php'));
 }
 
 $conf['db']['info'] = 'Загрузка свойств модулей';
@@ -129,10 +128,12 @@ $conf['db']['info'] = 'Получаем информацию о группах �
 $conf['user']['gid'] = array_column(qn("SELECT g.id, g.name FROM {$conf['db']['prefix']}users_grp as g, {$conf['db']['prefix']}users_mem as m WHERE (g.id=m.grp_id) AND m.uid=". (int)$sess['uid']), "name", "id");
 $conf['user']['sess'] = $sess;
 
-foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE hide IN (0,2)", 'Информация о модулях', function($error){
-	pre($error, $sql = "ALTER TABLE mp_modules CHANGE `enabled` `hide` smallint(6)"); qw($sql); # Исправляем таблицу, в случае если структура не верная.
+foreach(mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index", "Список модулей", function($error) use($conf){
+	if(strpos($error, "doesn't exist")){
+		qw(pre("ALTER TABLE {$conf['db']['prefix']}modules RENAME {$conf['db']['prefix']}modules_index"));
+	}else{ pre("Ошибка обработки ошибки", $error); }
 })) as $modules){
-	if (array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) $modules['access'] = 5;
+	if(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) $modules['access'] = 5;
 	$conf['modules'][ $modules['folder'] ] = $modules;
 	$conf['modules'][ $modules['folder'] ]['modname'] = $modules['modname'] = (strpos($_SERVER['HTTP_HOST'], "xn--") !== false) ? mb_strtolower($modules['name'], 'UTF-8') : $modules['folder'];
 	$conf['modules'][ $modules['modname'] ] = &$conf['modules'][ $modules['folder'] ];
@@ -224,11 +225,20 @@ if(get($conf, "settings", "admin_multisite")){ # Включение режима
 	inc("modules/admin/admin_multisite.php", array("content"=>($content = "")));
 }
 
-foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_gaccess", 'Права доступа группы к модулю')) as $k=>$v){
-	if(array_key_exists($v['gid'], $conf['user']['gid']) && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false)
+foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_gaccess", 'Права доступа группы к модулю', function($error) use($conf){
+	if(strpos($error, "doesn't exist")){
+		qw(mpre("ALTER TABLE {$conf['db']['prefix']}modules_gaccess RENAME {$conf['db']['prefix']}modules_index_gaccess"));
+	}
+})) as $k=>$v){
+	if(array_key_exists($v['gid'], $conf['user']['gid']) && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false){
 		$conf['modules'][ $v['mid'] ]['access'] = $v['access'];
+	}
 }
-foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_uaccess ORDER BY uid", 'Права доступа пользователя к модулю')) as $k=>$v){
+foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_uaccess ORDER BY uid", 'Права доступа пользователя к модулю', function($error) use($conf){
+	if(strpos($error, "doesn't exist")){
+		qw(mpre("ALTER TABLE {$conf['db']['prefix']}modules_uaccess RENAME {$conf['db']['prefix']}modules_index_uaccess"));
+	}
+})) as $k=>$v){
 	if ($conf['user']['uid'] == $v['uid'] && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false)
 		$conf['modules'][ $v['mid'] ]['access'] = $v['access'];
 }

@@ -1,4 +1,4 @@
-<? die;
+<?
 
 if(array_key_exists("null", $_GET)){
 	exit(200);
@@ -86,7 +86,7 @@ EOF;
 	}
 	foreach(mpreaddir($folder = 'modules', 1) as $k=>$file){
 		if($file == 'null') continue;
-		mpct("modules/$file/info.php");
+		inc("modules/$file/info.php");
 		if(array_search($file, $en)) $modules .= "<input type='hidden' name='modules[$file]' value='true'>";
 		$modules .= "<div style='float:left; width:200px;'><input type='checkbox' name='modules[$file]' value='true' class='".(array_search($file, $rec) ? 'rec' : ''). (array_search($file, $en) ? ' min' : '')."'><span title='{$conf['modversion']['description']}' alt='{$conf['modversion']['description']}'>{$conf['modversion']['name']}</span></div>";
 	}
@@ -140,31 +140,37 @@ EOF;
 }else{
 //print_r($conf['db']);
 	# Подключаем модули, запускаем портальную систему
-	$first_install = array('modules', 'settings');
-	foreach($first_install as $k=>$v){
-		if (file_exists(mpopendir($init = "modules/$v/init.php"))){
+	foreach(array('modules', 'settings') as $k=>$v){
+//		if (file_exists(mpopendir($init = "modules/$v/init.php"))){
 //			echo $init; echo file_get_contents(mpopendir($init));
-			mpct($init, array('modpath'=>$v));
-		}
-		if (file_exists(mpopendir($sql = "modules/$v/sql.php"))){
+//			mpct($init, array('modpath'=>$v));
+//		}
+		inc("modules/$v/init.php", array('arg'=>array('modpath'=>$v)));
+//		if (file_exists(mpopendir($sql = "modules/$v/sql.php"))){
 //			echo $sql;
-			mpct($sql, array('modpath'=>$v));
-		}
+//			mpct($sql, array('modpath'=>$v));
+//		}
+		inc("modules/$v/sql.php", array('arg'=>array('modpath'=>$v)));
 	}
 
 	echo "<div style='margin:100px;'>Устанавливаются модули: <p>";
 	foreach(mpreaddir($folder = 'modules', 1) as $k=>$file){
 		if($file == '.' || $file == '..' || $file == 'index.html' || $file == 'null' || $file == '.htaccess' || empty($_POST['modules'][$file])) continue;
 		if (file_exists(mpopendir($info = "modules/$file/info.php"))){
-			mpct($info, array('modpath'=>$file));
+//			mpct($info, array('modpath'=>$file));
+			inc("modules/$file/info.php");
 			echo $conf['modversion']['description']. ', ';
-			mpqw("INSERT INTO {$conf['db']['prefix']}modules (`folder`, `name`, `author`, `contact`, `version`, `description`, `enabled`, `access`, `admin`) VALUES ('$file', '{$conf['modversion']['name']}', '{$conf['modversion']['author']}', '{$conf['modversion']['contact']}', '{$conf['modversion']['version']}', '{$conf['modversion']['description']}', 2, ".(strlen($conf['modversion']['access']) ? $conf['modversion']['access'] : '1').", {$conf['modversion']['admin']})");
-		}
-		if ($file != 'settings' && $file != 'modules') $scripts[] = $file;
+			qw("INSERT INTO {$conf['db']['prefix']}modules_index (`folder`, `name`, `author`, `contact`, `version`, `description`, `enabled`, `access`, `admin`) VALUES ('$file', '{$conf['modversion']['name']}', '{$conf['modversion']['author']}', '{$conf['modversion']['contact']}', '{$conf['modversion']['version']}', '{$conf['modversion']['description']}', 2, ".(strlen($conf['modversion']['access']) ? $conf['modversion']['access'] : '1').", {$conf['modversion']['admin']})");
+		} if($file != 'settings' && $file != 'modules') $scripts[] = $file;
 	}
 	foreach($scripts as $k=>$file){
-		if (file_exists(mpopendir($init = "modules/$file/init.php"))) mpct($init, array('modpath'=>$file));
-		if (file_exists(mpopendir($sql = "modules/$file/sql.php"))) mpct($sql, array('modpath'=>$file));
+//		if(file_exists(mpopendir($init = "modules/$file/init.php"))){
+		inc("modules/$file/init.php", array('arg'=>array('modpath'=>$file)));
+//			mpct($init, array('modpath'=>$file));
+//		} if(file_exists(mpopendir($sql = "modules/$file/sql.php"))){
+		inc("modules/$file/sql.php", array('arg'=>array('modpath'=>$file)));
+//			mpct($sql, array('modpath'=>$file));
+//		}
 	}
 
 	mpqw("UPDATE {$conf['db']['prefix']}settings SET `value`='{$_POST['title']}' WHERE `name`='title'");

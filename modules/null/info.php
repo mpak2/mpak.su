@@ -1,7 +1,7 @@
 <?
 
 $conf['modversion']=array(
-	'name'=>$arg['fn'],
+	'name'=>basename(__DIR__),
 	'author'=>'mpak',
 	'contact'=>'cms@mpak.su',
 	'version'=>'0,9006',

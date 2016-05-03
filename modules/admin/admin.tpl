@@ -263,7 +263,7 @@
 								<? elseif($field['Field'] == "mid"): ?>
 									<select name="<?=$field['Field']?>">
 										<option></option>
-										<? foreach(rb("{$conf['db']['prefix']}modules") as $modules): ?>
+										<? foreach(rb("{$conf['db']['prefix']}modules_index") as $modules): ?>
 											<option value="<?=$mid['id']?>" <?=((get($tpl, 'edit', $field['Field']) == $modules['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $modules['id'])) ? "selected" : "")?>><?=$modules['name']?></option>
 										<? endforeach; ?>
 									</select>
@@ -385,7 +385,7 @@
 											</span>
 										<? elseif($k == "mid"): ?>
 											<span style="white-space:nowrap;">
-												<? if($mid = rb("{$conf['db']['prefix']}modules", "id", (int)$v)): ?>
+												<? if($mid = rb("{$conf['db']['prefix']}modules_index", "id", (int)$v)): ?>
 													<a class="key" href="/users:admin/r:<?=$conf['db']['prefix']?>users?&where[id]=<?=(int)$v?>" title="<?=$v?>"></a><?=$mid['name']?>
 												<? elseif($v): ?>
 													<span style="color:red;" title="<?=$v?>"><?=$v?></span>
@@ -467,11 +467,11 @@
 										</select>
 									<? elseif($fiel == "mid"): ?>
 										<select name="<?=$fiel?>">
-											<? if(($f = get($tpl, 'edit', $fiel)) && !rb("{$conf['db']['prefix']}modules", "id", $f)): ?>
+											<? if(($f = get($tpl, 'edit', $fiel)) && !rb("{$conf['db']['prefix']}modules_index", "id", $f)): ?>
 												<option value="<?=$tpl['edit'][$fiel]?>" selected><?=$tpl['edit'][$fiel]?></option>
 											<? endif; ?>
 											<option></option>
-											<? foreach(rb("{$conf['db']['prefix']}modules") as $mid): ?>
+											<? foreach(rb("{$conf['db']['prefix']}modules_index") as $mid): ?>
 												<option value="<?=$mid['id']?>" <?=((!get($tpl, 'edit', 'uid') && ($mid['id'] == get($conf, 'user', 'uid'))) || ($mid['id'] == get($tpl, 'edit', $fiel)) ? "selected" : "")?>>
 													<?=$mid['id']?> <?=$mid['name']?>
 												</option>

@@ -8,10 +8,10 @@ if($table = get($_GET, 'r')){
 if($dump = get($_REQUEST, 'dump')){
 	if(get($file = get($_FILES, 'file'), 'name')){
 		if($file['error'] == 0){
-			if(move_uploaded_file($file['tmp_name'], $tmpfile = tempnam(sys_get_temp_dir(), "dump_"))){
-				$tpl['file'] = `mysql -v -u{$conf['db']['name']} -p{$conf['db']['pass']} {$conf['db']['name']} < {$tmpfile}`;
-				exit(mpre($tpl['file']));
-			}else{ mpre("Ошибка создания временного файла"); }
+//			if(move_uploaded_file($file['tmp_name'], $tmpfile = tempnam(sys_get_temp_dir(), "dump_"))){
+//				$tpl['file'] = `mysql -v -u{$conf['db']['name']} -p{$conf['db']['pass']} {$conf['db']['name']} < {$tmpfile}`;
+				exit(mpre(false, $file['tmp_name'], qw(file_get_contents($file['tmp_name']))));
+//			}else{ mpre("Ошибка создания временного файла"); }
 		}else{ mpre("Ошибка загрузки файла", $file); }
 	}else if(get($_REQUEST, 'upload')){
 		if($cmd = "mysqldump -u{$conf['db']['name']} -p{$conf['db']['pass']} {$conf['db']['name']} ". implode(" ", array_keys($dump))){

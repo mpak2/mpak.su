@@ -1,6 +1,6 @@
 <?
 
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}` (
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `folder` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
@@ -16,10 +16,9 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}` (
   PRIMARY KEY (`id`),
   KEY `enabled` (`enabled`),
   KEY `priority` (`priority`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
-mpqw($sql);
+) ENGINE=MyISAM DEFAULT CHARSET=cp1251"; mpqw($sql);
 
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_gaccess` (
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `mid` int(11) NOT NULL,
   `gid` int(11) NOT NULL,
@@ -29,7 +28,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_gacces
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251"; mpqw($sql);
 echo mysql_error();
 
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_uaccess` (
+echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index_uaccess` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `mid` int(11) NOT NULL,
   `uid` int(11) NOT NULL,
@@ -39,3 +38,4 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_uacces
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251"; mpqw($sql);
 echo mysql_error();
 
+mpsettings("{$arg['modpath']}_index", "Модули");

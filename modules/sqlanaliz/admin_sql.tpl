@@ -83,7 +83,7 @@
 										<span>
 											<select name="f[<?=$field?>][type]">
 												<option></option>
-												<? foreach($types = array("smallint(6)", "int(11)", "bigint(20)", "float", "varchar(255)", "text", "longtext") as $fd): ?>
+												<? foreach($types = array("int(11)", "smallint(6)", "bigint(20)", "float", "varchar(255)", "text", "longtext") as $fd): ?>
 													<option <?=($tpl['fields'][$field]['Type'] == $fd ? "selected" : "")?>><?=$fd?></option>
 												<? endforeach; ?>
 											</select>

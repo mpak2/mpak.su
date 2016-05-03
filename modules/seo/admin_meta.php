@@ -1,5 +1,5 @@
 <?
-	if(/*empty(array_diff_key($_GET, array_flip(["m", "id"]))) &&*/ !array_key_exists("null", $_GET) && !array_key_exists("p", $_GET) && ($conf['settings']['theme/*:admin'] != $conf['settings']['theme']) && !array_search($arg['fn'], ['', 'ajax', 'json', '404', 'img'])){ # Нет перезагрузки страницы адреса
+	if(/*!get($conf, 'settings', 'canonical') &&*/ !array_key_exists("null", $_GET) && !array_key_exists("p", $_GET) && ($conf['settings']['theme/*:admin'] != $conf['settings']['theme']) && !array_search($arg['fn'], ['', 'ajax', 'json', '404', 'img'])){ # Нет перезагрузки страницы адреса
 		if(!($diff = array_diff_key($_GET, array_filter($_GET)))){
 			if($alias = "{$arg['modpath']}:{$arg['fn']}". (($keys = array_keys(array_diff_key($_GET, array_flip(["m", "id"])))) ? "/". implode("/", $keys) : "")){
 				if($seo_cat = fk("{$conf['db']['prefix']}seo_cat", $w = array("alias"=>$alias), $w += array("name"=>$conf['modules'][$arg['modpath']]['name']. " » ". (get($conf, 'settings', "{$arg['modpath']}_{$arg['fn']}") ?: $arg['fn']))/*, $w*/)){
@@ -53,7 +53,7 @@
 										}else{ mpre("Элемент не найден и адрес списка не верный"); }
 									}else{ mpre("Не верный формат seo адреса <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>"); }
 								}else{ mpre("Не установлена таблица перекодировки <a href='/seo:admin/r:mp_seo_characters'>seo_characters</a>"); }
-							}else{ mpre("Ошибка формирования массива замены"); }
+							}else{ mpre("Не найдены данные перекодировки"); }
 						}else{ mpre("Ошибка формирования системных переменных"); }
 					}else{ /*mpre("Категория отмечена как скрытая");*/ }
 				}else{ mpre("Не найдена категория переадресации"); }

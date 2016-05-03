@@ -1,11 +1,9 @@
 <?
 
-$users = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules WHERE folder=\"users\""), 0);
+$users = ql("SELECT * FROM {$conf['db']['prefix']}modules WHERE folder=\"users\"", 0);
 
-mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_reg` (`id`, `term`, `reg_id`, `mid`, `fn`, `description`) VALUES ('-1', 1, '1', '0', '', 'Админ'), ('-2', 1, '-2', '0', '', 'Админ'), ('1', 0, '0', '0', '', 'Общая Лево'), ('2', 0, '0', '0', '', 'Общая Право'), ('3', 0, '0', '0', '', 'Верх'), ('4', 0, '0', '0', '', 'АдминШапка'), ('5', 0, '0', '0', '', 'Лево'), ('6', 0, '0', '0', '', 'Право'), ('7', 0, '5', '{$users['id']}', 'index', 'Кабинет'), ('8', 0, '6', '{$users['id']}', 'index', 'Кабинет')");
-
-mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_shablon` (`id`, `name`, `description`, `shablon`) VALUES ('1', 'Основной', 'Блок по умолчанию', '<table width=240px cellspacing=0 cellpadding=5 border=0> <tr> <td align=center bgcolor=<!-- [settings:theme_block_color] -->><b><!-- [block:title] --></b></td> </tr> <tr> <td><!-- [block:content] --></td> </tr> </table>'), ('2', 'БезТитла', 'Блок без заголовка', '<!-- [block:content] -->')");
-mpqw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_reg_modules (`id` ,`sort` ,`reg_id` ,`modules_index` ,`name` ,`theme` ,`uri`) VALUES (NULL ,'0' ,'-1' ,'0' ,'' ,'zhiraf' ,'')");
+qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_reg` (`id`, `term`, `reg_id`, `mid`, `fn`, `description`) VALUES ('-1', 1, '1', '0', '', 'Админ'), ('-2', 1, '-2', '0', '', 'Админ'), ('1', 0, '0', '0', '', 'Общая Лево'), ('2', 0, '0', '0', '', 'Общая Право'), ('3', 0, '0', '0', '', 'Верх'), ('4', 0, '0', '0', '', 'АдминШапка'), ('5', 0, '0', '0', '', 'Лево'), ('6', 0, '0', '0', '', 'Право'), ('7', 0, '5', '{$users['id']}', 'index', 'Кабинет'), ('8', 0, '6', '{$users['id']}', 'index', 'Кабинет')");
+qw("INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_reg_modules (`id` ,`sort` ,`reg_id` ,`modules_index` ,`name` ,`theme` ,`uri`) VALUES (NULL ,'0' ,'-1' ,'0' ,'' ,'zhiraf' ,'')");
 
 $amenu = <<<EOF
 <ul>
@@ -28,38 +26,35 @@ $spt = <<<EOF
 EOF;
 
 $menu = array(
-//	array('id'=>'11', 'theme'=>'!zhiraf', 'file'=>'admin/blocks/host.php', 'name'=>'Оплата хостинга', 'access'=>'-1', 'rid'=>'1', 'enabled'=>'1',),
+//	array('id'=>'11', 'theme'=>'!zhiraf', 'src'=>'admin/blocks/host.php', 'name'=>'Оплата хостинга', 'access'=>'-1', 'reg_id'=>'1', 'hide'=>'1',),
 
-	array('id'=>'1', 'theme'=>'!zhiraf', 'file'=>'../include/blocks/login.php', 'name'=>'Авторизация', 'access'=>'1', 'rid'=>'1', 'enabled'=>'1', ),
-	array('id'=>'2', 'theme'=>'!zhiraf', 'file'=>'menu/blocks/menu.php', 'name'=>'Верхнее меню', 'shablon'=>'2', 'access'=>'1', 'rid'=>'3', 'param'=>"a:2:{s:4:\"menu\";s:1:\"2\";s:3:\"tpl\";s:7:\"{$arg['modname']}/top.tpl\";}", 'enabled'=>'1', ),
-	array('id'=>'3', 'theme'=>'!zhiraf', 'file'=>'pages/blocks/list.php', 'name'=>'Меню', 'access'=>'1', 'rid'=>'1', 'enabled'=>'1'),
-	array('id'=>'4', 'theme'=>'!zhiraf', 'file'=>'../include/blocks/htmlcod.php', 'name'=>'Админменю', 'access'=>'0', 'rid'=>'1', 'param'=>$amenu, 'enabled'=>'1',),
-	array('id'=>'5', 'theme'=>'!zhiraf', 'file'=>'messages/blocks/messages.php', 'name'=>'Сообщения', 'access'=>'1', 'rid'=>'1', 'enabled'=>'1', ),
-	array('id'=>'6', 'theme'=>'!zhiraf', 'file'=>'../include/blocks/htmlcod.php', 'name'=>'Поддержка', 'access'=>'0', 'rid'=>'1', 'param'=>$spt, 'enabled'=>'1',),
-	array('id'=>'7', 'theme'=>'zhiraf', 'file'=>'admin/blocks/top.php', 'name'=>'АдминШапка', 'access'=>'0', 'rid'=>'4', 'enabled'=>'1',),
-	array('id'=>'8', 'theme'=>'zhiraf', 'file'=>'admin/blocks/modlist.php', 'name'=>'СписокМодулей', 'access'=>'0', 'rid'=>'-1', 'enabled'=>'1',),
-	array('id'=>'9', 'theme'=>'!zhiraf', 'file'=>'users/blocks/user.php', 'name'=>'Свойства пользователя', 'access'=>'1', 'rid'=>'7', 'enabled'=>'1',),
-	array('id'=>'10', 'theme'=>'!zhiraf', 'file'=>'chat/blocks/all.php', 'name'=>'Чат', 'access'=>'2', 'rid'=>'8', 'enabled'=>'1',),
-	array('id'=>'12', 'theme'=>'!zhiraf', 'file'=>'pages/blocks/my.php', 'name'=>'Мои статьи', 'access'=>'1', 'rid'=>'7', 'enabled'=>'1',),
+	array('id'=>'1', 'theme'=>'!zhiraf', 'src'=>'../include/blocks/login.php', 'name'=>'Авторизация', 'access'=>'1', 'reg_id'=>'1'),
+	array('id'=>'2', 'theme'=>'!zhiraf', 'src'=>'menu/blocks/menu.php', 'name'=>'Верхнее меню', 'shablon'=>'2', 'access'=>'1', 'reg_id'=>'3'),
+	array('id'=>'3', 'theme'=>'!zhiraf', 'src'=>'pages/blocks/list.php', 'name'=>'Меню', 'access'=>'1', 'reg_id'=>'1'),
+	array('id'=>'4', 'theme'=>'!zhiraf', 'src'=>'../include/blocks/htmlcod.php', 'name'=>'Админменю', 'access'=>'0', 'reg_id'=>'1', 'param'=>$amenu),
+	array('id'=>'5', 'theme'=>'!zhiraf', 'src'=>'messages/blocks/messages.php', 'name'=>'Сообщения', 'access'=>'1', 'reg_id'=>'1'),
+	array('id'=>'6', 'theme'=>'!zhiraf', 'src'=>'../include/blocks/htmlcod.php', 'name'=>'Поддержка', 'access'=>'0', 'reg_id'=>'1', 'param'=>$spt),
+	array('id'=>'7', 'theme'=>'zhiraf', 'src'=>'admin/blocks/top.php', 'name'=>'АдминШапка', 'access'=>'0', 'reg_id'=>'4'),
+	array('id'=>'8', 'theme'=>'zhiraf', 'src'=>'admin/blocks/modlist.php', 'name'=>'СписокМодулей', 'access'=>'0', 'reg_id'=>'-1'),
+	array('id'=>'9', 'theme'=>'!zhiraf', 'src'=>'users/blocks/user.php', 'name'=>'Свойства пользователя', 'access'=>'1', 'reg_id'=>'7'),
+	array('id'=>'10', 'theme'=>'!zhiraf', 'src'=>'chat/blocks/all.php', 'name'=>'Чат', 'access'=>'2', 'reg_id'=>'8'),
+	array('id'=>'12', 'theme'=>'!zhiraf', 'src'=>'pages/blocks/my.php', 'name'=>'Мои статьи', 'access'=>'1', 'reg_id'=>'7'),
 );
 
-foreach($menu as $sort=>$line){
-	$values = array();
-	foreach($line as $k=>$v){
-		$values[] = " `$k`='".mpquot($v)."'";
-	} mpqw($sql = "INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}` SET ".implode(', ', $values));
-}
+foreach($menu as $line){
+	$blocks_index = fk("{$conf['db']['prefix']}{$arg['modpath']}_index", $w = array("id"=>$line['id']), $line, $line);
+};
 
-mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_gaccess` SET `bid`='1', `gid`='2', `access`='1', `description`='Права доступа администратора к блоку смены шаблонов'");
-mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_gaccess` SET `bid`='3', `gid`='2', `access`='1', `description`='Права доступа администратора к блоку админменю'");
-mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_gaccess` SET `bid`='6', `gid`='2', `access`='1', `description`='Права доступа администратора к блоку поддержка'");
+qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='1', `gid`='2', `access`='1', `description`='Права доступа администратора к блоку смены шаблонов'");
+qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='3', `gid`='2', `access`='1', `description`='Права доступа администратора к блоку админменю'");
+qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='6', `gid`='2', `access`='1', `description`='Права доступа администратора к блоку поддержка'");
 
-mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_gaccess` SET `bid`='7', `gid`='2', `access`='1', `description`='Права доступа администратора к админ шапке'");
-mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_gaccess` SET `bid`='8', `gid`='2', `access`='1', `description`='Права доступа администратора к списку модулей'");
+qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='7', `gid`='2', `access`='1', `description`='Права доступа администратора к админ шапке'");
+qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='8', `gid`='2', `access`='1', `description`='Права доступа администратора к списку модулей'");
 
-mpqw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_gaccess` SET `bid`='11', `gid`='3', `access`='1', `description`='Права доступа администратора к списку модулей'");
+qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='11', `gid`='3', `access`='1', `description`='Права доступа администратора к списку модулей'");
 
-mpqw("UPDATE `{$conf['db']['prefix']}{$arg['modpath']}` SET `orderby`=`id`");
-mpqw("UPDATE `{$conf['db']['prefix']}{$arg['modpath']}_reg` SET `sort`=`id`");
+qw("UPDATE `{$conf['db']['prefix']}{$arg['modpath']}_index` SET `sort`=`id`");
+qw("UPDATE `{$conf['db']['prefix']}{$arg['modpath']}_reg` SET `sort`=`id`");
 
 ?>

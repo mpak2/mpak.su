@@ -12,6 +12,9 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 			} exit("Сайт {$http_host} в списке игнорированных");
 		}else if(gethostbyname($host) == $_SERVER['SERVER_ADDR']){
 			$themes_index = fk("{$conf['db']['prefix']}themes_index", $w = array("name"=>$http_host), $w/*, $w*/);
+			if(array_key_exists("sort", $themes_index) && !$themes_index['sort']){
+				$themes_index = fk("{$conf['db']['prefix']}themes_index", array("id"=>$themes_index['id']), null, array("sort"=>$themes_index['id']));
+			}
 		}else{ $http_host = $_SERVER['SERVER_ADDR']; }
 	} if($themes_index){
 

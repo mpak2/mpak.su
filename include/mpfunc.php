@@ -210,81 +210,77 @@ if (!function_exists('mcont')){
 	function mcont($content){ # Загрузка содержимого модуля
 		global $conf, $arg, $tpl;
 		foreach($_GET['m'] as $k=>$v){ $k = urldecode($k);
-			$mod = get($conf, 'modules', $k) ?: rb(get($conf, 'modules'), "modname", "[{$k}]");
-
-			$mod['link'] = (is_link($f = mpopendir("modules/{$mod['folder']}")) ? readlink($f) : $mod['folder']);
-			ini_set("include_path" ,mpopendir("modules/{$mod['link']}"). ":./modules/{$mod['link']}:". ini_get("include_path"));
-			if(get($conf, 'settings', 'modules_title')){
-				$conf['settings']['title'] = $conf['modules'][ $k ]['name']. ' : '. $conf['settings']['title'];
-			}
-
-			$v = $v != 'del' && $v != 'init' && $v != 'sql' && strlen($v) ? $v : 'index';
-			if(get($mod, 'access') >= ((strpos($v, 'admin') === 0) ? 4 : 1)){
-				$conf['db']['info'] = "Модуль '". ($name = $mod['name']). "'";
-				if(preg_match("/[a-z]/", $v)){ $g = "/{$v}.*.php"; }else{ $g = "/*.{$v}.php"; }// pre($g);
-				if(($glob = glob($gb = (mpopendir("modules/{$mod['link']}"). $g)))
-					|| ($glob = glob($gb = ("modules/{$mod['link']}". $g)))){
-					$glob = basename(array_pop($glob));
-					$g = explode(".", $glob);
-					$v = array_shift($g);
+			if($mod = get($conf, 'modules', $k) ?: rb(get($conf, 'modules'), "modname", "[{$k}]")){
+				$mod['link'] = (is_link($f = mpopendir("modules/{$mod['folder']}")) ? readlink($f) : $mod['folder']);
+				ini_set("include_path" ,mpopendir("modules/{$mod['link']}"). ":./modules/{$mod['link']}:". ini_get("include_path"));
+				if(get($conf, 'settings', 'modules_title')){
+					$conf['settings']['title'] = $conf['modules'][ $k ]['name']. ' : '. $conf['settings']['title'];
 				}
 
-				$fe = ((strpos($_SERVER['HTTP_HOST'], "xn--") !== false) && (count($g) > 1)) ? array_shift($g) : $v;
-				$arg = array('modpath'=>$mod['folder'], 'modname'=>$mod['modname'], 'fn'=>$v, "fe"=>$fe, 'access'=>$mod['access']);
-				ob_start();
-					if($glob){
-//						$content .= mpct("modules/{$mod['link']}/{$glob}", $arg);
-					}elseif(($v == "admin")){
-						if(!inc("modules/{$mod['link']}/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')))){
-							inc("modules/admin/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')));
-						}
-					}else{
-						if(get($conf, 'settings', 'seo_meta') && !get($conf, "settings", "canonical")){ # Обработчик у каждой страницы всего сайта
-							inc("modules/seo/admin_meta.php", array('arg'=>$arg));
-						} if(!inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg))){ # Если не создано скриптов и шаблона для страницы запускаетм общую
-							inc("modules/{$mod['link']}/default.tpl", array('arg'=>$arg));
-						}
+				$v = $v != 'del' && $v != 'init' && $v != 'sql' && strlen($v) ? $v : 'index';
+				if(get($mod, 'access') >= ((strpos($v, 'admin') === 0) ? 4 : 1)){
+					$conf['db']['info'] = "Модуль '". ($name = $mod['name']). "'";
+					if(preg_match("/[a-z]/", $v)){ $g = "/{$v}.*.php"; }else{ $g = "/*.{$v}.php"; }// pre($g);
+					if(($glob = glob($gb = (mpopendir("modules/{$mod['link']}"). $g)))
+						|| ($glob = glob($gb = ("modules/{$mod['link']}". $g)))){
+						$glob = basename(array_pop($glob));
+						$g = explode(".", $glob);
+						$v = array_shift($g);
 					}
-				$content .= ob_get_contents(); ob_end_clean();
-			}else if(get($conf, 'modules', $k) && ($_SERVER['REQUEST_URI'] != "/admin")){
-				header("HTTP/1.0 403 Access Denied");
-				exit(header("Location: /users:login"));
-			}else{
-				if (file_exists(mpopendir("modules/{$mod['link']}/deny.php"))){
-//					$content = mpct("modules/{$mod['link']}/deny.php", $conf['arg'] = array('modpath'=>$mod['folder']));
+
+					$fe = ((strpos($_SERVER['HTTP_HOST'], "xn--") !== false) && (count($g) > 1)) ? array_shift($g) : $v;
+					$arg = array('modpath'=>$mod['folder'], 'modname'=>$mod['modname'], 'fn'=>$v, "fe"=>$fe, 'access'=>$mod['access']);
 					ob_start();
-						inc("modules/{$mod['link']}/deny.php", array('arg'=>array('modpath'=>$mod['folder'])));
+						if($glob){
+	//						$content .= mpct("modules/{$mod['link']}/{$glob}", $arg);
+						}elseif(($v == "admin")){
+							if(!inc("modules/{$mod['link']}/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')))){
+								inc("modules/admin/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')));
+							}
+						}else{
+							if(get($conf, 'settings', 'seo_meta') && !get($conf, "settings", "canonical")){ # Обработчик у каждой страницы всего сайта
+								inc("modules/seo/admin_meta.php", array('arg'=>$arg));
+							} if(!inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg))){ # Если не создано скриптов и шаблона для страницы запускаетм общую
+								inc("modules/{$mod['link']}/default.tpl", array('arg'=>$arg));
+							}
+						}
 					$content .= ob_get_contents(); ob_end_clean();
-				}else if(!array_key_exists("themes", $_GET)){
-					if(!array_key_exists('null', $_GET) && ($_SERVER['REQUEST_URI'] != "/admin")){
-//						header("HTTP/1.0 404 Not Found");
-//						header("Location: /themes:404{$_SERVER['REQUEST_URI']}");// header("Location: /admin");
+				}else if(get($conf, 'modules', $k) && ($_SERVER['REQUEST_URI'] != "/admin")){
+					header("HTTP/1.0 403 Access Denied");
+					exit(header("Location: /users:login"));
+				}else{
+					if (file_exists(mpopendir("modules/{$mod['link']}/deny.php"))){
+	//					$content = mpct("modules/{$mod['link']}/deny.php", $conf['arg'] = array('modpath'=>$mod['folder']));
+						ob_start();
+							inc("modules/{$mod['link']}/deny.php", array('arg'=>array('modpath'=>$mod['folder'])));
+						$content .= ob_get_contents(); ob_end_clean();
+					}else if(!array_key_exists("themes", $_GET)){
+						if(!array_key_exists('null', $_GET) && ($_SERVER['REQUEST_URI'] != "/admin")){
+	//						header("HTTP/1.0 404 Not Found");
+	//						header("Location: /themes:404{$_SERVER['REQUEST_URI']}");// header("Location: /admin");
+						}
 					}
 				}
-			}
-		}
-		return $content;
+			}else{ mpre("Адрес установлен не верно", get($conf, 'settings', 'canonical')); }
+		} return $content;
 	}
 }
 
-if (!function_exists('bcont')){
+if(!function_exists('bcont')){
 	function bcont($bid = null){# Загружаем список блоков и прав доступа
 		global $theme, $conf, $arg;
 		$conf['db']['info'] = "Выборка шаблонов блоков";
-		$blocks = mpqn(mpqw("SELECT *, `src` AS src, `reg_id` AS reg_id, `sort` AS sort FROM {$conf['db']['prefix']}blocks_index WHERE enabled=1". ($bid ? " AND id=". (int)$bid : " ORDER BY sort"), "Запрос списка блоков", function($error, $conf){
-			if(strpos($error, ".{$conf['db']['prefix']}blocks_index' doesn't exist")){
-				qw("ALTER TABLE {$conf['db']['prefix']}blocks RENAME {$conf['db']['prefix']}blocks_index");
-			}elseif(strpos($error, "Unknown column 'src' in 'field list'")){
-				qw("ALTER TABLE {$conf['db']['prefix']}blocks_index CHANGE `file` `src` varchar(255)");
-			}elseif(strpos($error, "Unknown column 'reg_id' in 'field list'")){
-				qw("ALTER TABLE {$conf['db']['prefix']}blocks_index CHANGE `rid` `reg_id` int(11) NOT NULL");
-			}elseif(strpos($error, "Unknown column 'sort' in 'field list'")){
-				qw("ALTER TABLE {$conf['db']['prefix']}blocks_index CHANGE `orderby` `sort` int(11) NOT NULL");
-			}else{ mpre("Ошибка не определена", $error); }
+		$blocks = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}blocks_index WHERE hide=0". ($bid ? " AND id=". (int)$bid : " ORDER BY sort"), "Запрос списка блоков", function($error) use($conf){
+			if(strpos($error, "Unknown column 'hide' in 'where clause'")){
+				qw(pre("ALTER TABLE {$conf['db']['prefix']}blocks_index CHANGE `enabled` `hide` smallint(6) NOT NULL", $error));
+				qw("UPDATE {$conf['db']['prefix']}blocks_index SET hide=-1 WHERE hide=1");
+				qw("UPDATE {$conf['db']['prefix']}blocks_index SET hide=1 WHERE hide=0");
+				qw("UPDATE {$conf['db']['prefix']}blocks_index SET hide=0 WHERE hide=-1");
+			}
 		}));
 		$blocks_reg = mpqn(mpqw("SELECT *, `name` as name FROM {$conf['db']['prefix']}blocks_reg", "Запрос списка регионов", function($error, $conf){
 			if(strpos($error, "Unknown column 'name' in 'field list'")){
-				qw("ALTER TABLE {$conf['db']['prefix']}blocks_reg CHANGE `description` `name` varchar(255)");
+				qw(pre("ALTER TABLE {$conf['db']['prefix']}blocks_reg CHANGE `description` `name` varchar(255)", $error));
 			}else{ mpre("Ошибка не определена", $error); }
 		}));
 		$blocks_reg_modules = qn("SELECT * FROM {$conf['db']['prefix']}blocks_reg_modules ORDER BY sort");
@@ -349,16 +345,17 @@ if (!function_exists('bcont')){
 				qw("ALTER TABLE {$conf['db']['prefix']}blocks_index_uaccess CHANGE `bid` `index_id` int(11) NOT NULL");
 			}else{ mpre("Ошибка не определена", $error); }
 			mpre($error);
-		})) as $k=>$v)
+		})) as $k=>$v){
 			if(/*get($conf, 'blocks', 'info', $v['index_id']) &&*/ ($conf['user']['uid'] == $v['uid'] || (!$v['uid'] && ($conf['user']['uid'] == 0)))){
 				$conf['blocks']['info'][ $v['index_id'] ]['access'] = $v['access'];
 			}
+		}
 		foreach(rb($blocks, "reg_id", "id", $reg+array(0=>array("id"=>0))) as $k=>$v){
 			if(($conf['settings']['theme'] == $v['theme']) || ((substr($v['theme'], 0, 1) == "!") && ($conf['settings']['theme'] != substr($v['theme'], 1)))){
 				$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
 				$mod = get($conf, 'modules', basename(dirname(dirname($v['src'])))) ?: array("folder"=>'');
 				$arg = array('blocknum'=>$v['id'], 'modpath'=>$mod['folder'], 'modname'=>(get($mod, 'modname') ?: ""), 'fn'=>basename(first(explode('.', $v['src']))), 'uid'=>0, 'access'=>$conf['blocks']['info'][ $v['id'] ]['access']);
-				if ($conf['blocks']['info'][ $v['id'] ]['access'] /*&& strlen($cb = mpeval("modules/{$v['src']}", $arg))*/){
+				if($conf['blocks']['info'][ $v['id'] ]['access'] /*&& strlen($cb = mpeval("modules/{$v['src']}", $arg))*/){
 					ob_start();
 						inc("modules/{$v['src']}", array('arg'=>$arg));
 					$cb = ob_get_contents(); ob_end_clean();
@@ -1338,8 +1335,9 @@ function mpqw($sql, $info = null, $callback = null, $conn = null){
 	} return($result);
 } function qw($sql, $info = null, $conn = null){
 	global $conf;
+	$conn = $conn ?: $conf['db']['conn'];
 	$mt = microtime(true);
-	$stm = $conf['db']['conn']->prepare($sql);
+	$stm = $conn->prepare($sql);
 	try{
 		$return = $stm->execute();
 	}catch(Exception $e){
@@ -1441,7 +1439,7 @@ EOF;
 		echo '<div style="float:right; margin:5px;"><a target=blank href="//mpak.su/help/modpath:'. $arg['modpath']. "/fn:". $arg['fn']. '/r:'. $_GET['r']. '">Помощь</a></div>';
 	}
 	if($modname = array_search('admin', $_GET['m'])){
-		$modname_id = mpfdk("{$conf['db']['prefix']}modules",
+		$modname_id = mpfdk("{$conf['db']['prefix']}modules_index",
 			array("folder"=>$modname), null, array("priority"=>time())
 		);
 	}

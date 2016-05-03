@@ -1,6 +1,6 @@
 <div class="cont">
 	<ul class="nl MdlsList">
-		<? foreach(rb("{$conf['db']['prefix']}modules", "admin", "id", $_GET['id']) as $modules): ?>
+		<? foreach(rb("{$conf['db']['prefix']}modules_index", "admin", "id", $_GET['id']) as $modules): ?>
 			<? if($conf['modules'][ $modules['id'] ]['access'] >= 4): ?>
 				<li>
 					<a href="/<?=$modules['folder']?>"><img src="/admin:img/<?=$modules['id']?>/null/modules.png" alt="" /></a>

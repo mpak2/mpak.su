@@ -251,6 +251,7 @@ if(mpsettings($t = "{$arg['modpath']}_yandex", "Яндекс") && !tables($table
 		`id` int(11) NOT NULL AUTO_INCREMENT,
 		`time` int(11) NOT NULL,
 		`uid` int(11) NOT NULL,
+		`tracking` int(11) NOT NULL COMMENT 'Номер подмены номера',
 		`index_id` int(11) NOT NULL,
 		`yandex_metrika_id` int(11) NOT NULL,
 		PRIMARY KEY (`id`)
