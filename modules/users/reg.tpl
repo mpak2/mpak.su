@@ -27,11 +27,11 @@
 												})(jQuery, document.scripts[document.scripts.length-1])
 											</script>
 											<input type="hidden" value="Аутентификация" name="reg">
-											<input type="text" name="name" required placeholder="логин">
-											<input type="text" name="email" required placeholder="e-mail">
-											<input type="password" name="pass" required placeholder="пароль">
-											<input type="password" name="pass2" required placeholder="Повторите пароль">
-											<input class="btn btn-primary" type="submit" value="зарегистрироватся">
+											<p><input type="text" name="name" required placeholder="логин"></p>
+											<p><input type="text" name="email" required placeholder="e-mail"></p>
+											<p><input type="password" name="pass" required placeholder="пароль"></p>
+											<p><input type="password" name="pass2" required placeholder="Повторите пароль"></p>
+											<p><input class="btn btn-primary" type="submit" value="зарегистрироватся"></p>
 											<footer class="clearfix">
 											<span class="post_category" style="font-size: 14px;">
 												<a href="/users:resque"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span> Забыли пароль?</a></br>

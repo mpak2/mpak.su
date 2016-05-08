@@ -1,7 +1,7 @@
 <div style="margin:120px auto; text-align:center;">
-	<? if($_POST['resque']): ?>
+	<? if(get($_POST, 'resque')): ?>
 		Пароль изменен
-	<? elseif($conf['tpl']['resque']): ?>
+	<? elseif(get($tpl, 'resque')): ?>
 		<form method="post">
 			<input type="hidden" name="resque" value="<?=$conf['tpl']['resque']?>">
 			Введите новый пароль <input type="pass" name="pass">
@@ -10,9 +10,9 @@
 	<? else: ?>
 		<form method="post">
 			<div style="margin:10px;">
-				<? if($conf['tpl']['user']): ?>
+				<? if(get($tpl, 'user')): ?>
 					Вам на почту выслан код подтверждения
-				<? elseif($_POST['email']): ?>
+				<? elseif(get($_POST, 'email')): ?>
 					Пользователь с указанным адресом не найден
 				<? else: ?>
 					Укажите адрес электронной почты пользователя

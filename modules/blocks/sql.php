@@ -20,25 +20,20 @@ $amenu = <<<EOF
 </ul>
 EOF;
 
-$spt = <<<EOF
-Вопросы по работе системы задавайте по телефону +7965982884.
-По оформлению дизайна шаблонов модулей и блоков в skype: mpak2skype
-EOF;
-
 $menu = array(
-//	array('id'=>'11', 'theme'=>'!zhiraf', 'src'=>'admin/blocks/host.php', 'name'=>'Оплата хостинга', 'access'=>'-1', 'reg_id'=>'1', 'hide'=>'1',),
+//	array('id'=>'11', 'theme'=>'!zhiraf', 'src'=>'admin/blocks/host', 'name'=>'Оплата хостинга', 'access'=>'-1', 'reg_id'=>'1', 'hide'=>'1',),
 
-	array('id'=>'1', 'theme'=>'!zhiraf', 'src'=>'../include/blocks/login.php', 'name'=>'Авторизация', 'access'=>'1', 'reg_id'=>'1'),
-	array('id'=>'2', 'theme'=>'!zhiraf', 'src'=>'menu/blocks/menu.php', 'name'=>'Верхнее меню', 'shablon'=>'2', 'access'=>'1', 'reg_id'=>'3'),
-	array('id'=>'3', 'theme'=>'!zhiraf', 'src'=>'pages/blocks/list.php', 'name'=>'Меню', 'access'=>'1', 'reg_id'=>'1'),
-	array('id'=>'4', 'theme'=>'!zhiraf', 'src'=>'../include/blocks/htmlcod.php', 'name'=>'Админменю', 'access'=>'0', 'reg_id'=>'1', 'param'=>$amenu),
-	array('id'=>'5', 'theme'=>'!zhiraf', 'src'=>'messages/blocks/messages.php', 'name'=>'Сообщения', 'access'=>'1', 'reg_id'=>'1'),
-	array('id'=>'6', 'theme'=>'!zhiraf', 'src'=>'../include/blocks/htmlcod.php', 'name'=>'Поддержка', 'access'=>'0', 'reg_id'=>'1', 'param'=>$spt),
-	array('id'=>'7', 'theme'=>'zhiraf', 'src'=>'admin/blocks/top.php', 'name'=>'АдминШапка', 'access'=>'0', 'reg_id'=>'4'),
-	array('id'=>'8', 'theme'=>'zhiraf', 'src'=>'admin/blocks/modlist.php', 'name'=>'СписокМодулей', 'access'=>'0', 'reg_id'=>'-1'),
-	array('id'=>'9', 'theme'=>'!zhiraf', 'src'=>'users/blocks/user.php', 'name'=>'Свойства пользователя', 'access'=>'1', 'reg_id'=>'7'),
-	array('id'=>'10', 'theme'=>'!zhiraf', 'src'=>'chat/blocks/all.php', 'name'=>'Чат', 'access'=>'2', 'reg_id'=>'8'),
-	array('id'=>'12', 'theme'=>'!zhiraf', 'src'=>'pages/blocks/my.php', 'name'=>'Мои статьи', 'access'=>'1', 'reg_id'=>'7'),
+	array('id'=>'1', 'theme'=>'!zhiraf', 'src'=>'users/blocks/login', 'name'=>'Авторизация', 'access'=>'1', 'reg_id'=>'1'),
+	array('id'=>'2', 'theme'=>'!zhiraf', 'src'=>'menu/blocks/menu', 'name'=>'Верхнее меню', 'shablon'=>'2', 'access'=>'1', 'reg_id'=>'3'),
+	array('id'=>'3', 'theme'=>'!zhiraf', 'src'=>'pages/blocks/list', 'name'=>'Меню', 'access'=>'1', 'reg_id'=>'1'),
+//	array('id'=>'4', 'theme'=>'!zhiraf', 'src'=>'../include/blocks/htmlcod', 'name'=>'Админменю', 'access'=>'0', 'reg_id'=>'1', 'param'=>$amenu),
+//	array('id'=>'5', 'theme'=>'!zhiraf', 'src'=>'messages/blocks/messages', 'name'=>'Сообщения', 'access'=>'1', 'reg_id'=>'1'),
+	array('id'=>'6', 'theme'=>'!zhiraf', 'src'=>'blocks/blocks/support', 'name'=>'Поддержка', 'access'=>'0', 'reg_id'=>'1', 'param'=>$spt),
+	array('id'=>'7', 'theme'=>'zhiraf', 'src'=>'admin/blocks/top', 'name'=>'АдминШапка', 'access'=>'0', 'reg_id'=>'4'),
+	array('id'=>'8', 'theme'=>'zhiraf', 'src'=>'admin/blocks/modlist', 'name'=>'СписокМодулей', 'access'=>'0', 'reg_id'=>'-1'),
+	array('id'=>'9', 'theme'=>'!zhiraf', 'src'=>'users/blocks/user', 'name'=>'Свойства пользователя', 'access'=>'1', 'reg_id'=>'7'),
+	array('id'=>'10', 'theme'=>'!zhiraf', 'src'=>'chat/blocks/all', 'name'=>'Чат', 'access'=>'2', 'reg_id'=>'8'),
+	array('id'=>'12', 'theme'=>'!zhiraf', 'src'=>'pages/blocks/my', 'name'=>'Мои статьи', 'access'=>'1', 'reg_id'=>'7'),
 );
 
 foreach($menu as $line){

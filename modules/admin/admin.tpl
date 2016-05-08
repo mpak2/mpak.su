@@ -486,7 +486,7 @@
 												<option selected style="color:red;"><?=htmlspecialchars($tpl['edit'][$name])?></option>
 											<? endif; ?>
 											<? foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($name, 0, -3)) as $ln): ?>
-												<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $name) == $ln['id']) || (($ln['id'] == (get($_GET, 'where', $name) ?: $field['Default']))) ? "selected" : "")?>>
+												<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $name) == $ln['id']) || (($ln['id'] == (get($_GET, 'where', $name) ?: get($field, 'Default')))) ? "selected" : "")?>>
 													<?=$ln['id']?>&nbsp;<?=htmlspecialchars(get($ln, 'name'))?>
 												</option>
 											<? endforeach; ?>

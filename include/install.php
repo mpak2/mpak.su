@@ -153,7 +153,7 @@ EOF;
 	echo "<table border=0 width=100% height=100%><tr><td align=center>";
 	echo "<b>Задайте свойства сайта</b><p>";
 	echo "<table cellpadding=7px>";
-	echo "<tr><td align='right'>Заголовок сайта:</td><td><input type='text' name='title' value='Мой сайт' style='width: 100%;'></td></tr>";
+	echo "<tr><td align='right'>Заголовок сайта:</td><td><input type='text' name='title' value='Жираф' style='width: 100%;'></td></tr>";
 	echo "<tr><td align='right'>Имя администратора:</td><td><input type=text name='user'></td></tr>";
 	echo "<tr><td align='right'>Пароль администратора:</td><td><input type=password name='pass1'></td></tr>";
 	echo "<tr><td align='right'>Повторите пароль:</td><td><input type=password name='pass2'></td></tr>";
