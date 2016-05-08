@@ -13,9 +13,9 @@ $menu = array(
 	array('region_id'=>1, 'name'=>'Чат', 'href'=>'/chat'),
 
 // 	array('region_id'=>2, 'name'=> 'Кабинет', 'href'=>'/users'),
-	array('region_id'=>2, 'name'=> 'Услуги', 'href'=>'/pages/3'),
-	array('region_id'=>2, 'name'=> 'Цены', 'href'=>'/pages/4'),
-	array('region_id'=>2, 'name'=> 'Котакты', 'href'=>'/pages/5'),
+	array('region_id'=>2, 'name'=> 'Услуги', 'href'=>'/uslugi'),
+	array('region_id'=>2, 'name'=> 'Цены', 'href'=>'/prices'),
+	array('region_id'=>2, 'name'=> 'Котакты', 'href'=>'/contacts'),
 );
 
 foreach($menu as $n=>$line){

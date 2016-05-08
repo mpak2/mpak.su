@@ -22,14 +22,14 @@ if($db = mpopendir($f = ".htdb2")){
 			foreach(rb($tab) as $t){
 				$t = array_map(function($val){
 					return strtr(SQLite3::escapeString($val), array("?"=>"??", "'"=>"''", "\""=>"\"\"", "\n"=>"\\n"));
-				}, $t); pre($t);
+				}, $t);
 
-				if($tab == "mp_users"){
-					mpre("Не добавляем пользователей");
+				if(($tab == "mp_users") || ($tab == "mp_users_mem")){
+					mpre("Не добавляем пользователей", $t);
 				}else if(($tab == "mp_settings") && ($t['name'] == "admin_usr")){
-					mpre("Пропускаем администратора");
+					mpre("Пропускаем администратора", $t);
 				}else if(pre($sql = "INSERT INTO `{$tab}` (`". implode("`, `", array_keys($t)). "`) VALUES (\"". implode("\", \"", array_values($t)). "\")")){
-					$conn->exec($sql);
+					pre($t); $conn->exec($sql);
 				}
 			}
 		}

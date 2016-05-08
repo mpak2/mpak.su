@@ -69,23 +69,16 @@ try{
 	exit(inc('include/install.php'));
 }
 
+setlocale (LC_ALL, "Russian"); putenv("LANG=ru_RU");
 $conf['db']['info'] = 'Загрузка свойств модулей';
 $conf['settings'] = array('http_host'=>(function_exists("idn_to_utf8") ? idn_to_utf8($_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST']))+array_column(rb("{$conf['db']['prefix']}settings"), "value", "name");
 $conf['settings']['access_array'] = array('0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ');
 $conf['settings']['microtime'] = microtime(true);
+$guest = fk("{$conf['db']['prefix']}users", $w = array("name"=>$conf['settings']['default_usr']), $w += array("pass"=>"nopass", "reg_time"=>time(), "last_time"=>time()), $w);
 
-setlocale (LC_ALL, "Russian"); putenv("LANG=ru_RU");// bindtextdomain("messages", "./locale"); textdomain("messages"); bind_textdomain_codeset('messages', 'CP1251'); //setlocale(LC_ALL, "ru_RU.CP1251")
-//if($conf['settings']['users_log']) $conf['event'] = rb("{$conf['db']['prefix']}users_event", "name");
-
-if(!$guest_id = mpql(mpqw("SELECT id as gid FROM {$conf['db']['prefix']}users WHERE name='{$conf['settings']['default_usr']}'", "Получаем свойства пользователя гость"), 0, "gid")){ # Создаем пользователя в случае если его нет
-	$guest_id = mpfdk("{$conf['db']['prefix']}users", $w = array("name"=>$conf['settings']['default_usr']), $w += array("pass"=>"nopass", "reg_time"=>time(), "last_time"=>time()));
-	$guest_grp_id = mpfdk("{$conf['db']['prefix']}users_grp", $w = array("name"=>$conf['settings']['default_grp']), $w);
-	$guest_mem_id = mpfdk("{$conf['db']['prefix']}users", $w = array("uid"=>$guest_id, "grp_id"=>$guest_grp_id), $w);
-}
-
-if(!($sess = ql($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE `ip`='{$_SERVER['REMOTE_ADDR']}' AND last_time>=".(time()-$conf['settings']['sess_time'])." AND `agent`=\"".mpquot($_SERVER['HTTP_USER_AGENT']). "\" AND ". ($_COOKIE["{$conf['db']['prefix']}sess"] ? "sess=\"". mpquot($_COOKIE["{$conf['db']['prefix']}sess"]). "\"" : "uid=". (int)$guest_id)." ORDER BY id DESC", 0))){
-	$sess = array('uid'=>$guest_id, 'sess'=>md5("{$_SERVER['REMOTE_ADDR']}:".microtime()), 'ref'=>mpidn(urldecode($_SERVER['HTTP_REFERER'])), 'ip'=>$_SERVER['REMOTE_ADDR'], 'agent'=>$_SERVER['HTTP_USER_AGENT'], 'url'=>$_SERVER['REQUEST_URI']);
-	qw($sql = "INSERT INTO {$conf['db']['prefix']}sess (uid, ref, sess, last_time, ip, agent, url) VALUES (". (int)$guest_id. ", '". mpquot($sess['ref']). "', \"". mpquot($_COOKIE["{$conf['db']['prefix']}sess"]). "\", ".time().", '". mpquot($sess['ip']). "', '".mpquot($sess['agent'])."', '".mpquot($sess['url'])."')");
+if(!($sess = ql($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE `ip`='{$_SERVER['REMOTE_ADDR']}' AND last_time>=".(time()-$conf['settings']['sess_time'])." AND `agent`=\"".mpquot($_SERVER['HTTP_USER_AGENT']). "\" AND ". ($_COOKIE["{$conf['db']['prefix']}sess"] ? "sess=\"". mpquot($_COOKIE["{$conf['db']['prefix']}sess"]). "\"" : "uid=". $guest['id'])." ORDER BY id DESC", 0))){
+	$sess = array('uid'=>$guest['id'], 'sess'=>md5("{$_SERVER['REMOTE_ADDR']}:".microtime()), 'ref'=>mpidn(urldecode($_SERVER['HTTP_REFERER'])), 'ip'=>$_SERVER['REMOTE_ADDR'], 'agent'=>$_SERVER['HTTP_USER_AGENT'], 'url'=>$_SERVER['REQUEST_URI']);
+	qw($sql = "INSERT INTO {$conf['db']['prefix']}sess (uid, ref, sess, last_time, ip, agent, url) VALUES (". $guest['id']. ", '". mpquot($sess['ref']). "', \"". mpquot($_COOKIE["{$conf['db']['prefix']}sess"]). "\", ".time().", '". mpquot($sess['ip']). "', '".mpquot($sess['agent'])."', '".mpquot($sess['url'])."')");
 	$sess['id'] = $conf['db']['conn']->lastInsertId();
 } if($_COOKIE["{$conf['db']['prefix']}sess"] != $sess['sess']){ # Если сессия с пришедшей кукисой не найдена
 	$sess['sess'] = ($sess['sess'] ?: md5("{$_SERVER['REMOTE_ADDR']}:".microtime()));
