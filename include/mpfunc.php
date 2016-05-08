@@ -21,13 +21,12 @@ function meta($where, $insert = null){
 		mpre("Ошибочный формат внутреннего адреса location &laquo;". get($where, 'location'). "&raquo;");
 	}else if(get($where, 1) && ("/" != substr($index = get($where, 1), 0, 1))){
 		mpre("Ошибочный формат внешнего адреса index &laquo;". get($where, 'location'). "&raquo;");
-	}else{
-		mpre($index, $location);
+	}else{// mpre($index, $location);
 		if("/" == substr($index = get($where, 1), 0, 1)){
-			$seo_index = fk("{$conf['db']['prefix']}seo_index", $w = array("name"=>$index), $w += array("cat_id"=>get($insert, 'cat_id')));
+			$seo_index = fk("{$conf['db']['prefix']}seo_index", $w = array("name"=>$index), $w += array("index_type_id"=>(get($insert, 'index_type_id') ?: 1), "cat_id"=>get($insert, 'cat_id')));
 		}else{ $seo_index = array('id'=>0); }
 
-		if($seo_location = fk("{$conf['db']['prefix']}seo_location", $w = array("name"=>$location), $w += array("index_id"=>$seo_index['id'], "cat_id"=>get($insert, 'cat_id')), $w)){
+		if($seo_location = fk("{$conf['db']['prefix']}seo_location", $w = array("name"=>$location), $w += array("location_status_id"=>(get($insert, "location_status_id") ?: 301), "index_id"=>$seo_index['id'], "cat_id"=>get($insert, 'cat_id')), $w)){
 //			exit(mpre($seo_index, $seo_location));
 			if(empty($seo_index)){
 				return $where + $seo_location;
@@ -776,8 +775,9 @@ function mpdbf($tn, $post = null, $and = false){
 	global $conf;
 	$fields = $f = array();
 	if(!isset($post)) $post = $_POST;
-	foreach(mpql(mpqw("SHOW COLUMNS FROM `$tn`")) as $k=>$v){
-		$fields[$v['Field']] = $v['Type'];
+//	foreach(mpql(mpqw("SHOW COLUMNS FROM `$tn`")) as $k=>$v){
+	foreach(fields($tn) as $name=>$field){
+		$fields[$name] = (get($field, 'Type') ?: $field['type']);
 	} foreach((array)$post AS $k=>$v){
 		if(!empty($conf['settings']['analizsql_autofields']) && $conf['settings']['analizsql_autofields'] && !array_key_exists($k, $fields) && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false){
 			mpqw($sql = "ALTER TABLE `$tn` ADD `$k` ". (is_numeric($v) ? "INT" : "varchar(255)"). " NOT NULL"); echo "\n<br>". $sql;
@@ -815,7 +815,13 @@ function mpdbf($tn, $post = null, $and = false){
 			} return array_keys($sel);
 		}
 	}elseif($insert){
-		qw($sql = "INSERT INTO `". mpquot($tn). "` SET ". mpdbf($tn, $insert+array("time"=>time(), "uid"=>(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0))));
+		if($fields = fields($tn)){
+			if($mpdbf = $insert+array("time"=>time(), "uid"=>(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0))){
+				if($values = array_map(function($val){ return mpquot($val); }, array_intersect_key($mpdbf, $fields))){
+					qw("INSERT INTO `". mpquot($tn). "` (`". implode("`, `", array_keys($values)). "`) VALUES (\"". implode("\", \"", array_values($values)). "\")");
+				}
+			}
+		} // qw($sql = "INSERT INTO `". mpquot($tn). "` SET ". mpdbf($tn, $insert+array("time"=>time(), "uid"=>(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0))));
 		return $sel['id'] = $conf['db']['conn']->lastInsertId();
 	}
 } function fdk($tn, $find, $insert = array(), $update = array(), $log = false){
@@ -836,8 +842,9 @@ function mpdk($tn, $insert, $update = array()){
 	global $conf, $arg;
 	if($ins = mpdbf($tn, $insert)){
 		$upd = mpdbf($tn, $update);
-		foreach(mpql(mpqw("SHOW COLUMNS FROM $tn")) as $k=>$v){
-			$fields[$v['Field']] = $v['Type'];
+//		foreach(mpql(mpqw("SHOW COLUMNS FROM $tn")) as $k=>$v){
+		foreach(fields($tn) as $name=>$field){
+			$fields[$name] = ($field['Type'] ?: $field['type']);
 		} if("SELECT id FROM `". mpquot($tn). "` WHERE "){
 			mpqw("INSERT INTO `". mpquot($tn). "` SET $ins ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)". ($update ? ", $upd" : ""));
 		} return $conf['db']['conn']->lastInsertId();

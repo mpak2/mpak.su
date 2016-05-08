@@ -1,8 +1,6 @@
 <?
 
-if(array_key_exists("null", $_GET)){
-	exit(200);
-}else{
+if(array_key_exists("null", $_GET)){ exit(200); }else{
 	echo <<<EOF
 <html>
 <head>
@@ -21,16 +19,40 @@ function perm2str($perm){
 	return $str;
 }
 
-# Список папок и их прав доступа
-$files_array = array(
-		'include/images'=>'0777',
-#		'include/spaw2/uploads/files'=>'0777',
-#		'include/spaw2/uploads/flash'=>'0777',
-#		'include/spaw2/uploads/images'=>'0777'
+$files_array = array( # Список папок и их прав доступа
+	'include/images'=>'0777',
 );
 
-# Устанавливаем права доступа к папке с файлами
-if (!file_exists($cf = array_shift(explode(':', $conf['db']["open_basedir"])). '/include/config.php') || !is_writable(mpopendir("include/images")) || !empty($conf['db']['error'])){
+
+if('sqlite' == get($conf, 'db', 'type')){
+	if(($admin_usr = get($_POST, "admin_usr")) && ($admin_pass = get($_POST, "admin_pass"))){
+		if($users = fk("{$conf['db']['prefix']}users", $w = array("name"=>$admin_usr, "pass"=>mphash($admin_usr, $admin_pass)), $w += array("type_id"=>1), $w)){
+			if($grp = rb("users-grp", "name", "[". get($conf, 'settings', 'user_grp'). "]")){
+				if($mem = fk("{$conf['db']['prefix']}users_mem", $w = array("uid"=>$users['id'], "grp_id"=>$grp['id']), $w)){
+					if($grp = rb("users-grp", "name", "[". get($conf, 'settings', 'admin_grp'). "]")){
+						if($mem = fk("{$conf['db']['prefix']}users_mem", $w = array("uid"=>$users['id'], "grp_id"=>$grp['id']), $w)){
+							if($settings = fk("{$conf['db']['prefix']}settings", $w = array("name"=>"admin_usr"), $w += array("modpath"=>"users", "aid"=>5, "value"=>$users['name'], "description"=>"Корень"), $w)){
+								qw($sql = "UPDATE {$conf['db']['prefix']}sess SET uid=". $users['id']. " WHERE id=". get($conf, 'user', 'sess', 'id'));
+								exit(header("Location: /admin"));
+							}else{ pre("Ошибка установки администратора сайта"); }
+						}else{ pre("Ошибка добавления пользователя в группу администраторов"); }
+					}else{ pre("Ошибка добавления группы администраторов"); }
+				}else{ pre("Ошибка добавления пользователя в группу пользователи"); }
+			}else{ pre("Ошибка добавления группы пользователей"); }
+		}else{ pre("Ошибка добавления администратора"); }
+	}else if(get($conf, 'settings', 'admin_usr')){ pre("База данных 'sqlite' корень сутановлен"); }else{
+		$form = <<<EOF
+			<div>
+				<form method="post" style="padding:150px; text-align:center;">
+					<p><input type="text" name="admin_usr" placeholder="Имя администратора"></p>
+					<p><input type="password" name="admin_pass" placeholder="Пароль администратора"></p>
+					<p><button>Установить</button></p>
+				</form>
+			</div>
+EOF;
+		exit($form);
+	}
+}else if(!file_exists($cf = array_shift(explode(':', $conf['db']["open_basedir"])). '/include/config.php') || !is_writable(mpopendir("include/images")) || !empty($conf['db']['error'])){
 	echo "<table border=0 width=100% height=100%><tr><td align=center>";
 	echo "Создание необходимых файлов и установка прав доступа:<p>";
 	echo "<table cellspacing=0 cellpadding=3 border=0>";
@@ -140,7 +162,7 @@ EOF;
 }else{
 //print_r($conf['db']);
 	# Подключаем модули, запускаем портальную систему
-	foreach(array('modules', 'settings') as $k=>$v){
+	foreach(array('settings', 'modules') as $k=>$v){
 //		if (file_exists(mpopendir($init = "modules/$v/init.php"))){
 //			echo $init; echo file_get_contents(mpopendir($init));
 //			mpct($init, array('modpath'=>$v));

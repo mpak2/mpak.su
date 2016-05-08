@@ -58,15 +58,14 @@ header('Content-Type: text/html;charset=UTF-8');
 try{
 	if($conf['db']['type'] == "sqlite"){
 		$conf['db']['conn'] = new PDO("{$conf['db']['type']}:". mpopendir($conf['db']['name']));
-		$tpl['tables'] = array_column(qn("SELECT * FROM sqlite_master WHERE type='table' AND name LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\"", "name"), "name");
+		$conf['db']['conn']->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	}else{
 		$conf['db']['conn'] = new PDO("{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC));
 		$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
-		$tpl['tables'] = array_column(ql("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\""), "Tables_in_{$conf['db']['name']}");
 	} $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']);
 }catch(Exception $e){
 	pre("Ошибка подключения к базе данных");
-} if ((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !$tpl['tables']){
+} if((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !tables()){
 	exit(inc('include/install.php'));
 }
 
@@ -74,18 +73,11 @@ $conf['db']['info'] = 'Загрузка свойств модулей';
 $conf['settings'] = array('http_host'=>(function_exists("idn_to_utf8") ? idn_to_utf8($_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST']))+array_column(rb("{$conf['db']['prefix']}settings"), "value", "name");
 $conf['settings']['access_array'] = array('0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ');
 $conf['settings']['microtime'] = microtime(true);
-if($conf['settings']['users_log']) $conf['event'] = rb("{$conf['db']['prefix']}users_event", "name");
 
-if($conf['settings']['del_sess']){
-	$func = create_function('&$val, $key','$val = strtr(stripslashes($val), array("\\\\"=>"&#92;", \'"\'=>"&#34;", "\'"=>"&#39;"));');
-	array_walk ($get = $_GET, $func); $post = $_POST;
-	if (isset($post['pass'])) $post['pass'] = 'hide';
-	if (isset($post['pass2'])) $post['pass2'] = 'hide';
-//	array_walk ($post, $func); array_walk ($files = $_FILES, $func); array_walk ($server = $_SERVER, $func);
-//	$request = serialize(array('$_POST'=>$post, '$_GET'=>$get, '$_FILES'=>$files, '$_SERVER'=>$server));
-} setlocale (LC_ALL, "Russian"); putenv("LANG=ru_RU");// bindtextdomain("messages", "./locale"); textdomain("messages"); bind_textdomain_codeset('messages', 'CP1251'); //setlocale(LC_ALL, "ru_RU.CP1251")
+setlocale (LC_ALL, "Russian"); putenv("LANG=ru_RU");// bindtextdomain("messages", "./locale"); textdomain("messages"); bind_textdomain_codeset('messages', 'CP1251'); //setlocale(LC_ALL, "ru_RU.CP1251")
+//if($conf['settings']['users_log']) $conf['event'] = rb("{$conf['db']['prefix']}users_event", "name");
 
-if (!$guest_id = mpql(mpqw("SELECT id as gid FROM {$conf['db']['prefix']}users WHERE name='{$conf['settings']['default_usr']}'", "Получаем свойства пользователя гость"), 0, "gid")){ # Создаем пользователя в случае если его нет
+if(!$guest_id = mpql(mpqw("SELECT id as gid FROM {$conf['db']['prefix']}users WHERE name='{$conf['settings']['default_usr']}'", "Получаем свойства пользователя гость"), 0, "gid")){ # Создаем пользователя в случае если его нет
 	$guest_id = mpfdk("{$conf['db']['prefix']}users", $w = array("name"=>$conf['settings']['default_usr']), $w += array("pass"=>"nopass", "reg_time"=>time(), "last_time"=>time()));
 	$guest_grp_id = mpfdk("{$conf['db']['prefix']}users_grp", $w = array("name"=>$conf['settings']['default_grp']), $w);
 	$guest_mem_id = mpfdk("{$conf['db']['prefix']}users", $w = array("uid"=>$guest_id, "grp_id"=>$guest_grp_id), $w);
@@ -108,25 +100,25 @@ if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аут
 	qw($sql = "UPDATE {$conf['db']['prefix']}sess SET uid=".($sess['uid'] = $uid)." WHERE id=". (int)$sess['id']);
 	qw($sql = "UPDATE {$conf['db']['prefix']}users SET last_time=". time(). " WHERE id=".(int)$uid);
 }elseif(isset($_GET['logoff'])){ # Если пользователь покидает сайт
-	mpqw("UPDATE {$conf['db']['prefix']}sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
+	qw("UPDATE {$conf['db']['prefix']}sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
 	if(!empty($_SERVER['HTTP_REFERER'])){
-		header("Debug info:". __FILE__. ":". __LINE__);
-		header("Location: ". ($conf['settings']['users_logoff_location'] ? $conf['settings']['users_logoff_location'] : $_SERVER['HTTP_REFERER'])); exit;
-	}// if($conf['settings']['del_sess'] == 0){ # Стираем просроченные сессии
-	mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление сессий');
-	mpqw($sql = "DELETE FROM {$conf['db']['prefix']}sess_post WHERE time < ".(time() - $conf['settings']['sess_time']), 'Удаление данных сессии');
-//	}
+		exit(header("Location: ". ($conf['settings']['users_logoff_location'] ? $conf['settings']['users_logoff_location'] : $_SERVER['HTTP_REFERER'])));
+	} # Стираем просроченные сессии
+	qw($sql = "DELETE FROM {$conf['db']['prefix']}sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление сессий');
+	qw($sql = "DELETE FROM {$conf['db']['prefix']}sess_post WHERE time < ".(time() - $conf['settings']['sess_time']), 'Удаление данных сессии');
 }
 
-$user = mpql(mpqw("SELECT *, id AS uid, name AS uname FROM {$conf['db']['prefix']}users WHERE id={$sess['uid']}", 'Проверка пользователя'));
-list($k, $conf['user']) = each($user);
-if(($conf['settings']['users_uname'] = $conf['user']['uname']) == $conf['settings']['default_usr']){
-	$conf['user']['uid'] = -$sess['id'];
-} $conf['settings']['users_uid'] = $conf['user']['uid'];
+if($conf['user'] = ql($sql = "SELECT *, id AS uid, name AS uname FROM {$conf['db']['prefix']}users WHERE id={$sess['uid']}", 0)){
+	if(($conf['settings']['users_uname'] = $conf['user']['uname']) == $conf['settings']['default_usr']){
+		$conf['user']['uid'] = -$sess['id'];
+	} $conf['settings']['users_uid'] = $conf['user']['uid'];
 
-$conf['db']['info'] = 'Получаем информацию о группах в которые входит пользователь';
-$conf['user']['gid'] = array_column(qn("SELECT g.id, g.name FROM {$conf['db']['prefix']}users_grp as g, {$conf['db']['prefix']}users_mem as m WHERE (g.id=m.grp_id) AND m.uid=". (int)$sess['uid']), "name", "id");
-$conf['user']['sess'] = $sess;
+	$conf['db']['info'] = 'Получаем информацию о группах в которые входит пользователь';
+	$conf['user']['gid'] = array_column(qn("SELECT g.id, g.name FROM {$conf['db']['prefix']}users_grp as g, {$conf['db']['prefix']}users_mem as m WHERE (g.id=m.grp_id) AND m.uid=". (int)$sess['uid']), "name", "id");
+	$conf['user']['sess'] = $sess;
+} if(!get($conf, 'settings', 'admin_usr')){
+	exit(inc('include/install.php'/*, array('conf'=>$conf)*/));
+}
 
 foreach(mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index", "Список модулей", function($error) use($conf){
 	if(strpos($error, "doesn't exist")){
@@ -143,8 +135,7 @@ foreach(mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index", "Спи�
 
 if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Главная страница
 	if(strpos($conf['settings']['start_mod'], "http://") === 0){
-		header("Debug info:". __FILE__. ":". __LINE__);
-		header("Location: {$conf['settings']['start_mod']}"); exit;
+		exit(header("Location: {$conf['settings']['start_mod']}"));
 	}elseif(($seo_index = rb("{$conf['db']['prefix']}seo_index", "name", "[/]")) /*&& array_key_exists("themes_index", $redirect)*/){
 		if(get($seo_index, "location_id") && ($seo_location = rb("seo-location", "id", $seo_index['location_id']))){
 			if($index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $seo_index['index_type_id'])){
@@ -163,7 +154,6 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 	}else{
 		$r = urldecode(preg_replace("#([\#\?].*)?$#",'',$_SERVER['REQUEST_URI']));
 	} if($redirect = rb("{$conf['db']['prefix']}seo_index", "name", "[{$r}]")){
-		// $redirect['name'] = preg_replace("#^{$redirect['from']}$#iu",$redirect['to'],$r);
 		if(strpos($redirect['name'], "http://") === 0){
 			header("Debug info:". __FILE__. ":". __LINE__);
 			exit(header("Location: {$redirect['to']}"));
@@ -184,9 +174,7 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 	}elseif(!array_key_exists("404", $conf['settings']) || ($_404 = $conf['settings']['404'])){ # Если не прописан адрес 404 ошибки, то его обработку оставляем для init.php
 		$keys = array_keys($ar = array_keys($_GET['m']));
 		if(!get($conf, 'modules',  $ar[min($keys)] , 'folder')){
-			header("Debug info:". __FILE__. ":". __LINE__);
-			header('HTTP/1.1 404 Not Found');
-			exit(header("Location: /". (!empty($_404) ?: "themes:404"). "{$_SERVER['REQUEST_URI']}"));
+			$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = array("id"=>0, "name"=>"/themes:404"), 'name'), $_GET);
 		}
 	}
 

@@ -1,7 +1,7 @@
 <?
 
 if(mpsettings($t = "admin_history", "История") && ($table = ("{$conf['db']['prefix']}{$t}"))){
-qw("CREATE TABLE `{$table}` (
+qw("CREATE TABLE IF NOT EXISTS `{$table}` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `time` int(11) NOT NULL,
   `uid` int(11) NOT NULL,
@@ -16,7 +16,7 @@ qw("CREATE TABLE `{$table}` (
   KEY `uid` (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251");
 } if(mpsettings($t = "admin_history_tables", "Таблицы") && ($table = ("{$conf['db']['prefix']}{$t}"))){
-qw("CREATE TABLE `{$table}` (
+qw("CREATE TABLE IF NOT EXISTS `{$table}` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `modpath` varchar(255) NOT NULL,
   `modname` varchar(255) NOT NULL,
@@ -27,14 +27,14 @@ qw("CREATE TABLE `{$table}` (
   KEY `modname` (`modpath`)
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251");
 } if(mpsettings($t = "admin_history_type", "Тип") && ($table = ("{$conf['db']['prefix']}{$t}"))){
-qw("CREATE TABLE `{$table}` (
+qw("CREATE TABLE IF NOT EXISTS `{$table}` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `description` text NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251");
 } if(mpsettings($t = "admin_search", "Поиск") && ($table = ("{$conf['db']['prefix']}{$t}"))){
-qw("CREATE TABLE `{$table}` (
+qw("CREATE TABLE IF NOT EXISTS `{$table}` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `time` int(11) NOT NULL,
   `uid` int(11) NOT NULL,

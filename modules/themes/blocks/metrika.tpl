@@ -7,7 +7,7 @@
 						(function (d, w, c) {
 							(w[c] = w[c] || []).push(function() {
 								try {
-										w.yaCounter<?=$themes_yandex_metrika['id']?> = new Ya.Metrika({id:<?=$themes_yandex_metrika['id']?>,
+										w.yaCounter<?=$themes_yandex_metrika["id"]?> = new Ya.Metrika({id:<?=$themes_yandex_metrika["id"]?>,
 												webvisor:true,
 												clickmap:true,
 												trackLinks:true,
@@ -32,9 +32,17 @@
 				<? if($tracking = get($themes_yandex_metrika_index, "tracking")): ?>
 					<!-- PrimeGate CallTracking-->
 						<script>
-							var id = PrimeContext.init(<?=$tracking?>, 0, '.calltr', 'span', false);
-							ga('set', 'dimension1', id);
-							ga('send', 'pageview');
+							setTimeout(function(){
+								var headID = document.getElementsByTagName("head")[0]; 
+								var newScript = document.createElement('script');
+								newScript.type = 'text/javascript';
+								newScript.src = 'http://js.primecontext.ru/primecontext.min.js';
+								newScript.onload = function(){
+									var id = PrimeContext.init(<?=$tracking?>, 0, '.calltr', 'span', false);
+									ga('set', 'dimension1', id);
+									ga('send', 'pageview');
+								}; headID.appendChild(newScript);
+							}, 100)
 						</script>
 					<!-- PrimeGate CallTracking-->
 				<? endif; ?>

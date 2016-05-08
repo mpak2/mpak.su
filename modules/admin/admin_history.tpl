@@ -58,8 +58,24 @@
 			.themes_history div.toggle > div {display:none; position:absolute; background-color:white; border:1px solid #ddd; padding:0 20px; z-index: 10; }
 			.themes_history div.toggle:hover > div {display:block;}
 		</style>
+		<script sync>
+			(function($, script){
+				$(script).parent().on("change", "select", function(e){ // Загрузка родительского элемента
+					var admin_history_tables_id = $(e.currentTarget).find("option:selected").attr("value");
+					document.location.href = "/<?=$arg['modpath']?>:<?=$arg['fn']?>/admin-history_tables:"+admin_history_tables_id;
+				})
+			})(jQuery, document.scripts[document.scripts.length-1])
+		</script>
 		<h2>Логиноварие данных</h2>
-		<? if($tpl['admin_history'] = rb("{$conf['db']['prefix']}admin_history", 40)): ?>
+		<? if($tpl['admin_history'] = rb("{$conf['db']['prefix']}admin_history", 40, "history_tables_id", "id", (get($_GET, "admin-history_tables") ?: true))): ?>
+			<p style="float:right;">
+				<select name="admin_history_tables_id">
+					<option value="0"></option>
+					<? foreach(rb("admin-history_tables") as $admin_history_tables): ?>
+						<option value="<?=$admin_history_tables['id']?>" <?=(get($_GET, "admin-history_tables") == $admin_history_tables['id'] ? "selected" : "")?>><?=$admin_history_tables['name']?></option>
+					<? endforeach; ?>
+				</select>
+			</p>
 			<p><?=$tpl['pager']?></p>
 			<div class="table">
 				<div class="th">

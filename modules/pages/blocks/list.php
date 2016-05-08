@@ -56,7 +56,7 @@ $index = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index
 <ul>
 	<? foreach($index as $k=>$v): ?>
 		<li>
-			<a href="/<?=$arg['modname']?>/<?=$v['id']?>"><?=$v['name']?></a>
+			<a href="<?=seo("/{$arg['modname']}/{$v['id']}")?>"><?=$v['name']?></a>
 		</li>
 	<? endforeach; ?>
 </ul>

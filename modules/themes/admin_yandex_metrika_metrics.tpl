@@ -69,7 +69,7 @@
 		</span>
 		<? if($tpl['yandex_metrika'] = rb("themes-yandex_metrika")): ?>
 			<h1 style="margin-right:100px;">Метрики</h1>
-			<? if($tpl['yandex_metrika_period:all'] = rb("themes-yandex_metrika_period")): ?>
+			<? if($tpl['yandex_metrika_period:all'] = qn("SELECT * FROM {$conf['db']['prefix']}themes_yandex_metrika_period ORDER BY date1 DESC")): ?>
 				<div class="table">
 					<div>
 						<span style="width:50%;">

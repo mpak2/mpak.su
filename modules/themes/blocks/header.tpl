@@ -33,7 +33,7 @@
 	<? if($themes_index = $conf['user']['sess']['themes_index']): ?>
 		<script sync>
 			(function($, script){
-				$(script).parent().one("DOMNodeInserted", function(e){ // Загрузка родительского элемента
+				$(script).parent().one("DOMNodeInserted", function(e){ // Ссылка на редактирование заголовка страницы
 					if("object" == typeof(index = $.parseJSON('<?=json_encode(get($conf, "settings", "canonical"))?>'))){// console.log("index", index);
 						var themes_index = $.parseJSON('<?=json_encode($themes_index)?>');
 						$("<"+"div>").text(index.name).addClass("themes_header_seo_blocks").css({"z-index":999, opacity:0.3, cursor:"pointer", border:"1px solid gray", position:"fixed", background:"white", color:"black", padding:"0 5px", left:"10px", top:"10px"}).appendTo("body");
@@ -41,6 +41,10 @@
 							window.open("/seo:admin/r:mp_seo_index_themes?&where[location_id]="+index.id+"&where[themes_index]="+themes_index.id);
 						});
 					}
+				}).one("DOMNodeInserted", function(e){ // Перетаскивание админских элементов
+					$.getScript("//code.jquery.com/ui/1.11.4/jquery-ui.js", function(){
+						$("fieldset.pre").draggable({handle:"legend"}).find("legend").css("cursor", "pointer");
+					})
 				})
 			})(jQuery, document.scripts[document.scripts.length-1])
 		</script>

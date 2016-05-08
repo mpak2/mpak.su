@@ -219,79 +219,79 @@
 						<span style="width:15%;">Поле</span>
 						<span>Значение</span>
 					</div>
-					<? foreach($tpl['fields'] as $field): ?>
+					<? foreach($tpl['fields'] as $name=>$field): ?>
 						<div>
 							<span style="text-align:right;">
 								<? if($comment = get($field, 'Comment')): ?>
 									<span class="info" title="<?=$comment?>">?</span>
 								<? endif; ?>
-								<? if($name = get($tpl, 'etitle', $field['Field'])): ?>
-									<?=$name?>
-								<? elseif(substr($field['Field'], -3) == "_id"): ?>
-									<?=(get($conf, 'settings', "{$arg['modpath']}_". substr($field['Field'], 0, -3)) ?: substr($field['Field'], 0, -3))?>
+								<? if($etitle = get($tpl, 'etitle', $name)): ?>
+									<?=$etitle?>
+								<? elseif(substr($name, -3) == "_id"): ?>
+									<?=(get($conf, 'settings', "{$arg['modpath']}_". substr($name, 0, -3)) ?: substr($name, 0, -3))?>
 								<? else: ?>
-									<?=htmlspecialchars($field['Field'])?>
+									<?=htmlspecialchars($name)?>
 								<? endif; ?>
 							</span>
 							<span>
-								<? if($field['Field'] == "id"): # Вертикальное отображение ?>
+								<? if($name == "id"): # Вертикальное отображение ?>
 									<?=(get($tpl, 'edit', "id") ?: "Номер записи назначаеся ситемой")?>
-								<? elseif(array_search($field['Field'], array(1=>"img", "img2", "img3"))): ?>
-									<input type="file" name="<?=$field['Field']?>[]" multiple="true">
-								<? elseif($field['Field'] == "file"): ?>
+								<? elseif(array_search($name, array(1=>"img", "img2", "img3"))): ?>
+									<input type="file" name="<?=$name?>[]" multiple="true">
+								<? elseif($name == "file"): ?>
 									<input type="file" name="file[]" multiple="true">
-								<? elseif($field['Field'] == "hide"): ?>
+								<? elseif($name == "hide"): ?>
 									<select name="hide">
 										<? foreach(get($tpl, 'spisok', 'hide') as $k=>$v): ?>
 											<option value="<?=$k?>" <?=((!get($tpl, 'edit') && (get($field, 'Default') == $k)) || ($k == get($tpl, 'edit', 'hide')) ? "selected" : "")?>><?=$v?></option>
 										<? endforeach; ?>
 									</select>
-								<? elseif($field['Field'] == "uid"): ?>
-									<select name="<?=$field['Field']?>">
+								<? elseif($name == "uid"): ?>
+									<select name="<?=$name?>">
 										<option></option>
 										<? foreach(rb("{$conf['db']['prefix']}users") as $uid): ?>
-											<option value="<?=$uid['id']?>" <?=((get($tpl, 'edit', $field['Field']) == $uid['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $uid['id'])) ? "selected" : "")?>><?=$uid['name']?></option>
+											<option value="<?=$uid['id']?>" <?=((get($tpl, 'edit', $name) == $uid['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $uid['id'])) ? "selected" : "")?>><?=$uid['name']?></option>
 										<? endforeach; ?>
 									</select>
-								<? elseif($field['Field'] == "gid"): ?>
-									<select name="<?=$field['Field']?>">
+								<? elseif($name == "gid"): ?>
+									<select name="<?=$name?>">
 										<option></option>
 										<? foreach(rb("{$conf['db']['prefix']}users_grp") as $gid): ?>
-											<option value="<?=$gid['id']?>" <?=((get($tpl, 'edit', $field['Field']) == $gid['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $uid['id'])) ? "selected" : "")?>><?=$uid['name']?></option>
+											<option value="<?=$gid['id']?>" <?=((get($tpl, 'edit', $name) == $gid['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $uid['id'])) ? "selected" : "")?>><?=$uid['name']?></option>
 										<? endforeach; ?>
 									</select>
-								<? elseif($field['Field'] == "mid"): ?>
-									<select name="<?=$field['Field']?>">
+								<? elseif($name == "mid"): ?>
+									<select name="<?=$name?>">
 										<option></option>
 										<? foreach(rb("{$conf['db']['prefix']}modules_index") as $modules): ?>
-											<option value="<?=$mid['id']?>" <?=((get($tpl, 'edit', $field['Field']) == $modules['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $modules['id'])) ? "selected" : "")?>><?=$modules['name']?></option>
+											<option value="<?=$mid['id']?>" <?=((get($tpl, 'edit', $name) == $modules['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $modules['id'])) ? "selected" : "")?>><?=$modules['name']?></option>
 										<? endforeach; ?>
 									</select>
-								<? elseif(array_search($field['Field'], array(1=>"time", "last_time", "reg_time", "up"))): # Поле времени ?>
-									<input type="text" name="<?=$field['Field']?>" value="<?=date("Y-m-d H:i:s", get($tpl, 'edit', $field['Field']) ?: time())?>" placeholder="<?=($tpl['etitle'][$field['Field']] ?: $field['Field'])?>">
-								<? elseif((substr($field['Field'], -3) == "_id") && (false === array_search(substr($field['Field'], 0, -3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
-									<select name="<?=$field['Field']?>" style="width:100%;">
-										<? if(get($tpl, 'edit', $field['Field']) && !rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($field['Field'], 0, -3), "id", $tpl['edit'][$field['Field']])): ?> 
-											<option><?=htmlspecialchars($tpl['edit'][$field['Field']])?></option>
+								<? elseif(array_search($name, array(1=>"time", "last_time", "reg_time", "up"))): # Поле времени ?>
+									<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", get($tpl, 'edit', $name) ?: time())?>" placeholder="<?=($tpl['etitle'][$name] ?: $name)?>">
+								<? elseif((substr($name, -3) == "_id") && (false === array_search(substr($name, 0, -3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
+									<select name="<?=$name?>" style="width:100%;">
+										<? if(get($tpl, 'edit', $name) && !rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($name, 0, -3), "id", $tpl['edit'][$name])): ?> 
+											<option><?=htmlspecialchars($tpl['edit'][$name])?></option>
 										<? endif; ?> 
 										<option></option>
-										<? foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($field['Field'], 0, -3)) as $ln): ?> 
-											<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $field['Field']) == $ln['id']) || (!get($tpl, 'edit') && ($ln['id'] == (get($_GET, 'where', $field['Field']) ?: $field['Default']))) ? "selected" : "")?>>
+										<? foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($name, 0, -3)) as $ln): ?> 
+											<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $name) == $ln['id']) || (!get($tpl, 'edit') && ($ln['id'] == (get($_GET, 'where', $name) ?: $field['Default']))) ? "selected" : "")?>>
 												<?=$ln['id']?>&nbsp;<?=$ln['name']?>
 											</option>
 										<? endforeach; ?> 
 									</select>
-								<? elseif($field['Field'] == "text"): ?>
-									<?=mpwysiwyg($field['Field'], get($tpl, 'edit', $field['Field']) ?: "")?>
-								<? elseif($tpl_espisok = get($tpl, 'espisok', $field['Field'])): ?>
-									<select name="<?=$field['Field']?>">
+								<? elseif($name == "text"): ?>
+									<?=mpwysiwyg($name, get($tpl, 'edit', $name) ?: "")?>
+								<? elseif($tpl_espisok = get($tpl, 'espisok', $name)): ?>
+									<select name="<?=$name?>">
 										<option></option>
 										<? foreach($tpl_espisok as $espisok): ?>
-											<option value="<?=$espisok['id']?>" <?=(((!get($tpl, 'edit') && ($field['Default'] == $espisok['id'])) || ($espisok['id'] == get($tpl, 'edit', $field['Field'])) || (array_key_exists('edit', $_GET) && (get($_GET, 'where', $field['Field']) == $espisok['id']))) ? "selected" : "")?>><?=$espisok['id']?> <?=$espisok['name']?></option>
+											<option value="<?=$espisok['id']?>" <?=(((!get($tpl, 'edit') && ($field['Default'] == $espisok['id'])) || ($espisok['id'] == get($tpl, 'edit', $name)) || (array_key_exists('edit', $_GET) && (get($_GET, 'where', $name) == $espisok['id']))) ? "selected" : "")?>><?=$espisok['id']?> <?=$espisok['name']?></option>
 										<? endforeach; ?>
 									</select>
 								<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>
-									<input type="text" name="<?=$field['Field']?>" value="<?=htmlspecialchars(get($tpl, 'edit') ? rb($_GET['r'], "id", get($_GET, 'edit'), $field['Field']) : $field['Default'])?>" placeholder="<?=(get($tpl, 'etitle', $field['Field']) ?: $field['Field'])?>">
+									<input type="text" name="<?=$name?>" value="<?=htmlspecialchars(get($tpl, 'edit') ? rb($_GET['r'], "id", get($_GET, 'edit'), $name) : $field['Default'])?>" placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
 								<? endif; ?>
 							</span>
 						</div>
@@ -302,24 +302,24 @@
 					</div>
 				<? else: # Горизонтальный вариант таблицы ?>
 					<div class="th">
-						<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($tpl['fields'], array_flip($tpl['title'])) : $tpl['fields']), (get($tpl, 'counter') ?: array()), (get($tpl, 'ecounter') ?: array())) as $fiel=>$field): ?>
+						<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($tpl['fields'], array_flip($tpl['title'])) : $tpl['fields']), (get($tpl, 'counter') ?: array()), (get($tpl, 'ecounter') ?: array())) as $name=>$field): ?>
 							<span>
 								<? if(get($field, 'Comment')): ?>
 									<span class="info" title="<?=$field['Comment']?>">?</span>
 								<? endif; ?>
-								<? if(substr($fiel, 0, 2) == "__"): ?>
-									<span title="<?=substr($fiel, 2)?>">_<?=(get($conf, 'settings', substr($fiel, 2)) ?: substr($fiel, 2))?></span>
-								<? elseif(substr($fiel, 0, 1) == "_"): ?>
-									<span title="<?=substr($fiel, 1)?>"><?=(get($conf, 'settings', "{$arg['modpath']}_". substr($fiel, 1)) ?: substr($fiel, 1))?></span>
+								<? if(substr($name, 0, 2) == "__"): ?>
+									<span title="<?=substr($name, 2)?>">_<?=(get($conf, 'settings', substr($name, 2)) ?: substr($name, 2))?></span>
+								<? elseif(substr($name, 0, 1) == "_"): ?>
+									<span title="<?=substr($name, 1)?>"><?=(get($conf, 'settings', "{$arg['modpath']}_". substr($name, 1)) ?: substr($name, 1))?></span>
 								<? elseif(get($tpl, 'etitle')): ?>
-									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>&order=<?=(get($_GET, "order") == $fiel ? "{$fiel} DESC" : $fiel )?>" title="<?=$fiel?>">
-										<?=(get($tpl, 'etitle', $fiel) ?: $fiel)?>
+									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>&order=<?=(get($_GET, "order") == $name ? "{$name} DESC" : $name )?>" title="<?=$name?>">
+										<?=(get($tpl, 'etitle', $name) ?: $name)?>
 									</a>
-								<? elseif(substr($fiel, -3) == "_id"): ?>
-									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>&order=<?=(get($_GET, "order") == $fiel ? "{$fiel} DESC" : $fiel )?>" title="<?=$fiel?>"><?=(get($conf, 'settings', "{$arg['modpath']}_". substr($fiel, 0, -3)) ?: substr($fiel, 0, -3))?></a>
+								<? elseif(substr($name, -3) == "_id"): ?>
+									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>&order=<?=(get($_GET, "order") == $name ? "{$name} DESC" : $name )?>" title="<?=$name?>"><?=(get($conf, 'settings', "{$arg['modpath']}_". substr($name, 0, -3)) ?: substr($name, 0, -3))?></a>
 								<? else: ?>
-									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>&order=<?=(get($_GET, "order") == $fiel ? "{$fiel} DESC" : $fiel )?>" title="<?=$fiel?>">
-										<?=$fiel?>
+									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>&order=<?=(get($_GET, "order") == $name ? "{$name} DESC" : $name )?>" title="<?=$name?>">
+										<?=$name?>
 									</a>
 								<? endif; ?>
 							</span>
@@ -425,83 +425,83 @@
 					<? endif; ?>
 					<? if(empty($tpl['title'])): ?>
 						<div>
-							<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($tpl['fields'], array_flip($tpl['title'])) : $tpl['fields']), (get($tpl, 'counter') ?: array()), get($tpl, 'ecounter') ?: array()) as $fiel=>$field): ?>
+							<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($tpl['fields'], array_flip($tpl['title'])) : $tpl['fields']), (get($tpl, 'counter') ?: array()), get($tpl, 'ecounter') ?: array()) as $name=>$field): ?>
 								<span>
-									<? if(substr($fiel, 0, 1) == "_"): ?>
+									<? if(substr($name, 0, 1) == "_"): ?>
 										<input type="text" disabled>
-									<? elseif($fiel == "id"): ?>
+									<? elseif($name == "id"): ?>
 										<button type="submit"><?=(get($_GET, "edit") ? "Редактировать" : "Добавить")?></button>
-									<? elseif(array_search($fiel, array(1=>"img", "img2", "img3"))): ?>
-										<input type="file" name="<?=$fiel?>[]" multiple="true">
-									<? elseif($fiel == "file"): ?>
+									<? elseif(array_search($name, array(1=>"img", "img2", "img3"))): ?>
+										<input type="file" name="<?=$name?>[]" multiple="true">
+									<? elseif($name == "file"): ?>
 										<input type="file" name="file[]" multiple="true">
-									<? elseif($fiel == "hide"): ?>
+									<? elseif($name == "hide"): ?>
 										<select name="hide">
 											<? foreach(get($tpl, 'spisok', 'hide') as $k=>$v): ?>
-												<option value="<?=$k?>" <?=((!get($tpl, 'edit') && (get($field, 'Default') == $k)) || ($k == get($tpl, 'edit', $fiel)) ? "selected" : "")?>><?=$v?></option>
+												<option value="<?=$k?>" <?=((!get($tpl, 'edit') && (get($field, 'Default') == $k)) || ($k == get($tpl, 'edit', $name)) ? "selected" : "")?>><?=$v?></option>
 											<? endforeach; ?>
 										</select>
-									<? elseif($fiel == "uid"): ?>
-										<select name="<?=$fiel?>">
-											<? if(($f = get($tpl, 'edit', $fiel)) && !rb("{$conf['db']['prefix']}users", "id", $f)): ?>
-												<option value="<?=$tpl['edit'][$fiel]?>" selected><?=$tpl['edit'][$fiel]?></option>
+									<? elseif($name == "uid"): ?>
+										<select name="<?=$name?>">
+											<? if(($f = get($tpl, 'edit', $name)) && !rb("{$conf['db']['prefix']}users", "id", $f)): ?>
+												<option value="<?=$tpl['edit'][$name]?>" selected><?=$tpl['edit'][$name]?></option>
 											<? endif; ?>
 											<option></option>
 											<? foreach(rb("{$conf['db']['prefix']}users") as $uid): ?>
-												<option value="<?=$uid['id']?>" <?=((get($tpl, 'edit', $fiel) == $uid['id']) || (!get($tpl, 'edit') && ($uid['id'] == $conf['user']['uid'])) ? "selected" : "")?>>
+												<option value="<?=$uid['id']?>" <?=((get($tpl, 'edit', $name) == $uid['id']) || (!get($tpl, 'edit') && ($uid['id'] == $conf['user']['uid'])) ? "selected" : "")?>>
 													<?=$uid['id']?> <?=$uid['name']?>
 												</option>
 											<? endforeach; ?>
 										</select>
-									<? elseif($fiel == "gid"): ?>
-										<select name="<?=$fiel?>">
-											<? if($tpl['edit'][$fiel] && !rb("{$conf['db']['prefix']}users", "id", $tpl['edit'][$fiel])): ?>
-												<option value="<?=$tpl['edit'][$fiel]?>" selected><?=$tpl['edit'][$fiel]?></option>
+									<? elseif($name == "gid"): ?>
+										<select name="<?=$name?>">
+											<? if($tpl['edit'][$name] && !rb("{$conf['db']['prefix']}users", "id", $tpl['edit'][$name])): ?>
+												<option value="<?=$tpl['edit'][$name]?>" selected><?=$tpl['edit'][$name]?></option>
 											<? endif; ?>
 											<option></option>
 											<? foreach(rb("{$conf['db']['prefix']}users_grp") as $gid): ?>
-												<option value="<?=$gid['id']?>" <?=(($tpl['edit'] && ($tpl['edit'][ $fiel ] == $gid['id'])) || (!$tpl['edit'] && ($gid['id'] == $conf['user']['uid'])) ? "selected" : "")?>>
+												<option value="<?=$gid['id']?>" <?=(($tpl['edit'] && ($tpl['edit'][ $name ] == $gid['id'])) || (!$tpl['edit'] && ($gid['id'] == $conf['user']['uid'])) ? "selected" : "")?>>
 													<?=$gid['id']?> <?=$gid['name']?>
 												</option>
 											<? endforeach; ?>
 										</select>
-									<? elseif($fiel == "mid"): ?>
-										<select name="<?=$fiel?>">
-											<? if(($f = get($tpl, 'edit', $fiel)) && !rb("{$conf['db']['prefix']}modules_index", "id", $f)): ?>
-												<option value="<?=$tpl['edit'][$fiel]?>" selected><?=$tpl['edit'][$fiel]?></option>
+									<? elseif($name == "mid"): ?>
+										<select name="<?=$name?>">
+											<? if(($f = get($tpl, 'edit', $name)) && !rb("{$conf['db']['prefix']}modules_index", "id", $f)): ?>
+												<option value="<?=$tpl['edit'][$name]?>" selected><?=$tpl['edit'][$name]?></option>
 											<? endif; ?>
 											<option></option>
 											<? foreach(rb("{$conf['db']['prefix']}modules_index") as $mid): ?>
-												<option value="<?=$mid['id']?>" <?=((!get($tpl, 'edit', 'uid') && ($mid['id'] == get($conf, 'user', 'uid'))) || ($mid['id'] == get($tpl, 'edit', $fiel)) ? "selected" : "")?>>
+												<option value="<?=$mid['id']?>" <?=((!get($tpl, 'edit', 'uid') && ($mid['id'] == get($conf, 'user', 'uid'))) || ($mid['id'] == get($tpl, 'edit', $name)) ? "selected" : "")?>>
 													<?=$mid['id']?> <?=$mid['name']?>
 												</option>
 											<? endforeach; ?>
 										</select>
-									<? elseif(array_search($field['Field'], array(1=>"time", "last_time", "reg_time", "up"))): # Поле времени ?>
-										<input type="text" name="<?=$fiel?>" value="<?=date("Y-m-d H:i:s", (get($_GET, 'edit') ? rb($_GET['r'], "id", $_GET['edit'], $fiel) : time()))?>" placeholder="<?=(get($tpl, 'etitle', $fiel) ?: $fiel)?>">
-									<? elseif((substr($fiel, -3) == "_id") && (false === array_search(substr($fiel, 0, strlen($fiel)-3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
-										<select name="<?=$fiel?>" style="width:100%;">
+									<? elseif(array_search($name, array(1=>"time", "last_time", "reg_time", "up"))): # Поле времени ?>
+										<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", (get($_GET, 'edit') ? rb($_GET['r'], "id", $_GET['edit'], $name) : time()))?>" placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
+									<? elseif((substr($name, -3) == "_id") && (false === array_search(substr($name, 0, strlen($name)-3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
+										<select name="<?=$name?>" style="width:100%;">
 											<option></option>
-											<? if(get($tpl, "edit") && !rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($fiel, 0, -3), "id", $tpl['edit'][$fiel])): ?>
-												<option selected style="color:red;"><?=htmlspecialchars($tpl['edit'][$fiel])?></option>
+											<? if(get($tpl, "edit") && !rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($name, 0, -3), "id", $tpl['edit'][$name])): ?>
+												<option selected style="color:red;"><?=htmlspecialchars($tpl['edit'][$name])?></option>
 											<? endif; ?>
-											<? foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($fiel, 0, -3)) as $ln): ?>
-												<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $fiel) == $ln['id']) || (($ln['id'] == (get($_GET, 'where', $fiel) ?: $field['Default']))) ? "selected" : "")?>>
+											<? foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($name, 0, -3)) as $ln): ?>
+												<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $name) == $ln['id']) || (($ln['id'] == (get($_GET, 'where', $name) ?: $field['Default']))) ? "selected" : "")?>>
 													<?=$ln['id']?>&nbsp;<?=htmlspecialchars(get($ln, 'name'))?>
 												</option>
 											<? endforeach; ?>
 										</select>
-									<? elseif(get($tpl, 'espisok', $fiel)): ?>
-										<select name="<?=$fiel?>">
+									<? elseif(get($tpl, 'espisok', $name)): ?>
+										<select name="<?=$name?>">
 											<option></option>
-											<? foreach($tpl['espisok'][$fiel] as $espisok): ?>
-												<option value="<?=$espisok['id']?>" <?=((!get($tpl, 'edit') && ($field['Default'] == $espisok['id'])) || (get($tpl, 'edit', $fiel) == $espisok['id']) || (get($_GET, 'where', $fiel) == $espisok['id']) ? "selected" : "")?>>
+											<? foreach($tpl['espisok'][$name] as $espisok): ?>
+												<option value="<?=$espisok['id']?>" <?=((!get($tpl, 'edit') && ($field['Default'] == $espisok['id'])) || (get($tpl, 'edit', $name) == $espisok['id']) || (get($_GET, 'where', $name) == $espisok['id']) ? "selected" : "")?>>
 													<?=$espisok['id']?> <?=$espisok['name']?>
 												</option>
 											<? endforeach; ?>
 										</select>
 									<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>
-										<input type="text" name="<?=$fiel?>" value="<?=(get($tpl, 'edit', $fiel) ?: (get($field, 'Default') ?: (get($_GET, 'where', $fiel) ?: "")))?>" placeholder="<?=(get($tpl, 'etitle', $fiel) ?: $fiel)?>">
+										<input type="text" name="<?=$name?>" value="<?=(get($tpl, 'edit', $name) ?: (get($field, 'Default') ?: (get($_GET, 'where', $name) ?: "")))?>" placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
 									<? endif; ?>
 								</span>
 							<? endforeach; ?>

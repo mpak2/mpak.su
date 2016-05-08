@@ -2,14 +2,12 @@
 
 if(mpsettings($t = "seo_cat", "Категория") && ($table = ("{$conf['db']['prefix']}{$t}"))){
 qw("CREATE TABLE `{$table}` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `alias` varchar(255) NOT NULL,
-  `href` varchar(255) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `description` text NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `alias` (`alias`)
+  `href` varchar(255) NOT NULL DEFAULT '/{name}',
+  `title` varchar(255) NOT NULL DEFAULT '{name}',
+  `description` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251");
 } if(mpsettings($t = "seo_characters", "Символы") && ($table = ("{$conf['db']['prefix']}{$t}"))){
 qw("CREATE TABLE `{$table}` (
@@ -37,6 +35,7 @@ qw("CREATE TABLE `{$table}` (
   `index_type_id` int(11) NOT NULL DEFAULT '1',
   `priority` float NOT NULL DEFAULT '0.8' COMMENT 'Приоритет ссылки в sitemap.xml',
   `name` varchar(255) NOT NULL,
+  `location_id` int(11) NOT NULL,
   `cat_id` int(11) NOT NULL,
   `title` varchar(255) NOT NULL,
   `description` varchar(255) NOT NULL,
@@ -46,6 +45,7 @@ qw("CREATE TABLE `{$table}` (
   KEY `uid` (`uid`),
   KEY `cat_id` (`cat_id`),
   KEY `name` (`name`),
+  KEY `location_id` (`location_id`),
   KEY `index_type_id` (`index_type_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251");
 } if(mpsettings($t = "seo_index_type", "Типы") && ($table = ("{$conf['db']['prefix']}{$t}"))){
@@ -62,11 +62,13 @@ qw("CREATE TABLE `{$table}` (
   `uid` int(11) NOT NULL,
   `cat_id` int(11) NOT NULL,
   `location_status_id` int(11) NOT NULL DEFAULT '301',
+  `index_id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_2` (`name`),
   KEY `name` (`name`),
   KEY `uid` (`uid`),
+  KEY `index_id` (`index_id`),
   KEY `cat_id` (`cat_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251");
 } if(mpsettings($t = "seo_location_status", "Статус") && ($table = ("{$conf['db']['prefix']}{$t}"))){

@@ -7,11 +7,8 @@
 						setTimeout(function(){
 							$(".error a.newpage").on("click", function(){
 								$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/null", {uri:"<?=$_SERVER['REQUEST_URI']?>"}, function(data){
-									if(isNaN(data)){ alert(data) }else{
-										alert("Создана новая страница на сайте");
-										document.location.reload(true);
-									}
-								})
+									document.location.reload(true);
+								}, "json").fail(function(error){ alert(error.responseText); })
 							});
 						}, 100)
 					}).trigger("init")

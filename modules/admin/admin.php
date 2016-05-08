@@ -63,7 +63,7 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 						if($post = $_POST + array($a=>$v)){
 
 
-							qw($sql = "INSERT INTO `{$_GET['r']}` (`". implode("`, `", array_keys($post)). "`) VALUE (". implode(", ", array_values($post)). ")");
+							qw($sql = "INSERT INTO `{$_GET['r']}` (`". implode("`, `", array_keys($post)). "`) VALUES (". implode(", ", array_values($post)). ")");
 							$_GET['id'] = $conf['db']['conn']->lastInsertId();
 
 
@@ -72,7 +72,7 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 				} $el = rb($_GET['r'], "id", $_GET['id']);
 			}else{
 				array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "\"". mpquot(htmlspecialchars_decode($val)). "\""; });
-				qw($sql = "INSERT INTO `{$_GET['r']}` (`". implode("`, `", array_keys($_POST)). "`) VALUE (". implode(", ", array_values($_POST)). ")");
+				qw($sql = "INSERT INTO `{$_GET['r']}` (`". implode("`, `", array_keys($_POST)). "`) VALUES (". implode(", ", array_values($_POST)). ")");
 				$_GET['id'] = $conf['db']['conn']->lastInsertId();
 				$el = rb($_GET['r'], "id", $_GET['id']);
 			}
@@ -139,11 +139,11 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 			exit(header("Location:/{$arg['modpath']}:admin/r:{$table}"));
 		}
 	}elseif(array_search($_GET['r'], $tpl['tables']) !== false){
-		if($conf['db']['type'] == "sqlite"){
+/*		if($conf['db']['type'] == "sqlite"){
 			$tpl['fields'] = qn("pragma table_info ('". $_GET['r']. "')", "name");
 		}else{
 			$tpl['fields'] = qn("SHOW FULL COLUMNS FROM {$_GET['r']}", "Field");
-		}
+		}*/ $tpl['fields'] = fields($_GET['r']);
 		if(get($_GET, 'order')){ # Установка временной сортировки
 			$conf['settings'][substr($_GET['r'], strlen($conf['db']['prefix'])). "=>order"] = $_GET['order'];
 		}
@@ -156,7 +156,8 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 			$tpl['edit'] = rb($_GET['r'], "id", $_GET['edit']);
 		}elseif($settings = get($conf, 'settings', "{$arg['modpath']}=>ecounter")){
 			foreach(explode(",", $settings) as $ecounter){
-				if($fields = qn("SHOW FULL COLUMNS FROM {$conf['db']['prefix']}{$ecounter}", "Field")){
+//				if($fields = qn("SHOW FULL COLUMNS FROM {$conf['db']['prefix']}{$ecounter}", "Field")){
+				if($fields = fields("{$conf['db']['prefix']}{$ecounter}")){
 					if(get($fields, substr($_GET['r'], strlen($conf['db']['prefix']))) || ($_GET['r'] == "{$conf['db']['prefix']}{$arg['modpath']}")){
 						if($fl = ($_GET['r'] != "{$conf['db']['prefix']}{$arg['modpath']}" ? substr($_GET['r'], strlen($conf['db']['prefix'])) : "uid")){
 							$tpl['ecounter']["__". $ecounter] = qn($sql = "SELECT `id`, `{$fl}`, COUNT(id) AS cnt FROM `{$conf['db']['prefix']}{$ecounter}` WHERE `{$fl}` IN (". in($tpl['lines']). ") GROUP BY `{$fl}`", $fl);
@@ -173,10 +174,11 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 		if($tab = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))){
 			foreach($tpl['tables'] as $tables){
 				$ft = substr($tables, strlen("{$conf['db']['prefix']}{$arg['modpath']}_"));
-				$fields = qn("SHOW FULL COLUMNS FROM {$tables}", "Field");
-				if(get($fields, ($t = "{$tab}_id"))){
-					$tpl['counter']["_{$ft}"] = array_column(ql("SELECT `{$t}`, COUNT(*) AS cnt FROM `{$conf['db']['prefix']}{$arg['modpath']}". ($ft ? "_{$ft}" : ""). "` WHERE `{$t}` IN (". in($tpl['lines']). ") GROUP BY `{$t}`"), "cnt", $t);
-				}
+				if($fields = fields($tables)){
+					if(get($fields, ($t = "{$tab}_id"))){
+						$tpl['counter']["_{$ft}"] = array_column(ql("SELECT `{$t}`, COUNT(*) AS cnt FROM `{$conf['db']['prefix']}{$arg['modpath']}". ($ft ? "_{$ft}" : ""). "` WHERE `{$t}` IN (". in($tpl['lines']). ") GROUP BY `{$t}`"), "cnt", $t);
+					}
+				}else{ mpre("Поля таблицы $tables не определены"); }
 			}
 
 			$tpl['etitle'] = array("id"=>"Номер", 'time'=>'Время', 'up'=>'Обновление', 'uid'=>'Пользователь', 'count'=>'Количество', 'level'=>'Уровень', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'img2'=>'Изображение2', 'img3'=>'Изображение3', 'file'=>'Файл', 'hide'=>'Видим', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'duration'=>'Длительность', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', "article"=>"Артикул", 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', "users_sity"=>'Город', 'log'=>'Лог', 'min'=>'Мин', 'max'=>'Макс', 'own'=>'Владелец', 'period'=>'Период', "from"=>"Откуда", "to"=>"Куда", "percentage"=>"Процент", 'description'=>'Описание', 'text'=>'Текст');
