@@ -3,19 +3,25 @@
 if($yandex = rb("yandex", "id", get($_GET, 'id'))){
 	if($yandex_token = rb("yandex_token", "id", $yandex["yandex_token_id"])){
 		if(array_key_exists("null", $_GET)){
-			if($index = rb("index", "id", $_REQUEST['index_id'])){ sleep(1); # Обновления данных
+			if($index = rb("index", "id", $_REQUEST['index_id'])){
 				if("tops" == $_REQUEST['api']){
 					if($yandex_webmaster = rb("yandex_webmaster", "index_id", $index['id'])){
 						if($tops = file_get_contents($url = 'https://webmaster.yandex.ru/api/v2/hosts/'. last(explode('/', $yandex_webmaster['href'])). '/tops/', false, stream_context_create(array('http' => array('method'  => 'GET','header'  => "Authorization: OAuth ". $yandex_token['name'],))))){
 							if($xml = json_decode(json_encode(new SimpleXMLElement($tops)), true)){
-								if($top = get($xml, 'top-queries', 'top-shows', 'top-info')){
-									foreach($top as $info){// mpre($info);
-										if($yandex_tops = fk("yandex_tops", $w = array("name"=>$info['query']), $w)){
+								if($shows = get($xml, 'top-queries', 'top-shows', 'top-info')){// mpre($shows);
+									if(get($shows, 'query') && ($info = $shows)){
+										if($yandex_tops = fk("yandex_tops", $w = array("name"=>get($info, 'query')), $w)){
 											$yandex_tops_index = fk("yandex_tops_index", $w = array("index_id"=>$index['id'], "yandex_tops_id"=>$yandex_tops['id']), $w += ($info + array('view'=>$info['count'])), $w += array('up'=>time()));
-										}
+										} $result = array($shows);
+									}else{
+										foreach($shows as $info){// mpre($info);
+											if($yandex_tops = fk("yandex_tops", $w = array("name"=>get($info, 'query')), $w)){
+												$yandex_tops_index = fk("yandex_tops_index", $w = array("index_id"=>$index['id'], "yandex_tops_id"=>$yandex_tops['id']), $w += ($info + array('view'=>$info['count'])), $w += array('up'=>time()));
+											}
+										} $result = $shows;
 									}
-								} if($top = get($xml, 'top-queries', 'top-clicks', 'top-info')){
-									foreach($top as $info){// mpre($info);
+								} if($clicks = get($xml, 'top-queries', 'top-clicks', 'top-info')){
+									foreach($clicks as $info){// mpre($info);
 										if($name = get($info, 'query')){
 											if($yandex_tops = fk("yandex_tops", $w = array("name"=>$name), $w)){
 												$yandex_tops_index = fk("yandex_tops_index", $w = array("index_id"=>$index['id'], "yandex_tops_id"=>$yandex_tops['id']), $w += ($info + array('clicks'=>$info['count'])), $w += array('up'=>time()));
@@ -25,27 +31,27 @@ if($yandex = rb("yandex", "id", get($_GET, 'id'))){
 								}
 							}
 						}else{ exit(mpre("Ошибка загрузки данных")); }
-					} exit(json_encode($index));
+					} exit(json_encode(empty($result) ? array() : $result));
 				}elseif("stats" == $_REQUEST['api']){
 					if($yandex_webmaster = rb("yandex_webmaster", "index_id", $index['id'])){
 						if($data = file_get_contents($url = 'https://webmaster.yandex.ru/api/v2/hosts/'. last(explode('/', $yandex_webmaster['href'])). '/stats/', false, stream_context_create(array('http' => array('method'  => 'GET','header'  => "Authorization: OAuth ". $yandex_token['name'],))))){
-							if($xml = json_decode(json_encode(new SimpleXMLElement($data)), true)){
+							if($xml = json_decode(json_encode(new SimpleXMLElement($data)), true)){// mpre($xml);
 								$yandex_webmaster = fk("yandex_webmaster", array("id"=>$yandex_webmaster['id']), $w = array_filter(array_intersect_key($xml, $yandex_webmaster), function($v){ return !is_array($v); }), $w += array("id"=>$xml['@attributes']['id']));
 							}
 						}
-					} exit(json_encode($index));
+					} exit(json_encode(empty($xml) ? [] : $xml));
 				}elseif("indexed" == $_REQUEST['api']){
 					if($yandex_webmaster = rb("yandex_webmaster", "index_id", $index['id'])){
 						if($data = file_get_contents($url = 'https://webmaster.yandex.ru/api/v2/hosts/'. last(explode('/', $yandex_webmaster['href'])). '/indexed/', false, stream_context_create(array('http' => array('method'  => 'GET','header'  => "Authorization: OAuth ". $yandex_token['name'],))))){
 							if($xml = json_decode(json_encode(new SimpleXMLElement($data)), true)){
-								foreach((array)get($xml, 'last-week-index-urls', 'url') as $url){
-									if($url){
+								if($indexed = get($xml, 'last-week-index-urls', 'url')){
+									foreach($indexed as $url){
 										$yandex_indexed = fk("yandex_indexed", $w = array("name"=>$url, "index_id"=>$index['id']), $w+=array("up"=>time()), $w);
-									}else{ /*mpre($url);*/ }
+									}
 								}
 							}
 						}
-					} exit(json_encode($index));
+					} exit(json_encode(empty($indexed) ? [] : $indexed));
 				}elseif("texts" == $_REQUEST['api']){
 					if($yandex_webmaster = rb("yandex_webmaster", "index_id", $index['id'])){
 						if($data = file_get_contents($url = 'https://webmaster.yandex.ru/api/v2/hosts/'. $yandex_webmaster['id']. '/original-texts/', false, stream_context_create(array('http' => array('method'  => 'GET','header'  => "Authorization: OAuth ". $yandex_token['name'],))))){

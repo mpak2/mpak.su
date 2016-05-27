@@ -3,6 +3,8 @@
 		<style>
 			.themes.yandex .active {background-color:#ddd;}
 			.table > div:hover {background-color:#ddd;}
+			.themes.yandex span.inc {color:green; font-weight:bold; display:none; }
+			.themes.yandex span.inc:before { content:"+";  }
 		</style>
 		<script sync>
 			(function($, script){
@@ -20,28 +22,69 @@
 					$.ajax({
 						type: "POST",
 						url: "/<?=$arg['modpath']?>:<?=$arg['fn']?>/<?=$yandex['id']?>/null",
-						data:data,
-						async: false,
+						data:data,// async: false,
 						dataType: 'json',
 						success : function(response){
-							console.log("json:", data);
+							if((data.api == "tops") && (length = response.length)){
+								console.log("tops:", length);
+								$(e.delegateTarget).find("[index_id="+data.index_id+"] .tops span.inc").text(length).show();
+							}else if(data.api == "stats"){
+								if(count = response['index-count']){
+									var b = $(e.delegateTarget).find(xpath = "[index_id="+data.index_id+"] .index-count b").text()|0;
+									if((cnt = count - b) != 0){
+										$(e.delegateTarget).find("[index_id="+data.index_id+"] .index-count span.inc").text(cnt).show();
+									}else{ console.log("b:", b, "index_count:", count); }
+								}else{ console.error("stats", response); }
+
+								if(count = response['internal-links-count']){
+									var b = $(e.delegateTarget).find(xpath = "[index_id="+data.index_id+"] .internal-links-count b").text()|0;
+									if((cnt = count - b) != 0){
+										$(e.delegateTarget).find("[index_id="+data.index_id+"] .internal-links-count span.inc").text(cnt).show();
+									}else{ console.log("b:", b, "internal-links-count:", count); }
+								}else{ console.error("stats", response); }
+
+								if(count = response['url-errors']){
+									var b = $(e.delegateTarget).find(xpath = "[index_id="+data.index_id+"] .url-errors b").text()|0;
+									if((cnt = count - b) != 0){
+										$(e.delegateTarget).find("[index_id="+data.index_id+"] .url-errors span.inc").text(cnt).show();
+									}else{ console.log("b:", b, "url-errors:", count); }
+								}else{ console.error("stats", response); }
+							} console.log(data, response);
 						},
 						error:function(response){
-							console.log("error:", response.responseText);
+//							alert(response.responseText);
+							console.error("error:", response.responseText);
 						}
 					});
 				}).on("click", "a.upgrade", function(e){
-					$(e.delegateTarget).find("[index_id]")/*.slice(0, 10)*/.each(function(index, div){
-						var index_id = $(div).attr("index_id");
-//						console.log("active:", index_id);
-						$(div).addClass("active");
-						$.each({tops:"Запросы", stats:"Статистика", indexed:"Индекс", texts:"Тексты"/*, error:'Ошибки', index:'Индекс'*/}, function(api, name){
-							$(div).find(".name .status").text(name);
-							$(e.delegateTarget).trigger("upgrade", {index_id:index_id, api:api});
-						})
-						$(div).removeClass("active").find(".name .status").text("");
-//						console.log("remove:", index_id);
-					})
+					(function(div){
+						var nn = 0;
+						var func = arguments;// console.log("div:", div, "finc:", func);
+
+						if((next = $(div).next()).length){
+							setTimeout(function(){
+								func.callee(next);
+							}, 4000)
+						} var index_id = $(div).addClass("active").attr("index_id");
+						$.each({tops:"Запросы", stats:"Статистика", indexed:"Индекс", texts:"Тексты"}, function(api, name){// , error:'Ошибки', index:'Индекс'
+							setTimeout(function(){// console.log(api, name);
+								$(e.delegateTarget).trigger("upgrade", {index_id:index_id, api:api});
+								$(div).find(".name .status").text(name);
+							}, nn++*1000)
+						}); setTimeout(function(){
+							$(div).removeClass("active").find(".name .status").text("");
+
+							var top = $(div).offset().top;
+							var scroll = $(document).scrollTop();
+							var height = $(window).height();
+
+							if((res = Math.abs(top-scroll-height/2)) < 100){
+								$(document).scrollTop(top-height/2);
+							}else{
+//								console.log("res:", res, "top:", top, "scroll:", scroll, "height:", height);
+							}
+						}, nn*1000)
+					})($(e.delegateTarget).find("[index_id]:first"));
 				})
 			})(jQuery, document.scripts[document.scripts.length-1])
 		</script>
@@ -59,6 +102,7 @@
 					<span>Метрика</span>
 					<span>Загружено</span>
 					<span>Поиск</span>
+					<span>Индекс</span>
 					<span>Запр.</span>
 					<span>Текст</span>
 					<span>Ошиб.</span>
@@ -96,24 +140,33 @@
 							<? endif; ?>
 						</span>
 						<span><?=get($yandex_webmaster, 'url-count')?></span>
+						<span class="index-count">
+							<b><?=get($yandex_webmaster, 'index-count')?></b>
+							<span class="inc">0</span>
+						</span>
 						<span>
-							<?=get($yandex_webmaster, 'index-count')?>
 							<? if($tpl['yandex_indexed'] = rb("yandex_indexed", "index_id", "id", $index['id'])): ?>
 								<a href="/themes:admin/r:<?=$conf['db']['prefix']?>themes_yandex_indexed?&where[index_id]=<?=$index['id']?>"><?=count($tpl['yandex_indexed'])?></a>
 							<? endif; ?>
 						</span>
-						<span>
+						<span class="tops">
 							<a href="/themes:admin/r:<?=$conf['db']['prefix']?>themes_yandex_tops_index?&where[index_id]=<?=$index['id']?>">
 								<?=(count(rb("yandex_tops_index", "index_id", "id", $index['id'])) ?: "")?>
-							</a>
+							</a> <span class="inc">0</span>
 						</span>
 						<span>
 							<? if($tpl['yandex_texts'] = rb("yandex_texts", "index_id", "id", $index['id'])): ?>
 								<a href="/themes:admin/r:<?=$conf['db']['prefix']?>themes_yandex_texts?&where[index_id]=<?=$index['id']?>"><?=count($tpl['yandex_texts'])?></a>
 							<? endif; ?>
 						</span>
-						<span><?=get($yandex_webmaster, 'url-errors')?></span>
-						<span><?=get($yandex_webmaster, 'internal-links-count')?></span>
+						<span class="url-errors">
+							<b><?=get($yandex_webmaster, 'url-errors')?></b>
+							<span class="inc">0</span>
+						</span>
+						<span class="internal-links-count">
+							<b><?=get($yandex_webmaster, 'internal-links-count')?></b>
+							<span class="inc">0</span>
+						</span>
 						<span>
 							<? if(empty($yandex_webmaster) && !get($index, 'index_id')): ?>
 								<a href="javascript:void(0)" class="reg" api="webmaster" href=""><strong>рег.</strong></a>

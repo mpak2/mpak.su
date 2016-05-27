@@ -10,7 +10,7 @@
 		.<?=$arg['modpath']?>.<?=$arg['fn']?> .table > div.active {background-color:#aaa;}
 		.<?=$arg['modpath']?>.<?=$arg['fn']?> .table > div.active > span.active {background-color:#888;}
 	</style>
-	<? if($tpl['yandex_metrika_period'] = rb("yandex_metrika_period")): ?>
+	<? if($tpl['yandex_metrika_period'] = rb("yandex_metrika_period", 7)): ?>
 		<div class="table">
 			<div class="th">
 				<span>пп</span>
@@ -34,14 +34,17 @@
 							<span>
 								<span title="Визиты"><?=($host[$yandex_metrika['id']]["visits"][] = $week[$yandex_metrika_period['id']]["visits"][] = $visits = get($yandex_metrika_metrics, "visits"))?></span>
 								<span title="Просмотры"><?=($host[$yandex_metrika['id']]["pageviews"][] = $week[$yandex_metrika_period['id']]["pageviews"][] = $pageviews = get($yandex_metrika_metrics, "pageviews"))?></span>
-								<b title="Конверсия"><?=($week[$yandex_metrika['id']]["conversion"][] = ($pageviews ? number_format($pageviews / $visits, 2) : 0))?></b>
+								<b title="Конверсия">
+									<? $host[$yandex_metrika['id']]["users"][] = $visits = get($yandex_metrika_metrics, "users") ?>
+									<?=($week[$yandex_metrika['id']]["conversion"][] = ($pageviews ? number_format($pageviews / $visits, 2) : 0))?>
+								</b>
 							</span>
 						<? endforeach; ?>
 						<span class="itogo">
 							<span title="Визиты"><?=($visits = array_sum($host[$yandex_metrika['id']]["visits"]))?></span>
 							<span title="Просмотры"><?=($pageviews = array_sum($host[$yandex_metrika['id']]["pageviews"]))?></span>
 							<b title="Конверсия">
-								<?=($conversion = ($pageviews ? number_format($pageviews / $visits, 2) : 0))?>
+								<?=($conversion = ($pageviews ? number_format(($pageviews / $visits) * min(array_sum($host[$yandex_metrika['id']]["users"]) / 1000, 1), 3) : 0))?>
 								<? if($conversion != $yandex_metrika['conversion']): ?>
 									<? $yandex_metrika = fk("yandex_metrika", array("id"=>$yandex_metrika['id']), null, array('conversion'=>$conversion));# mpre("Сохраняем результат конверсии", $yandex_metrika); ?>
 								<? endif; ?>

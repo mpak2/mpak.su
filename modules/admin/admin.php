@@ -18,12 +18,12 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 		if($dec = ql($sql = "SELECT * FROM {$_GET['r']} WHERE sort<". (int)$inc['sort']. " AND ". (mpdbf($_GET['r'], get($_GET, 'where'), true) ?: 1). " ORDER BY ". (get($_GET, 'order') ?: "sort"). " DESC LIMIT 1", 0)){
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
-		} exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
+		}else{ mpre($sql); }/* mpre($_inc, $_dec);*/ exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
 	}elseif(get($_POST, "dec") && ($dec = rb($_GET['r'], "id", $_POST['dec']))){ # Правка записи и добавление новой
-		if($inc = ql("SELECT * FROM {$_GET['r']} WHERE sort>". (int)$dec['sort']. " AND ". (($where = get($_GET, 'where')) ? mpdbf($_GET['r'], $where, true) : 1). " ORDER BY ". (get($_GET, 'order') ?: "sort"). " LIMIT 1", 0)){
+		if($inc = ql($sql = "SELECT * FROM {$_GET['r']} WHERE `sort`>". (int)$dec['sort']. " AND ". (($where = get($_GET, 'where')) ? mpdbf($_GET['r'], $where, true) : 1). " ORDER BY ". (get($_GET, 'order') ?: "sort"). " LIMIT 1", 0)){
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
-		} exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
+		}else{ mpre($sql); } exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
 	}else{ # Правка записи и добавление новой
 		foreach($_POST as $field=>$post){
 			if(array_search($field, array(1=>"time", "last_time", "reg_time", "up"))){

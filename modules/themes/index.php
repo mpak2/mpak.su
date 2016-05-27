@@ -7,7 +7,7 @@ if(isset($_GET['q'])){
 	$tn = "themes/".basename($_GET['theme'] ? $_GET['theme'] : $conf['settings']['theme']);
 	$res_name = $tn ."/".strtr($_GET['q'], array('..'=>''));
 	if(!($res = mpopendir($res_name))){
-		if($conf['settings']['themes_file_not_exists_event']){
+		if(get($conf, 'settings', 'themes_file_not_exists_event')){
 			if($themes_resources = $conf['settings']['themes_resources']){
 				if(file_exists($dir = mpopendir($tn). "/". dirname($_GET['q'])) || mkdir($dir, 0777, true)){
 					if(copy(($dst = "{$themes_resources}/{$_GET['q']}"), $fl = $tn. "/". $_GET['q'])){
@@ -19,9 +19,13 @@ if(isset($_GET['q'])){
 					}
 				}else{ mpre("Ошибка создания директории {$dir} в теме {$_GET['theme']}"); }
 			}
-		}
-		exit(header("HTTP/1.0 404 Not Found"));
-		mpevent("Файл темы не найден ошибка 404", $res_name);
+		} if($error = mpevent("Ресурс в теме не найден", preg_replace("#\/(стр|p)\:[0-9]+#", "", first(explode("?", urldecode($_SERVER['REQUEST_URI'])))))){
+/*			if(get($_SERVER, 'HTTP_REFERER') && array_key_exists("event_logs_id", $referer = mpevent("Источник ошибки", $_SERVER['HTTP_REFERER']))){
+				if($referer = fk("{$conf['db']['prefix']}users_event_logs", array("id"=>$referer['id']), null, array("event_logs_id"=>$error['id']))){
+					$error = fk("{$conf['db']['prefix']}users_event_logs", array("id"=>$error['id']), null, array("event_logs_id"=>$referer['id']));
+				}
+			}*/
+		} exit(header("HTTP/1.0 404 Not Found"));
 	}else if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= ($filectime = filectime($res)))){
 		header('HTTP/1.0 304 Not Modified');
 	}else if($filectime = filectime($res)){
@@ -38,6 +42,6 @@ if(isset($_GET['q'])){
 					echo fread($f, 256);
 				}
 			}
-		}
+		} exit();
 	}
 }

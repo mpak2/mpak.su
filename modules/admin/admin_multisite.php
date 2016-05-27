@@ -3,21 +3,32 @@
 if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), function($v){ return (strpos($v, "admin") === 0); })){ # Имя файла начинается на admin
 	$conf['settings']['theme'] = "zhiraf";
 }else{ global $conf; # Пользовательская страница
-	$http_host = idn_to_utf8($host = strpos($_SERVER['HTTP_HOST'], "www.") === 0 ? substr($_SERVER['HTTP_HOST'], 4) : $_SERVER['HTTP_HOST']);
-	$http_host = strpos($http_host, ":") ? array_shift(explode(":", $http_host)) : $http_host;
+	$http_host = first(explode(":", idn_to_utf8(($host = strpos($http_host = mb_strtolower($_SERVER['HTTP_HOST'], 'UTF-8'), "www.")) === 0 ? substr($http_host, 4) : $http_host)));
 	if(!($themes_index = rb("{$conf['db']['prefix']}themes_index", "name", "[$http_host]"))){
 		if(get($conf, "settings", "admin_multisite_ignore") && ($themes_index_ignore = rb("themes-index_ignore", "name", "[{$http_host}]"))){
 			if(array_key_exists("count", $themes_index_ignore)){
 				$themes_index_ignore = fk("{$conf['db']['prefix']}themes_index_ignore", array("id"=>$themes_index_ignore['id']), null, array("count"=>$themes_index_ignore['count']+1));
 			} exit("Сайт {$http_host} в списке игнорированных");
-		}else if(gethostbyname($host) == $_SERVER['SERVER_ADDR']){
-			$themes_index = fk("{$conf['db']['prefix']}themes_index", $w = array("name"=>$http_host), $w/*, $w*/);
-			if(array_key_exists("sort", $themes_index) && !$themes_index['sort']){
-				$themes_index = fk("{$conf['db']['prefix']}themes_index", array("id"=>$themes_index['id']), null, array("sort"=>$themes_index['id']));
+		}else if((gethostbyname($http_host) == $_SERVER['SERVER_ADDR']) || (get($conf, "settings", 'admin_gethostbyname') == gethostbyname($http_host))){ # Хост настроен на сервер или совпадает с указанным в админке ip
+			if($themes_index = fk("{$conf['db']['prefix']}themes_index", $w = array("name"=>$http_host), $w, $w)){
+				if(get($conf, "settings", "themes_index_tags")){ # Добавляем теги к сайту
+					if($tpl["themes-index_tags"] = rb("themes-index_tags", "name", "id", array_flip(explode(".", $http_host)))){
+						foreach($tpl["themes-index_tags"] as $themes_index_tags){
+							$themes_index_tags_index = fk("{$conf['db']['prefix']}themes_index_tags_index", $w = array("index_tags_id"=>$themes_index_tags['id'], "index_id"=>$themes_index['id']), $w, $w);
+						} if(count($tpl["themes_index_cat"] = rb("themes-index_cat", "id", "id", rb($tpl["themes-index_tags"], "index_cat_id"))) == 1){
+							if($themes_index_cat = first($tpl["themes_index_cat"])){
+								$themes_index = fk("{$conf['db']['prefix']}themes_index", array("id"=>$themes_index['id']), null, array("index_cat_id"=>$themes_index_cat['id']));
+							}else{ pre("Ошибка определения категории хоста"); }
+						}else{ pre("С тегами связано более одной категории", $tpl["themes_index_cat"]); }
+					}else{ pre("Теги хоста не найдены"); }
+				} if(array_key_exists("sort", $themes_index) && !$themes_index['sort']){
+					$themes_index = fk("{$conf['db']['prefix']}themes_index", array("id"=>$themes_index['id']), null, array("sort"=>$themes_index['id']));
+				}
 			}
-		}else{ $http_host = $_SERVER['SERVER_ADDR']; }
-	} if($themes_index){
-
+		}else{ // pre($http_host, gethostbyname($http_host), get($conf, "settings", 'admin_gethostbyname'));
+			$http_host = $_SERVER['SERVER_ADDR'];
+		}
+	} if($conf['user']['sess']['themes_index'] = $conf['themes']['index'] = $themes_index){
 		if(get($themes_index, 'index_id') && ($_SERVER['REQUEST_URI'] != "/robots.txt")){
 			$themes_index = rb("{$conf['db']['prefix']}themes_index", "id", $themes_index['index_id']);
 		}
@@ -41,7 +52,6 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 			 if($log = true){ mpre("Перенаправление" , $_SERVER['REQUEST_URI']); }
 			header("HTTP/1.0 404 Not Found");
 			$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = array("id"=>0, "name"=>"/themes:404"), 'name'), $_GET);
-//			exit(header("Refresh:0; url=/themes:404{$_SERVER['REQUEST_URI']}", true, 404));
 		}else if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && !array_search("Зарегистрированные", $conf['user']['gid'])){
 			exit(header('HTTP/1.0 304 Not Modified'));
 		}else if(($seo_location = rb("{$conf['db']['prefix']}seo_location", "name", "[{$url}]")) && ($seo_location_themes = rb("{$conf['db']['prefix']}seo_location_themes", "location_id", "themes_index", $seo_location['id'], $themes_index['id']))){// exit(mpre($url, $seo_location, $seo_location_themes));
@@ -51,6 +61,7 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 				if($tpl['seo_index_themes'] = rb("seo-index_themes", "index_id", "themes_index", "id", $seo_index['id'], $themes_index['id'])){// mpre($seo_index_themes);
 					if($seo_location = rb("seo-location", "id", rb($tpl['seo_index_themes'], "location_id"))){
 						if($seo_location_status = rb("{$conf['db']['prefix']}seo_location_status", "id", $seo_location['location_status_id'])){
+							mpevent("301 Перенарпавление", $url);
 							header("HTTP/1.1 {$seo_location_status['id']} {$seo_location_status['name']}");
 						} exit(header("Location: {$seo_index['name']}"));
 					}else{ mpre("Не найдена внутренняя страница на переходной ссылке"); }
@@ -70,7 +81,7 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 					header("HTTP/1.1 301 Moved Permanently");
 				} exit(header("Location: {$seo_location['name']}"));
 			}else{
-				$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = $seo_location, 'name'), $_GET);
+				$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = $seo_location += (array_key_exists('up', $seo_index_themes) ? array("up"=>get($seo_index_themes, 'up')) : []), 'name'), $_GET);
 				$conf['settings']['modpath'] = $conf['modules'][ first(array_keys($_GET['m'])) ]['folder'];
 				$conf['settings']['fn'] = first(array_values($_GET['m'])) ?: "index";
 
@@ -80,24 +91,28 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 			}
 		}else if(($keys = array_keys($ar = array_keys($_GET['m']))) && !rb($conf['modules'], "modname", "[". $ar[max($keys)]. "]") && !get($conf, 'modules', $ar[max($keys)])){
 			if($log){
-				pre("Ошибочная страница", "/themes:404");
+				pre("Ошибочная страница", $url);
+			} mpevent("Страница не найдена 404", $url);
+
+			if(("/robots.txt" == $url) && ($meta = meta(array("/seo:robots/null", $url)))){
+				exit(header("Location: {$meta[1]}"));
+			} if(("/sitemap.xml" == $url) && ($meta = meta(array("/seo:sitemap/null", $url)))){
+				exit(header("Location: {$meta[1]}"));
 			} header("HTTP/1.0 404 Not Found");
+
 			$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = array("id"=>0, "name"=>"/themes:404"), 'name'), $_GET);
-//			exit(header("Refresh:0; url=/themes:404{$_SERVER['REQUEST_URI']}", true, 404));
 		}elseif(($_SERVER['REQUEST_URI'] == "/") && get($themes_index, 'index_cat_id') && ($themes_index_cat = rb("themes-index_cat", "id", $themes_index['index_cat_id'])) && ($href = get($themes_index_cat, 'href'))){
 			if($log){
 				pre("Адрес страницы из настроек категории хоста", $themes_index_cat);
 			}  $_REQUEST += $_GET = mpgt($conf['settings']['canonical'] = $href, $_GET);
-		}else{ /*mpre($themes_index);*/ }
+		}else{ mpevent("Внутренний адрес", $url); }
 
 		if(get($_GET, "theme")){ # Шаблон задан в адресной строке
 			$conf['settings']['theme'] = $_GET['theme'];
-		} if($log){
-			mpre($_GET);
-		}
+		} if($log){ mpre($_GET); }
 
 		if(get($themes_index, 'index_cat_id')){
 			$conf['themes']['index_cat'] = rb("{$conf['db']['prefix']}themes_index_cat", "id", $themes_index['index_cat_id']);
-		} $conf['user']['sess']['themes_index'] = $conf['themes']['index'] = $themes_index;
+		}
 	}else{ $conf['settings']['theme'] = "bootstrap3"; }
 } $conf['db']['open_basedir'] = first(explode(":", $conf['db']['open_basedir'])). "/themes/{$conf['settings']['theme']}:{$conf['db']['open_basedir']}";

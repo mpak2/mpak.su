@@ -1,5 +1,5 @@
 <!-- [settings:foto_lightbox] -->
-<? if($index = $tpl['index'][ $_GET['id'] ]): ?>
+<? if($index = rb("index", "id", get($_GET, 'id'))): ?>
 		<div>
 			<div class="news_name" style="margin-top: 20px; padding: 5px;">
 				<?=aedit("/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_index&where[id]={$index['id']}")?>
@@ -17,7 +17,7 @@
 			<? endif; ?>
 			<div><?=$index['text']?></div>
 			<div style="padding: 5px;">
-				<span style="float:right;"><a href="/news<?=($_GET['p'] ? "/p:{$_GET['p']}" : '')?>" class="new_smore">К списку новостей</a></span>
+				<span style="float:right;"><a href="/news<?=(get($_GET, 'p') ? "/p:{$_GET['p']}" : '')?>" class="new_smore">К списку новостей</a></span>
 				<? if($cat = $tpl['cat'][ $index['cat_id'] ]): ?>
 					Категория: <a href="/<?=$arg['modname']?>/cat_id:<?=$cat['id']?>"><?=$cat['name']?></a>
 				<? endif; ?>
@@ -28,7 +28,7 @@
 		</div>
 		<div><!-- [settings:comments] --></div>
 <? else: ?>
-	<? foreach($tpl['index'] as $index): ?>
+	<? foreach(rb("index", 10) as $index): ?>
 		<div style="overflow:hidden;">
 			<div class="news_name" style="margin-top: 20px; padding: 5px;">
 				<?=date('d.m.Y H:i', $index['time'])?>
@@ -44,9 +44,9 @@
 				</div>
 			<? endif; ?>
 					<?=mb_substr(strip_tags($index['text']), 0, 500)?>
-					<div><a href="/news/<?=$index['id']?><?=($_GET['p'] ? "/p:{$_GET['p']}" : '')?>" class="news_more">Подробнее</a></div>
+					<div><a href="/news/<?=$index['id']?><?=(get($_GET, 'p') ? "/p:{$_GET['p']}" : '')?>" class="news_more">Подробнее</a></div>
 			<div style="padding: 5px;">
-				<? if($cat = $tpl['cat'][ $index['cat_id'] ]): ?>
+				<? if($cat = rb('cat', "id", $index['cat_id'])): ?>
 					Категория: <a href="/<?=$arg['modname']?>/cat_id:<?=$cat['id']?>"><?=$cat['name']?></a>
 				<? endif; ?>
 				<? if($index['count']): ?>

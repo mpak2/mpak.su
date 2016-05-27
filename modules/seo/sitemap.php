@@ -12,13 +12,15 @@ if(array_key_exists("null", $_GET)){
 					http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 	<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
 	<? if($themes_index = get($conf, 'user', 'sess', 'themes_index')): ?> 
-		<? foreach(rb("{$conf['db']['prefix']}seo_index_themes", "themes_index", "id", $themes_index['id']) as $seo_index_themes): ?>
+		<? foreach(rb("{$conf['db']['prefix']}seo_index_themes", 1000, "themes_index", "id", $themes_index['id']) as $seo_index_themes): ?>
 			<? if($seo_index = rb("{$conf['db']['prefix']}seo_index", "id", $seo_index_themes['index_id'])): ?> 
-				<url>
-					<loc>http://<?=$themes_index['name']?><?=$seo_index['name']?></loc>
-					<priority><?=$seo_index['priority']?></priority>
-				</url>
-			<? endif; ?>
+				<? if(!array_key_exists("hide", $seo_index) || !get($seo_index, 'hide')): ?> 
+					<url>
+						<loc>http://<?=$themes_index['name']?><?=$seo_index['name']?></loc>
+						<priority><?=$seo_index['priority']?></priority>
+					</url>
+				<? endif; ?> 
+			<? endif; ?> 
 		<? endforeach; ?> 
 	<? else: ?>
 		<? foreach(rb("{$conf['db']['prefix']}seo_index") as $seo_index): ?>

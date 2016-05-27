@@ -14,7 +14,7 @@ if(!function_exists('__autoload')){ # автозагрузка классов и
 //		exit(header("Location: {$meta[0]}")); # Пересылаем на вновь установленный адрес страницы
 //	}else{ /*mpre("Мета уже создано");*/ }
 //}else{ /*mpre(get($conf, "settings", "canonical"));*/ }
-function meta($where, $insert = null){
+function meta($where, $meta = null){
 	global $conf;
 	if(is_string($where)){ $where = array($where); };
 	if("/" != substr($location = get($where, 0), 0, 1)){
@@ -23,31 +23,31 @@ function meta($where, $insert = null){
 		mpre("Ошибочный формат внешнего адреса index &laquo;". get($where, 'location'). "&raquo;");
 	}else{// mpre($index, $location);
 		if("/" == substr($index = get($where, 1), 0, 1)){
-			$seo_index = fk("{$conf['db']['prefix']}seo_index", $w = array("name"=>$index), $w += array("index_type_id"=>(get($insert, 'index_type_id') ?: 1), "cat_id"=>get($insert, 'cat_id')));
+			$seo_index = fk("{$conf['db']['prefix']}seo_index", $w = array("name"=>$index), $w += array("index_type_id"=>(get($meta, 'index_type_id') ?: 1), "cat_id"=>get($meta, 'cat_id')));
 		}else{ $seo_index = array('id'=>0); }
-
-		if($seo_location = fk("{$conf['db']['prefix']}seo_location", $w = array("name"=>$location), $w += array("location_status_id"=>(get($insert, "location_status_id") ?: 301), "index_id"=>$seo_index['id'], "cat_id"=>get($insert, 'cat_id')), $w)){
+		if($seo_location = fk("{$conf['db']['prefix']}seo_location", $w = array("name"=>$location), $w += array("location_status_id"=>(get($meta, "location_status_id") ?: 301), "index_id"=>$seo_index['id'], "cat_id"=>get($meta, 'cat_id')), $w)){
 //			exit(mpre($seo_index, $seo_location));
 			if(empty($seo_index)){
 				return $where + $seo_location;
 			}else if(array_key_exists('location_id', $seo_index)){ # Односайтовый режим работы
-				if($seo_index = fk("{$conf['db']['prefix']}seo_index", array("id"=>$seo_index['id']), null, array("location_id"=>$seo_location['id'], "cat_id"=>get($insert, 'cat_id'))+array_diff_key($insert, array_flip(["id"])))){
+				if($seo_index = fk("{$conf['db']['prefix']}seo_index", array("id"=>$seo_index['id']), null, array("location_id"=>$seo_location['id'], "cat_id"=>get($meta, 'cat_id'))+array_diff_key($meta, array_flip(["id"])))){
 					return $where + $seo_index;
 				}else{ mpre("Ошибка установки внешнего адреса односайтового режима"); }
 			}else if($themes_index = get($conf, 'user', 'sess', 'themes_index')){ # Многосайтовый режим
 				if($tpl['seo_index_themes'] = rb("seo-index_themes", "index_id", "location_id", "themes_index", "id", $seo_index['id'], $seo_location['id'], $themes_index['id'])){
 					if((1 == count($tpl['seo_index_themes'])) && ($seo_index_themes = array_pop($tpl['seo_index_themes']))){
-						//mpre("Данный адрес уже прописан для сайта", $themes_index, $seo_index_themes); return ($insert !== null ? $seo_index_themes : $insert);
+						mpevent("Обновление мета информации", $seo_index['name']);
+						$seo_index_themes = fk("{$conf['db']['prefix']}seo_index_themes", array("id"=>$seo_index_themes['id']), null, $meta += array("up"=>time()));
 					}else{ mpre("Ошибка структуры метаинформации (множественная информация для одного адреса)", $w); }
-				}elseif($seo_index_themes = fk("{$conf['db']['prefix']}seo_index_themes", $w = array("index_id"=>$seo_index['id'], "location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id']), $w + (array)$insert)){
+				}elseif($seo_index_themes = fk("{$conf['db']['prefix']}seo_index_themes", $w = array("index_id"=>$seo_index['id'], "location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id']), $w + (array)$meta)){
 					if(get($seo_index, "id")){
 						if($seo_location_themes = fk("{$conf['db']['prefix']}seo_location_themes", $w = array("location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id'], "index_id"=>$seo_index['id']), $w)){
 							return $where + $seo_index_themes;
 						}else{ mpre("Ошибка добавления перенаправления", $w); }
-					}else{ return ($insert !== null ? $seo_index_themes : false); }
+					}else{ return ($meta !== null ? $seo_index_themes : false); }
 				}else{ mpre("Ошибка добавления внутреннего адреса"); }
 			}else{ return null; }
-		}else{ mpre("Ошибка добавления метаинвормауции", $w + $insert + $update); }
+		}else{ mpre("Ошибка добавления метаинвормауции", $w + $meta + $update); }
 	}
 }
 
@@ -197,7 +197,7 @@ function seo($href, $return = true){
 			if($tpl['seo_index_themes'] = rb("{$conf['db']['prefix']}seo_index_themes", "location_id", "themes_index", "id", $seo_location['id'], $themes_index['id'])){
 				if($tpl['index'] = rb("{$conf['db']['prefix']}seo_index", "id", "id", rb($tpl['seo_index_themes'], "index_id"))){
 					if(count($tpl['index']) != 1){
-						mpre("Внешний адрес <a href='/seo:admin/r:mp_seo_index_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>не найден</a>");
+						mpre("Внешний адрес <a href='/seo:admin/r:mp_seo_index_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>не найден</a>", $tpl['seo_index_themes']);
 					}else{ return get(first($tpl['index']), 'name'); }
 				}else{ return $href; }
 			}else{ return $href; }
@@ -237,8 +237,12 @@ if (!function_exists('mcont')){
 								inc("modules/admin/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')));
 							}
 						}else{
-							if(get($conf, 'settings', 'seo_meta') && !get($conf, "settings", "canonical")){ # Обработчик у каждой страницы всего сайта
-								inc("modules/seo/admin_meta.php", array('arg'=>$arg));
+							if(get($conf, 'settings', 'seo_meta')){ # Обработчик у каждой страницы всего сайта
+								if((($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? $canonical['name'] : $_SERVER['REQUEST_URI'])) && ($get = mpgt($uri))){
+									if(!array_key_exists("null", $get) && !array_key_exists("p", $get) && ($conf['settings']['theme/*:admin'] != $conf['settings']['theme']) && !array_search($arg['fn'], ['', 'ajax', 'json', '404', 'img'])){ # Нет перезагрузки страницы адреса
+										inc("modules/seo/admin_meta.php", array('arg'=>$arg, "uri"=>$uri, "get"=>$get, "canonical"=>$canonical));
+									}
+								}
 							} if(!inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg))){ # Если не создано скриптов и шаблона для страницы запускаетм общую
 								inc("modules/{$mod['link']}/default.tpl", array('arg'=>$arg));
 							}
@@ -506,6 +510,7 @@ function mb_ord($char){
 function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $headers = array(), $proxy = null){
 	$ch = curl_init();
 	if($proxy){
+		curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
 		curl_setopt($ch, CURLOPT_PROXY, $proxy); //если нужен прокси
 	}
 	curl_setopt ($ch , CURLOPT_FOLLOWLOCATION , 1);
@@ -546,10 +551,10 @@ function mc($key, $function, $force = false){
 function mp_is_html($string){
   return preg_match("/<[^<]+>/",$string,$m) != 0;
 }
-function mpsmtp($to, $obj, $text, $from = null, $files = array(), $login = null){ # Отправка письмо по SMTP протоколу
+function mpsmtp($to, $subj, $text, $from = null, $files = array(), $login = null){ # Отправка письмо по SMTP протоколу
 	global $conf;
-	ini_set("include_path", ini_get("include_path"). ":". "./include/mail/");
-	require_once 'PHPMailerAutoload.php';
+//	ini_set("include_path", ini_get("include_path"). ":". "./include/mail/");
+	require_once mpopendir('include/mail/PHPMailerAutoload.php');
 	$mail = new PHPMailer;
 	$Providers = array(
 		'smtp.mail.ru'=>array('port'=>465,'host'=>'mail.ru'),
@@ -559,6 +564,7 @@ function mpsmtp($to, $obj, $text, $from = null, $files = array(), $login = null)
 	$param = explode("@", $login ? $login : $conf['settings']['smtp']);
 	$host = explode(":", array_pop($param));
 	$auth = explode(":", implode("@", $param));
+//	mpre($param, $host, $auth);
 	if(!$from){
 		if (filter_var($auth[0], FILTER_VALIDATE_EMAIL)) {
 			//берем из логина в случае если это емайл
@@ -596,10 +602,11 @@ function mpsmtp($to, $obj, $text, $from = null, $files = array(), $login = null)
 	else
 		$mail->setFrom($from);
 	foreach(explode(',',$to) as $recipient){
-		if(preg_match("#(.+)\s+?\<($emailRegex)\>#iu",trim($recipient),$recipient_))
+		if(preg_match("#(.+)\s+?\<($emailRegex)\>#iu",trim($recipient),$recipient_)){
 			$mail->addAddress($recipient_[2], $recipient_[1]);
-		else
+		}else{
 			$mail->addAddress($recipient);
+		}
 	}	
 	if(is_string($files))
 		$files = array($files);
@@ -612,15 +619,14 @@ function mpsmtp($to, $obj, $text, $from = null, $files = array(), $login = null)
 			}
 		}
 	}	
-	$mail->Subject = $obj;
+	$mail->Subject = $subj;
 	$mail->Body    = $text;
 	//$mail->AltBody = '____';
 	if(!$mail->send()) {
 		$return = 'Mailer Error: ' . $mail->ErrorInfo;
 	} else {
 		$return = 0;
-	}
-	return $return;
+	} return $return;
 }
 
 function mpue($name){
@@ -833,10 +839,13 @@ function mpdbf($tn, $post = null, $and = false){
 } function fk($t, $find, $insert = array(), $update = array(), $key = false, $log = false){
 	global $conf, $arg;
 	//проверка полное или коротное название таблицы
-	if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$t))
+	if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$t)){
 		$t = "{$conf['db']['prefix']}{$arg['modpath']}_{$t}";	
-	if($index = fdk($t, $find, $insert, $update, $log))
+	}elseif(strpos($t, '-')){
+		$t = $conf['db']['prefix']. implode("_", explode("-", $t));
+	} if($index = fdk($t, $find, $insert, $update, $log)){
 		return $key ? $index[$key] : $index;
+	}
 }
 function mpdk($tn, $insert, $update = array()){
 	global $conf, $arg;
@@ -853,102 +862,34 @@ function mpdk($tn, $insert, $update = array()){
 function mpevent($name, $description = null, $own = null){
 	global $conf, $argv;
 	$debug_backtrace = debug_backtrace();
-	if(empty($name)){
-		if($args = $debug_backtrace[1]['args'][0]){
-			$src = "/{$args['modpath']}:{$args['fn']}". ($args['blocknum'] ? "/blocknum:{$args['blocknum']}" : "");
-//			mpevent("Неизвестное событие", $src, $conf['user']['uid'], $debug_backtrace);
-		} return false;
-	}
-	if(empty($argv) && empty($conf['settings']['users_log'])) return;
-	$func_get_args = func_get_args();
-	$keys = array_keys($ar = explode("/", (!empty($debug_backtrace[1]['file']) ? $debug_backtrace[1]['file'] : "")));
-	$desc = $ar[max($keys)];
-
-	if(is_numeric($own)){
-		$func_get_args[2] = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE id=". (int)$own), 0);
-	}
-	if(!empty($func_get_args[0]) && function_exists("event")){
-		$return = event($func_get_args);
-	}
-//	if((!empty($conf['settings']['users_log']) && $conf['settings']['users_log']) || !empty($argv)){
-		if(!empty($conf['event'][$name])) $event = $conf['event'][$name];
-		mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event SET time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", name=\"". mpquot($name). "\", description=\"". mpquot($desc). "\", count=1 ON DUPLICATE KEY UPDATE time=". time(). ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", count=count+1, last=". (int)$func_get_args[1]. ", max=IF(". (int)$func_get_args[1]. ">max, ". (int)$func_get_args[1]. ", max), min=IF(". (int)$func_get_args[1]. "<min, ". (int)$func_get_args[1]. ", min), description=\"". mpquot($desc). "\", log_last=". (!empty($event['log']) && $event['log'] ? "(SELECT id FROM {$conf['db']['prefix']}users_event_logs WHERE event_id=". (int)$event['id']. " ORDER BY id DESC limit 1)" : 0));
-		if(!empty($argv)){
-			$event = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event WHERE id=". (int)$conf['db']['conn']->lastInsertId()), 0);
-		} $notice = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event_notice WHERE event_id=". (int)$event['id']));
-		if((!empty($event['log']) && ($event['log'] > 1)) || $notice){
-			if(!is_numeric(get($func_get_args, 2)) && get($func_get_args, 2, "pass")){
-				unset($func_get_args[2]['pass']);
-			} $zam = mpzam($func_get_args);
-		}
-		if(!empty($event['log']) && $event['log']){
-			mpqw($sql = "INSERT DELAYED INTO {$conf['db']['prefix']}users_event_logs SET time=". time(). ", event_id=". (int)$event['id']. ", uid=". (int)(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0). ", description=\"". mpquot($description). "\", own=". /*mpquot(is_array($own) ? var_export($own, true) : $own)*/ (int)get($func_get_args, 2, 'id'). ", `return`=\"". (!empty($return) ? mpquot($return) : ""). "\", zam=\"". mpquot(!empty($zam) ? var_export($zam, true) : ""). "\"");
-			if(array_key_exists('limit', $event)){
-				$remove = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}users_event_logs WHERE event_id=". (int)$event['id']. " AND uid". ($conf['user']['uid'] > 0 ? "=". (int)$conf['user']['uid'] : "<0"). " ORDER BY id DESC LIMIT ". (int)$event['limit']. ",2"));
-				if($remove){ # Удаляем все с журнала пользователя
-					mpqw($sql = "DELETE FROM {$conf['db']['prefix']}users_event_logs WHERE id IN (". implode(",", array_keys($remove)). ")");
+	if($name){
+		if($users_event = fk("{$conf['db']['prefix']}users_event", $w = array("name"=>$name), $w += array("hide"=>1, "up"=>time()))){
+			mpqw("UPDATE {$conf['db']['prefix']}users_event SET count=count+1 WHERE hide=0 AND id=". (int)$users_event, "Увеличиваем счетчик на один", function($error) use($users_event){
+				if(strpos($error, "Unknown column 'hide'")){
+					qw("ALTER TABLE `{$conf['db']['prefix']}users_event` CHANGE `log` `hide` smallint(6) NOT NULL COMMENT 'Сохранение информации о событиях'");
+					qw("UPDATE `{$conf['db']['prefix']}users_event` SET hide=1 WHERE id=". (int)$users_event['id']);
+					qw("ALTER TABLE `{$conf['db']['prefix']}users_event` ADD INDEX (`hide`)");
 				}
-			}
-		}
-		if($notice){
-			foreach($notice as $v){
-				if(!empty($v['log']) && $v['log']){ # Сохраняем замещаемые значения
-					mpqw($sql = "UPDATE {$conf['db']['prefix']}users_event_notice SET zam=\"". mpquot(var_export($zam, true)). "\" WHERE id=". (int)$v['id']);
-				} if($v['grp_id'] > 0){ # Рассылка на группу
-					$grp = mpqn(mpqw($sql = "SELECT u.* FROM {$conf['db']['prefix']}users_mem AS m LEFT JOIN {$conf['db']['prefix']}users AS u ON (m.uid=u.id) WHERE 1 AND grp_id=". (int)$v['grp_id']));
-				}else{ # Если рассылка владельцу то он нам уже известен
-					$grp = array($func_get_args[2]['id']=>$func_get_args[2]);
-				} /*mpre($grp);*/ foreach($grp as $m){
-					mpqw($sql = "UPDATE {$conf['db']['prefix']}users_event_notice SET count=count+1 WHERE id=". (int)$v['id']);
-					$name = strtr(($v['name'] ? $v['name'] : $event['name']), $zam);
-					require_once(mpopendir('include/idna_convert.class.inc')); $IDN = new idna_convert();
-					$text = (strip_tags($v['text']) ? strtr($v['text'], $zam) : $event['name']);
-					switch($v['type']){
-						case "email":# Сообщение на электронную почту
-							if(preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $m['email'])){
-								$response = mpmail($m['email'], $name, $text);
-								if($v['log']){ # Сохраняем если включен лог
-									mpfdk("{$conf['db']['prefix']}users_event_mess", null, array("event_notice_id"=>$v['id'], "dst"=>$m['email'], "name"=>$name, "text"=>$text, "response"=>$response));
-								}
-							}
-						break;
-						case "smtp":# Сообщение по smtp протоколу
-							if(preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $m['email'])){
-								$response = mpsmtp($m['email'], $name, $text, $v['login']);
-								if($v['log']){ # Сохраняем если включен лог
-									$event_notice_id = mpfdk("{$conf['db']['prefix']}users_event_mess", null, array("event_notice_id"=>$v['id'], "dst"=>$m['email'], "name"=>$name, "text"=>$text, "response"=>$response));
-								}
-							}
-						break;
-						case "sms.ru":# Сервис смс уведомление sms.ru
-							include_once mpopendir("include/class/smsru.php");
-							$smsru = new \Zelenin\smsru($v['login']);
-							$response = $smsru->sms_send($m['tel'], $text);
-						break;
-						case "skype":# Скайп уведомление
-						break;
-						case "xmpp":# Уведомление по джаббер протоколу
-							if(preg_match("/^([a-z0-9_\.-]+)@([a-z0-9_\.-]+)\.([a-z\.]{2,6})$/", $m['xmpp'])){
-								ini_set("include_path", ini_get("include_path"). ":". "/srv/www/vhosts/mpak.cms/include");
-								$param = explode("@", $v['login']);// mpre($param);
-								$host = explode(":", array_pop($param));// mpre($host);
-								$auth = explode(":", implode("@", $param));// mpre($auth);
-								include_once(mpopendir("include/webi/xmpp.class.php"));
-								$webi = new XMPP(array('user'=>$auth[0], 'pass'=>$auth[1], 'host'=>$host[0], 'port'=>($host[1] ? $host[1] : 5222), 'domain'=>"ya.ru", 'logtxt'=>false,'tls_off'=>0,));
-								if($webi->connect()){// установка соединения...
-									$webi->sendStatus('text status','chat',3); // установка статуса
-									$response = $webi->sendMessage($m['xmpp'], $text); // отправка сообщения
-								} if($v['log']){ # Сохраняем если включен лог
-									$event_notice_id = mpfdk("{$conf['db']['prefix']}users_event_mess", null, array("uid"=>$m['id'], "event_notice_id"=>$v['id'], "dst"=>$m['xmpp'], "name"=>$name, "text"=>$text, "response"=>$response));
-								}
-							}
-						break;
-					}// mpre($v['type']);
-				}
-			}
-		}
-//	}
-	if(isset($return)) return $return;
+			}); if(!$users_event['hide']){
+				mpqw("UPDATE {$conf['db']['prefix']}users_event SET up=". time(). ", count=count+1, uid=". (int)$conf['user']['uid']. " WHERE id=". (int)$users_event['id'], "Обновляем время ", function($error){
+					qw("ALTER TABLE `mp_users_event` ADD `up` int(11) NOT NULL  COMMENT 'Последнее обновление события' AFTER `time`");
+				});
+				
+				
+				$users_event_logs = fk("{$conf['db']['prefix']}users_event_logs", null, $w = array("event_id"=>$users_event['id'], "themes_index"=>get($conf, "user", "sess", "themes_index", "id"), "description"=>$description), $w);
+				if($users_event['name'] != ($ref = "Источник ошибки")){
+					if(get($_SERVER, 'HTTP_REFERER') && ($parse_url = parse_url($_SERVER['HTTP_REFERER']))){
+						if(array_key_exists("event_logs_id", $referer = mpevent($ref, "{$parse_url['scheme']}://". (function_exists("idn_to_utf8") ? idn_to_utf8($parse_url['host']) : $parse_url['host']). urldecode($parse_url['path'])))){
+							if($referer = fk("{$conf['db']['prefix']}users_event_logs", array("id"=>$referer['id']), null, array("event_logs_id"=>$users_event_logs['id']))){
+								$users_event_logs = fk("{$conf['db']['prefix']}users_event_logs", array("id"=>$users_event_logs['id']), null, array("event_logs_id"=>$referer['id']));
+							}else{ mpre("Ошибка сохранения события Источник ошибки"); }
+						}else{ mpre("Нет поля для сохранения источника"); }
+					}else{ /*mpre("Источник перехода не указан");*/ }
+				}else{ /*mpre("Повторное событие");*/ }
+				return $users_event_logs;
+			}else{ /*mpre("Логинование события выключено");*/ return array(); }
+		}else{ mpre("Ошибка создания события"); }
+	}else{ mpre("Не задано название события"); }
 }
 function mpidn($value, $enc = 0){
 	if(!class_exists('idna_convert')){

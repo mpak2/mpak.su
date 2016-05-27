@@ -190,16 +190,16 @@
 			<div class="table">
 				<div>
 					<? if(get($tpl, 'title') && !get($_GET, "edit")): ?>
-						<span style="width:10%; padding-left:20px;">
+						<span style="width:60px; padding-left:20px;">
 							<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/edit?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : "")?>">
 								<button type="button">Добавить</button>
 							</a>
 						</span>
 					<? endif; ?>
 					<? if(!get($tpl, 'edit')): ?>
-						<span><?=$tpl['pager']?></span>
+						<span style="width:430px;"><?=$tpl['pager']?></span>
 					<? endif; ?>
-					<span style="width:30%; padding-right:20px; text-align:right;">
+					<span style="padding-right:20px; text-align:right;">
 						<? if($t = implode("_", array_slice(explode("_", $_GET['r']), 1))): # Короткое имя текущей таблицы ?>
 							<? foreach(array_unique(array_map(function($f){ return first(explode('.', $f)); }, mpreaddir("/modules/{$arg['modpath']}", 1))) as $f): ?>
 								<? if((strpos($f, "admin_") === 0) && ($fl = implode('_', array_slice(explode('_', $f), 1))) && (!($ft = implode('_', array_slice(explode('_', $t), 1))) || (strpos(($fl), $ft) === 0))): # Адреса страниц начинающихся на admin_ и совпадающие с текущей таблицуй ?>
@@ -291,7 +291,7 @@
 										<? endforeach; ?>
 									</select>
 								<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>
-									<input type="text" name="<?=$name?>" value="<?=htmlspecialchars(get($tpl, 'edit') ? rb($_GET['r'], "id", get($_GET, 'edit'), $name) : $field['Default'])?>" placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
+									<input type="text" name="<?=$name?>" value="<?=htmlspecialchars(get($tpl, 'edit') ? rb($_GET['r'], "id", get($_GET, 'edit'), $name) : get($field, 'Default'))?>" placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
 								<? endif; ?>
 							</span>
 						</div>
@@ -496,7 +496,7 @@
 											<option></option>
 											<? foreach($tpl['espisok'][$name] as $espisok): ?>
 												<option value="<?=$espisok['id']?>" <?=((!get($tpl, 'edit') && ($field['Default'] == $espisok['id'])) || (get($tpl, 'edit', $name) == $espisok['id']) || (get($_GET, 'where', $name) == $espisok['id']) ? "selected" : "")?>>
-													<?=$espisok['id']?> <?=$espisok['name']?>
+													<?=$espisok['id']?> <?=get($espisok, 'name')?>
 												</option>
 											<? endforeach; ?>
 										</select>

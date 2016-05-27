@@ -36,6 +36,7 @@ foreach( $dolders = array(
 	'include/mpfunc.php',
 	'include/install.php',
 //	'include/parse/simple_html_dom.php',
+	'include/mail', # Отправка почты на smtp
 	'include/class/simple_html_dom.php',
 	'include/idna_convert.class.inc',
 //	'include/pycckuu',
