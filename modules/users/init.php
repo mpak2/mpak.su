@@ -29,6 +29,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_event`
   `name` varchar(255) NOT NULL,
   `count` int(11) NOT NULL,
   `log` smallint(6) NOT NULL,
+  `hide` smallint(6) NOT NULL,
   `send` smallint(6) NOT NULL,
   `limit` int(11) NOT NULL,
   `cmail` int(11) NOT NULL,

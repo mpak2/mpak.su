@@ -31,9 +31,10 @@ $menu = array(
 	array('id'=>'6', 'theme'=>'!zhiraf', 'src'=>'blocks/blocks/support', 'name'=>'Поддержка', 'access'=>'0', 'reg_id'=>'1', 'param'=>$spt),
 	array('id'=>'7', 'theme'=>'zhiraf', 'src'=>'admin/blocks/top', 'name'=>'АдминШапка', 'access'=>'0', 'reg_id'=>'4'),
 	array('id'=>'8', 'theme'=>'zhiraf', 'src'=>'admin/blocks/modlist', 'name'=>'СписокМодулей', 'access'=>'0', 'reg_id'=>'-1'),
-	array('id'=>'9', 'theme'=>'!zhiraf', 'src'=>'users/blocks/user', 'name'=>'Свойства пользователя', 'access'=>'1', 'reg_id'=>'7'),
-	array('id'=>'10', 'theme'=>'!zhiraf', 'src'=>'chat/blocks/all', 'name'=>'Чат', 'access'=>'2', 'reg_id'=>'8'),
-	array('id'=>'12', 'theme'=>'!zhiraf', 'src'=>'pages/blocks/my', 'name'=>'Мои статьи', 'access'=>'1', 'reg_id'=>'7'),
+	array('id'=>'9', 'theme'=>'zhiraf', 'src'=>'users/blocks/online', 'name'=>'Кто на сайте', 'access'=>'0', 'reg_id'=>'-1'),
+
+//	array('id'=>'9', 'theme'=>'!zhiraf', 'src'=>'users/blocks/user', 'name'=>'Свойства пользователя', 'access'=>'1', 'reg_id'=>'7'),
+//	array('id'=>'12', 'theme'=>'!zhiraf', 'src'=>'pages/blocks/my', 'name'=>'Мои статьи', 'access'=>'1', 'reg_id'=>'7'),
 );
 
 foreach($menu as $line){
@@ -46,8 +47,9 @@ qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `in
 
 qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='7', `gid`='2', `access`='1', `description`='Права доступа администратора к админ шапке'");
 qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='8', `gid`='2', `access`='1', `description`='Права доступа администратора к списку модулей'");
+qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='9', `gid`='2', `access`='1', `description`='Права доступа администратора к кто на сайте'");
 
-qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='11', `gid`='3', `access`='1', `description`='Права доступа администратора к списку модулей'");
+//qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='11', `gid`='3', `access`='1', `description`='Права доступа администратора к списку модулей'");
 
 qw("UPDATE `{$conf['db']['prefix']}{$arg['modpath']}_index` SET `sort`=`id`");
 qw("UPDATE `{$conf['db']['prefix']}{$arg['modpath']}_reg` SET `sort`=`id`");
