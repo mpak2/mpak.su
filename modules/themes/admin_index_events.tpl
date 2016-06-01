@@ -10,8 +10,27 @@
 			<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>">Вернуться</a>
 		</span>
 		<h1><?=$users_event['name']?> (<?=$index_events['name']?>)</h1>
-		<? if($tpl['users_event_logs'] = rb("users-event_logs", 30, "event_id", "id", $users_event['id'])): ?>
-			<p><?=$tpl['pager']?></p>
+		<? if($tpl['users_event_logs'] = rb("users-event_logs", 30, "event_id", "themes_index", "id", $users_event['id'], (get($_GET, 'themes_index') ?: true))): ?>
+			<p>
+				<span style="float:right;">
+					<script sync>
+						(function($, script){
+							$(script).parent().on("change", "select[name=themes_index]", function(e){ // Загрузка родительского элемента
+								var themes_index_id = $(e.currentTarget).find("option:selected").attr("value");
+								document.location.href = "/<?=$arg['modname']?>:<?=$arg['fn']?>/<?=$index_events['id']?>/themes_index:"+themes_index_id;
+//								console.log("themes_index:", themes_index);
+							})
+						})(jQuery, document.scripts[document.scripts.length-1])
+					</script>
+					<select name="themes_index">
+						<option></option>
+						<? foreach(rb("themes-index") as $themes_index): ?>
+							<option value="<?=$themes_index['id']?>" <?=(get($_GET, 'themes_index') == $themes_index['id'] ? "selected" : "")?>><?=$themes_index['name']?></option>
+						<? endforeach; ?>
+					</select>
+				</span>
+				<div style="padding:5px;"><?=$tpl['pager']?></div>
+			</p>
 			<div class="table">
 				<div class="th">
 					<span>пп</span>
@@ -28,7 +47,7 @@
 						<span><?=date("d.m.Y H:i:s", $users_event_logs['time'])?></span>
 						<span>
 							<? if($event_logs = rb("users-event_logs", "id", get($users_event_logs, 'event_logs_id'))): ?>
-								<a href="/<?=$arg['modname']?>:<?=$arg['fn']?>/users-event_logs:<?=$event_logs['id']?>" title="<?=$event_logs['description']?>">
+								<a href="http://<?=$event_logs['description']?>" title="<?=$event_logs['description']?>">
 									<?=$event_logs['id']?>
 								</a>
 							<? endif; ?>
@@ -49,7 +68,15 @@
 								<?=$index['name']?>
 							<? endif; ?>
 						</span>
-						<span><a target="blank" href="<?=(empty($index) ? "" : "//{$index['name']}"). $users_event_logs['description']?>"><?=$users_event_logs['description']?></a></span>
+						<span>
+							<? if(substr($users_event_logs['description'], 0, 1) == "/"): ?>
+								<a target="blank" href="<?=(empty($index) ? "" : "//{$index['name']}"). $users_event_logs['description']?>">
+									<?=$users_event_logs['description']?>
+								</a>
+							<? else: ?>
+								<?=$users_event_logs['description']?>
+							<? endif; ?>
+						</span>
 						<span style="max-width:600px;">
 							<? if($users_event_logs['uid'] < 0): ?>
 								<? if($sess = rb("{$conf['db']['prefix']}sess", "id", -$users_event_logs['uid'])): ?>

@@ -66,7 +66,7 @@
 				})
 			})(jQuery, document.scripts[document.scripts.length-1])
 		</script>
-		<h2>Логиноварие данных</h2>
+		<h2>Логироварие данных</h2>
 		<? if($tpl['admin_history'] = rb("{$conf['db']['prefix']}admin_history", 40, "history_tables_id", "id", (get($_GET, "admin-history_tables") ?: true))): ?>
 			<p style="float:right;">
 				<select name="admin_history_tables_id">

@@ -61,6 +61,8 @@
 			.table .control a.del {display:inline-block; background:url(i/mgif.gif); background-position:0 -56px; width:16px; height:16px;}
 			.table a.key {display:inline-block; background:url(i/mgif.gif); background-position:-2px -155px; width:16px; height:16px; opacity:0.3}
 			.table a.ekey {display:inline-block; background:url(i/mgif.gif); background-position:-20px -155px; width:16px; height:16px; opacity:0.3}
+			.lines ul li {display:inline-block;}
+			.lines ul li:before{ content:"• "; }
 		</style>
 		<script>
 			(function($, script){
@@ -201,14 +203,14 @@
 					<? endif; ?>
 					<span style="padding-right:20px; text-align:right;">
 						<? if($t = implode("_", array_slice(explode("_", $_GET['r']), 1))): # Короткое имя текущей таблицы ?>
-							<? foreach(array_unique(array_map(function($f){ return first(explode('.', $f)); }, mpreaddir("/modules/{$arg['modpath']}", 1))) as $f): ?>
-								<? if((strpos($f, "admin_") === 0) && ($fl = implode('_', array_slice(explode('_', $f), 1))) && (!($ft = implode('_', array_slice(explode('_', $t), 1))) || (strpos(($fl), $ft) === 0))): # Адреса страниц начинающихся на admin_ и совпадающие с текущей таблицуй ?>
-									<a href="/<?=$arg['modpath']?>:<?=$f?><?=(($id = get($_GET, 'where', 'id')) ? "/{$id}" : "")?>"><?=implode("_", (array_slice(explode("_", $f), 1)))?></a>
-								<? endif; ?>
-							<? endforeach; ?>
-							<a href="/sqlanaliz:admin_sql/r:<?=$_GET['r']?>">
-								<?=(get($conf, 'settings',  $t) ?: $t)?>
-							</a>
+							<ul class="admin">
+								<? foreach(array_unique(array_map(function($f){ return first(explode('.', $f)); }, mpreaddir("/modules/{$arg['modpath']}", 1))) as $f): ?>
+									<? if((strpos($f, "admin_") === 0) && ($fl = implode('_', array_slice(explode('_', $f), 1))) && (!($ft = implode('_', array_slice(explode('_', $t), 1))) || (strpos(($fl), $ft) === 0))): # Адреса страниц начинающихся на admin_ и совпадающие с текущей таблицуй ?>
+										<li><a href="/<?=$arg['modpath']?>:<?=$f?><?=(($id = get($_GET, 'where', 'id')) ? "/{$id}" : "")?>"><?=(get($conf, 'settings', ($af = "{$arg['modpath']}_{$f}")) ?: $af)?></a></li>
+									<? endif; ?>
+								<? endforeach; ?>
+								<li><a href="/sqlanaliz:admin_sql/r:<?=$_GET['r']?>">БД</a></li>
+							</ul>
 						<? endif; ?>
 					</span>
 				</div>
@@ -520,7 +522,13 @@
 								$.post("/settings:admin/r:mp_settings/null", {modpath:"<?=$arg['modpath']?>", name:"<?=substr($_GET['r'], strlen($conf['db']['prefix']))?>", value:value, aid:4}, function(data){
 									console.log("post:", data);
 									document.location.reload(true);
-								});
+								}/*, "json").fail(function(error){
+									console.log("error:", error);
+									alert(error.responseText);
+								}*/);
+							}, "json").fail(function(error){
+								console.log("error:", error);
+								alert(error.responseText);
 							});
 						}
 					})

@@ -138,6 +138,15 @@ function tables($table = null){
 	} return $tpl['fields'];
 }
 
+function indexes($table_name){
+	global $conf;
+	if($conf['db']['type'] == "sqlite"){
+		return qn("SELECT * FROM sqlite_master WHERE type='index' AND tbl_name='". mpquot($table_name). "'", "name");
+	}else if($conf['db']['type'] == "mysql"){
+		return qn("SHOW INDEXES IN {$_GET['r']}", "Column_name");
+	}
+}
+
 # Подключение страницы
 function inc($file_name, $variables = array(), $req = false){
 	global $conf; extract($variables);
@@ -838,11 +847,10 @@ function mpdbf($tn, $post = null, $and = false){
 	}
 } function fk($t, $find, $insert = array(), $update = array(), $key = false, $log = false){
 	global $conf, $arg;
-	//проверка полное или коротное название таблицы
-	if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$t)){
-		$t = "{$conf['db']['prefix']}{$arg['modpath']}_{$t}";	
-	}elseif(strpos($t, '-')){
+	if(strpos($t, '-')){ //проверка полное или коротное название таблицы
 		$t = $conf['db']['prefix']. implode("_", explode("-", $t));
+	}elseif(!preg_match("#^{$conf['db']['prefix']}.*#iu",$t)){
+		$t = "{$conf['db']['prefix']}{$arg['modpath']}_{$t}";	
 	} if($index = fdk($t, $find, $insert, $update, $log)){
 		return $key ? $index[$key] : $index;
 	}

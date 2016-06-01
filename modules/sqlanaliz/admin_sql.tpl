@@ -83,14 +83,14 @@
 										<span>
 											<select name="f[<?=$field?>][type]">
 												<option></option>
-												<? foreach($types = array("int(11)", "smallint(6)", "bigint(20)", "float", "varchar(255)", "text", "longtext") as $fd): ?>
-													<option <?=($tpl['fields'][$field]['Type'] == $fd ? "selected" : "")?>><?=$fd?></option>
+												<? foreach($tpl['types'] as $fd): ?>
+													<option <?=((get($tpl, 'fields', $field, 'Type') == $fd) || (get($tpl, 'fields', $field, 'type') == $fd) ? "selected" : "")?>><?=$fd?></option>
 												<? endforeach; ?>
 											</select>
 										</span>
-										<span><input type="text" value="<?=$fields[$field]['Default']?>" name="f[<?=$field?>][default]" style="width:60px;" placeholder="Значение"></span>
-										<span><input type="text" value="<?=$fields[$field]['Comment']?>" name="f[<?=$field?>][comment]" placeholder="Коментарий"></span>
-										<span><input type="checkbox" name="f[<?=$field?>][index]" <?=(array_key_exists($field, $tpl['indexes']) ? "checked" : "")?>></span>
+										<span><input type="text" value="<?=get($fields, $field, 'Default')?>" name="f[<?=$field?>][default]" style="width:60px;" placeholder="Значение"></span>
+										<span><input type="text" value="<?=get($fields, $field, 'Comment')?>" name="f[<?=$field?>][comment]" placeholder="Коментарий"></span>
+										<span><input type="checkbox" name="f[<?=$field?>][index]" <?=(get($tpl, 'indexes', $field) ? "checked" : "")?>></span>
 									</div>
 								<? endforeach; ?>
 								<div>
@@ -104,7 +104,7 @@
 									</span>
 									<span>
 										<select name="$[type]">
-											<? foreach($types as $fd): ?>
+											<? foreach($tpl['types'] as $fd): ?>
 												<option><?=$fd?></option>
 											<? endforeach; ?>
 										</select>
@@ -118,100 +118,106 @@
 						</form>
 					<? endif; ?>
 
-					<? if(($tpl['key_column_usage'] = ql($sql = "SELECT * FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE (TABLE_NAME='{$_GET['r']}' AND REFERENCED_TABLE_NAME != '') OR REFERENCED_TABLE_NAME = '{$_GET['r']}'"))): ?>
+					<? if(($conf['db']['type'] == 'sqlite')): ?>
+						<? mpre("Для БД sqlite не реализованы вторичные ключи"); ?>
+					<? elseif(($tpl['key_column_usage'] = ql($sql = "SELECT * FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE (TABLE_NAME='{$_GET['r']}' AND REFERENCED_TABLE_NAME != '') OR REFERENCED_TABLE_NAME = '{$_GET['r']}'"))): ?>
 						<?// mpre("Список вторичных и первичных ключей для вторичных таблиц", $tpl['key_column_usage']); ?>
-					<? endif; ?>
-					<div class="table" style="width:100%;">
-						<script sync>
-							(function($, script){
-								$(script).parent().on("click", "button", function(e){
-									var field = $(e.currentTarget).parents("[field]").attr("field");
-									var reference = $(e.currentTarget).parents("[field]").find("select[name=reference] option:selected").attr("value");
-									console.log("field:", field, "reference:", reference);
-									$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null", {foreign:field, reference:reference}, function(data){
-										console.log("data:", data);
-										document.location.reload(true);
-									}, "json").fail(function(error){ alert(error.responseText); })
-								})
-							})(jQuery, document.scripts[document.scripts.length-1])
-						</script>
-						<div class="th">
-							<span>Поле</span>
-							<span>Таблица</span>
-							<span>Ключ</span>
-							<span>Контроль</span>
-							<span>Действие</span>
+						<div class="table" style="width:100%;">
+							<script sync>
+								(function($, script){
+									$(script).parent().on("click", "button", function(e){
+										var field = $(e.currentTarget).parents("[field]").attr("field");
+										var reference = $(e.currentTarget).parents("[field]").find("select[name=reference] option:selected").attr("value");
+										console.log("field:", field, "reference:", reference);
+										$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null", {foreign:field, reference:reference}, function(data){
+											console.log("data:", data);
+											document.location.reload(true);
+										}, "json").fail(function(error){ alert(error.responseText); })
+									})
+								})(jQuery, document.scripts[document.scripts.length-1])
+							</script>
+							<div class="th">
+								<span>Поле</span>
+								<span>Таблица</span>
+								<span>Ключ</span>
+								<span>Контроль</span>
+								<span>Действие</span>
+							</div>
+							<? foreach($fields as $fld): ?>
+								<? if($in_column_usage = rb($tpl['key_column_usage'], "REFERENCED_TABLE_NAME", "REFERENCED_COLUMN_NAME", "[{$_GET['r']}]", $fld['Field'])): ?>
+									<?// mpre("Входящие ключи для {$fld['Field']} уже создан вторичный связанный ключ", $in_column_usage) ?>
+								<? endif; if($out_column_usage = rb($tpl['key_column_usage'], "TABLE_NAME", "COLUMN_NAME", "[{$_GET['r']}]", $fld['Field'])): ?>
+									<?// mpre("Исходящие ключи для {$fld['Field']} уже создан вторичный связанный ключ", $out_column_usage) ?>
+								<? endif; if(("_id" == substr($fld['Field'], -3)) || $in_column_usage): ?>
+									<div field="<?=$fld['Field']?>">
+										<span><?=$fld['Field']?></span>
+										<span>
+											<? if($in_column_usage): ?>
+												<?=$in_column_usage['TABLE_NAME']?> 
+											<? elseif($out_column_usage): ?>
+												<?=$out_column_usage['REFERENCED_TABLE_NAME']?>
+											<? else: ?>
+												<?=("{$conf['db']['prefix']}{$arg['modpath']}_". substr($fld['Field'], 0, -3))?>
+											<? endif; ?>
+										</span>
+										<span>
+											<?=($in_column_usage ? $in_column_usage['COLUMN_NAME'] : "id")?>
+										</span>
+										<span>
+											<? if(!($in_column_usage || $out_column_usage)): ?>
+												<select name="reference">
+													<option value="NO ACTION"></option>
+													<option value="SET NULL">Нуль</option>
+													<option value="RESTRICT" selected>Блок</option>
+													<option value="CASCADE">Удалить</option>
+												</select>
+											<? endif; ?>
+										</span>
+										<span style="text-align:center;">
+											<button><?=(($in_column_usage || $out_column_usage) ? "Удалить ключ" : "Создать ключ")?></button>
+										</span>
+									</div>
+								<? endif; ?>
+							<? endforeach; ?>
 						</div>
-						<? foreach($fields as $fld): ?>
-							<? if($in_column_usage = rb($tpl['key_column_usage'], "REFERENCED_TABLE_NAME", "REFERENCED_COLUMN_NAME", "[{$_GET['r']}]", $fld['Field'])): ?>
-								<?// mpre("Входящие ключи для {$fld['Field']} уже создан вторичный связанный ключ", $in_column_usage) ?>
-							<? endif; if($out_column_usage = rb($tpl['key_column_usage'], "TABLE_NAME", "COLUMN_NAME", "[{$_GET['r']}]", $fld['Field'])): ?>
-								<?// mpre("Исходящие ключи для {$fld['Field']} уже создан вторичный связанный ключ", $out_column_usage) ?>
-							<? endif; if(("_id" == substr($fld['Field'], -3)) || $in_column_usage): ?>
-								<div field="<?=$fld['Field']?>">
-									<span><?=$fld['Field']?></span>
-									<span>
-										<? if($in_column_usage): ?>
-											<?=$in_column_usage['TABLE_NAME']?> 
-										<? elseif($out_column_usage): ?>
-											<?=$out_column_usage['REFERENCED_TABLE_NAME']?>
-										<? else: ?>
-											<?=("{$conf['db']['prefix']}{$arg['modpath']}_". substr($fld['Field'], 0, -3))?>
-										<? endif; ?>
-									</span>
-									<span>
-										<?=($in_column_usage ? $in_column_usage['COLUMN_NAME'] : "id")?>
-									</span>
-									<span>
-										<? if(!($in_column_usage || $out_column_usage)): ?>
-											<select name="reference">
-												<option value="NO ACTION"></option>
-												<option value="SET NULL">Нуль</option>
-												<option value="RESTRICT" selected>Блок</option>
-												<option value="CASCADE">Удалить</option>
-											</select>
-										<? endif; ?>
-									</span>
-									<span style="text-align:center;">
-										<button><?=(($in_column_usage || $out_column_usage) ? "Удалить ключ" : "Создать ключ")?></button>
-									</span>
-								</div>
-							<? endif; ?>
-						<? endforeach; ?>
-					</div>
+					<? endif; ?>
 				</span>
 				<span style="padding-left:20px;">
-					<div>
-						<h1>Резервинование</h1>
+					<? if(($conf['db']['type'] == 'sqlite')): ?>
+						<? mpre("Для БД sqlite не доступно резервное копирование"); ?>
+					<? else: ?>
 						<div>
-							<form method="post" enctype="multipart/form-data">
-								<span style="float:right;">
-									<input type="file" name="file">
-									<button>Восстановить данные из файла</button>
-								</span>
-								<button>Сделать резервную копию</button>
-								<label>
-									<input type="checkbox" name="upload" checked>
-									Скачать
-								</label>
-								<? if($status = rb(ql("SHOW TABLE STATUS"), "Name", "[{$_GET['r']}]")): ?>
-									<p>
-										<? if($modpath = first(array_slice(explode("_", $_GET['r']), 1, 1))): ?>
-											<div>
-												<? foreach(ql("SHOW TABLES LIKE '{$conf['db']['prefix']}{$modpath}%'") as $tables): ?>
-													<? if($table = first($tables)): ?>
-														<label style="display:inline-block; width:24%; white-space:nowrap;">
-															<input type="checkbox" name="dump[<?=$table?>]" <?=($table == $_GET['r'] ? "checked" : "")?>><?=$table?>
-														</label>
-													<? endif; ?>
-												<? endforeach; ?>
-											</div>
-										<? endif; ?>
-									</p>
-								<? endif; ?>
-							</form>
+							<h1>Резервинование</h1>
+							<div>
+								<form method="post" enctype="multipart/form-data">
+									<span style="float:right;">
+										<input type="file" name="file">
+										<button>Восстановить данные из файла</button>
+									</span>
+									<button>Сделать резервную копию</button>
+									<label>
+										<input type="checkbox" name="upload" checked>
+										Скачать
+									</label>
+									<? if($status = rb(ql("SHOW TABLE STATUS"), "Name", "[{$_GET['r']}]")): ?>
+										<p>
+											<? if($modpath = first(array_slice(explode("_", $_GET['r']), 1, 1))): ?>
+												<div>
+													<? foreach(ql("SHOW TABLES LIKE '{$conf['db']['prefix']}{$modpath}%'") as $tables): ?>
+														<? if($table = first($tables)): ?>
+															<label style="display:inline-block; width:24%; white-space:nowrap;">
+																<input type="checkbox" name="dump[<?=$table?>]" <?=($table == $_GET['r'] ? "checked" : "")?>><?=$table?>
+															</label>
+														<? endif; ?>
+													<? endforeach; ?>
+												</div>
+											<? endif; ?>
+										</p>
+									<? endif; ?>
+								</form>
+							</div>
 						</div>
-					</div>
+					<? endif; ?>
 					<div>
 						<h1>Запрос</h1>
 						<form action="/<?=$arg['modpath']?>:<?=$arg['fn']?>/null" method="post">

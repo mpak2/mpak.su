@@ -239,6 +239,7 @@ input[type="submit"]
 				margin:0 0 0 222px;
 				padding:0 1px;
 			}
+				#content:after {content:"\00a0";}
 				#content .cont
 				{
 					padding:15px 0 0 0;

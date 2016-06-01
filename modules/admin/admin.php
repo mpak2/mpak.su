@@ -48,7 +48,6 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 			qw($sql = "UPDATE `{$_GET['r']}` SET ". implode(", ", array_values($_POST)). " WHERE id=". (int)$_GET['id']);
 			$el = rb($_GET['r'], "id", $_GET['id']);
 		}else{
-
 			if($ar = array_filter($_POST, function($e){ return is_array($e); })){
 				array_walk($_POST, function($val, $key){
 					if(is_array($val)){

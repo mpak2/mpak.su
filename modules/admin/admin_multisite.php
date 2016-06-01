@@ -11,19 +11,7 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 			} exit("Сайт {$http_host} в списке игнорированных");
 		}else if((gethostbyname($http_host) == $_SERVER['SERVER_ADDR']) || (get($conf, "settings", 'admin_gethostbyname') == gethostbyname($http_host))){ # Хост настроен на сервер или совпадает с указанным в админке ip
 			if($themes_index = fk("{$conf['db']['prefix']}themes_index", $w = array("name"=>$http_host), $w, $w)){
-				if(get($conf, "settings", "themes_index_tags")){ # Добавляем теги к сайту
-					if($tpl["themes-index_tags"] = rb("themes-index_tags", "name", "id", array_flip(explode(".", $http_host)))){
-						foreach($tpl["themes-index_tags"] as $themes_index_tags){
-							$themes_index_tags_index = fk("{$conf['db']['prefix']}themes_index_tags_index", $w = array("index_tags_id"=>$themes_index_tags['id'], "index_id"=>$themes_index['id']), $w, $w);
-						} if(count($tpl["themes_index_cat"] = rb("themes-index_cat", "id", "id", rb($tpl["themes-index_tags"], "index_cat_id"))) == 1){
-							if($themes_index_cat = first($tpl["themes_index_cat"])){
-								$themes_index = fk("{$conf['db']['prefix']}themes_index", array("id"=>$themes_index['id']), null, array("index_cat_id"=>$themes_index_cat['id']));
-							}else{ pre("Ошибка определения категории хоста"); }
-						}else{ pre("С тегами связано более одной категории", $tpl["themes_index_cat"]); }
-					}else{ pre("Теги хоста не найдены"); }
-				} if(array_key_exists("sort", $themes_index) && !$themes_index['sort']){
-					$themes_index = fk("{$conf['db']['prefix']}themes_index", array("id"=>$themes_index['id']), null, array("sort"=>$themes_index['id']));
-				}
+				inc("modules/{$arg['modpath']}/{$arg['fn']}_init", array("themes_index"=>$themes_index)); # Скрипт создания сайта
 			}
 		}else{ // pre($http_host, gethostbyname($http_host), get($conf, "settings", 'admin_gethostbyname'));
 			$http_host = $_SERVER['SERVER_ADDR'];

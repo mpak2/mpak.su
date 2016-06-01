@@ -1,5 +1,5 @@
 <?
-if(($n = date("N")) && ($date1 = date("Y-m-d", strtotime((-$n/*-6*/+1+($offset = get($_GET, "week")*7)). " days"))) && ($date2 = date("Y-m-d", strtotime((-$n + 7 + $offset). " days")))){
+if(($n = date("N", ($offset = mpsettings("{$arg['modpath']}_admin_yandex_metrika_metrics=>offset")) ? strtotime("{$offset} day") : time())) && ($date1 = date("Y-m-d", strtotime((-$n/*-6*/+1+($offset = get($_GET, "week")*7)). " days"))) && ($date2 = date("Y-m-d", strtotime((-$n + 7 + $offset). " days")))){
 	if($tpl['yandex_metrika_period'] = fk("{$conf['db']['prefix']}themes_yandex_metrika_period", $w = array("date1"=>$date1, "date2"=>$date2), $w)){
 		if(get($_POST, "yandex_metrika_id")){
 			if($yandex_metrika_period = rb("themes-yandex_metrika_period", "id", $_POST['yandex_metrika_period_id'])){
