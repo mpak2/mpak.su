@@ -4,8 +4,9 @@ if(array_key_exists('confnum', $arg)){
 	return;
 }
 
-$online = mpql(mpqw($sql = "SELECT SQL_CALC_FOUND_ROWS u.*, s.count, s.cnull, s.id AS sid, s.agent, s.ref FROM {$conf['db']['prefix']}sess AS s LEFT JOIN {$conf['db']['prefix']}users AS u ON s.uid=u.id WHERE s.last_time > ". (time()-$conf['settings']['sess_time']). " AND CHAR_LENGTH(sess)=32 ORDER BY s.last_time DESC"));
-$count = mpql(mpqw("SELECT FOUND_ROWS() AS count"), 0, 'count');
+//$online = mpql(mpqw($sql = "SELECT u.*, s.count, s.cnull, s.id AS sid, s.agent, s.ref FROM {$conf['db']['prefix']}sess AS s LEFT JOIN {$conf['db']['prefix']}users AS u ON s.uid=u.id WHERE s.last_time > ". (time()-$conf['settings']['sess_time']). " AND CHAR_LENGTH(sess)=32 ORDER BY s.last_time DESC"));
+$online = qn("SELECT * FROM {$conf['db']['prefix']}sess WHERE last_time > ". (time()-$conf['settings']['sess_time']). " ORDER BY last_time DESC");
+$count = ql("SELECT COUNT(*) AS count FROM {$conf['db']['prefix']}sess WHERE last_time > ". (time()-$conf['settings']['sess_time']). " ORDER BY last_time DESC", 0, 'count');
 $logo = array(
 	"Mediapartners-Google.png"=>"Mediapartners-Google",
 	"naver.com.png"=>"naver",
@@ -99,7 +100,7 @@ foreach($online as $k=>$v){
 		$on[ $img ][ 1 ][] = $online[$k];
 	}else{
 		$online[$k]['os'] = strpos_array($v['agent'], $os);
-		$uid = $v['name'] == $conf['settings']['default_usr'] ? "-1" : $v['id'];
+		$uid = get($v, 'name') == $conf['settings']['default_usr'] ? "-1" : $v['id'];
 		$online[$k]['image'] = "/{$arg['modpath']}:img/". (int)$uid. "/tn:index/w:40/h:40/c:1/null/img.jpg";
 		$on[ $uid ][ $online[$k]['os'] ][] = $online[$k];
 	}
@@ -115,7 +116,7 @@ $guest = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE name=\"". m
 		<? foreach($os as $s=>$o): ?>
 			<? $keys = array_keys($ar = array_slice($o, 0, 1)) ?>
 			<? $v = $ar[min($keys)]; ?>
-			<div style="float:left; margin:1px; border:1px solid #ddd; position:relative;" title="<?=(array_key_exists('bot', $v) ? $v['agent'] : $v['name']. ($v['name'] != $conf['settings']['default_usr'] ? "" : "-{$v['sid']}"). (!empty($v['ref']) && ($arg['access'] > 3) ? " {$v['count']}/{$v['cnull']} ({$v['ref']})" : ""))?>">
+			<div style="float:left; margin:1px; border:1px solid #ddd; position:relative;" title="<?=(array_key_exists('bot', $v) ? get($v, 'agent') : get($v, 'name'). (get($v, 'name') != $conf['settings']['default_usr'] ? "" : "-{$v['sid']}"). (!empty($v['ref']) && ($arg['access'] > 3) ? " {$v['count']}/{$v['cnull']} ({$v['ref']})" : ""))?>">
 				<? if($v['id'] != $guest['id']): ?>
 					<a href="/<?=$arg['modpath']?>/<?=$v['id']?>">
 				<? elseif($arg['access'] > 3): ?>

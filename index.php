@@ -59,6 +59,7 @@ try{
 	if($conf['db']['type'] == "sqlite"){
 		$conf['db']['conn'] = new PDO("{$conf['db']['type']}:". mpopendir($conf['db']['name']));
 		$conf['db']['conn']->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		$conf['db']['conn']->exec('PRAGMA foreign_keys=ON');
 	}else{
 		$conf['db']['conn'] = new PDO("{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC));
 		$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored

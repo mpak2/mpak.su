@@ -139,7 +139,7 @@ foreach($tpl['tables'] = tables() as $table=>$info){
 	$info['id'] = (empty($nn) ? ($nn = 1) : ++$nn);
 	$info['modpath'] = get($conf, 'modules', first(array_slice(explode("_", $table), 1, 1)), 'folder');
 } if($conf['db']['type'] == 'sqlite'){
-	$tpl['types'] = array("TEXT", "INTEGER");
+	$tpl['types'] = array("INTEGER", "REAL", "TEXT");
 }else{
 	$tpl['types'] = array("int(11)", "smallint(6)", "bigint(20)", "float", "varchar(255)", "text", "longtext");
 }

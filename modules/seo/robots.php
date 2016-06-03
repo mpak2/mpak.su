@@ -9,8 +9,9 @@
 <? if($r == "Yandex"): ?>
 <? if(get($themes_index, 'index_id') && ($index = rb("{$conf['db']['prefix']}themes_index", "id", $themes_index['index_id']))): ?>
 <?="Host: {$index['name']}\n"?>
-<? endif; ?>
+<? else: ?>
 <?="Host: {$_SERVER['HTTP_HOST']}\n"?>
+<? endif; ?>
 <? endif; ?>
 <?="Sitemap: http://{$_SERVER['HTTP_HOST']}/sitemap.xml\n"?> 
 <? endforeach; ?>

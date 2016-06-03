@@ -18,7 +18,7 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 		}
 	} if($conf['user']['sess']['themes_index'] = $conf['themes']['index'] = $themes_index){
 		if(get($themes_index, 'index_id') && ($_SERVER['REQUEST_URI'] != "/robots.txt")){
-			$themes_index = rb("{$conf['db']['prefix']}themes_index", "id", $themes_index['index_id']);
+			$conf['user']['sess']['themes_index'] = $conf['themes']['index'] = $themes_index = rb("{$conf['db']['prefix']}themes_index", "id", $themes_index['index_id']);
 		}
 
 		if(get($_GET, "theme")){ # Шаблон задан в адресной строке
