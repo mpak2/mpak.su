@@ -1,12 +1,8 @@
 <?
 
-if(array_key_exists('confnum', $arg)){
-	return;
-}
-
-//$online = mpql(mpqw($sql = "SELECT u.*, s.count, s.cnull, s.id AS sid, s.agent, s.ref FROM {$conf['db']['prefix']}sess AS s LEFT JOIN {$conf['db']['prefix']}users AS u ON s.uid=u.id WHERE s.last_time > ". (time()-$conf['settings']['sess_time']). " AND CHAR_LENGTH(sess)=32 ORDER BY s.last_time DESC"));
-$online = qn("SELECT * FROM {$conf['db']['prefix']}sess WHERE last_time > ". (time()-$conf['settings']['sess_time']). " ORDER BY last_time DESC");
-$count = ql("SELECT COUNT(*) AS count FROM {$conf['db']['prefix']}sess WHERE last_time > ". (time()-$conf['settings']['sess_time']). " ORDER BY last_time DESC", 0, 'count');
+$online = qn("SELECT * FROM {$conf['db']['prefix']}sess WHERE last_time > ". (time()-$conf['settings']['sess_time']). " AND CHAR_LENGTH(sess)=32 ORDER BY last_time DESC");
+$users = rb("{$conf['db']['prefix']}users", "id", "id", rb($online, "uid"));
+$count = ql("SELECT COUNT(*) AS count FROM {$conf['db']['prefix']}sess WHERE last_time > ". (time()-$conf['settings']['sess_time']). " AND CHAR_LENGTH(sess)=32 ORDER BY last_time DESC", 0, 'count');
 $logo = array(
 	"Mediapartners-Google.png"=>"Mediapartners-Google",
 	"naver.com.png"=>"naver",
@@ -52,22 +48,14 @@ $logo = array(
 	"irlbot.png"=>"IRLbot",
 	"focusbot.png"=>"focusbot",
 	"gbot.png"=>"gbot",
-	"teeraidbot.png"=>"TeeRaidBot",
-	"uptime.png"=>"uptimebot",
-	"smtbot.png"=>"smtbot",
-	"dcbot.png"=>"dcbot",
-	"semasio.png"=>"uipbot",
-
 	"google-image.png"=>"Googlebot-Image",
  	"google.png"=>"Googlebot",
-
 	"yandeximages.png"=>"YandexImages",
 	"yandexmetrika.png"=>"YandexMetrika",
 	"yadirectfetcher.png"=>"YaDirectFetcher",
 	"yandexmobile.png"=>"YandexMobileBot",
 	"yandexfavicon.png"=>"YandexFavicons",
 	"yandex.png"=>"Yandex",
-
 	"bot.png"=>"bot",
 );
 $os = array(
@@ -94,13 +82,14 @@ if(!function_exists("strpos_array")){
 	}
 }
 foreach($online as $k=>$v){
+	$user = rb($users, "id", $v['uid']);
 	if($img = strpos_array($v['agent'], $logo)){
 		$online[$k]['image'] = "/{$arg['modpath']}:img/w:40/h:40/null/{$img}";
 		$online[$k]['bot'] = 1;
 		$on[ $img ][ 1 ][] = $online[$k];
 	}else{
 		$online[$k]['os'] = strpos_array($v['agent'], $os);
-		$uid = get($v, 'name') == $conf['settings']['default_usr'] ? "-1" : $v['id'];
+		$uid = get($user, 'name') == $conf['settings']['default_usr'] ? "-1" : $v['id'];
 		$online[$k]['image'] = "/{$arg['modpath']}:img/". (int)$uid. "/tn:index/w:40/h:40/c:1/null/img.jpg";
 		$on[ $uid ][ $online[$k]['os'] ][] = $online[$k];
 	}
@@ -116,11 +105,12 @@ $guest = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE name=\"". m
 		<? foreach($os as $s=>$o): ?>
 			<? $keys = array_keys($ar = array_slice($o, 0, 1)) ?>
 			<? $v = $ar[min($keys)]; ?>
-			<div style="float:left; margin:1px; border:1px solid #ddd; position:relative;" title="<?=(array_key_exists('bot', $v) ? get($v, 'agent') : get($v, 'name'). (get($v, 'name') != $conf['settings']['default_usr'] ? "" : "-{$v['sid']}"). (!empty($v['ref']) && ($arg['access'] > 3) ? " {$v['count']}/{$v['cnull']} ({$v['ref']})" : ""))?>">
+			<? $user = rb($users, "id", $v['uid']); ?>
+			<div style="float:left; margin:1px; border:1px solid #ddd; position:relative;" title="<?=(array_key_exists('bot', $v) ? get($user, 'agent') : get($user, 'name'). (get($v, 'name') != $conf['settings']['default_usr'] ? "" : "-{$v['id']}"). (!empty($v['ref']) && ($arg['access'] > 3) ? " ". get($user, 'count'). "/". get($user, 'cnull'). " (". get($user, 'ref'). ")" : ""))?>">
 				<? if($v['id'] != $guest['id']): ?>
 					<a href="/<?=$arg['modpath']?>/<?=$v['id']?>">
 				<? elseif($arg['access'] > 3): ?>
-					<a href="/?m[sess]=admin&where[id]=<?=$v['sid']?>">
+					<a href="/?m[sess]=admin&where[id]=<?=$v['id']?>">
 				<? else: ?>
 					<a href="/<?=$arg['modpath']?>/<?=$guest['id']?>">
 				<? endif; ?>

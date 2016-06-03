@@ -10,11 +10,11 @@ if(get($_GET, 'tn')){
 		$file_name = mpopendir($f = "img/no.". ($exp = "png"));
 	} if(!ob_get_length()){
 		header ("Content-type: image/{$exp}");
-	} echo mprs($file_name, (get($_GET, "w") ?: 0), (get($_GET, "h") ?: 0), (get($_GET, "c") ?: 0));
+	} exit(mprs($file_name, (get($_GET, "w") ?: 0), (get($_GET, "h") ?: 0), (get($_GET, "c") ?: 0)));
 }elseif(array_key_exists('', $_GET) && ($file_name = mpopendir("modules/{$arg['modpath']}/img/". basename($_GET[''])))){
 	if(!ob_get_length()){
 		header ("Content-type: image/". last(explode('.', $file_name)));
-	} echo mprs($file_name, (get($_GET, "w") ?: 0), (get($_GET, "h") ?: 0), (get($_GET, "c") ?: 0));
+	} exit(mprs($file_name, (get($_GET, "w") ?: 0), (get($_GET, "h") ?: 0), (get($_GET, "c") ?: 0)));
 }else{
 	echo "<ul>";
 	foreach(mpreaddir("modules/{$arg['modpath']}/img", true) as $n=>$img){
