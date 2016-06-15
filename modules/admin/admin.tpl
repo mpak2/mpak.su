@@ -209,7 +209,8 @@
 										<li><a href="/<?=$arg['modpath']?>:<?=$f?><?=(($id = get($_GET, 'where', 'id')) ? "/{$id}" : "")?>"><?=(get($conf, 'settings', ($af = "{$arg['modpath']}_{$f}")) ?: $af)?></a></li>
 									<? endif; ?>
 								<? endforeach; ?>
-								<li><a href="/sqlanaliz:admin_sql/r:<?=$_GET['r']?>">БД</a></li>
+								<li><b><a href="/sqlanaliz:admin_sql/r:<?=$_GET['r']?>">БД</a></b></li>
+								<li><b><a href="/settings:admin/r:<?=$conf['db']['prefix']?>settings/?&where[modpath]=<?=$arg['modpath']?>">СВ</a></b></li>
 							</ul>
 						<? endif; ?>
 					</span>

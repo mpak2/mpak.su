@@ -132,6 +132,7 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 			$tpl['menu'][$top][] = $key;
 		}else{ $tpl['menu'][$key] = array(); }
 	} if(empty($_GET['r'])){
+		$modules_index = fk("modules-index", array("folder"=>$arg['modpath']), null, array("priority"=>time()));
 		if($tpl['tables'] && ($table = array_shift($tables = $tpl['tables']))){
 			exit(header("Location:/{$arg['modpath']}:admin/r:{$table}"));
 		}elseif($table = "{$conf['db']['prefix']}{$arg['modpath']}_index"){
@@ -147,7 +148,7 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 			$conf['settings'][substr($_GET['r'], strlen($conf['db']['prefix'])). "=>order"] = $_GET['order'];
 		}
 		$where = array_map(function($v){ return "[{$v}]"; }, get($_GET, 'where') ?: array());
-		$tpl['lines'] = call_user_func_array("rb", ($where ? array_merge(array($_GET['r'], 20), array_keys($where), array("id"), (array)array_values($where)) : array($_GET['r'], 20)));
+		$tpl['lines'] = call_user_func_array("rb", ($where ? array_merge(array($_GET['r'], (get($_GET, 'limit') ?: 20)), array_keys($where), array("id"), (array)array_values($where)) : array($_GET['r'], (get($_GET, 'limit') ?: 20))));
 		$tpl['spisok'] = array(
 			'hide' => array(0=>"Видим", 1=>"Скрыт"),
 		);

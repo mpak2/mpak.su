@@ -306,7 +306,7 @@ input[type="submit"]
 /* *** Хедер *** */
 #header .logo
 {
-	display:block;
+	display:inline-block;
 	width:47px;
 	height:47px;
 	background:url("i/logo.png");
@@ -318,7 +318,8 @@ input[type="submit"]
 {
 	font-size:18px;
 	left:83px;
-	position:absolute;
+/*	position:absolute;*/
+	padding:0 20px;
 	top:17px;
 }
 #header .exit

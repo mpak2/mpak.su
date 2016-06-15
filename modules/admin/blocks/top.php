@@ -1,13 +1,17 @@
 <? # АдминШапка
 
 include_once mpopendir('include/idna_convert.class.inc');
-$idna = new idna_convert();
-$http_host = $idna->decode($_SERVER['HTTP_HOST']);
+$http_host = (new idna_convert())->decode($_SERVER['HTTP_HOST']);
 
 ?>
-<div id="header">
-	<a href="/" class="logo"></a>
-	<a href="/" class="SiteName">http://<?=$http_host?>/</a>
+<div id="header" style="white-space:nowrap;">
+	<span style="line-height:50px;">
+		<a href="/" class="logo"></a>
+		<a href="/" class="SiteName">http://<?=$http_host?>/</a>
+		<? if(get($conf, 'settings', 'admin_multisite') && ($themes_index = rb("themes-index", "name", "[{$http_host}]"))): ?>
+			<a href="/themes:admin/r:<?=$conf['db']['prefix']?>themes_index?&where[id]=<?=$themes_index['id']?>"><img src="/img/edit.png"></a>
+		<? endif; ?>
+	</span>
 	<div class="exit">
 		Здравствуйте, <?=$conf['user']['name']?> | <a href="/?logoff">выход</a>
 	</div>

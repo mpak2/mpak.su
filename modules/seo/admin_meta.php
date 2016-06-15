@@ -27,7 +27,7 @@
 														if(strpos($t['table'], "-")){
 															if($id = get($get, $t['table'])){
 																$data[$t['table']] = rb($t['table'], "id", (int)$id);
-															}else{ mpre("Ключ не найден"); }
+															}else{ mpre("Ключ не найден <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>"); }
 														}
 													} while(($tabs = array_intersect_key((empty($d) ? ($d = $default) : $d), array_flip(array_map(function($v){ return "{$v}_id"; }, array_column($e, "table"))))) && (($loop = /*mpre*/(empty($loop) ? 1 : $loop+1)) < 10 /* Максимальное количество итераций */)){ # Если есть ключи от требующихся тегов
 														foreach($tabs as $k=>$id){
@@ -73,4 +73,4 @@
 					}else{ /*mpre("Категория отмечена как скрытая");*/ }
 				}else{ mpre("Не найдена категория переадресации"); }
 			}else{ mpre("Алиас сфоримрован ошибочно"); }
-		}else{ mpre("Входящие параметры содержат пустые значения", $diff); }
+		}else{ /*mpre("Входящие параметры содержат пустые значения", $diff);*/ }

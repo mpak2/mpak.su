@@ -23,25 +23,25 @@ function meta($where, $meta = null){
 		mpre("Ошибочный формат внешнего адреса index &laquo;". get($where, 'location'). "&raquo;");
 	}else{// mpre($index, $location);
 		if("/" == substr($index = get($where, 1), 0, 1)){
-			$seo_index = fk("{$conf['db']['prefix']}seo_index", $w = array("name"=>$index), $w += array("index_type_id"=>(get($meta, 'index_type_id') ?: 1), "cat_id"=>get($meta, 'cat_id')));
+			$seo_index = fk("seo-index", $w = array("name"=>$index), $w += array("index_type_id"=>(get($meta, 'index_type_id') ?: 1), "cat_id"=>get($meta, 'cat_id')), $w);
 		}else{ $seo_index = array('id'=>0); }
-		if($seo_location = fk("{$conf['db']['prefix']}seo_location", $w = array("name"=>$location), $w += array("location_status_id"=>(get($meta, "location_status_id") ?: 301), "index_id"=>$seo_index['id'], "cat_id"=>get($meta, 'cat_id')), $w)){
+		if($seo_location = fk("seo-location", $w = array("name"=>$location), $w += array("location_status_id"=>(get($meta, "location_status_id") ?: 301), "index_id"=>$seo_index['id'], "cat_id"=>get($meta, 'cat_id')), $w)){
 //			exit(mpre($seo_index, $seo_location));
 			if(empty($seo_index)){
 				return $where + $seo_location;
 			}else if(array_key_exists('location_id', $seo_index)){ # Односайтовый режим работы
-				if($seo_index = fk("{$conf['db']['prefix']}seo_index", array("id"=>$seo_index['id']), null, array("location_id"=>$seo_location['id'], "cat_id"=>get($meta, 'cat_id'))+array_diff_key($meta, array_flip(["id"])))){
+				if($seo_index = fk("seo-index", array("id"=>$seo_index['id']), null, array("location_id"=>$seo_location['id'], "cat_id"=>get($meta, 'cat_id'))+array_diff_key($meta, array_flip(["id"])))){
 					return $where + $seo_index;
 				}else{ mpre("Ошибка установки внешнего адреса односайтового режима"); }
 			}else if($themes_index = get($conf, 'user', 'sess', 'themes_index')){ # Многосайтовый режим
 				if($tpl['seo_index_themes'] = rb("seo-index_themes", "index_id", "location_id", "themes_index", "id", $seo_index['id'], $seo_location['id'], $themes_index['id'])){
 					if((1 == count($tpl['seo_index_themes'])) && ($seo_index_themes = array_pop($tpl['seo_index_themes']))){
 						mpevent("Обновление мета информации", $seo_index['name']);
-						$seo_index_themes = fk("{$conf['db']['prefix']}seo_index_themes", array("id"=>$seo_index_themes['id']), null, $meta += array("up"=>time()));
+						$seo_index_themes = fk("seo-index_themes", array("id"=>$seo_index_themes['id']), null, $meta += array("up"=>time(), "cat_id"=>$meta['cat_id']));
 					}else{ mpre("Ошибка структуры метаинформации (множественная информация для одного адреса)", $w); }
-				}elseif($seo_index_themes = fk("{$conf['db']['prefix']}seo_index_themes", $w = array("index_id"=>$seo_index['id'], "location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id']), $w + (array)$meta)){
+				}elseif($seo_index_themes = fk("seo-index_themes", $w = array("index_id"=>$seo_index['id'], "location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id']), $w + (array)$meta)){
 					if(get($seo_index, "id")){
-						if($seo_location_themes = fk("{$conf['db']['prefix']}seo_location_themes", $w = array("location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id'], "index_id"=>$seo_index['id']), $w)){
+						if($seo_location_themes = fk("seo-location_themes", $w = array("location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id'], "index_id"=>$seo_index['id']), $w)){
 							return $where + $seo_index_themes;
 						}else{ mpre("Ошибка добавления перенаправления", $w); }
 					}else{ return ($meta !== null ? $seo_index_themes : false); }
@@ -726,7 +726,7 @@ function erb($src, $key = 'id'){
 			if(is_null($val)){
 				return "`{$key}` IS NULL";
 			}elseif(is_array($val)){
-				return "`{$key}` IN (". in($val). ")";
+				return "(`{$key}` IN (". in(array_diff_key($val, array_flip(['NULL']))). ")". (array_key_exists('NULL', $val) ? " OR (`{$key}` IS NULL)" : ""). ")";
 			}else{
 				return "`{$key}`=". intval($val);
 			}
@@ -744,7 +744,6 @@ function erb($src, $key = 'id'){
 			}
 		}else{ $n = array(); }
 	}else{ $return = $src; }
-
 	foreach($purpose as $v){
 		$r = array();
 		if(is_null($v)){ # Сортировка по NULL
@@ -752,7 +751,9 @@ function erb($src, $key = 'id'){
 		}else if(is_numeric($v) || empty($v)){ # Выборка по целочисленному ключу
 			$return = get($return, $v) ? $return[ $v ] : array();
 		}else if(is_array($v)){ # Сортировка по ключям массива
-			foreach($return as $key=>$val){
+			if(array_key_exists("NULL", $v)){
+				$v[null] = true; # Ноль интерпритируется как пустая строка
+			} foreach($return as $key=>$val){
 				if(array_key_exists($key, $v)){
 					$r = array_replace_recursive($r, $val);
 				}
@@ -887,7 +888,7 @@ function mpevent($name, $description = null, $own = null){
 				$users_event_logs = fk("{$conf['db']['prefix']}users_event_logs", null, $w = array("event_id"=>$users_event['id'], "themes_index"=>get($conf, "user", "sess", "themes_index", "id"), "description"=>$description), $w);
 				if($users_event['name'] != ($ref = "Источник ошибки")){
 					if(get($_SERVER, 'HTTP_REFERER') && ($parse_url = parse_url($_SERVER['HTTP_REFERER']))){
-						if(array_key_exists("event_logs_id", $referer = mpevent($ref, "{$parse_url['scheme']}://". (function_exists("idn_to_utf8") ? idn_to_utf8($parse_url['host']) : $parse_url['host']). urldecode($parse_url['path'])))){
+						if(array_key_exists("event_logs_id", $referer = mpevent($ref, (function_exists("idn_to_utf8") ? idn_to_utf8($parse_url['host']) : $parse_url['host']). urldecode($parse_url['path'])))){
 							if($referer = fk("{$conf['db']['prefix']}users_event_logs", array("id"=>$referer['id']), null, array("event_logs_id"=>$users_event_logs['id']))){
 								$users_event_logs = fk("{$conf['db']['prefix']}users_event_logs", array("id"=>$users_event_logs['id']), null, array("event_logs_id"=>$referer['id']));
 							}else{ mpre("Ошибка сохранения события Источник ошибки"); }
@@ -1443,7 +1444,7 @@ function pre(){
 	} return get(func_get_args(), 0);
 } function mpre(){
 	global $conf, $arg, $argv;
-	if(array_key_exists('user', $conf) && array_key_exists('gid', $conf['user']) && array_search("Администратор", $conf['user']['gid'])){
+	if(($gid = get($conf, 'user', 'gid')) && (array_search("Администратор", $gid))){
 		return call_user_func_array('pre', func_get_args());  # Выводим для возможности использования внутри условных операторов if(true && mpre("То, что смотрим") && true){ echo "Условие сработает"; }
 	}
 //	if(empty($argv) && ($arg['access'] < $access)) return;

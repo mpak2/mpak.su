@@ -2,7 +2,7 @@
 
 if(mpsettings($t = "seo_cat", "Категория") && ($table = ("{$conf['db']['prefix']}{$t}"))){
 qw("CREATE TABLE `{$table}` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `alias` varchar(255) NOT NULL,
   `href` varchar(255) NOT NULL DEFAULT '/{name}',
