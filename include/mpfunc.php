@@ -591,7 +591,8 @@ function mpsmtp($to, $subj, $text, $from = null, $files = array(), $login = null
 	$mail->Username = $auth[0];
 	$mail->Password = $auth[1];
 	$mail->isHTML(mp_is_html($text));
-	$mail->setLanguage('ru');
+	$mail->setLanguage('ru'); 
+	$mail->CharSet = 'UTF-8';
 	$emailRegex = "[\w_\-\.]+@[\w_\-\.]+\.\w+";	
 	if(isset($Providers[$host[0]])){
 		$mail->SMTPSecure = 'ssl';
