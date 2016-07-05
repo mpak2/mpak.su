@@ -32,6 +32,7 @@ $menu = array(
 	array('id'=>'7', 'theme'=>'zhiraf', 'src'=>'admin/blocks/top', 'name'=>'АдминШапка', 'access'=>'0', 'reg_id'=>'4'),
 	array('id'=>'8', 'theme'=>'zhiraf', 'src'=>'admin/blocks/modlist', 'name'=>'СписокМодулей', 'access'=>'0', 'reg_id'=>'-1'),
 	array('id'=>'9', 'theme'=>'zhiraf', 'src'=>'users/blocks/online', 'name'=>'Кто на сайте', 'access'=>'0', 'reg_id'=>'-1'),
+	array('id'=>'10', 'theme'=>'!zhiraf', 'src'=>'themes/blocks/header.tpl', 'name'=>'Заголовоки сайта', 'alias'=>'header', 'shablon'=>'1', 'access'=>'1', 'reg_id'=>''),
 
 //	array('id'=>'9', 'theme'=>'!zhiraf', 'src'=>'users/blocks/user', 'name'=>'Свойства пользователя', 'access'=>'1', 'reg_id'=>'7'),
 //	array('id'=>'12', 'theme'=>'!zhiraf', 'src'=>'pages/blocks/my', 'name'=>'Мои статьи', 'access'=>'1', 'reg_id'=>'7'),

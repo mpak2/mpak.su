@@ -5,6 +5,7 @@ qw("CREATE TABLE `{$table}` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `src` varchar(255) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
+  `alias` varchar(255) NOT NULL,
   `theme` varchar(255) NOT NULL,
   `shablon` varchar(255) NOT NULL,
   `access` smallint(6) NOT NULL,

@@ -1484,10 +1484,11 @@ function mpquot($data){
 	$data = str_replace('"', '\"', $data); 
 	$data = str_replace("\x00", "\\x00", $data); 
 	$data = str_replace("\x1a", "\\x1a", $data); 
-	$data = str_replace("\r", "\\r", $data); 
-	$data = str_replace("\n", "\\n", $data); 
 	if($conf['db']['type'] == 'sqlite'){
 		$data = strtr($data, ["'"=>"''", '"'=>'""']);
+	}else{
+		$data = str_replace("\r", "\\r", $data); 
+		$data = str_replace("\n", "\\n", $data); 
 	} return $data;
 }
 
