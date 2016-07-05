@@ -14,10 +14,12 @@
 					var index_id = $(e.currentTarget).parents("[index_id]").attr("index_id");
 					$.post("/<?=$arg['modname']?>:<?=$arg['fn']?>/"+yandex_id+"/null", {index_id:index_id, api:api}, function(response){
 						if(isNaN(response)){ alert(response) }else{
-							document.location.reload(true);
+							$(e.currentTarget).find("strong").unwrap().css("color", "green");
+//							console.log($(e.currentTarget), $(e.currentTarget).find("strong"));
+//							document.location.reload(true);
 						}
 					})
-					$(e.currentTarget).find("strong").unwrap();
+					$(e.currentTarget).find("strong").removeClass("reg").css("color", "black");
 				}).on("upgrade", function(e, data){
 					$.ajax({
 						type: "POST",

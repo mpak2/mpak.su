@@ -38,7 +38,7 @@ $menu = array(
 );
 
 foreach($menu as $line){
-	$blocks_index = fk("{$conf['db']['prefix']}{$arg['modpath']}_index", $w = array("id"=>$line['id']), $line, $line);
+	$blocks_index = fk("{$arg['modpath']}-index", $w = array("id"=>$line['id']), $line, $line);
 };
 
 qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='1', `gid`='2', `access`='1', `description`='Права доступа администратора к блоку смены шаблонов'");

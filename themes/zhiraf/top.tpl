@@ -1,7 +1,7 @@
-<ul class="nav">
+<ul class="menu">
 	<style>
-		ul.nav > li ul {display:none;}
-		ul.nav > li:hover ul {display:block;}
+		ul.menu > li ul {display:none;}
+		ul.menu > li:hover ul {display:block;}
 	</style>
 	<script>
 		(function($, script){

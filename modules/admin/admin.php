@@ -44,7 +44,7 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 				}else{ mpre("Тип записи не найден {$w}"); }
 			}else{ /*mpre("Логирование запросов выключено");*/ }
 
-			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=\"". mpquot(htmlspecialchars_decode($val)). "\""; });
+			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=". ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\""); });
 			qw($sql = "UPDATE `{$_GET['r']}` SET ". implode(", ", array_values($_POST)). " WHERE id=". (int)$_GET['id']);
 			$el = rb($_GET['r'], "id", $_GET['id']);
 		}else{
@@ -53,10 +53,9 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 					if(is_array($val)){
 						$_POST[$key] = null;
 					}else{
-						$_POST[$key] = "\"". mpquot(htmlspecialchars_decode($val)). "\"";
+						$_POST[$key] = ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\"");
 					}
 				}); $_POST = array_filter($_POST);
-
 				foreach($ar as $a=>$r){
 					foreach($r as $v){
 						if($post = $_POST + array($a=>$v)){
@@ -70,8 +69,15 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 					}
 				} $el = rb($_GET['r'], "id", $_GET['id']);
 			}else{
-				array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "\"". mpquot(htmlspecialchars_decode($val)). "\""; });
-				qw($sql = "INSERT INTO `{$_GET['r']}` (`". implode("`, `", array_keys($_POST)). "`) VALUES (". implode(", ", array_values($_POST)). ")");
+				array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\""); });
+				mpqw($sql = "INSERT INTO `{$_GET['r']}` (`". implode("`, `", array_keys($_POST)). "`) VALUES (". implode(", ", array_values($_POST)). ")", "Добавление записи в таблицу из админстраницы", function($error) use($conf){
+					if(($fields = fields($_GET['r'])) && preg_match("#Column '([\w-_]+)' cannot be null#", $error, $match)){
+						if($type = $fields[$match[1]]['Type']){
+							mpre("Правка структуры таблицы", $sql = "ALTER TABLE {$_GET['r']} CHANGE `{$match[1]}` `{$match[1]}` {$type} DEFAULT NULL COMMENT '". mpquot(get($fields, $match[1], 'Comment')). "'", $error, $match, get($fields, $match[1]));
+							qw($sql);
+						}else{ mpre("Тип данных для правки структуры БД не определен", $_GET['r'], $match); }
+					}else{ /*mpre("Ошибка определения структуры запроса");*/ }
+				});
 				$_GET['id'] = $conf['db']['conn']->lastInsertId();
 				$el = rb($_GET['r'], "id", $_GET['id']);
 			}
@@ -121,7 +127,9 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 		} exit(htmlspecialchars(json_encode($el)));
 	}
 }else{ # Выборка таблицы
-	if($conf['db']['type'] == "sqlite"){
+	if(strpos($_GET['r'], "-") && ($r = explode("-", $_GET['r']))){
+		$_GET['r'] = $conf['db']['prefix']. first($r). "_". last($r);
+	} if($conf['db']['type'] == "sqlite"){
 		$tpl['tables'] = array_column(qn("SELECT * FROM sqlite_master WHERE type='table' AND name LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\"", "name"), "name");
 	}else{
 		$tpl['tables'] = array_column(ql("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\""), "Tables_in_{$conf['db']['name']}");
@@ -168,8 +176,12 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 		}
 		if($settings_espisok = get($conf, 'settings', "{$arg['modpath']}=>espisok")){
 			foreach(explode(",", $settings_espisok) as $espisok){
-				$tpl['espisok'][$espisok] = rb("{$conf['db']['prefix']}{$espisok}", "id");
+				$tpl['espisok'][$espisok] = rb("{$conf['db']['prefix']}{$espisok}");
 			}
+		} foreach($tpl['fields'] as $field){
+			if((count($fd = explode("-", $field['Field'])) >= 2) && get($conf, 'modules', $fd[0])){
+				$tpl['espisok'][$field['Field']] = rb($field['Field']);
+			}else{ /*mpre("Что-то пошло не так...");*/ }
 		}
 		if($tab = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))){
 			foreach($tpl['tables'] as $tables){

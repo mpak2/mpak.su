@@ -4,7 +4,7 @@
 			if($alias = "{$arg['modpath']}:{$arg['fn']}". (($keys = array_keys(array_diff_key($get, array_flip(["m", "id"])))) ? "/". implode("/", $keys) : "")){
 				if($seo_cat = fk("{$conf['db']['prefix']}seo_cat", $w = array("alias"=>$alias), $w += array("name"=>$conf['modules'][$arg['modpath']]['name']. " » ". (get($conf, 'settings', "{$arg['modpath']}_{$arg['fn']}") ?: $arg['fn']))/*, $w*/)){
 					if(empty($seo_cat['hide'])){
-						if(!$canonical || (array_key_exists("up", $seo_cat) && array_key_exists("up", $canonical) && ($seo_cat['up'] > $canonical['up']))){ # Нет мета или обновление категории больше чем у записи
+						if(!$canonical /*|| (array_key_exists("up", $seo_cat) && array_key_exists("up", $canonical) && ($seo_cat['up'] > $canonical['up']))*/){ # Нет мета или обновление категории больше чем у записи
 
 							if($settings = mpzam($conf['settings'], "settings")){
 								if($characters_lang = rb("{$conf['db']['prefix']}seo_characters_lang", "name", $w = "[". ((strpos($_SERVER['HTTP_HOST'], "xn--") === 0) ? "Русские" : "Английские"). "]")){
@@ -22,7 +22,9 @@
 															}
 														}
 													}//else{ mpre($n, $match); }
-												} if(!empty($e)){
+												} if(!empty($e)){/*{
+															$meta[$k] = strtr(strtr($m, $settings), $mpzam);
+														}*/
 													foreach($e as $t){
 														if(strpos($t['table'], "-")){
 															if($id = get($get, $t['table'])){
@@ -38,11 +40,10 @@
 													}
 												} if($mpzam = mpzam(empty($data) ? $default : array(""=>$default)+$data)){// exit(mpre($mpzam));
 													foreach(array_intersect_key($seo_cat, array_flip(array('title', 'description', 'keywords'))) as $k=>$m){
-														if($m){
-															mpre($k, $m, $mpzam);
+														if($m){// mpre($k, $m, $mpzam);
 															$meta[$k] = strtr(strtr($m, $settings), $mpzam);
 														}
-													} mpre($meta); if($src = htmlspecialchars_decode(mb_strtolower(strtr($seo_cat['href'], $mpzam+$settings), 'UTF-8'))){
+													} if($src = htmlspecialchars_decode(mb_strtolower(strtr($seo_cat['href'], $mpzam+$settings), 'UTF-8'))){
 														if(!preg_match_all("#{(.*):?(.*?)}#", $src. implode("", $meta), $match) && (substr($src, -1) != "/")){
 															if($meta && $location = meta(array(urldecode($uri), $src = strtr($src, $characters)), $meta += array("cat_id"=>$seo_cat['id']))){
 																mpevent("Мета элемент", $src);

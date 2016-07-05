@@ -251,21 +251,21 @@
 									</select>
 								<? elseif($name == "uid"): ?>
 									<select name="<?=$name?>">
-										<option></option>
+										<option value="NULL"></option>
 										<? foreach(rb("{$conf['db']['prefix']}users") as $uid): ?>
 											<option value="<?=$uid['id']?>" <?=((get($tpl, 'edit', $name) == $uid['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $uid['id'])) ? "selected" : "")?>><?=$uid['name']?></option>
 										<? endforeach; ?>
 									</select>
 								<? elseif($name == "gid"): ?>
 									<select name="<?=$name?>">
-										<option></option>
+										<option value="NULL"></option>
 										<? foreach(rb("{$conf['db']['prefix']}users_grp") as $gid): ?>
 											<option value="<?=$gid['id']?>" <?=((get($tpl, 'edit', $name) == $gid['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $uid['id'])) ? "selected" : "")?>><?=$uid['name']?></option>
 										<? endforeach; ?>
 									</select>
 								<? elseif($name == "mid"): ?>
 									<select name="<?=$name?>">
-										<option></option>
+										<option value="NULL"></option>
 										<? foreach(rb("{$conf['db']['prefix']}modules_index") as $modules): ?>
 											<option value="<?=$mid['id']?>" <?=((get($tpl, 'edit', $name) == $modules['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $modules['id'])) ? "selected" : "")?>><?=$modules['name']?></option>
 										<? endforeach; ?>
@@ -277,7 +277,7 @@
 										<? if(get($tpl, 'edit', $name) && !rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($name, 0, -3), "id", $tpl['edit'][$name])): ?> 
 											<option><?=htmlspecialchars($tpl['edit'][$name])?></option>
 										<? endif; ?> 
-										<option></option>
+										<option value="NULL"></option>
 										<? foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($name, 0, -3)) as $ln): ?> 
 											<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $name) == $ln['id']) || (!get($tpl, 'edit') && ($ln['id'] == (get($_GET, 'where', $name) ?: $field['Default']))) ? "selected" : "")?>>
 												<?=$ln['id']?>&nbsp;<?=$ln['name']?>
@@ -288,7 +288,7 @@
 									<?=mpwysiwyg($name, get($tpl, 'edit', $name) ?: "")?>
 								<? elseif($tpl_espisok = get($tpl, 'espisok', $name)): ?>
 									<select name="<?=$name?>">
-										<option></option>
+										<option value="NULL"></option>
 										<? foreach($tpl_espisok as $espisok): ?>
 											<option value="<?=$espisok['id']?>" <?=(((!get($tpl, 'edit') && ($field['Default'] == $espisok['id'])) || ($espisok['id'] == get($tpl, 'edit', $name)) || (array_key_exists('edit', $_GET) && (get($_GET, 'where', $name) == $espisok['id']))) ? "selected" : "")?>><?=$espisok['id']?> <?=$espisok['name']?></option>
 										<? endforeach; ?>
@@ -410,9 +410,9 @@
 												<span style="color:red;"><?=$v?></span>
 											<? endif; ?>
 										<? elseif(get($tpl, 'espisok', $k)): ?>
-											<a class="ekey" href="/<?=first(explode("_", $k))?>:admin/r:<?=$conf['db']['prefix']?><?=$k?>?&where[id]=<?=$v?>" title="<?=$v?>"></a>
-											<? if($name = get($tpl, 'espisok', $k, $v, 'name')): ?>
-												<?=(strlen($name) > 16 ? mb_substr($name, 0, 16, "UTF-8"). "..." : $name)?>
+											<? if($e = get($tpl, 'espisok', $k, $v)): ?>
+												<a class="ekey" href="/<?=first(explode("_", $k))?>:admin/r:<?=$conf['db']['prefix']?><?=$k?>?&where[id]=<?=$v?>" title="<?=$v?>"></a>
+												<?=(strlen($name = get($e, "name")) > 16 ? mb_substr($name, 0, 16, "UTF-8"). "..." : $name)?>
 											<? endif; ?>
 										<? elseif($k == "name"): ?>
 											<a href="/<?=$arg['modpath']?>
@@ -449,7 +449,7 @@
 											<? if(($f = get($tpl, 'edit', $name)) && !rb("{$conf['db']['prefix']}users", "id", $f)): ?>
 												<option value="<?=$tpl['edit'][$name]?>" selected><?=$tpl['edit'][$name]?></option>
 											<? endif; ?>
-											<option></option>
+											<option value="NULL"></option>
 											<? foreach(rb("{$conf['db']['prefix']}users") as $uid): ?>
 												<option value="<?=$uid['id']?>" <?=((get($tpl, 'edit', $name) == $uid['id']) || (!get($tpl, 'edit') && ($uid['id'] == $conf['user']['uid'])) ? "selected" : "")?>>
 													<?=$uid['id']?> <?=$uid['name']?>
@@ -461,7 +461,7 @@
 											<? if($tpl['edit'][$name] && !rb("{$conf['db']['prefix']}users", "id", $tpl['edit'][$name])): ?>
 												<option value="<?=$tpl['edit'][$name]?>" selected><?=$tpl['edit'][$name]?></option>
 											<? endif; ?>
-											<option></option>
+											<option value="NULL"></option>
 											<? foreach(rb("{$conf['db']['prefix']}users_grp") as $gid): ?>
 												<option value="<?=$gid['id']?>" <?=(($tpl['edit'] && ($tpl['edit'][ $name ] == $gid['id'])) || (!$tpl['edit'] && ($gid['id'] == $conf['user']['uid'])) ? "selected" : "")?>>
 													<?=$gid['id']?> <?=$gid['name']?>
@@ -470,11 +470,11 @@
 										</select>
 									<? elseif($name == "mid"): ?>
 										<select name="<?=$name?>">
-											<? if(($f = get($tpl, 'edit', $name)) && !rb("{$conf['db']['prefix']}modules_index", "id", $f)): ?>
+											<? if(($f = get($tpl, 'edit', $name)) && !rb("modules-index", "id", $f)): ?>
 												<option value="<?=$tpl['edit'][$name]?>" selected><?=$tpl['edit'][$name]?></option>
 											<? endif; ?>
-											<option></option>
-											<? foreach(rb("{$conf['db']['prefix']}modules_index") as $mid): ?>
+											<option value="NULL"></option>
+											<? foreach(rb("modules-index") as $mid): ?>
 												<option value="<?=$mid['id']?>" <?=((!get($tpl, 'edit', 'uid') && ($mid['id'] == get($conf, 'user', 'uid'))) || ($mid['id'] == get($tpl, 'edit', $name)) ? "selected" : "")?>>
 													<?=$mid['id']?> <?=$mid['name']?>
 												</option>
@@ -484,19 +484,19 @@
 										<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", (get($_GET, 'edit') ? rb($_GET['r'], "id", $_GET['edit'], $name) : time()))?>" placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
 									<? elseif((substr($name, -3) == "_id") && (false === array_search(substr($name, 0, strlen($name)-3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
 										<select name="<?=$name?>" style="width:100%;">
-											<option></option>
-											<? if(get($tpl, "edit") && !rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($name, 0, -3), "id", $tpl['edit'][$name])): ?>
+											<option value="NULL"></option>
+											<? if(get($tpl, "edit", $name) && !rb("{$arg['modpath']}-". substr($name, 0, -3), "id", $tpl['edit'][$name])): ?>
 												<option selected style="color:red;"><?=htmlspecialchars($tpl['edit'][$name])?></option>
 											<? endif; ?>
-											<? foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($name, 0, -3)) as $ln): ?>
-												<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $name) == $ln['id']) || (($ln['id'] == (get($_GET, 'where', $name) ?: get($field, 'Default')))) ? "selected" : "")?>>
+											<? foreach(rb("{$arg['modpath']}-". substr($name, 0, -3)) as $ln): ?>
+												<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $name) == $ln['id']) || (!get($tpl, 'edit') && (($ln['id'] == (get($_GET, 'where', $name)) ?: get($field, 'Default')))) ? "selected" : "")?>>
 													<?=$ln['id']?>&nbsp;<?=htmlspecialchars(get($ln, 'name'))?>
 												</option>
 											<? endforeach; ?>
 										</select>
 									<? elseif(get($tpl, 'espisok', $name)): ?>
 										<select name="<?=$name?>">
-											<option></option>
+											<option value="NULL"></option>
 											<? foreach($tpl['espisok'][$name] as $espisok): ?>
 												<option value="<?=$espisok['id']?>" <?=((!get($tpl, 'edit') && ($field['Default'] == $espisok['id'])) || (get($tpl, 'edit', $name) == $espisok['id']) || (get($_GET, 'where', $name) == $espisok['id']) ? "selected" : "")?>>
 													<?=$espisok['id']?> <?=get($espisok, 'name')?>

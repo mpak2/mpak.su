@@ -214,8 +214,8 @@ function seo($href, $return = true){
 	}else{ return $href; }
 }
 
-if (!function_exists('mcont')){
-	function mcont($content){ # Загрузка содержимого модуля
+if (!function_exists('modules')){
+	function modules($content){ # Загрузка содержимого модуля
 		global $conf, $arg, $tpl;
 		foreach($_GET['m'] as $k=>$v){ $k = urldecode($k);
 			if($mod = get($conf, 'modules', $k) ?: rb(get($conf, 'modules'), "modname", "[{$k}]")){
@@ -278,16 +278,14 @@ if (!function_exists('mcont')){
 	}
 }
 
-if(!function_exists('bcont')){
-	function bcont($bid = null){# Загружаем список блоков и прав доступа
+if(!function_exists('blocks')){
+	function blocks($bid = null){# Загружаем список блоков и прав доступа
 		global $theme, $conf, $arg;
 		$conf['db']['info'] = "Выборка шаблонов блоков";
 		$blocks = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}blocks_index WHERE hide=0". ($bid ? " AND id=". (int)$bid : " ORDER BY sort"), "Запрос списка блоков", function($error) use($conf){
 			if(strpos($error, "Unknown column 'hide' in 'where clause'")){
 				qw(pre("ALTER TABLE {$conf['db']['prefix']}blocks_index CHANGE `enabled` `hide` smallint(6) NOT NULL", $error));
-				qw("UPDATE {$conf['db']['prefix']}blocks_index SET hide=-1 WHERE hide=1");
-				qw("UPDATE {$conf['db']['prefix']}blocks_index SET hide=1 WHERE hide=0");
-				qw("UPDATE {$conf['db']['prefix']}blocks_index SET hide=0 WHERE hide=-1");
+				qw("UPDATE {$conf['db']['prefix']}blocks_index SET hide=-1 WHERE hide=1; UPDATE {$conf['db']['prefix']}blocks_index SET hide=1 WHERE hide=0; UPDATE {$conf['db']['prefix']}blocks_index SET hide=0 WHERE hide=-1");
 			}
 		}));
 		$blocks_reg = mpqn(mpqw("SELECT *, `name` as name FROM {$conf['db']['prefix']}blocks_reg", "Запрос списка регионов", function($error, $conf){
@@ -330,7 +328,7 @@ if(!function_exists('bcont')){
 			$gt = mpgt(urldecode(last(explode($_SERVER['HTTP_HOST'], $_SERVER['HTTP_REFERER']))));
 		}else{ $gt = mpgt("/"); }
 
-		foreach(rb($blocks, "reg_id", "id", $reg+array(0=>array("id"=>0))) as $k=>$v){
+		foreach(rb($blocks, "reg_id", "id", $reg+array_flip(["NULL", 0])) as $k=>$v){
 			$conf['blocks']['info'][$v['id']] = $v;
 			if($v['access'] < 0){
 				$conf['blocks']['info'][ $v['id'] ]['access'] = get($conf, 'modules', first(explode('/', $v['src'])), 'access');
@@ -362,7 +360,8 @@ if(!function_exists('bcont')){
 				$conf['blocks']['info'][ $v['index_id'] ]['access'] = $v['access'];
 			}
 		}
-		foreach(rb($blocks, "reg_id", "id", $reg+array(0=>array("id"=>0))) as $k=>$v){
+
+		foreach(rb($blocks, "reg_id", "id", $reg+array_flip(["NULL", 0])) as $k=>$v){
 			if(($conf['settings']['theme'] == $v['theme']) || ((substr($v['theme'], 0, 1) == "!") && ($conf['settings']['theme'] != substr($v['theme'], 1)))){
 				$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
 				$mod = get($conf, 'modules', basename(dirname(dirname($v['src'])))) ?: array("folder"=>'');
@@ -892,7 +891,7 @@ function mpevent($name, $description = null, $own = null){
 							if($referer = fk("{$conf['db']['prefix']}users_event_logs", array("id"=>$referer['id']), null, array("event_logs_id"=>$users_event_logs['id']))){
 								$users_event_logs = fk("{$conf['db']['prefix']}users_event_logs", array("id"=>$users_event_logs['id']), null, array("event_logs_id"=>$referer['id']));
 							}else{ mpre("Ошибка сохранения события Источник ошибки"); }
-						}else{ mpre("Нет поля для сохранения источника"); }
+						}else{ /*mpre("Нет поля для сохранения источника");*/ }
 					}else{ /*mpre("Источник перехода не указан");*/ }
 				}else{ /*mpre("Повторное событие");*/ }
 				return $users_event_logs;

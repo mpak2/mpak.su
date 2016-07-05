@@ -84,17 +84,17 @@ if(!($sess = ql($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE `ip`='{$
 } if($_COOKIE["{$conf['db']['prefix']}sess"] != $sess['sess']){ # Если сессия с пришедшей кукисой не найдена
 	$sess['sess'] = ($sess['sess'] ?: md5("{$_SERVER['REMOTE_ADDR']}:".microtime()));
 	setcookie("{$conf['db']['prefix']}sess", $sess['sess'], 0, "/");
-}
-
-if(!isset($_REQUEST['NoUpSes']) OR !isset($_REQUEST['null'])){ # Обновление информации о сессии При запросе ресурса обязательна
-	mpqw("UPDATE {$conf['db']['prefix']}sess SET count_time = count_time+".time()."-last_time, last_time=".time().", ".(isset($_GET['null']) ? 'cnull=cnull' : 'count=count')."+1, sess=\"". mpquot($sess['sess']). "\" WHERE id=". (int)$sess['id']);
+} if(!isset($_REQUEST['NoUpSes']) OR !isset($_REQUEST['null'])){ # Обновление информации о сессии При запросе ресурса обязательна
+	qw("UPDATE {$conf['db']['prefix']}sess SET count_time = count_time+".time()."-last_time, last_time=".time().", ".(isset($_GET['null']) ? 'cnull=cnull' : 'count=count')."+1, sess=\"". mpquot($sess['sess']). "\" WHERE id=". (int)$sess['id']);
 }
 
 if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аутентификация' && $uid = mpql(mpqw("SELECT id FROM {$conf['db']['prefix']}users WHERE type_id=1 AND name = \"".mpquot($_POST['name'])."\" AND pass='".mphash($_POST['name'], $_POST['pass'])."'", 'Проверка существования пользователя'), 0, 'id')){
 	qw($sql = "UPDATE {$conf['db']['prefix']}sess SET uid=".($sess['uid'] = $uid)." WHERE id=". (int)$sess['id']);
 	qw($sql = "UPDATE {$conf['db']['prefix']}users SET last_time=". time(). " WHERE id=".(int)$uid);
+	setcookie("{$conf['db']['prefix']}modified_since", "1", 0, "/");
 }elseif(isset($_GET['logoff'])){ # Если пользователь покидает сайт
 	qw("UPDATE {$conf['db']['prefix']}sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
+	setcookie("{$conf['db']['prefix']}modified_since", "", 0, "/");
 	if(!empty($_SERVER['HTTP_REFERER'])){
 		exit(header("Location: ". ($conf['settings']['users_logoff_location'] ? $conf['settings']['users_logoff_location'] : $_SERVER['HTTP_REFERER'])));
 	} # Стираем просроченные сессии
@@ -232,11 +232,11 @@ if(!empty($conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settin
 if((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]){
 	$conf['settings']['theme'] = $conf['settings']["theme/*:admin"];
 } if(isset($_GET['m']['sqlanaliz'])){
-	$zblocks = bcont();
-	$content = mcont($content);
+	$zblocks = blocks();
+	$content = modules($content);
 }else{
-	$content = mcont($content);
-	$zblocks = bcont();
+	$content = modules($content);
+	$zblocks = blocks();
 }
 
 if($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". (array_key_exists("index", $conf['settings']) ? $conf['settings']['index'] : (array_key_exists("index", $_GET) ? basename($_GET['index']) : "index" )) . ".html")){
@@ -253,15 +253,11 @@ if(!array_key_exists('null', $_GET)){
 
 $conf['settings']['microtime'] = substr(microtime(true)-$conf['settings']['microtime'], 0, 8);
 
-/*foreach($conf['settings'] as $k=>$v){
-	if(is_string($v)){
-		$content = str_replace("<!-- [settings:$k] -->", $v, $content);
-	}	
-} mpre(get($conf, 'settings', "themes_expires") ?: 86400);*/ if(!array_key_exists("nocache", $_REQUEST)){
-	if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && !array_search("Зарегистрированные", $conf['user']['gid'])){
+if(!array_key_exists("nocache", $_REQUEST) && !array_search("Зарегистрированные", $conf['user']['gid']) && !get($_COOKIE, "{$conf['db']['prefix']}modified_since")){
+	if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])){
 		header("Cache-Control: max-age=". (get($conf, 'settings', "themes_expires") ?: 86400). ", private");
 		exit(header('HTTP/1.0 304 Not Modified'));
-	}else if(!array_search("Зарегистрированные", $conf['user']['gid'])){ # Исключаем админстраницу из кеширования
+	}else{
 		header("Cache-Control: max-age=". (get($conf, 'settings', "themes_expires") ?: 86400). ", public");
 		header('Last-Modified: '. date("r"));
 		header("Expires: ". gmdate("r", time()+(get($conf, 'settings', "themes_expires") ?: 86400)));

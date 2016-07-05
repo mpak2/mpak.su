@@ -10,16 +10,34 @@
 	.pager a.active {color:#fe8e23;}
 </style>
 
-<? inc("modules/themes/blocks/orders.tpl", array('arg'=>array("modpath"=>"themes"))) ?>
+<? if($livet = get($conf, 'themes', 'index', 'livet')): ?>
+	<!-- {literal} -->
+	<script type='text/javascript'>
+		window['li'+'v'+'eT'+'e'+'x'] = true,
+		window['live'+'TexI'+'D'] = <?=$livet?>,
+		window['liveT'+'ex_ob'+'jec'+'t'] = true;
+		(function() {
+			var t = document['cre'+'a'+'teElem'+'e'+'nt']('script');
+			t.type ='text/javascript';
+			t.async = true;
+			t.src = '//cs'+'15'+'.l'+'ivete'+'x.'+'ru'+'/js'+'/clie'+'nt.js';
+			var c = document['getElemen'+'tsByTag'+'Na'+'me']('script')[0];
+			if ( c ) c['p'+'ar'+'en'+'t'+'Nod'+'e']['i'+'nsertB'+'efore'](t, c);
+			else document['docume'+'n'+'tElemen'+'t']['firs'+'t'+'Ch'+'ild']['app'+'en'+'dCh'+'ild'](t);
+		})();
+	</script>
+	<!-- {/literal} -->
+<? endif; ?>
+
 
 <? if($themes_index = get($conf, 'user', 'sess', 'themes_index')): ?> 
 	<? if($pozvonim = get($themes_index, 'pozvonim')): ?> 
 		<script crossorigin="anonymous" async type="text/javascript" src="//api.pozvonim.com/widget/callback/v3/<?=$pozvonim?>/connect" id="check-code-pozvonim" charset="UTF-8"></script>
 	<? endif; ?> 
-	<? if($verification = get($themes_index, 'yandex-verification')): # Проверка вебмастера яндекса ?> 
+	<? if($verification = get($themes_index, 'yandex_verification')): # Проверка вебмастера яндекса ?> 
 		<meta name='yandex-verification' content='<?=$verification?>' />
 	<? endif; ?> 
-	<? if($verification = get($themes_index, 'google-verification')): # Проверка вебмастера гугл ?> 
+	<? if($verification = get($themes_index, 'google_verification')): # Проверка вебмастера гугл ?> 
 		<meta name="google-site-verification" content="<?=$verification?>" />
 	<? endif; ?> 
 	<? if(get($themes_index, 'index_cat_id') && ($themes_cat = rb("{$conf['db']['prefix']}themes_index_cat", "id", $themes_index['index_cat_id']))): ?> 
@@ -29,9 +47,57 @@
 	<? endif; ?> 
 <? endif; ?> 
 
+<!-- Yandex.Metrika counter -->
+	<? foreach(rb("{$conf['db']['prefix']}themes_yandex_metrika_index", "index_id", "id", $conf['user']['sess']['themes_index']['id']) as $themes_yandex_metrika_index): ?> 
+		<? if($themes_yandex_metrika = rb("{$conf['db']['prefix']}themes_yandex_metrika", "id", $themes_yandex_metrika_index['yandex_metrika_id'])): ?>
+			<script sync type="text/javascript">
+				/*<![CDATA[*/
+				(function (d, w, c) {
+					(w[c] = w[c] || []).push(function() {
+						try {
+								eval("w.yaCounter<?=get($themes_yandex_metrika, 'id')?> = new Ya.Metrika({id:<?=get($themes_yandex_metrika, 'id')?>, webvisor:true, clickmap:true, trackLinks:true, accurateTrackBounce:true});");
+						} catch(e) { }
+					});
+				
+					var n = d.getElementsByTagName("script")[0],
+						s = d.createElement("script"),
+						f = function () { n.parentNode.insertBefore(s, n); };
+					s.type = "text/javascript";
+					s.async = true;
+					s.src = (d.location.protocol == "https:" ? "https:" : "http:") + "//mc.yandex.ru/metrika/watch.js";
+				
+					if (w.opera == "[object Opera]") {
+						d.addEventListener("DOMContentLoaded", f, false);
+					} else { f(); }
+				})(document, window, "yandex_metrika_callbacks");
+				/*]]>*/
+			</script>
+		<? endif; ?> 
+		<? if($tracking = get($themes_yandex_metrika_index, "tracking")): ?>
+			<!-- PrimeGate CallTracking-->
+				<script>
+					setTimeout(function(){
+						var headID = document.getElementsByTagName("head")[0]; 
+						var newScript = document.createElement('script');
+						newScript.type = 'text/javascript';
+						newScript.src = 'http://js.primecontext.ru/primecontext.min.js';
+						newScript.onload = function(){
+							var id = PrimeContext.init("<?=$tracking?>", 0, '.calltr', 'span', false);
+							ga('set', 'dimension1', id);
+							ga('send', 'pageview');
+						}; headID.appendChild(newScript);
+					}, 100)
+				</script>
+			<!-- PrimeGate CallTracking-->
+		<? endif; ?>
+	<? endforeach; ?> 
+<!-- /Yandex.Metrika counter -->
+
+<script type="text/javascript" src="//code.jquery.com/jquery-latest.js"></script>
+
 <? if(array_search("Администратор", $conf['user']['gid'])): ?> 
-	<? if($themes_index = $conf['user']['sess']['themes_index']): ?>
-		<script sync>
+	<? if($themes_index = get($conf, 'themes', 'index')): ?>
+		<script>
 			(function($, script){
 				$(script).parent().one("DOMNodeInserted", function(e){ // Ссылка на редактирование заголовка страницы
 					if("object" == typeof(index = $.parseJSON('<?=json_encode(get($conf, "settings", "canonical"))?>'))){// console.log("index", index);
@@ -49,4 +115,8 @@
 			})(jQuery, document.scripts[document.scripts.length-1])
 		</script>
 	<? endif; ?>
+<? endif; ?>
+
+<? if(get($conf, 'settings', 'themes_orders')): ?>
+	<? inc("modules/themes/blocks/orders.tpl") ?>
 <? endif; ?>

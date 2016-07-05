@@ -1,9 +1,10 @@
-<?
+<? # modules/menu/init.php
 
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index` (
+if(mpsettings($t = "menu_index", "Меню") && !tables($table = ("{$conf['db']['prefix']}{$t}"))){
+qw("CREATE TABLE `{$table}` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `index_id` int(11) NOT NULL,
-  `region_id` int(11) NOT NULL,
+  `region_id` int(11) NOT NULL DEFAULT '2',
   `img` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
   `href` varchar(255) NOT NULL DEFAULT '/',
@@ -14,16 +15,14 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index`
   KEY `index_id` (`index_id`),
   KEY `region_id` (`region_id`),
   KEY `sort` (`sort`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
-mpqw($sql);
-
-echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_region` (
+) ENGINE=MyISAM DEFAULT CHARSET=cp1251");
+} if(mpsettings($t = "menu_region", "Регионы") && !tables($table = ("{$conf['db']['prefix']}{$t}"))){
+qw("CREATE TABLE `{$table}` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `description` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
-mpqw($sql);
+) ENGINE=MyISAM DEFAULT CHARSET=cp1251");
+} 
 
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_index', 'Меню', '4', '')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_region', 'Регионы', '4', '')");
+mpsettings("{$arg['modpath']}_index=>order", "sort");

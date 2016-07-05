@@ -117,11 +117,12 @@
 							<p><button>Сохранить</button></p>
 						</form>
 					<? endif; ?>
-
 					<? if(($conf['db']['type'] == 'sqlite')): ?>
 						<? mpre("Для БД sqlite не реализованы вторичные ключи"); ?>
-					<? elseif(($tpl['key_column_usage'] = ql($sql = "SELECT * FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE (TABLE_NAME='{$_GET['r']}' AND REFERENCED_TABLE_NAME != '') OR REFERENCED_TABLE_NAME = '{$_GET['r']}'"))): ?>
-						<?// mpre("Список вторичных и первичных ключей для вторичных таблиц", $tpl['key_column_usage']); ?>
+					<? else: ?>
+						<? if($tpl['key_column_usage'] = ql(($sql = "SELECT * FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE (TABLE_NAME='{$_GET['r']}' AND REFERENCED_TABLE_NAME != '') OR REFERENCED_TABLE_NAME = '{$_GET['r']}'"))): ?>
+							<?// mpre("Список вторичных и первичных ключей для вторичных таблиц", $tpl['key_column_usage']); ?>
+						<? endif; ?>
 						<div class="table" style="width:100%;">
 							<script sync>
 								(function($, script){
@@ -148,7 +149,7 @@
 									<?// mpre("Входящие ключи для {$fld['Field']} уже создан вторичный связанный ключ", $in_column_usage) ?>
 								<? endif; if($out_column_usage = rb($tpl['key_column_usage'], "TABLE_NAME", "COLUMN_NAME", "[{$_GET['r']}]", $fld['Field'])): ?>
 									<?// mpre("Исходящие ключи для {$fld['Field']} уже создан вторичный связанный ключ", $out_column_usage) ?>
-								<? endif; if(("_id" == substr($fld['Field'], -3)) || $in_column_usage): ?>
+								<? endif; if(("_id" == substr($fld['Field'], -3)) /*|| $in_column_usage*/): ?>
 									<div field="<?=$fld['Field']?>">
 										<span><?=$fld['Field']?></span>
 										<span>
