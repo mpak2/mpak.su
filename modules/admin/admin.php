@@ -178,9 +178,9 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 			foreach(explode(",", $settings_espisok) as $espisok){
 				$tpl['espisok'][$espisok] = rb("{$conf['db']['prefix']}{$espisok}");
 			}
-		} foreach($tpl['fields'] as $field){
-			if((count($fd = explode("-", $field['Field'])) >= 2) && get($conf, 'modules', $fd[0])){
-				$tpl['espisok'][$field['Field']] = rb($field['Field']);
+		} foreach($tpl['fields'] as $fd=>$field){
+			if((count($fd = explode("-", $fd)) >= 2) && get($conf, 'modules', $fd[0])){
+				$tpl['espisok'][$fd] = rb($fd);
 			}else{ /*mpre("Что-то пошло не так...");*/ }
 		}
 		if($tab = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))){

@@ -1475,6 +1475,7 @@ function mpqwt($result){
 	}; $tree($top, $tree, $func, $level, $line);
 }*/
 function mpquot($data){	
+	global $conf;
 	if(ini_get('magic_quotes_gpc')){
 		$data = stripslashes($data); //; Волшебные кавычки для входных данных GET/POST/Cookie. magic_quotes_gpc = On
 	}
@@ -1485,7 +1486,9 @@ function mpquot($data){
 	$data = str_replace("\x1a", "\\x1a", $data); 
 	$data = str_replace("\r", "\\r", $data); 
 	$data = str_replace("\n", "\\n", $data); 
-	return $data;
+	if($conf['db']['type'] == 'sqlite'){
+		$data = strtr($data, ["'"=>"''", '"'=>'""']);
+	} return $data;
 }
 
 # Изменение размеров изображения. ($max_width и $max_height) высота и ширина. Параметр $crop это способ обработки. Обрезать или вписать в размер
