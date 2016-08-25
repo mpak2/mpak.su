@@ -108,12 +108,12 @@ function get($ar){
 		}else{ return false; }
 	} return $ar;
 } function first($ar){
-	if(!empty($ar) && is_array($ar)){
-		return get($ar, min(array_keys($ar)));
+	if(!empty($ar) && is_array($ar) && ($keys = array_keys($ar))){
+		return get($ar, array_shift($keys));
 	}else{ return false; }
 } function last($ar){
-	if(!empty($ar) && is_array($ar)){
-		return get($ar, max(array_keys($ar)));
+	if(!empty($ar) && is_array($ar) && ($keys = array_keys($ar))){
+		return get($ar, array_pop($keys));
 	}else{ return false; }
 }
 
@@ -148,7 +148,7 @@ function indexes($table_name){
 }
 
 # Подключение страницы
-function inc($file_name, $variables = array(), $req = false){
+function inc($file_name, $variables = [], $req = false){
 	global $conf; extract($variables);
 	if(preg_match("#(.*)(\.php|\.tpl|\.html)$#", $file_name, $match)){
 		global $tpl;
@@ -162,8 +162,12 @@ function inc($file_name, $variables = array(), $req = false){
 				}
 			} if(array_search("Администратор", get($conf, 'user', 'gid'))){
 				ob_start();
-					if($req){ require $f; }else{ include $f; }
-				$content = ob_get_contents(); ob_end_clean();
+					if($req){
+						call_user_func_array(function($f, $variables) use(&$conf, &$arg, &$tpl){ extract($variables); require $f; }, [$f, $variables]);
+					}else{
+						call_user_func_array(function($f, $variables) use(&$conf, &$arg, &$tpl){ extract($variables); include $f; }, [$f, $variables]);
+					} $content = ob_get_contents();
+				ob_end_clean();
 				if((".tpl" == get($match, 2))){
 					echo strtr(get($conf, 'settings', 'modules_start'), array('{path}'=>$f));
 					if($nesting = nesting($content)){
@@ -248,7 +252,7 @@ if (!function_exists('modules')){
 						}else{
 							if(get($conf, 'settings', 'seo_meta')){ # Обработчик у каждой страницы всего сайта
 								if((($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? $canonical['name'] : $_SERVER['REQUEST_URI'])) && ($get = mpgt($uri))){
-									if(!array_key_exists("null", $get) && !array_key_exists("p", $get) && ($conf['settings']['theme/*:admin'] != $conf['settings']['theme']) && !array_search($arg['fn'], ['', 'ajax', 'json', '404', 'img'])){ # Нет перезагрузки страницы адреса
+									if(!array_key_exists("null", $get) && !array_key_exists("p", $get) && ($conf['settings']['theme/*:admin'] != $conf['settings']['theme']) && !array_search($arg['fn'], ['', 'ajax', 'json', '404'])){ # Нет перезагрузки страницы адреса
 										inc("modules/seo/admin_meta.php", array('arg'=>$arg, "uri"=>$uri, "get"=>$get, "canonical"=>$canonical));
 									}
 								}
@@ -698,7 +702,8 @@ function erb($src, $key = 'id'){
 			if($a === true){ # Удаляем условие на выборку (любые условия)
 				array_splice($keys, count($purpose), 1);
 			}else if(is_array($a)){
-				$purpose[] = (!mp_is_assoc($a) && mp_array_is_simple($a)) ? array_flip($a) : $a;
+//				$purpose[] = (!mp_is_assoc($a) && mp_array_is_simple($a)) ? array_flip($a) : $a; # Перестает работать при значении [0,0]
+				$purpose[] = $a;
 			}else if(is_null($a)){
 				$purpose[] = null;
 			}else{
@@ -713,7 +718,8 @@ function erb($src, $key = 'id'){
 		}
 	} if(is_numeric($key)){ # Второй параметр число строим пагинатор
 		if(is_array($tab = $src)){
-			$src = array_slice($src, 0, $key);
+			$tpl['pager'] = $conf['pager'] = mpager($cnt = count($src)/$key);
+			$src = array_slice($src, get($_GET, 'p')*$key, $key);
 		}else{
 			$where = array_map(function($key, $val){
 				return "`{$key}`". (is_array($val) ? " IN (". in($val). ")" : "=". (int)$val);
@@ -827,8 +833,8 @@ function mpdbf($tn, $post = null, $and = false){
 			} return $s['id'];
 		}else{ # Множественное обновление. Если в качестве условия используется несколько элементов
 			if($update && ($upd = mpdbf($tn, $update))){
-				qw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE `id` IN (". implode(",", array_keys($sel)). ")");
-			} return array_keys($sel);
+				qw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE `id` IN (". in($sel). ")");
+			} return $sel;
 		}
 	}elseif($insert){
 		if($fields = fields($tn)){
@@ -840,11 +846,28 @@ function mpdbf($tn, $post = null, $and = false){
 		} // qw($sql = "INSERT INTO `". mpquot($tn). "` SET ". mpdbf($tn, $insert+array("time"=>time(), "uid"=>(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0))));
 		return $sel['id'] = $conf['db']['conn']->lastInsertId();
 	}
-} function fdk($tn, $find, $insert = array(), $update = array(), $log = false){
-	if($index_id = mpfdk($tn, $find, $insert, $update, $log)){
-		if($line = ql("SELECT * FROM `$tn` WHERE id=". (int)$index_id, 0)){
-			return $line;
+} function fdk(&$tn, $find, $insert = array(), $update = array(), $log = false){
+	if(is_array($tn)){
+		$func_get_args = array_merge([$tn], array_keys($find), ['id'], array_values($find));
+		if($update){
+			if($tlist = call_user_func_array('rb', $func_get_args)){
+				foreach($tlist as $k=>&$ln){
+					$tlist[$k] = $ln = array_replace_recursive($ln, $update);
+				} $tn = array_replace_recursive($tn, $tlist); return count($tlist) ? first($tlist) : $tlist;
+			}else{ mpre("Результат для изменений не найдн"); }
+		}elseif($insert){
+			$tn[] = array();
+			$insert['id'] = last(array_keys($tn));
+			return ($tn[ $insert['id'] ] = $insert);
 		}else{ return false; }
+	}elseif($index_id = mpfdk($tn, $find, $insert, $update, $log)){
+		if($line = qn("SELECT * FROM `$tn` WHERE id IN (". (is_numeric($index_id) ? $index_id : in($index_id)). ")")){
+			if(1 == count($line)){
+				return first($line);
+			}else{ mpre("Количество элементов подходящих под условие больше одного", $tn, $find, $line);
+				return $line;
+			}
+		}else{ mpre("sql:", $sql); return false; }
 	}
 } function fk($t, $find, $insert = array(), $update = array(), $key = false, $log = false){
 	global $conf, $arg;
@@ -1244,7 +1267,6 @@ function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 	$result = array();
 	if($dbres){
 		while($line = $dbres->fetch(PDO::FETCH_ASSOC)){
-//		while(($line = $dbres->fetch(PDO::FETCH_COLUMN)) !== false){
 			if($z){
 				$result[ $line[$x] ][ $line[$y] ][ $line[$n] ][ $line[$z] ] = $line;
 			}elseif($n){

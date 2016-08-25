@@ -407,6 +407,9 @@ h2
 	border-bottom:1px solid #dbdbdd;
 	padding:0 0 0 14px;
 }
+#left ul.menu {
+	margin:10px;
+}
 #left .ModulesList li > a
 {
 	color:#6b6b6b;

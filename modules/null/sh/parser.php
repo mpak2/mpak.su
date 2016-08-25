@@ -17,6 +17,7 @@ if($argv){
 	if(file_exists(__DIR__. "/../../../index.phar")){
 		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: "phar:/". dirname(dirname(dirname(dirname(__FILE__)))). "/index.phar:". dirname(dirname(dirname(dirname(__FILE__)))));
 		if($mpfunc = tmpopendir("include/mpfunc.php")){ include $mpfunc; }else{
+			include "phar://../../../index.phar/include/config.php";
 			include "phar://../../../index.phar/include/mpfunc.php";
 		} include "../../../include/config.php";
 	}else{
@@ -44,18 +45,10 @@ if (strlen($conf['db']['error'] = mysql_error())){
 
 ###################################################################################################################################################
 
-if($html->load($data = mpde(mpcurl($w = "http://ru.aliexpress.com/")))){
-	foreach($html->find(".categories-list-box > dl") as $dl){
-		echo "\n". $html = $dl->outertext;
-
-	/*	do{ # Поиск следующего элемента
-			mpre($e)
-			$v['href'] = false;
-			if($p = $html->find("#pages p>em", 0)){
-				if($p = $p->parent()->next_sibling()){
-					$v['href'] = $p->find("a", 0)->href;
-				}
-			}
-		} while($v['href']);*/
-	}
-}else{ mpre("Ошибка открытия страницы ", $w); }
+if(array_search($cmd["deed"] = "Отобразить список сигналов", $cmd) == get($argv, 1)){
+	if($html->load($data = mpde(mpcurl($w = "http://ru.aliexpress.com/")))){
+		foreach($html->find(".categories-list-box > dl") as $dl){
+			echo "\n". $html = $dl->outertext;
+		}
+	}else{ mpre("Ошибка открытия страницы ", $w); }
+}else{ mpre($cmd); }

@@ -12,7 +12,7 @@
 			}).trigger("init")
 		})(jQuery, document.scripts[document.scripts.length-1])
 	</script>
-	<? foreach(rb("{$conf['db']['prefix']}menu_index", "region_id", "index_id", "id", $param['menu'], 0) as $index): # Пункты меню с нулевым родительским элементом ?>
+	<? foreach(rb("menu-index", "region_id", "index_id", "id", $param['menu'], "[0,NULL]") as $index): # Пункты меню с нулевым родительским элементом ?>
 		<li>
 			<a class="nav__link" href="<?=$index['href']?>" title="<?=$index['description']?>">
 				<?=$index['name']?>

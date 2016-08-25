@@ -259,7 +259,7 @@
 									<? endforeach; ?>
 								</select>
 							</p>
-							<p><textarea name="sql" style="width:100%; height:100px;" placeholder="Текст запроса"><?=($_GET['r'] ? "SHOW CREATE TABLE `{$_GET['r']}`" : "")?></textarea></p>
+							<p><textarea name="sql" style="width:100%; height:100px;" placeholder="Текст запроса"><? if(get($conf, 'db', 'type') == 'sqlite'): ?><?="PRAGMA table_info(`{$_GET['r']}`)"?><? else: ?><?=($_GET['r'] ? "SHOW CREATE TABLE `{$_GET['r']}`" : "")?><? endif; ?></textarea></p>
 							<p><button>Выполнить</button></p>
 						</form>
 						<div class="info"></div>

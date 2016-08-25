@@ -31,6 +31,9 @@
 #	RewriteCond %{HTTP_HOST} ^www.{HTTP_HOST}(.*)
 #	RewriteRule ^(.*)$ http://{HTTP_HOST}/$1 [R=301,L]
 
+#	RewriteCond %{REQUEST_URI} ^/themes/theme:([a-z0-9]+)/null/(.*)$
+#	RewriteRule theme:([a-z0-9]+)/null/(.*)$ /themes/$1/$2 [L]
+
 	RewriteCond %{DOCUMENT_ROOT}/index.phar !-f
 	RewriteRule ^(.*)$ /index.php [L]
 

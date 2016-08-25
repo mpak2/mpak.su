@@ -53,7 +53,7 @@ if($dump = get($_REQUEST, 'dump')){
 			exit(qw("DROP TABLE `{$table}`"));
 		}elseif($table = $_POST['table']){
 			if($conf['db']['type'] == 'sqlite'){
-				qw("CREATE TABLE `$table` (id PRIMARY KEY, time INTEGER, uid INTEGER, name TEXT)");
+				qw("CREATE TABLE `{$table}` (id INTEGER PRIMARY KEY ASC, time INTEGER, name TEXT)");
 			}else{
 				qw("CREATE TABLE `$table` (
 					id INT(11) AUTO_INCREMENT PRIMARY KEY,
@@ -74,7 +74,7 @@ if($dump = get($_REQUEST, 'dump')){
 				mpre("База данных sqlite не поддерживает удаление полей, поэтому делаем через промежуточную таблицу", $transaction = array(
 					"BEGIN TRANSACTION;",
 					"CREATE TEMPORARY TABLE backup(". implode(",", $fields). ");",
-					"INSERT INTO backup SELECT ". implode(", ", array_keys(array_diff_key($tpl['fields'], array_flip(array($f))))). " FROM ". mpquot($table). ";",
+					"INSERT INTO backup SELECT ". implode(", ", (array_map(function($f){ return (first(explode(" ", $f)) == "id" ? "{$f} PRIMARY KEY" : $f); }, array_keys(array_diff_key($tpl['fields'], array_flip(array($f))))))). " FROM ". mpquot($table). ";",
 					"DROP TABLE ". mpquot($table). ";",
 					"CREATE TABLE ". mpquot($table). "(". implode(",", $fields). ");",
 					"INSERT INTO ". mpquot($table). " SELECT * FROM backup;",
@@ -93,25 +93,25 @@ if($dump = get($_REQUEST, 'dump')){
 				}, array_diff_key($tpl['fields'], array_flip(array($f))));
 				mpre("База данных sqlite не поддерживает изменение полей, поэтому делаем через промежуточную таблицу", $transaction = array(
 					"BEGIN TRANSACTION;",
-					"CREATE TEMPORARY TABLE backup(". implode(",", $fields). ", {$fld['name']} {$fld['type']});",
+					"CREATE TEMPORARY TABLE backup(". implode(",", (array_map(function($f){ return (first(explode(" ", $f)) == "id" ? "{$f} PRIMARY KEY" : $f); }, $fields))). ", {$fld['name']} {$fld['type']});",
 					"INSERT INTO backup SELECT ". implode(", ", array_keys(array_diff_key($tpl['fields'], array_flip(array($f))))). ", {$f} FROM ". mpquot($table). ";",
 					"DROP TABLE ". mpquot($table). ";",
-					"CREATE TABLE ". mpquot($table). "(". implode(",", $fields). ", {$fld['name']} {$fld['type']});",
+					"CREATE TABLE ". mpquot($table). "(". implode(",", (array_map(function($f){ return (first(explode(" ", $f)) == "id" ? "{$f} PRIMARY KEY" : $f); }, $fields))). ", {$fld['name']} {$fld['type']});",
 					"INSERT INTO ". mpquot($table). " SELECT * FROM backup;",
 					"DROP TABLE backup;",
 					"COMMIT;",
 				)); foreach($transaction as $sql){
 					qw($sql);
-				}
+				}// qw(mpre("ALTER TABLE `{$table}` ADD PRIMARY KEY(id)"));
 			} $tpl['fields'] = fields($table);
 		}else if($fld['after'] || ($fields[$f]['Type'] != $fld['type']) || ($fields[$f]['Comment'] != $fld['comment']) || ($fields[$f]['Default'] != $fld['default']) || ($fld['name'] && ($fld['name'] != $f))){
 			qw($sql = ("ALTER TABLE `". mpquot($table). "` CHANGE `". mpquot($f). "` `". mpquot($fld['name'] ?: $f). "` ". mpquot($fld['type'] ?: $fields[$f]['Type']). ($fields[$f]['Null'] == "NO" ? " NOT NULL" : " NULL"). ($fld['default'] ? " DEFAULT ". ($fld['default'] == "NULL" ? mpquot($fld['default']) : "'". mpquot($fld['default']). "'") : ""). " COMMENT '". mpquot($fld['comment']). "'")); mpre($sql);
 			$tpl['fields'] = fields($table);
 		} if(empty($tpl['indexes'][$fld['name']]) && array_key_exists($f, $tpl['fields']) && array_key_exists('index', $fld) && $fld['index']){
 			if($conf['db']['type'] == 'sqlite'){
-				qw(mpre("CREATE INDEX {$fld['name']} ON `{$_GET['r']}` ({$fld['name']});"));
+				qw(mpre("CREATE INDEX `". substr($_GET['r'], $conf['db']['prefix']). "-{$fld['name']}` ON `{$_GET['r']}` ({$fld['name']});"));
 			}else{
-				qw($sql = "ALTER TABLE `{$_GET['r']}` ADD INDEX (`{$fld['name']}`)"); mpre($sql);
+				qw(mpre($sql = "ALTER TABLE `{$_GET['r']}` ADD INDEX (`{$fld['name']}`)"));
 			}
 //			$tpl['indexes'] = qn("SHOW INDEXES IN {$_GET['r']}", "Column_name");
 			$tpl['indexes'] = indexes($table);

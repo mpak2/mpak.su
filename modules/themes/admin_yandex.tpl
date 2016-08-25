@@ -3,19 +3,24 @@
 		<style>
 			.themes.yandex .active {background-color:#ddd;}
 			.table > div:hover {background-color:#ddd;}
-			.themes.yandex span.inc {color:green; font-weight:bold; display:none; }
+			.themes.yandex span.inc, .themes.yandex span.dec{ font-weight:bold; display:none; }
+			.themes.yandex span.inc { color:green; }
+			.themes.yandex span.dec { color:red; }
 			.themes.yandex span.inc:before { content:"+";  }
 		</style>
 		<script sync>
 			(function($, script){
-				$(script).parent().on("click", ".reg", function(e){
+				$(script).parent().on("mouseover", "a.reg", function(e){
+					if(e.ctrlKey){
+						$(e.currentTarget).trigger("click");
+					}
+				}).on("click", ".reg", function(e){
 					var api = $(e.currentTarget).attr("api");
 					var yandex_id = $(e.currentTarget).parents("[yandex_id]").attr("yandex_id");
 					var index_id = $(e.currentTarget).parents("[index_id]").attr("index_id");
 					$.post("/<?=$arg['modname']?>:<?=$arg['fn']?>/"+yandex_id+"/null", {index_id:index_id, api:api}, function(response){
 						if(isNaN(response)){ alert(response) }else{
 							$(e.currentTarget).find("strong").unwrap().css("color", "green");
-//							console.log($(e.currentTarget), $(e.currentTarget).find("strong"));
 //							document.location.reload(true);
 						}
 					})
@@ -33,22 +38,28 @@
 							}else if(data.api == "stats"){
 								if(count = response['index-count']){
 									var b = $(e.delegateTarget).find(xpath = "[index_id="+data.index_id+"] .index-count b").text()|0;
-									if((cnt = count - b) != 0){
+									if((cnt = count - b) > 0){
 										$(e.delegateTarget).find("[index_id="+data.index_id+"] .index-count span.inc").text(cnt).show();
+									}else if(cnt < 0){
+										$(e.delegateTarget).find("[index_id="+data.index_id+"] .index-count span.inc").text(cnt).removeClass("inc").addClass("dec").show();
 									}else{ console.log("b:", b, "index_count:", count); }
 								}else{ console.error("stats", response); }
 
 								if(count = response['internal-links-count']){
 									var b = $(e.delegateTarget).find(xpath = "[index_id="+data.index_id+"] .internal-links-count b").text()|0;
-									if((cnt = count - b) != 0){
+									if((cnt = count - b) > 0){
 										$(e.delegateTarget).find("[index_id="+data.index_id+"] .internal-links-count span.inc").text(cnt).show();
+									}else if(cnt < 0){
+										$(e.delegateTarget).find("[index_id="+data.index_id+"] .internal-links-count span.inc").text(cnt).removeClass("inc").addClass("dec").show();
 									}else{ console.log("b:", b, "internal-links-count:", count); }
 								}else{ console.error("stats", response); }
 
 								if(count = response['url-errors']){
 									var b = $(e.delegateTarget).find(xpath = "[index_id="+data.index_id+"] .url-errors b").text()|0;
-									if((cnt = count - b) != 0){
+									if((cnt = count - b) > 0){
 										$(e.delegateTarget).find("[index_id="+data.index_id+"] .url-errors span.inc").text(cnt).show();
+									}else if(cnt < 0){
+										$(e.delegateTarget).find("[index_id="+data.index_id+"] .url-errors span.inc").text(cnt).removeClass("inc").addClass("dec").show();
 									}else{ console.log("b:", b, "url-errors:", count); }
 								}else{ console.error("stats", response); }
 							} console.log(data, response);
@@ -87,14 +98,53 @@
 							}
 						}, nn*1000)
 					})($(e.delegateTarget).find("[index_id]:first"));
+				}).on("click", ".yandex_token a", function(e){
+					var yandex_token_id = $(e.currentTarget).attr("yandex_token_id");
+					var yandex_id = $(e.currentTarget).parents("[yandex_id]").attr("yandex_id");
+					$(e.currentTarget).contents().unwrap().wrap("<strong>");
+					$.ajax({
+						type: "POST",
+						url: "/<?=$arg['modpath']?>:<?=$arg['fn']?>/<?=$yandex['id']?>/null",
+						data:{api:"yandex_token", yandex_id:yandex_id, yandex_token_id:yandex_token_id},// async: false,
+						dataType: 'json',
+						success:function(response){
+							console.log("response:", response);
+//							$(e.currentTarget).css({color:"green"});
+								document.location.reload(true);
+						},
+						dataType:'json',
+						error:function(error){
+							alert(error.responseText);
+						}
+					})
 				})
 			})(jQuery, document.scripts[document.scripts.length-1])
 		</script>
 		<span style="float:right;">
-			<a class="upgrade" href="javascript:void(0)">Обновить</a>
-			<a target="blank" href="https://oauth.yandex.ru/authorize?response_type=token&client_id=<?=$yandex['code']?>">Получить токен</a>
+			<div>
+				<span class="yandex_token">
+					<? foreach(rb("yandex_token") as $yandex_token): ?>
+						<a yandex_token_id="<?=$yandex_token['id']?>" href="javascript:">
+							<?=(get($yandex_token, 'login') ?: $yandex_token['name'])?>
+						</a>
+							<span title="Количество сайтов в вебмастере"><?=count(rb("yandex_webmaster", "yandex_token_id", "id", $yandex_token['id']))?></span> /
+							<span title="Количество сайтов в метрике"><?=count(rb("yandex_metrika", "yandex_token_id", "id", $yandex_token['id']))?></span>
+					<? endforeach; ?>
+				</span>
+				<a class="upgrade" href="javascript:void(0)">Обновить</a>
+				<a target="blank" href="https://oauth.yandex.ru/authorize?response_type=token&client_id=<?=$yandex['code']?>">Получить токен</a>
+			</div>
 		</span>
 		<h1><?=$yandex['name']?></h1>
+		<? if(get($conf, 'settings', 'themes_index_cat')): ?>
+			<select>
+				<? foreach(rb("index_cat") as $index_cat): ?>
+					<option value="<?=$index_cat['id']?>"><?=$index_cat['name']?></option>
+				<? endforeach; ?>
+			</select>
+		<? endif; ?>
+		<? if($INDEX = rb("index", (get($_GET, 'limit') ?: 100), "index_cat_id", "id", (get($_GET, 'where', "index_cat_id") ?: true))): ?>
+			<p><?=$tpl['pager']?></p>
 			<div class="table">
 				<div class="th">
 					<span>Ид</span>
@@ -112,8 +162,7 @@
 					<span>вебм.</span>
 					<span>метр.</span>
 				</div>
-				<?// foreach($tpl["yandex_webmaster"] as $yandex_webmaster): ?>
-				<? foreach(rb("index") as $index): ?>
+				<? foreach($INDEX as $index): ?>
 					<? ($yandex_webmaster = rb("yandex_webmaster", "index_id", $index['id'])) ?>
 					<? ($yandex_metrika = rb("yandex_metrika", "index_id", $index['id'])) ?>
 					<div index_id="<?=$index['id']?>">
@@ -182,6 +231,8 @@
 					</div>
 				<? endforeach; ?>
 			</div>
+			<p><?=$tpl['pager']?></p>
+		<? else: mpre("Список хостов пуст"); endif; ?>
 	</div>
 <? elseif(count($tpl["yandex"] = rb("yandex")) == 1): # Если одно приложение, сразу же на него перенаправляем ?>
 	<? exit(header("Location: /{$arg['modname']}:{$arg['fn']}/". get(first($tpl["yandex"]), 'id'))) ?>

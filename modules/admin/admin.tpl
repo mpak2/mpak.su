@@ -61,8 +61,11 @@
 			.table .control a.del {display:inline-block; background:url(i/mgif.gif); background-position:0 -56px; width:16px; height:16px;}
 			.table a.key {display:inline-block; background:url(i/mgif.gif); background-position:-2px -155px; width:16px; height:16px; opacity:0.3}
 			.table a.ekey {display:inline-block; background:url(i/mgif.gif); background-position:-20px -155px; width:16px; height:16px; opacity:0.3}
-			.lines ul li {display:inline-block;}
-			.lines ul li:before{ content:"• "; }
+			.lines ul.admin li {display:inline-block;}
+			.lines ul.admin li:before{ content:"• "; }
+			.lines .settings ul li {display:list-item;}
+			.lines .settings ul li:before {content:none;}
+			.lines .settings .table>div>span:last-child {text-align:right;}
 		</style>
 		<script>
 			(function($, script){
@@ -75,56 +78,56 @@
 							}
 						})
 					}
-				}).on("click", "a.inc", function(e){
-					var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
-					$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>", {inc:line_id}, function(request){
-//						if(isNaN(request)){ alert(request) }else{
-							console.log("request:", request);
-							var main = $(e.currentTarget).parents("[line_id]");
-							var prev = $(main).prev("[line_id]");
-
-							if($(prev).length == 0){
+				}).on("invert", function(e, request, one, two){
+							if($(two).length == 0){
 								document.location.reload(true);
 							}else{
-								var main_id = $(main).attr("line_id");
-								var prev_id = $(prev).attr("line_id");
-								$(main).find(".sort span").text(request[main_id].sort);
-								$(prev).find(".sort span").text(request[prev_id].sort);
-								$(main).insertBefore(prev).promise().done(function(){
-									$(main).css("background-color", "#f4f4f4").promise().done(function(){
+								var one_id = $(one).attr("line_id");
+								var two_id = $(two).attr("line_id");
+								$(one).find(".sort span").text(request[one_id].sort);
+								$(two).find(".sort span").text(request[two_id].sort);
+
+								$(one).after(after = $("<div>after</div>"));
+
+								$(one).insertBefore(two).promise().done(function(){
+									$(one).css("background-color", "#f4f4f4").promise().done(function(){
 										setTimeout(function(){
-											$(main).css("background-color", "inherit");
+											$(one).css("background-color", "inherit");
 										}, 500);
+									});
+									$(two).insertBefore(after).promise().done(function(){
+										$(two).css("background-color", "#f4f4f4").promise().done(function(){
+											setTimeout(function(){
+												$(two).css("background-color", "inherit");
+											}, 500); $(after).remove();
+										});
 									});
 								});
 							}
-//						}
+				}).on("click", "a.inc", function(e){
+					var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
+					$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>", (e.ctrlKey ? {first:line_id} : {inc:line_id}), function(request){
+							console.log("request:", request);
+							var one = $(e.currentTarget).parents("[line_id]");
+							var two = $(one).prev("[line_id]");
+
+							if(e.ctrlKey){
+								document.location.reload(true);
+							}else{ $(e.delegateTarget).trigger("invert", [request, one, two]); }
 					}, "json").fail(function(error) {
 						console.error("error:", error);
 						alert(error.responseText);
 					});
 				}).on("click", "a.dec", function(e){
 					var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
-					$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>", {dec:line_id}, function(request){
+					$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>", (e.ctrlKey ? {last:line_id} : {dec:line_id}), function(request){
 							console.log("request:", request);
-							var main = $(e.currentTarget).parents("[line_id]");
-							var next = $(main).next("[line_id]");
+							var one = $(e.currentTarget).parents("[line_id]");
+							var two = $(one).next("[line_id]");
 
-							if($(next).length == 0){
+							if(e.ctrlKey){
 								document.location.reload(true);
-							}else{
-								var main_id = $(main).attr("line_id");
-								var next_id = $(next).attr("line_id");
-								$(main).find(".sort span").text(request[main_id].sort);
-								$(next).find(".sort span").text(request[next_id].sort);
-								$(main).insertAfter(next).promise().done(function(){
-									$(main).css("background-color", "#f4f4f4").promise().done(function(){
-										setTimeout(function(){
-											$(main).css("background-color", "inherit");
-										}, 500);
-									});
-								});;
-							}
+							}else{ $(e.delegateTarget).trigger("invert", [request, one, two]); }
 					}, "json").fail(function(error) {
 						console.error("error:", error);
 						alert(error.responseText);
@@ -202,6 +205,17 @@
 						<span style="width:430px;"><?=$tpl['pager']?></span>
 					<? endif; ?>
 					<span style="padding-right:20px; text-align:right;">
+						<script sync>
+							(function($, script){
+								$(script).parent().on("mouseenter mouseleave", "li.settings", function(e){ // Загрузка родительского элемента
+									if("mouseenter" == e.type){
+										$(e.delegateTarget).find("div.settings").show();
+									}else{
+										$(e.delegateTarget).find("div.settings").hide();
+									}
+								})
+							})(jQuery, document.scripts[document.scripts.length-1])
+						</script>
 						<? if($t = implode("_", array_slice(explode("_", $_GET['r']), 1))): # Короткое имя текущей таблицы ?>
 							<ul class="admin">
 								<? foreach(array_unique(array_map(function($f){ return first(explode('.', $f)); }, mpreaddir("/modules/{$arg['modpath']}", 1))) as $f): ?>
@@ -210,7 +224,35 @@
 									<? endif; ?>
 								<? endforeach; ?>
 								<li><b><a href="/sqlanaliz:admin_sql/r:<?=$_GET['r']?>">БД</a></b></li>
-								<li><b><a href="/settings:admin/r:<?=$conf['db']['prefix']?>settings/?&where[modpath]=<?=$arg['modpath']?>">СВ</a></b></li>
+								<li class="settings" style="position:relative;">
+									<div class="settings" style="display:none; position:absolute; width:300px; background-color:white; right:0px; top:20; text-align:left; min-height:50px;">
+										<h2>Свойства</h2>
+										<div style="padding:10px; border:1px solid #eee; border-top:0;">
+											<h4>Таблица</h4>
+											<div class="table" style="width:100%;">
+												<? foreach(["Название"=>"", "Заголовки"=>"=>title", "Сортировка"=>"=>order", "Список"=>"=>espisok", "Счетчик"=>"=>ecounter"] as $name=>$uri): ?>
+													<div>
+														<span><?=$name?></span>
+														<span>
+															<a href="/settings:admin/r:mp_settings/?&where[modpath]=<?=$arg['modpath']?>&where[name]=<?=($st = $t)?>">
+																<?=(get($conf, 'settings', $st) ?: "Нет")?>
+															</a>
+														</span>
+													</div>
+												<? endforeach; ?>
+												<div>
+													<span>Счетчик</span>
+													<span>
+														<a href="/settings:admin/r:mp_settings/?&where[modpath]=<?=$arg['modpath']?>&where[name]=<?=($st = "{$t}{$uri}")?>">
+															<?=(get($conf, 'settings', $st) ?: "Нет")?>
+														</a>
+													</span>
+												</div>
+											</div>
+										</div>
+									</div>
+									<b style="z-index:10;"><a href="/settings:admin/r:<?=$conf['db']['prefix']?>settings?&where[modpath]=<?=$arg['modpath']?>">СВ</a></b>
+								</li>
 							</ul>
 						<? endif; ?>
 					</span>
@@ -279,7 +321,7 @@
 										<? endif; ?> 
 										<option value="NULL"></option>
 										<? foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($name, 0, -3)) as $ln): ?> 
-											<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $name) == $ln['id']) || (!get($tpl, 'edit') && ($ln['id'] == (get($_GET, 'where', $name) ?: $field['Default']))) ? "selected" : "")?>>
+											<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $name) == $ln['id']) || (!get($tpl, 'edit') && ($ln['id'] == (get($_GET, 'where', $name) ?: get($field, 'Default')))) ? "selected" : "")?>>
 												<?=$ln['id']?>&nbsp;<?=$ln['name']?>
 											</option>
 										<? endforeach; ?> 
@@ -458,12 +500,12 @@
 										</select>
 									<? elseif($name == "gid"): ?>
 										<select name="<?=$name?>">
-											<? if($tpl['edit'][$name] && !rb("{$conf['db']['prefix']}users", "id", $tpl['edit'][$name])): ?>
+											<? if(get($tpl, 'edit', $name) && !rb("{$conf['db']['prefix']}users", "id", $tpl['edit'][$name])): ?>
 												<option value="<?=$tpl['edit'][$name]?>" selected><?=$tpl['edit'][$name]?></option>
 											<? endif; ?>
 											<option value="NULL"></option>
 											<? foreach(rb("{$conf['db']['prefix']}users_grp") as $gid): ?>
-												<option value="<?=$gid['id']?>" <?=(($tpl['edit'] && ($tpl['edit'][ $name ] == $gid['id'])) || (!$tpl['edit'] && ($gid['id'] == $conf['user']['uid'])) ? "selected" : "")?>>
+												<option value="<?=$gid['id']?>" <?=((get($tpl, 'edit',  $name) == $gid['id']) || (!get($tpl, 'edit') && ($gid['id'] == $conf['user']['uid'])) ? "selected" : "")?>>
 													<?=$gid['id']?> <?=$gid['name']?>
 												</option>
 											<? endforeach; ?>
@@ -498,7 +540,7 @@
 										<select name="<?=$name?>">
 											<option value="NULL"></option>
 											<? foreach($tpl['espisok'][$name] as $espisok): ?>
-												<option value="<?=$espisok['id']?>" <?=((!get($tpl, 'edit') && ($field['Default'] == $espisok['id'])) || (get($tpl, 'edit', $name) == $espisok['id']) || (get($_GET, 'where', $name) == $espisok['id']) ? "selected" : "")?>>
+												<option value="<?=$espisok['id']?>" <?=((!get($tpl, 'edit') && (get($field, 'Default') == $espisok['id'])) || (get($tpl, 'edit', $name) == $espisok['id']) || (get($_GET, 'where', $name) == $espisok['id']) ? "selected" : "")?>>
 													<?=$espisok['id']?> <?=get($espisok, 'name')?>
 												</option>
 											<? endforeach; ?>

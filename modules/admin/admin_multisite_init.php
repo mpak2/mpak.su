@@ -18,6 +18,11 @@ if(get($conf, "settings", "themes_index_tags")){ # Добавляем теги �
 			mpevent("Добавления адреса главной страницы сайта", $href);
 			$themes_index = fk("themes-index", array("id"=>$themes_index['id']), null, array("href"=>$href));
 		}
+
+		if((count($tag = array_filter(array_column($THEMES_INDEX_TAGS, 'theme'))) == 1) && ($theme = first($tag))){
+			mpevent("Устновка темы", $theme);
+			$themes_index = fk("themes-index", array("id"=>$themes_index['id']), null, array("theme"=>$theme));
+		}
 	}else{ pre("Теги хоста не найдены"); }
 } if(array_key_exists("sort", $themes_index) && !$themes_index['sort']){ # Заполним сортировку
 	$themes_index = fk("themes-index", array("id"=>$themes_index['id']), null, array("sort"=>$themes_index['id']));

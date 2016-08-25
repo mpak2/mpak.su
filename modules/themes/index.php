@@ -4,7 +4,7 @@ if(isset($_GET[''])) $_GET['q'] = $_GET[''];
 if(isset($_GET['q'])){
 	$keys = array_keys($ar = explode('.', $_GET['q']));
 	$ext = $ar[max($keys)];
-	$tn = "themes/".basename($_GET['theme'] ? $_GET['theme'] : $conf['settings']['theme']);
+	$tn = "themes/".basename(get($_GET, 'theme') ? $_GET['theme'] : get($conf, 'settings', 'theme'));
 	$res_name = $tn ."/".strtr($_GET['q'], array('..'=>''));
 	if(!($res = mpopendir($res_name))){
 		if(get($conf, 'settings', 'themes_file_not_exists_event')){
@@ -19,12 +19,12 @@ if(isset($_GET['q'])){
 					}
 				}else{ mpre("Ошибка создания директории {$dir} в теме {$_GET['theme']}"); }
 			}
-		} $error = mpevent("Ресурс в теме не найден", preg_replace("#\/(стр|p)\:[0-9]+#", "", first(explode("?", urldecode($_SERVER['REQUEST_URI'])))));
+		} exit(header("HTTP/1.0 404 Not Found"));
 	}else if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= ($filectime = filectime($res)))){
-		exit(header('HTTP/1.0 304 Not Modified'));
+		header('HTTP/1.0 304 Not Modified');
 	}else if($filectime = filectime($res)){
-//		header('Last-Modified: '. gmdate("r", $filectime));
-//		header('Expires: '.gmdate('r', time() + 86400*10));
+		header('Last-Modified: '. gmdate("r", $filectime));
+		header('Expires: '.gmdate('r', time() + 86400*10));
 		$defaultmimes = array('otf'=>'font/opentype', 'cur'=>'application/octet-stream', 'ani'=>'application/x-navi-animation', 'aif' => 'audio/x-aiff', 'aiff' => 'audio/x-aiff', 'arc' => 'application/octet-stream', 'arj' => 'application/octet-stream', 'art' => 'image/x-jg', 'asf' => 'video/x-ms-asf', 'asx' => 'video/x-ms-asf', 'avi' => 'video/avi', 'bin' => 'application/octet-stream', 'bm' => 'image/bmp', 'bmp' => 'image/bmp', 'bz2' => 'application/x-bzip2', 'css' => 'text/css', 'doc' => 'application/msword', 'dot' => 'application/msword', 'dv' => 'video/x-dv', 'dvi' => 'application/x-dvi', 'eps' => 'application/postscript', 'exe' => 'application/octet-stream', 'gif' => 'image/gif', 'gz' => 'application/x-gzip', 'gzip' => 'application/x-gzip', 'htm' => 'text/html', 'html' => 'text/html', 'ico' => 'image/x-icon', 'jpe' => 'image/jpeg', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'js' => 'application/x-javascript', 'log' => 'text/plain', 'mid' => 'audio/x-midi', 'mov' => 'video/quicktime', 'mp2' => 'audio/mpeg', 'mp3' => 'audio/mpeg3', 'mpg' => 'audio/mpeg', 'pdf' => 'aplication/pdf', 'png' => 'image/png', 'rtf' => 'application/rtf', 'tif' => 'image/tiff', 'tiff' => 'image/tiff', 'txt' => 'text/plain', 'xml' => 'text/xml', 'ttf'=>'application/x-font-ttf', 'woff'=>'application/x-font-woff', 'svg'=>'image/svg+xml',);
 		if(!ob_get_length()){
 			header("Content-type: ".($defaultmimes[$ext] ? $defaultmimes[$ext] : "text/$ext"));
@@ -36,6 +36,6 @@ if(isset($_GET['q'])){
 					echo fread($f, 256);
 				}
 			}
-		}
+		} exit();
 	}
 }

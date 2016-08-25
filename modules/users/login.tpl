@@ -1,6 +1,9 @@
 	<div style="text-align:center; margin:100px;">
 		<form method="post" action="">
 			<table border="0">
+				<? if($parse_url = parse_url(get($_SERVER, 'HTTP_REFERER'))): ?>
+					<input type="hidden" name="HTTP_REFERER" value="<?=$parse_url['path']?>">
+				<? endif; ?>
 				<input type="hidden" value="Аутентификация" name="reg">
 				<!-- <tr><td>OpenID: </td><td><img src="http://wiki.openid.net/f/openid-16x16.gif"> <a href="/users:openid">Представиться</a></td></tr> -->
 				<tbody><tr><td>Логин: </td><td><input type="text" style="width:100%;" name="name"></td></tr>

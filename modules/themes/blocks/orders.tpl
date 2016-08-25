@@ -14,6 +14,7 @@
 					<script src="/include/jquery/jquery.iframe-post-form.js"></script>
 					<img src="/themes:img/w:250/h:250/null/phone.jpg">
 					<div style="bottom:0; margin-top:50px;">
+						<input type="hidden" name="href" value="<?=$_SERVER['REQUEST_URI']?>">
 						<input type="hidden" name="index_id" value="<?=get($conf, "user", "sess", "themes_index", "id")?>">
 						<p><input type="text" name="name" required placeholder="Ваше имя"></p>
 						<p><input type="text" name="tel" required placeholder="Контактный телефон"></p>

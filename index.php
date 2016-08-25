@@ -92,6 +92,9 @@ if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аут
 	qw($sql = "UPDATE {$conf['db']['prefix']}sess SET uid=".($sess['uid'] = $uid)." WHERE id=". (int)$sess['id']);
 	qw($sql = "UPDATE {$conf['db']['prefix']}users SET last_time=". time(). " WHERE id=".(int)$uid);
 	setcookie("{$conf['db']['prefix']}modified_since", "1", 0, "/");
+	if(get($_POST, 'HTTP_REFERER')){
+		exit(header("Location: {$_POST['HTTP_REFERER']}"));
+	}
 }elseif(isset($_GET['logoff'])){ # Если пользователь покидает сайт
 	qw("UPDATE {$conf['db']['prefix']}sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
 	setcookie("{$conf['db']['prefix']}modified_since", "", 0, "/");
@@ -189,10 +192,6 @@ array_key_exists("m", $_GET) ? (list($f) = array_values($_GET['m'])) : "index";
 $conf['settings']['modpath'] = !empty($m) && array_key_exists($m, $conf['modules']) ? $conf['modules'][ $m ]['folder'] : "";
 $conf['settings']['fn'] = (!empty($f) && ($f != "index")) ? $f : "index";
 
-if(array_key_exists('theme', $_GET)){
-	$conf['user']['sess']['theme'] = $conf['settings']['theme'] = basename($_GET['theme']);
-}
-
 if(empty($f)){
 	$f = 'index';
 } if(!empty($conf['settings']["theme/*:{$conf['settings']['fn']}"])){
@@ -202,6 +201,12 @@ if(empty($f)){
 } if(!empty($conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"])){
 	$conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"];
 } inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($content = "")));
+
+if(array_key_exists('theme', $_GET)){
+	$conf['user']['sess']['theme'] = $conf['settings']['theme'] = basename($_GET['theme']);
+}elseif(get($conf, 'user', 'theme')){ # Изменяем тему, если для пользователя установлен другой шаблон
+	$conf['user']['sess']['theme'] = $conf['settings']['theme'] = $conf['user']['theme'];
+}
 
 if(get($conf, "settings", "admin_multisite")){ # Включение режима мультисайт
 	inc("modules/admin/admin_multisite.php", array("content"=>($content = "")));
@@ -239,7 +244,7 @@ if((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/
 	$zblocks = blocks();
 }
 
-if($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". (array_key_exists("index", $conf['settings']) ? $conf['settings']['index'] : (array_key_exists("index", $_GET) ? basename($_GET['index']) : "index" )) . ".html")){
+if($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". (get($_GET, 'index') ?: (get($conf, 'settings', 'index') ?: "index")) . ".html")){
 	if(get($conf, 'settings', 'theme_exec')){
 		ob_start(); inc($f); $tc = ob_get_contents(); ob_clean();
 	}else{
@@ -253,13 +258,8 @@ if(!array_key_exists('null', $_GET)){
 
 $conf['settings']['microtime'] = substr(microtime(true)-$conf['settings']['microtime'], 0, 8);
 
-if(!array_key_exists("nocache", $_REQUEST) && !array_search("Зарегистрированные", $conf['user']['gid']) && !get($_COOKIE, "{$conf['db']['prefix']}modified_since")){
-	if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])){
-		header("Cache-Control: max-age=". (get($conf, 'settings', "themes_expires") ?: 86400). ", private");
-		exit(header('HTTP/1.0 304 Not Modified'));
-	}else{
-		header("Cache-Control: max-age=". (get($conf, 'settings', "themes_expires") ?: 86400). ", public");
-		header('Last-Modified: '. date("r"));
-		header("Expires: ". gmdate("r", time()+(get($conf, 'settings', "themes_expires") ?: 86400)));
-	}
+if(!get($_COOKIE, "{$conf['db']['prefix']}modified_since") && ($conf['settings']['modpath'] != "admin")){// get($_SERVER, 'HTTP_IF_MODIFIED_SINCE']);
+	header("Cache-Control: max-age=". (get($conf, 'settings', "themes_expires") ?: 86400). ", public");
+	header('Last-Modified: '. date("r"));
+	header("Expires: ". gmdate("r", time()+(get($conf, 'settings', "themes_expires") ?: 86400)));
 } echo array_key_exists("null", $_GET) ? $content : strtr($content, mpzam($conf['settings'], "settings", "<!-- [", "] -->"));

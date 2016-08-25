@@ -1,11 +1,13 @@
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+
 <style>
 	div.table {display:table; width:100%; vertical-align:top;}
 	div.table > div {display:table-row;}
 	div.table > div > span {display:table-cell; padding:3px; vertical-align:top;}
 	div.table > div.th > span {background-color:#444; color:white;}
 	
-	.pre {position:absolute; z-index:999; background-color:white; border-radius:10px; padding:5px; opacity:0.8; border:3px double red;}
-	.pre legend { color:black; top: 13px; position: relative; }
+	.pre {position:absolute; z-index:999; background-color:white; border-radius:10px; padding:5px; opacity:0.8; border:3px double red; font-size:100%;}
+	.pre legend { color:black; font-size:100%; top: 13px; position: relative; }
 	
 	.pager a.active {color:#fe8e23;}
 </style>
@@ -29,6 +31,10 @@
 	<!-- {/literal} -->
 <? endif; ?>
 
+<? if($callback = get($conf, 'themes', 'index', 'callback')): # Форма обратной связи eyenewton.ru ?>
+	<script type="text/javascript" src="//eyenewton.ru/scripts/callback.min.js" charset="UTF-8"></script>
+	<script type="text/javascript">/*<![CDATA[*/var newton_callback_id="<?=$callback?>";/*]]>*/</script>
+<? endif; ?>
 
 <? if($themes_index = get($conf, 'user', 'sess', 'themes_index')): ?> 
 	<? if($pozvonim = get($themes_index, 'pozvonim')): ?> 
@@ -47,6 +53,20 @@
 	<? endif; ?> 
 <? endif; ?> 
 
+<? if($analytics = get($conf, 'themes', 'index', 'analytics')): ?>
+	<!-- google-analytics -->
+		<script>
+			(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+			(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+			})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+			
+			ga('create', '<?=$analytics?>', 'auto');
+			ga('send', 'pageview');
+		</script>
+	<!-- google-analytics end -->
+<? endif; ?>
+
 <? if(get($conf, 'settings', 'themes_yandex_metrika')): ?>
 	<!-- Yandex.Metrika counter -->
 		<? foreach(rb("{$conf['db']['prefix']}themes_yandex_metrika_index", "index_id", "id", get($conf, 'themes', 'index', 'id')) as $themes_yandex_metrika_index): ?> 
@@ -56,7 +76,7 @@
 					(function (d, w, c) {
 						(w[c] = w[c] || []).push(function() {
 							try {
-									eval("w.yaCounter<?=get($themes_yandex_metrika, 'id')?> = new Ya.Metrika({id:<?=get($themes_yandex_metrika, 'id')?>, webvisor:true, clickmap:true, trackLinks:true, accurateTrackBounce:true});");
+								eval("w.yaCounter<?=get($themes_yandex_metrika, 'id')?> = new Ya.Metrika({id:<?=get($themes_yandex_metrika, 'id')?>, webvisor:true, clickmap:true, trackLinks:true, accurateTrackBounce:true});");
 							} catch(e) { }
 						});
 					
@@ -95,19 +115,45 @@
 	<!-- /Yandex.Metrika counter -->
 <? endif; ?>
 
-<script type="text/javascript" src="//code.jquery.com/jquery-latest.js"></script>
-
 <? if(array_search("Администратор", $conf['user']['gid'])): ?> 
 	<? if($themes_index = get($conf, 'themes', 'index')): ?>
 		<script>
 			(function($, script){
-				$(script).parent().one("DOMNodeInserted", function(e){ // Ссылка на редактирование заголовка страницы
+				$(script).parent().on("ajax", function(e, table, get, post, complete, rollback){
+					var href = "/seo:ajax/class:"+table;
+					console.log("get:", get);
+					$.each(get, function(key, val){ href += "/"+ (key == "id" ? "" : key+ ":")+ val; });
+					$.post(href, post, function(data){ if(typeof(complete) == "function"){
+						complete.call(e.currentTarget, data);
+					}}, "json").fail(function(error) {if(typeof(rollback) == "function"){
+							rollback.call(e.currentTarget, error);
+					} alert(error.responseText) });
+				}).one("DOMNodeInserted", function(e){ // Ссылка на редактирование заголовка страницы
+					$("<"+"div>").addClass("themes_header_seo_blocks").css({"z-index":999, opacity:0.3, cursor:"pointer", border:"1px solid gray", position:"fixed", background:"white", color:"black", padding:"0 5px", left:"10px", top:"10px"}).appendTo("body");
 					if("object" == typeof(index = $.parseJSON('<?=json_encode(get($conf, "settings", "canonical"))?>'))){// console.log("index", index);
 						var themes_index = $.parseJSON('<?=json_encode($themes_index)?>');
-						$("<"+"div>").text(index.name).addClass("themes_header_seo_blocks").css({"z-index":999, opacity:0.3, cursor:"pointer", border:"1px solid gray", position:"fixed", background:"white", color:"black", padding:"0 5px", left:"10px", top:"10px"}).appendTo("body");
-						$(e.delegateTarget).next().on("click", ".themes_header_seo_blocks", function(e){
-							window.open("/seo:admin/r:mp_seo_index_themes?&where[location_id]="+index.id+"&where[themes_index]="+themes_index.id);
-						});
+						$(".themes_header_seo_blocks").on("click", function(e){
+							window.open("/seo:admin/r:seo-index_themes?&where[location_id]="+index.id+"&where[themes_index]="+themes_index.id);
+						}).text(index.name);
+					}else{
+						$(".themes_header_seo_blocks").on("click", function(e){
+							if((href = prompt("Адрес страницы")) && (href.substring(0, 1) == "/")){
+								var title = $("h1").get(0).innerHTML;
+								console.log("href:", href, "title:", title);
+								$(e.delegateTarget).trigger("ajax", ["index", {}, {name:href}, function(seo_index){
+									$(e.delegateTarget).trigger("ajax", ["location", {}, {name:document.location.pathname}, function(seo_location){
+										console.log("seo_location:", seo_location);
+										$(e.delegateTarget).trigger("ajax", ["index_themes", {themes_index:<?=get($conf, 'themes', 'index', 'id')?>, index_id:seo_index.id, location_id:seo_location.id}, {title:title}, function(index_themes){
+											console.log("index_themes:", index_themes);
+											$(e.delegateTarget).trigger("ajax", ["location_themes", {themes_index:<?=get($conf, 'themes', 'index', 'id')?>, index_id:seo_index.id, location_id:seo_location.id}, {}, function(location_themes){
+												console.log("location_themes:", location_themes);
+												document.location.href = href;
+											}])
+										}])
+									}])
+								}])
+							}else{ alert("Адрес должен начинаться с правого слеша «/»"); }
+						}).text("Задать адрес");
 					}
 				}).one("DOMNodeInserted", function(e){ // Перетаскивание админских элементов
 					$.getScript("//code.jquery.com/ui/1.11.4/jquery-ui.js", function(){
