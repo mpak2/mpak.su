@@ -6,7 +6,7 @@
 	div.table > div > span {display:table-cell; padding:3px; vertical-align:top;}
 	div.table > div.th > span {background-color:#444; color:white;}
 	
-	.pre {position:absolute; z-index:999; background-color:white; border-radius:10px; padding:5px; opacity:0.8; border:3px double red; font-size:100%;}
+	.pre {/*position:absolute;*/ z-index:999; background-color:white; border-radius:10px; padding:5px; opacity:0.8; border:3px double red; font-size:100%;}
 	.pre legend { color:black; font-size:100%; top: 13px; position: relative; }
 	
 	.pager a.active {color:#fe8e23;}
@@ -119,46 +119,58 @@
 	<? if($themes_index = get($conf, 'themes', 'index')): ?>
 		<script>
 			(function($, script){
-				$(script).parent().on("ajax", function(e, table, get, post, complete, rollback){
-					var href = "/seo:ajax/class:"+table;
-					console.log("get:", get);
-					$.each(get, function(key, val){ href += "/"+ (key == "id" ? "" : key+ ":")+ val; });
-					$.post(href, post, function(data){ if(typeof(complete) == "function"){
-						complete.call(e.currentTarget, data);
-					}}, "json").fail(function(error) {if(typeof(rollback) == "function"){
-							rollback.call(e.currentTarget, error);
-					} alert(error.responseText) });
-				}).one("DOMNodeInserted", function(e){ // Ссылка на редактирование заголовка страницы
+				$(script).parent().one("DOMNodeInserted", function(e){ // Ссылка на редактирование заголовка страницы
 					$("<"+"div>").addClass("themes_header_seo_blocks").css({"z-index":999, opacity:0.3, cursor:"pointer", border:"1px solid gray", position:"fixed", background:"white", color:"black", padding:"0 5px", left:"10px", top:"10px"}).appendTo("body");
-					if("object" == typeof(index = $.parseJSON('<?=json_encode(get($conf, "settings", "canonical"))?>'))){// console.log("index", index);
+					if("object" == typeof(index = $.parseJSON(canonical = '<?=json_encode(get($conf, "settings", "canonical"))?>'))){// console.log("index", index);
 						var themes_index = $.parseJSON('<?=json_encode($themes_index)?>');
 						$(".themes_header_seo_blocks").on("click", function(e){
 							window.open("/seo:admin/r:seo-index_themes?&where[location_id]="+index.id+"&where[themes_index]="+themes_index.id);
 						}).text(index.name);
 					}else{
-						$(".themes_header_seo_blocks").on("click", function(e){
-							if((href = prompt("Адрес страницы")) && (href.substring(0, 1) == "/")){
-								var title = $("h1").get(0).innerHTML;
-								console.log("href:", href, "title:", title);
-								$(e.delegateTarget).trigger("ajax", ["index", {}, {name:href}, function(seo_index){
-									$(e.delegateTarget).trigger("ajax", ["location", {}, {name:document.location.pathname}, function(seo_location){
+						console.log("canonical:", canonical);
+						$(".themes_header_seo_blocks").on("ajax", function(e, modpath, table, get, post, complete, rollback){
+							var href = "/"+modpath+":ajax/class:"+table; console.log("get:", get);
+							$.each(get, function(key, val){ href += (key == "uri" ? "" : "/"+ key+ ":"+ val); });
+							if(typeof(get["uri"]) != "undefined"){
+									href = href + "/null/name:"+get["uri"];
+							} console.log("href:", href);
+
+							$.post(href, post, function(data){ if(typeof(complete) == "function"){
+								complete.call(e.currentTarget, data);
+							}}, "json").fail(function(error) {if(typeof(rollback) == "function"){
+									rollback.call(e.currentTarget, error);
+							} alert(error.responseText) });
+						}).on("click", function(e){
+							if(!(href = prompt("Адрес страницы"))){ // alert("Отмена действия");
+							}else if(href.substring(0, 1) != "/"){ alert("Адрес должен начинаться с правого слеша «/»");
+							}else{ console.log("Выполнение");
+								var title = "";
+								if(h1 = $("h1").get(0)){
+									var title = h1.innerHTML;
+								}else{ console.log("Заголовок для сайта не найден"); }
+
+								$(e.delegateTarget).trigger("ajax", ["seo", "index", {"uri":href}, {}, function(seo_index){
+									console.log("seo_index:", seo_index);
+									$(e.delegateTarget).trigger("ajax", ["seo", "location", {"uri":document.location.pathname}, {}, function(seo_location){
 										console.log("seo_location:", seo_location);
-										$(e.delegateTarget).trigger("ajax", ["index_themes", {themes_index:<?=get($conf, 'themes', 'index', 'id')?>, index_id:seo_index.id, location_id:seo_location.id}, {title:title}, function(index_themes){
+										$(e.delegateTarget).trigger("ajax", ["seo", "index_themes", {themes_index:<?=get($conf, 'themes', 'index', 'id')?>, index_id:seo_index.id, location_id:seo_location.id}, {title:title}, function(index_themes){
 											console.log("index_themes:", index_themes);
-											$(e.delegateTarget).trigger("ajax", ["location_themes", {themes_index:<?=get($conf, 'themes', 'index', 'id')?>, index_id:seo_index.id, location_id:seo_location.id}, {}, function(location_themes){
+											$(e.delegateTarget).trigger("ajax", ["seo", "location_themes", {themes_index:<?=get($conf, 'themes', 'index', 'id')?>, index_id:seo_index.id, location_id:seo_location.id}, {}, function(location_themes){
 												console.log("location_themes:", location_themes);
 												document.location.href = href;
 											}])
 										}])
 									}])
 								}])
-							}else{ alert("Адрес должен начинаться с правого слеша «/»"); }
-						}).text("Задать адрес");
+							}
+						}).text(canonical != "false" ? canonical : "Задать адрес");
 					}
 				}).one("DOMNodeInserted", function(e){ // Перетаскивание админских элементов
 					$.getScript("//code.jquery.com/ui/1.11.4/jquery-ui.js", function(){
-						$("fieldset.pre").draggable({handle:"legend"}).find("legend").css("cursor", "pointer");
+						$("fieldset.pre").draggable({handle:"legend"}).css("position", "absolute").find("legend").css("cursor", "pointer");
 					})
+				}).on("click", "fieldset.pre", function(e){
+					console.log(e.type, "pre");
 				})
 			})(jQuery, document.scripts[document.scripts.length-1])
 		</script>

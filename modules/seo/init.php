@@ -81,6 +81,37 @@ qw("CREATE TABLE `{$table}` (
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251;");
 }
 
+ if(mpsettings($t = "seo_robots", "Робот") && !tables($table = ("{$conf['db']['prefix']}{$t}"))){
+qw("CREATE TABLE `{$table}` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` int(11) NOT NULL,
+  `uid` int(11) NOT NULL,
+  `themes_index` int(11) NOT NULL,
+  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+} if(mpsettings($t = "seo_robots_agent", "Агент") && !tables($table = ("{$conf['db']['prefix']}{$t}"))){
+qw("CREATE TABLE `{$table}` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` int(11) NOT NULL,
+  `uid` int(11) NOT NULL,
+  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+} if(mpsettings($t = "seo_robots_disallow", "Запрет") && !tables($table = ("{$conf['db']['prefix']}{$t}"))){
+qw("CREATE TABLE `{$table}` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` int(11) NOT NULL,
+  `uid` int(11) NOT NULL,
+  `robots_id` int(11) DEFAULT NULL,
+  `robots_agent_id` int(11) DEFAULT NULL,
+  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `robots_id` (`robots_id`),
+  KEY `robots_agent_id` (`robots_agent_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+}
+
 $index_type = fk("index_type", $w = array("id"=>1), $w + array("name"=>"text/html", "description"=>"html документ"), $w);
 $location_status = fk("location_status", $w = array("id"=>301), $w + array("name"=>"Moved", "description"=>"Перенаправление"), $w);
 

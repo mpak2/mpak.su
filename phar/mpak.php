@@ -3,9 +3,10 @@
 setlocale(LC_CTYPE, 'ru_RU.utf-8'); 
 chdir(__DIR__);
 
-try {
+try{
 	rename($phar = "index.phar", (ini_get('upload_tmp_dir') ?: "/tmp/"). $phar);
 	$p = new Phar($phar, 0, $phar);
+	file_put_contents("phar://{$phar}/version.txt", date("Y.m.d H:i:s"));
 } catch (UnexpectedValueException $e) {
     die("Could not open {$phar}");
 } catch (BadMethodCallException $e) {
@@ -28,20 +29,16 @@ function apr($folder, $phar){
 	}
 }
 
-foreach( $dolders = array(
+foreach($dolders = array(
 	'index.php',
-//	'include/init.php', # Кеширование и обработка раздела в контакте
 	'include/config.php',
-//	'include/func.php',
 	'include/mpfunc.php',
 	'include/install.php',
-//	'include/parse/simple_html_dom.php',
 	'include/mail', # Отправка почты на smtp
 	'include/class/simple_html_dom.php',
 	'include/idna_convert.class.inc',
-//	'include/pycckuu',
 
-	'include/jquery/jquery.iframe-post-form.js', # Нужен для работы демократический.рф
+	'include/jquery/jquery.iframe-post-form.js',
 	'include/jquery/jquery.selection.js',
 
 	'img',
@@ -53,11 +50,7 @@ foreach( $dolders = array(
 	'include/jquery/tiny_mce',
 	'include/jquery/inputmask', # <!-- [settings:inputmask] --> Скрипты для маск ввода в формы, в разделе тема создана переменная для ввода всех скриптов
 	'include/dhonishow',
-//	'include/image-menu-1',
 	'include/jquery-lightbox-0.5',
-//	'include/jquery.rte',
-//	'include/openid-php-openid-782224d',
-//	'include/vkontakte',
 ) as $k=>$v){
 	echo "\nadded: $v\n\n";
 	apr("../$v", $phar);

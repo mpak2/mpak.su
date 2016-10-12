@@ -29,5 +29,5 @@ if(get($conf, "settings", "themes_index_tags")){ # Добавляем теги �
 } if(array_key_exists("prime", $themes_index)){ # Добавление простого числа к сайту;
 	inc("modules/themes/admin_index_prime.tpl");
 } if(array_key_exists("index_theme_id", $themes_index)){ # Устанавливаем тему;
-	inc("modules/themes/admin_index_themes.tpl");
+	inc("modules/themes/admin_index_prime_themes.tpl");
 }

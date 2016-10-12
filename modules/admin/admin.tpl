@@ -230,24 +230,18 @@
 										<div style="padding:10px; border:1px solid #eee; border-top:0;">
 											<h4>Таблица</h4>
 											<div class="table" style="width:100%;">
-												<? foreach(["Название"=>"", "Заголовки"=>"=>title", "Сортировка"=>"=>order", "Список"=>"=>espisok", "Счетчик"=>"=>ecounter"] as $name=>$uri): ?>
-													<div>
-														<span><?=$name?></span>
-														<span>
-															<a href="/settings:admin/r:mp_settings/?&where[modpath]=<?=$arg['modpath']?>&where[name]=<?=($st = $t)?>">
-																<?=(get($conf, 'settings', $st) ?: "Нет")?>
-															</a>
-														</span>
-													</div>
+												<? foreach(["{$t}"=>["Название"=>"", "Заголовки"=>"=>title", "Сортировка"=>"=>order", "Счетчик"=>"=>ecounter", "Список"=>"=>espisok"], "{$arg['modpath']}"=>[/*"Список"=>"=>espisok"*/]] as $prx=>$params): ?>
+													<? foreach($params as $name=>$uri): ?>
+														<div>
+															<span><?=$name?></span>
+															<span>
+																<a href="/settings:admin/r:mp_settings/?&where[modpath]=<?=$arg['modpath']?>&where[name]=<?=($st = $prx. $uri)?>">
+																	<?=(get($conf, 'settings', $st) ?: "Нет")?>
+																</a>
+															</span>
+														</div>
+													<? endforeach; ?>
 												<? endforeach; ?>
-												<div>
-													<span>Счетчик</span>
-													<span>
-														<a href="/settings:admin/r:mp_settings/?&where[modpath]=<?=$arg['modpath']?>&where[name]=<?=($st = "{$t}{$uri}")?>">
-															<?=(get($conf, 'settings', $st) ?: "Нет")?>
-														</a>
-													</span>
-												</div>
 											</div>
 										</div>
 									</div>
@@ -312,7 +306,7 @@
 											<option value="<?=$mid['id']?>" <?=((get($tpl, 'edit', $name) == $modules['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $modules['id'])) ? "selected" : "")?>><?=$modules['name']?></option>
 										<? endforeach; ?>
 									</select>
-								<? elseif(array_search($name, array(1=>"time", "last_time", "reg_time", "up"))): # Поле времени ?>
+								<? elseif(array_search($name, array(1=>"time", "last_time", "reg_time", "up", 'down'))): # Поле времени ?>
 									<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", get($tpl, 'edit', $name) ?: time())?>" placeholder="<?=($tpl['etitle'][$name] ?: $name)?>">
 								<? elseif((substr($name, -3) == "_id") && (false === array_search(substr($name, 0, -3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
 									<select name="<?=$name?>" style="width:100%;">
@@ -436,7 +430,7 @@
 													<span style="color:red;" title="<?=$v?>"><?=$v?></span>
 												<? endif; ?>
 											</span>
-										<? elseif(array_search($k, array(1=>"time", "last_time", "reg_time", "up"))): # Поле времени ?>
+										<? elseif(array_search($k, array(1=>"time", "last_time", "reg_time", "up", 'down'))): # Поле времени ?>
 											<span style="white-space:nowrap;" title="<?=$v?>">
 												<?=($v ? date("Y-m-d H:i:s", $v) : "")?>
 											</span>
@@ -522,7 +516,7 @@
 												</option>
 											<? endforeach; ?>
 										</select>
-									<? elseif(array_search($name, array(1=>"time", "last_time", "reg_time", "up"))): # Поле времени ?>
+									<? elseif(array_search($name, array(1=>"time", "last_time", "reg_time", "up", 'down'))): # Поле времени ?>
 										<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", (get($_GET, 'edit') ? rb($_GET['r'], "id", $_GET['edit'], $name) : time()))?>" placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
 									<? elseif((substr($name, -3) == "_id") && (false === array_search(substr($name, 0, strlen($name)-3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
 										<select name="<?=$name?>" style="width:100%;">

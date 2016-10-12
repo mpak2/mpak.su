@@ -12,7 +12,8 @@
 
 ini_set('display_errors', 1); error_reporting(E_ALL /*& ~E_NOTICE & ~E_STRICT*/);
 date_default_timezone_set('Europe/Moscow');
-header("Cache-Control: no-cache, must-revalidate");
+header("Content-Type:text/html; charset=utf-8; Cache-Control:no-cache, must-revalidate;");
+setlocale (LC_ALL, "Russian"); putenv("LANG=ru_RU");
 
 if(strpos(__DIR__, "phar://") === 0){ # Файл index.php внутри phar архива
 	if(!isset($index) && ($index = './index.php') && file_exists($index)){
@@ -26,6 +27,33 @@ if(strpos(__DIR__, "phar://") === 0){ # Файл index.php внутри phar а�
 		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: __DIR__);
 	}
 }
+
+$conf['settings'] = array(
+	'http_host' => strtolower(function_exists("idn_to_utf8") ? idn_to_utf8($_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST']),
+	'access_array' => array('0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ'),
+	'microtime' => microtime(true),
+);
+
+if(!$cache_name = ((ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache/{$conf['settings']['http_host']}/". (($REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])) == "/" ? "index" : md5($_SERVER['REQUEST_URI'])). ".gz")){ print_r("Ошибка формирования временного файла кеш");
+}elseif(!$cache_log = ((ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache.log")){ print_r("Ошибка формирования пути лог файла кешей");
+}elseif(array_key_exists('HTTP_CACHE_CONTROL', $_SERVER)){// pre("Обновление");
+}elseif($_POST || array_key_exists("sess", $_COOKIE)){// print_r("Создание сессии");
+}elseif(($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) && ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])){// mpre("Процессор загрузен меньше среднего значения за 15 минут");
+}elseif(is_link($cache_name)){
+	if(!$cache_link = readlink($cache_name)){ print_r("Ошибка получения свойств симлинка");
+	}elseif(!$type = implode("/", array_slice(explode("/", $cache_link), 0, -1))){ print_r("Тип контента не определен");
+	}else{ header("Content-Type: {$type}"); }
+
+	error_log(implode("/", $sys_getloadavg). " <== {$type} http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+	header('Content-Encoding: gzip');
+	exit(readfile($cache_name));
+}elseif(!file_exists($cache_name)){// print_r("Кеш страницы не найден");
+}else{// print_r("Кеш {$cache_name}", filesize($cache_name));
+	header('Content-Encoding: gzip');
+	error_log(implode("/", $sys_getloadavg). " <   http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+	exit(readfile($cache_name));
+}
+
 if(!function_exists('mp_require_once')){
 	function mp_require_once($link){
 		global $conf, $arg, $tpl;
@@ -35,25 +63,15 @@ if(!function_exists('mp_require_once')){
 		}
 	}
 }
-
 mp_require_once("include/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
 
-//Обращение к файлу в корне (webroot)
-if(preg_match("#\/[\w\d\-\_\%\.]+\.\w+$#i",$_SERVER['REDIRECT_URI'])){
-	$REDIRECT_URL = urldecode(preg_replace("#\.\.\/#iu","",$_SERVER['REDIRECT_URL']));
-	foreach(explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) as $v){
-		if(file_exists("$v/webroot$REDIRECT_URL")){
-			if(preg_match("#\.php$#iu",$REDIRECT_URL)){
-				include("$v/webroot$REDIRECT_URL");				
-			}else{
-				exit(file_download("$v/webroot$REDIRECT_URL"));
-			}
-		}
-	}
+if(!$guest = ['id'=>0, "uname"=>"гость", "pass"=>"nopass", "reg_time"=>0, "last_time"=>time()]){ mpre("Ошибка создания пользователя");
+}elseif(!$sess = array('id'=>0, 'uid'=>$guest['id'], "refer"=>0, 'last_time'=>time(), 'count'=>0, 'count_time'=>0, 'cnull'=>0, 'sess'=>($_COOKIE["sess"] ?: md5("{$_SERVER['REMOTE_ADDR']}:".microtime())), 'ref'=>mpquot(mpidn(urldecode($_SERVER['HTTP_REFERER']))), 'ip'=>mpquot($_SERVER['REMOTE_ADDR']), 'agent'=>mpquot($_SERVER['HTTP_USER_AGENT']), 'url'=>mpquot(urldecode($_SERVER['REQUEST_URI'])))){ pre("Ошибка создания сессии");
 }
 
-header('Content-Type: text/html;charset=UTF-8');
+
+$_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']);
 
 try{
 	if($conf['db']['type'] == "sqlite"){
@@ -63,38 +81,36 @@ try{
 	}else{
 		$conf['db']['conn'] = new PDO("{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC));
 		$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
-	} $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']);
+	}// return $conf['db']['conn'];
 }catch(Exception $e){
 	pre("Ошибка подключения к базе данных");
 } if((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !tables()){
 	exit(inc('include/install.php'));
 }
 
-setlocale (LC_ALL, "Russian"); putenv("LANG=ru_RU");
-$conf['db']['info'] = 'Загрузка свойств модулей';
-$conf['settings'] = array('http_host'=>(function_exists("idn_to_utf8") ? idn_to_utf8($_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST']))+array_column(rb("{$conf['db']['prefix']}settings"), "value", "name");
-$conf['settings']['access_array'] = array('0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ');
-$conf['settings']['microtime'] = microtime(true);
-$guest = fk("{$conf['db']['prefix']}users", $w = array("name"=>$conf['settings']['default_usr']), $w += array("pass"=>"nopass", "reg_time"=>time(), "last_time"=>time()), $w);
-
-if(!($sess = ql($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE `ip`='{$_SERVER['REMOTE_ADDR']}' AND last_time>=".(time()-$conf['settings']['sess_time'])." AND `agent`=\"".mpquot($_SERVER['HTTP_USER_AGENT']). "\" AND ". ($_COOKIE["{$conf['db']['prefix']}sess"] ? "sess=\"". mpquot($_COOKIE["{$conf['db']['prefix']}sess"]). "\"" : "uid=". $guest['id'])." ORDER BY id DESC", 0))){
-	$sess = array('uid'=>$guest['id'], 'sess'=>md5("{$_SERVER['REMOTE_ADDR']}:".microtime()), 'ref'=>mpidn(urldecode($_SERVER['HTTP_REFERER'])), 'ip'=>$_SERVER['REMOTE_ADDR'], 'agent'=>$_SERVER['HTTP_USER_AGENT'], 'url'=>$_SERVER['REQUEST_URI']);
-	qw($sql = "INSERT INTO {$conf['db']['prefix']}sess (uid, ref, sess, last_time, ip, agent, url) VALUES (". $guest['id']. ", '". mpquot($sess['ref']). "', \"". mpquot($_COOKIE["{$conf['db']['prefix']}sess"]). "\", ".time().", '". mpquot($sess['ip']). "', '".mpquot($sess['agent'])."', '".mpquot($sess['url'])."')");
-	$sess['id'] = $conf['db']['conn']->lastInsertId();
-} if($_COOKIE["{$conf['db']['prefix']}sess"] != $sess['sess']){ # Если сессия с пришедшей кукисой не найдена
-	$sess['sess'] = ($sess['sess'] ?: md5("{$_SERVER['REMOTE_ADDR']}:".microtime()));
-	setcookie("{$conf['db']['prefix']}sess", $sess['sess'], 0, "/");
-} if(!isset($_REQUEST['NoUpSes']) OR !isset($_REQUEST['null'])){ # Обновление информации о сессии При запросе ресурса обязательна
+if(!$_POST && !get($_COOKIE, "sess")){// print_r("Сессия выключена");
+}elseif(!$sess = call_user_func(function($sess) use($conf, $guest){
+		setcookie("sess", $sess['sess'], 0, "/");
+		if(!$_sess = ql($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE `ip`='{$sess['ip']}' AND last_time>=".(time()-86400)." AND `agent`=\"{$sess['agent']}\" AND ". ($_COOKIE["sess"] ? "sess=\"{$sess['sess']}\"" : "uid=". $guest['id'])." ORDER BY id DESC", 0)){
+			qw($sql = "INSERT INTO {$conf['db']['prefix']}sess (`". implode("`, `", array_keys(array_diff_key($sess, array_flip(['id'])))). "`) VALUES ('". implode("', '", array_values(array_diff_key($sess, array_flip(['id'])))). "')");
+			$sess = ['id'=>($conf['db']['conn']->lastInsertId())] + $sess; return $sess;
+		}else{ return $_sess; }
+	}, $sess)){ pre("Ошибка создания сессии");
+}elseif(array_key_exists('null', $_REQUEST)){ mpre("Отключено обновление сессии для ресурсов");
+}else{
 	qw("UPDATE {$conf['db']['prefix']}sess SET count_time = count_time+".time()."-last_time, last_time=".time().", ".(isset($_GET['null']) ? 'cnull=cnull' : 'count=count')."+1, sess=\"". mpquot($sess['sess']). "\" WHERE id=". (int)$sess['id']);
 }
 
-if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аутентификация' && $uid = mpql(mpqw("SELECT id FROM {$conf['db']['prefix']}users WHERE type_id=1 AND name = \"".mpquot($_POST['name'])."\" AND pass='".mphash($_POST['name'], $_POST['pass'])."'", 'Проверка существования пользователя'), 0, 'id')){
-	qw($sql = "UPDATE {$conf['db']['prefix']}sess SET uid=".($sess['uid'] = $uid)." WHERE id=". (int)$sess['id']);
-	qw($sql = "UPDATE {$conf['db']['prefix']}users SET last_time=". time(). " WHERE id=".(int)$uid);
-	setcookie("{$conf['db']['prefix']}modified_since", "1", 0, "/");
+
+
+$conf['settings'] += array_column(rb("{$conf['db']['prefix']}settings"), "value", "name");
+
+if(strlen($_POST['name']) && strlen($_POST['pass']) && ($_POST['reg'] == 'Аутентификация') && ($uid = mpql(mpqw("SELECT id FROM {$conf['db']['prefix']}users WHERE type_id=1 AND name = \"".mpquot($_POST['name'])."\" AND pass='".mphash($_POST['name'], $_POST['pass'])."'", 'Проверка существования пользователя'), 0))){
+	$sess = fk("{$conf['db']['prefix']}sess", ['id'=>$sess['id']], null, ['uid'=>$uid['id']]);
+	$user = fk("{$conf['db']['prefix']}users", ['id'=>$uid['id']], null, ['last_time'=>time()]);
 	if(get($_POST, 'HTTP_REFERER')){
 		exit(header("Location: {$_POST['HTTP_REFERER']}"));
-	}
+	} setcookie("{$conf['db']['prefix']}modified_since", "1", 0, "/");
 }elseif(isset($_GET['logoff'])){ # Если пользователь покидает сайт
 	qw("UPDATE {$conf['db']['prefix']}sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
 	setcookie("{$conf['db']['prefix']}modified_since", "", 0, "/");
@@ -105,7 +121,10 @@ if (strlen($_POST['name']) && strlen($_POST['pass']) && $_POST['reg'] == 'Аут
 	qw($sql = "DELETE FROM {$conf['db']['prefix']}sess_post WHERE time < ".(time() - $conf['settings']['sess_time']), 'Удаление данных сессии');
 }
 
-if($conf['user'] = ql($sql = "SELECT *, id AS uid, name AS uname FROM {$conf['db']['prefix']}users WHERE id={$sess['uid']}", 0)){
+if($sess['uid'] <= 0){ mpre("Посетитель является гостем");
+	$conf['user'] = $guest;
+}elseif(!$conf['user'] = ql($sql = "SELECT *, id AS uid, name AS uname FROM {$conf['db']['prefix']}users WHERE id=". (int)$sess['uid'], 0)){ mpre("Информация о пользователе не найдена");
+}else{// mpre("Информация о пользователе", $conf['user']);
 	if(($conf['settings']['users_uname'] = $conf['user']['uname']) == $conf['settings']['default_usr']){
 		$conf['user']['uid'] = -$sess['id'];
 	} $conf['settings']['users_uid'] = $conf['user']['uid'];
@@ -150,7 +169,12 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 		$r = urldecode(preg_replace("#([\#\?].*)?$#",'',strtr($_SERVER['REQUEST_URI'], array("?{$p}={$_GET[$p]}"=>"", "&{$p}={$_GET[$p]}"=>"", "/{$p}:{$_GET[$p]}"=>""))));
 	}else{
 		$r = urldecode(preg_replace("#([\#\?].*)?$#",'',$_SERVER['REQUEST_URI']));
-	} if($redirect = rb("{$conf['db']['prefix']}seo_index", "name", "[{$r}]")){
+	}
+	if("/robots.txt" == $_SERVER['REQUEST_URI']){
+		$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = array("id"=>0, "name"=>"/seo:robots"), 'name'), $_GET += ['null'=>true]);
+	}elseif("/sitemap.xml" == $_SERVER['REQUEST_URI']){
+		$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = array("id"=>0, "name"=>"/seo:sitemap"), 'name'), $_GET += ['null'=>true]);
+	}elseif($redirect = rb("{$conf['db']['prefix']}seo_index", "name", "[{$r}]")){
 		if(strpos($redirect['name'], "http://") === 0){
 			header("Debug info:". __FILE__. ":". __LINE__);
 			exit(header("Location: {$redirect['to']}"));
@@ -262,4 +286,43 @@ if(!get($_COOKIE, "{$conf['db']['prefix']}modified_since") && ($conf['settings']
 	header("Cache-Control: max-age=". (get($conf, 'settings', "themes_expires") ?: 86400). ", public");
 	header('Last-Modified: '. date("r"));
 	header("Expires: ". gmdate("r", time()+(get($conf, 'settings', "themes_expires") ?: 86400)));
-} echo array_key_exists("null", $_GET) ? $content : strtr($content, mpzam($conf['settings'], "settings", "<!-- [", "] -->"));
+} $content = array_key_exists("null", $_GET) ? $content : strtr($content, mpzam($conf['settings'], "settings", "<!-- [", "] -->"));
+//if(!get($conf, 'settings', 'canonical')){// mpre("Страница не прописана в СЕО кеш не делаем");
+if(!$sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())){ mpre("Ошибка выборки статистики загрузки процессора");
+}elseif(http_response_code() != 200){// pre("Кешируем только корректно отдаваемые страницы");
+	error_log(implode("/", $sys_getloadavg). " <<< ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Адрес на сайте не определен");
+}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/robots.txt", "/sitemap.xml", "/favicon.ico", "/users:login", "/users:reg", "/admin"])){ // mpre("Не кешируем системные файлы");
+}elseif($conf['user']['sess']['uid'] || !get($_SERVER, 'HTTP_CACHE_CONTROL')){// mpre("Сохранение действует только для гостей");
+	if(file_exists($cache_name)){
+		unlink($cache_name);
+	} error_log(implode("/", $sys_getloadavg). " xxx http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+}elseif(empty($cache_name)){// mpre("Адрес кеша страницы не задан");
+}elseif(!file_exists($dir = dirname($cache_name)) && !mkdir($dir, 0755, true)){ mpre("Ошибка создания директории кеша");
+}elseif(!($cache_exists = file_exists($cache_name)) &0){ mpre("Информация о файле");
+}elseif($header = call_user_func(function($HEADERS) use($dir){
+		if($HEADER = array_filter(array_map(function($headers){
+			foreach(explode(";", $headers) as $header){
+				if((count($hc = explode(":", $header)) == 2) && (strtolower(trim($hc[0])) == strtolower("Content-Type"))){ return trim($hc[1]); }
+			}
+		}, $HEADERS))){
+			return array_pop($HEADER);
+		}else{ return false; };
+	}, headers_list())){
+		if(!$dir_header = "$dir/{$header}"){ mpre("Ошибка формирования адреса директории типа файла");
+		}elseif(file_exists($cache_name)){// mpre("Обновление кеша");
+			file_put_contents("{$dir_header}/". basename($cache_name), gzencode($content));
+			error_log(implode("/", $sys_getloadavg). " ==> ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+		}elseif(!file_exists($dir_header) && !($dir_header = call_user_func(function($dir_header){
+				if(mkdir($dir_header, 0777, true)) return $dir_header;
+			}, $dir_header))){ mpre("Ошибка создания директории расширения");
+			exit(print_r($dir_header));
+		}elseif(!file_put_contents("{$dir_header}/". basename($cache_name), gzencode($content))){ mpre("Ошибка созранения содержимого страницы в расширение");
+		}elseif(!symlink($header. "/". basename($cache_name), $cache_name)){ mpre("Ошибка создания симлинка на содержимое страницы расширения");
+		}else{
+			error_log(implode("/", $sys_getloadavg). " >>> http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+		}
+}elseif(!file_put_contents($cache_name, gzencode($content, 9))){ mpre("Ошибка создания кеша");
+}else{// pre("Создание кеш файла {$cache_name}");
+	error_log(implode("/", $sys_getloadavg). " ". ($cache_exists ? "==>" : ">>>"). " ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+} echo $content;

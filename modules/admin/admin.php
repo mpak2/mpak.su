@@ -36,7 +36,7 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 		}else{ mpre($sql); }/* mpre($_inc, $_dec);*/ exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
 	}else{ # Правка записи и добавление новой
 		foreach($_POST as $field=>$post){
-			if(array_search($field, array(1=>"time", "last_time", "reg_time", "up"))){
+			if(array_search($field, array(1=>"time", "last_time", "reg_time", "up", "down"))){
 				$_POST[$field] = strtotime($post);
 			} if(($_GET['r'] == "{$conf['db']['prefix']}users") && ($field == "pass") && (strlen($_POST['pass']) != 32)){
 				$_POST[$field] = mphash($_POST['name'], $_POST['pass']);
@@ -184,11 +184,6 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 				}else{ mpre("Не удалось получить список полей таблицы {$conf['db']['prefix']}{$ecounter}"); }
 			}
 		}
-		if($settings_espisok = get($conf, 'settings', "{$arg['modpath']}=>espisok")){
-			foreach(explode(",", $settings_espisok) as $espisok){
-				$tpl['espisok'][$espisok] = rb("{$conf['db']['prefix']}{$espisok}");
-			}
-		}
 //		mpre();
 		foreach($tpl['fields'] as $f=>$field){
 			if((count($fd = explode("-", $f)) >= 2) && get($conf, 'modules', $fd[0])){
@@ -198,6 +193,11 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 			}else{ /*mpre("Что-то пошло не так...");*/ }
 		}
 		if($tab = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))){
+			if(($settings_espisok = get($conf, 'settings', "{$arg['modpath']}=>espisok")) || ($settings_espisok = get($conf, 'settings', "{$arg['modpath']}_{$tab}=>espisok"))){
+				foreach(explode(",", $settings_espisok) as $espisok){
+					$tpl['espisok'][$espisok] = rb("{$conf['db']['prefix']}{$espisok}");
+				}
+			}
 			foreach($tpl['tables'] as $tables){
 				$ft = substr($tables, strlen("{$conf['db']['prefix']}{$arg['modpath']}_"));
 				if($fields = fields($tables)){
@@ -207,7 +207,7 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 				}else{ mpre("Поля таблицы $tables не определены"); }
 			}
 
-			$tpl['etitle'] = array("id"=>"Номер", 'time'=>'Время', 'up'=>'Обновление', 'uid'=>'Пользователь', 'count'=>'Количество', 'level'=>'Уровень', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'img2'=>'Изображение2', 'img3'=>'Изображение3', 'file'=>'Файл', 'hide'=>'Видим', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'duration'=>'Длительность', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'value'=>'Значение', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', "article"=>"Артикул", 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', "users_sity"=>'Город', 'log'=>'Лог', 'min'=>'Мин', 'max'=>'Макс', 'own'=>'Владелец', 'period'=>'Период', "from"=>"Откуда", "to"=>"Куда", "percentage"=>"Процент", 'description'=>'Описание', 'text'=>'Текст');
+			$tpl['etitle'] = array("id"=>"Номер", 'time'=>'Время', 'up'=>'Обновление', 'down'=>'Окончание', 'uid'=>'Пользователь', 'count'=>'Количество', 'level'=>'Уровень', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'img2'=>'Изображение2', 'img3'=>'Изображение3', 'file'=>'Файл', 'hide'=>'Видим', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'duration'=>'Длительность', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'value'=>'Значение', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', "article"=>"Артикул", 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', "users_sity"=>'Город', 'log'=>'Лог', 'min'=>'Мин', 'max'=>'Макс', 'own'=>'Владелец', 'period'=>'Период', "from"=>"Откуда", "to"=>"Куда", "percentage"=>"Процент", 'description'=>'Описание', 'text'=>'Текст');
 			if($title = get($conf, 'settings', "{$arg['modpath']}_{$tab}=>title")){
 				$tpl['title'] = array_merge(array("id"), explode(",", $title));
 			}elseif(get($tpl, 'fields', "text")){

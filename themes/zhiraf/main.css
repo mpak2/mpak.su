@@ -224,10 +224,11 @@ input[type="submit"]
 
 			#header
 			{
-				height:57px;
+/*				height:57px;*/
 				background:url("i/gradients.gif") repeat-x 0 0;
 				border-bottom:4px solid #fe8e23;
 				position:relative;
+				background-position: center bottom;
 			}
 			#wrapper
 			{
@@ -250,12 +251,13 @@ input[type="submit"]
 					height:37px;
 					border-top:1px solid #dbdbdd;
 					border-bottom:1px solid #dbdbdd;
-					padding:0 100px 0 17px;*/
-					background: url("i/gradients.gif") repeat-x;
+					padding:0 100px 0 17px;
+					background: url("i/gradients.gif") repeat-x;*/
 					height: 100%;
 					border-top: 1px solid #dbdbdd;
 					border-bottom: 1px solid #dbdbdd;
 					padding: 0 100px 0 17px;
+					background-color: #dedede;
 			}
 
 		#content .tabs li
@@ -319,7 +321,7 @@ input[type="submit"]
 	font-size:18px;
 	left:83px;
 /*	position:absolute;*/
-	padding:0 20px;
+/*	padding:0 20px;*/
 	top:17px;
 }
 #header .exit
@@ -327,7 +329,7 @@ input[type="submit"]
 	color:#fe8e23;
 	font-size:18px;
 	position:absolute;
-	top:17px;
+	top:3px;
 	right:15px;
 }
 	#header .exit a
@@ -337,9 +339,9 @@ input[type="submit"]
 	}
 #header ul
 {
-	left:50%;
+	right:15px;
 	position:absolute;
-	top:26px;
+	top:23px;
 	margin:0 0 0 -177.5px;
 	top:27px\9
 }

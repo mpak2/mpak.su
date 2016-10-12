@@ -11,9 +11,9 @@
 		});
 		$(".data_index").on("img", function(event, index_id){
 			var img = $("<img>").attr("src", "/<?=$arg['modname']?>:img/"+index_id+"/tn:index/fn:img/w:70/h:70/null/img.png");
-			var a = $("<a>").attr("target", "blank").attr("href", "/<?=$arg['modname']?>:img/"+index_id+"/tn:index/fn:img/w:800/h:600/null/img.png").append(img)/*.lightBox()*/;
-			var del = $("<a>").addClass("del").attr("href", "javascript:");
-			var span = $("<span>").attr("index_id", index_id).append(a).append(del);
+			var a = $("<"+"a>").attr("target", "blank").attr("href", "/<?=$arg['modname']?>:img/"+index_id+"/tn:index/fn:img/w:800/h:600/null/img.png").append(img)/*.lightBox()*/;
+			var del = $("<"+"a>").addClass("del").attr("href", "javascript:");
+			var span = $("<"+"span>").attr("index_id", index_id).append(a).append(del);
 			$(".data_index").append(span);
 		}).on("click", "a.del", function(){
 			if(confirm("Удалить изображение?")){

@@ -903,7 +903,7 @@ function mpevent($name, $description = null, $own = null){
 					qw("ALTER TABLE `{$conf['db']['prefix']}users_event` ADD INDEX (`hide`)");
 				}
 			}); if(!$users_event['hide']){
-				mpqw("UPDATE {$conf['db']['prefix']}users_event SET up=". time(). ", count=count+1, uid=". (int)$conf['user']['uid']. " WHERE id=". (int)$users_event['id'], "Обновляем время ", function($error){
+				mpqw("UPDATE {$conf['db']['prefix']}users_event SET up=". time(). ", count=count+1, uid=". (int)get($conf, 'user', 'uid'). " WHERE id=". (int)$users_event['id'], "Обновляем время ", function($error){
 					qw("ALTER TABLE `mp_users_event` ADD `up` int(11) NOT NULL  COMMENT 'Последнее обновление события' AFTER `time`");
 				});
 				
@@ -1312,25 +1312,8 @@ function mpqw($sql, $info = null, $callback = null, $conn = null){
 			mpevent("Долгий запрос к базе данных", $sql. " {$q['time']}c.", $conf['user']['uid'], $q);
 		}
 	} return($result);
-} function qw($sql, $info = null, $conn = null){
-	global $conf;
-	$conn = $conn ?: $conf['db']['conn'];
-	$mt = microtime(true);
-	$stm = $conn->prepare($sql);
-	try{
-		$return = $stm->execute();
-	}catch(Exception $e){
-		mpre($sql, $e->getMessage());
-	} if(!empty($conf['settings']['analizsql_log'])){
-		$conf['db']['sql'][] = $q = array(
-			'info' => $info ? $info : $conf['db']['info'],
-			'time' => microtime(true)-$mt,
-			'sql' => $sql,
-		);
-		if(!empty($conf['settings']['sqlanaliz_time_log']) && $q['time'] > $conf['settings']['sqlanaliz_time_log']){
-			mpevent("Долгий запрос к базе данных", $sql. " {$q['time']}c.", $conf['user']['uid'], $q);
-		}
-	}// return($result);
+} function qw($sql, $info = null, $callback = null, $conn = null){
+	$return = call_user_func("mpqw", $sql, $info, $callback, $conn);
 }
 function mpfile($filename, $description = null){
 //	$file_name = strtr($file_name, array('../'=>'', '/./'=>'/', '//'=>'/'));
@@ -1529,7 +1512,7 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 	$host_name = strpos('www.', $_SERVER['SERVER_NAME']) === 0 ? substr($_SERVER['SERVER_NAME'], 4) : $_SERVER['SERVER_NAME'];
 	$fl_name = (int)$max_width. "x". (int)$max_height. "x". (int)$crop. "_" .basename($file_name);
 	$prx = basename(dirname($file_name));
-	if(!array_key_exists('nologo', $_GET) && isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= filectime($file_name))){
+	if(!array_key_exists('nologo', $_GET) && (strtotime(get($_SERVER, 'HTTP_IF_MODIFIED_SINCE')) >= filectime($file_name))){
 		header('HTTP/1.0 304 Not Modified');
 	}else if(file_exists("$cache_name/$host_name/$prx/$fl_name") && (($filectime = filectime("$cache_name/$host_name/$prx/$fl_name")) > ($sfilectime = filectime($file_name)))){
 		header('Last-Modified: '. date("r", $filectime));
@@ -1615,7 +1598,7 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 }
 
 if(!function_exists("array_column")){
-	function array_column(array $input, $columnKey, $indexKey = null) {
+	function array_column(array $input, $columnKey, $indexKey = null){
 		$result = array();
 		if(null === $indexKey){
 			if(null === $columnKey){
