@@ -12,19 +12,20 @@
 
 ini_set('display_errors', 1); error_reporting(E_ALL /*& ~E_NOTICE & ~E_STRICT*/);
 date_default_timezone_set('Europe/Moscow');
-header("Content-Type:text/html; charset=utf-8; Cache-Control:no-cache, must-revalidate;");
+header('Content-Type: text/html; charset=utf-8');
+header("Cache-Control:no-cache, must-revalidate;");
 setlocale (LC_ALL, "Russian"); putenv("LANG=ru_RU");
 
 if(strpos(__DIR__, "phar://") === 0){ # Файл index.php внутри phar архива
 	if(!isset($index) && ($index = './index.php') && file_exists($index)){
 		include $index; if($content) die;
-	} $conf["db"]["open_basedir"] = implode("/", array_slice(explode("/", dirname(__DIR__)), 2)). ":". __DIR__;
+	} $conf["db"]["open_basedir"] = implode("/", array_slice(explode("/", dirname(__DIR__)), 2)). "::". __DIR__;
 }else{ # Не в phar
-	if(file_exists($phar = __DIR__. "/index.phar")){
+	if(file_exists($phar = __DIR__. DIRECTORY_SEPARATOR. "index.phar")){
 		$conf["db"]["open_basedir"] = "phar://{$phar}";
-		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: __DIR__). ":". $conf["db"]["open_basedir"];
+		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: __DIR__). "::". $conf["db"]["open_basedir"];
 	}else{
-		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: __DIR__);
+		$conf["db"]["open_basedir"] = strtr((ini_get("open_basedir") ?: __DIR__), [':'=>'::']);
 	}
 }
 
@@ -34,10 +35,23 @@ $conf['settings'] = array(
 	'microtime' => microtime(true),
 );
 
-if(!$cache_name = ((ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache/{$conf['settings']['http_host']}/". (($REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])) == "/" ? "index" : md5($_SERVER['REQUEST_URI'])). ".gz")){ print_r("Ошибка формирования временного файла кеш");
-}elseif(!$cache_log = ((ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache.log")){ print_r("Ошибка формирования пути лог файла кешей");
+if(!function_exists('mp_require_once')){
+	function mp_require_once($link){
+		global $conf, $arg, $tpl;
+		foreach(explode('::', $conf["db"]["open_basedir"]) as $k=>$v){
+			if(!file_exists($file_name = "$v/$link")) continue;
+			require_once $file_name; return;
+		}
+	}
+}
+mp_require_once("include/config.php"); # Конфигурация
+
+if(!$cache_dir = !empty($conf['fs']['cache']) ? $conf['fs']['cache'] : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
+}elseif(!$cache_name = ("{$cache_dir}/{$conf['settings']['http_host']}/". (($REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])) == "/" ? "index" : md5($_SERVER['REQUEST_URI'])). ".gz")){ print_r("Ошибка формирования временного файла кеш");
+}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
 }elseif(array_key_exists('HTTP_CACHE_CONTROL', $_SERVER)){// pre("Обновление");
 }elseif($_POST || array_key_exists("sess", $_COOKIE)){// print_r("Создание сессии");
+}elseif(!function_exists("sys_getloadavg")){// mpre("Функция загрузки процессора не найдена");
 }elseif(($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) && ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])){// mpre("Процессор загрузен меньше среднего значения за 15 минут");
 }elseif(is_link($cache_name)){
 	if(!$cache_link = readlink($cache_name)){ print_r("Ошибка получения свойств симлинка");
@@ -54,24 +68,11 @@ if(!$cache_name = ((ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tm
 	exit(readfile($cache_name));
 }
 
-if(!function_exists('mp_require_once')){
-	function mp_require_once($link){
-		global $conf, $arg, $tpl;
-		foreach(explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) as $k=>$v){
-			if (!file_exists($file_name = "$v/$link")) continue;
-			require_once $file_name; return;
-		}
-	}
-}
-mp_require_once("include/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
 
 if(!$guest = ['id'=>0, "uname"=>"гость", "pass"=>"nopass", "reg_time"=>0, "last_time"=>time()]){ mpre("Ошибка создания пользователя");
 }elseif(!$sess = array('id'=>0, 'uid'=>$guest['id'], "refer"=>0, 'last_time'=>time(), 'count'=>0, 'count_time'=>0, 'cnull'=>0, 'sess'=>($_COOKIE["sess"] ?: md5("{$_SERVER['REMOTE_ADDR']}:".microtime())), 'ref'=>mpquot(mpidn(urldecode($_SERVER['HTTP_REFERER']))), 'ip'=>mpquot($_SERVER['REMOTE_ADDR']), 'agent'=>mpquot($_SERVER['HTTP_USER_AGENT']), 'url'=>mpquot(urldecode($_SERVER['REQUEST_URI'])))){ pre("Ошибка создания сессии");
 }
-
-
-$_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']);
 
 try{
 	if($conf['db']['type'] == "sqlite"){
@@ -86,7 +87,7 @@ try{
 	pre("Ошибка подключения к базе данных");
 } if((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !tables()){
 	exit(inc('include/install.php'));
-}
+} $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']);
 
 if(!$_POST && !get($_COOKIE, "sess")){// print_r("Сессия выключена");
 }elseif(!$sess = call_user_func(function($sess) use($conf, $guest){
@@ -100,8 +101,6 @@ if(!$_POST && !get($_COOKIE, "sess")){// print_r("Сессия выключен�
 }else{
 	qw("UPDATE {$conf['db']['prefix']}sess SET count_time = count_time+".time()."-last_time, last_time=".time().", ".(isset($_GET['null']) ? 'cnull=cnull' : 'count=count')."+1, sess=\"". mpquot($sess['sess']). "\" WHERE id=". (int)$sess['id']);
 }
-
-
 
 $conf['settings'] += array_column(rb("{$conf['db']['prefix']}settings"), "value", "name");
 
@@ -288,15 +287,23 @@ if(!get($_COOKIE, "{$conf['db']['prefix']}modified_since") && ($conf['settings']
 	header("Expires: ". gmdate("r", time()+(get($conf, 'settings', "themes_expires") ?: 86400)));
 } $content = array_key_exists("null", $_GET) ? $content : strtr($content, mpzam($conf['settings'], "settings", "<!-- [", "] -->"));
 //if(!get($conf, 'settings', 'canonical')){// mpre("Страница не прописана в СЕО кеш не делаем");
-if(!$sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())){ mpre("Ошибка выборки статистики загрузки процессора");
+if(!function_exists("sys_getloadavg")){// mpre("Функция загрузки процессора не найдена");
+}elseif(!$sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())){ mpre("Ошибка выборки статистики загрузки процессора");
 }elseif(http_response_code() != 200){// pre("Кешируем только корректно отдаваемые страницы");
-	error_log(implode("/", $sys_getloadavg). " <<< ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+	if(!file_exists($cache_name)){
+		error_log(implode("/", $sys_getloadavg). " <<< ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);	
+	}elseif(!unlink($cache_name)){ mpre("Ошибка удаления файла");
+	}else{
+		error_log(implode("/", $sys_getloadavg). " <<< ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);	
+	}
 }elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Адрес на сайте не определен");
 }elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/robots.txt", "/sitemap.xml", "/favicon.ico", "/users:login", "/users:reg", "/admin"])){ // mpre("Не кешируем системные файлы");
-}elseif($conf['user']['sess']['uid'] || !get($_SERVER, 'HTTP_CACHE_CONTROL')){// mpre("Сохранение действует только для гостей");
+}elseif(get($_SERVER, 'HTTP_CACHE_CONTROL')){
+	error_log(implode("/", $sys_getloadavg). " ^^^ http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+}elseif($conf['user']['sess']['uid']){// mpre("Сохранение действует только для гостей");
 	if(file_exists($cache_name)){
 		unlink($cache_name);
-	} error_log(implode("/", $sys_getloadavg). " xxx http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+	} error_log(implode("/", $sys_getloadavg). " xxx ". ($conf['user']['sess']['uid'] <= 0 ? "{$guest['uname']}{$conf['user']['sess']['id']}" : $conf['user']['uname']). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 }elseif(empty($cache_name)){// mpre("Адрес кеша страницы не задан");
 }elseif(!file_exists($dir = dirname($cache_name)) && !mkdir($dir, 0755, true)){ mpre("Ошибка создания директории кеша");
 }elseif(!($cache_exists = file_exists($cache_name)) &0){ mpre("Информация о файле");

@@ -109,9 +109,9 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 					$conf['settings']['title'] = htmlspecialchars($seo_index_themes['title']);
 					$conf['settings']['description'] = htmlspecialchars($seo_index_themes['description']);
 					$conf['settings']['keywords'] = htmlspecialchars($seo_index_themes['keywords']);
-				}elseif(!get($parse_url, 'path')){ mpre("Заголовок на сайте не задан");
+				}elseif(!get($parse_url, 'path')){// mpre("Заголовок на сайте не задан");
 					if(array_search("Администратор", $conf['user']['gid'])){
-						mpre("Перенаправление на внешний адрес <a href='{$seo_index['name']}'>{$seo_index['name']}</a>");
+						mpre("Перенаправление на внешний адрес <a href='{$seo_location['name']}'>{$seo_location['name']}</a>");
 					}else{ header("HTTP/1.1 302 Moved Permanently"); exit(header("Location: {$seo_location['name']}")); }
 				}elseif(!$index = rb("themes-index", "name", "[{$parse_url['host']}]")){ mpre("Сайт перенаправления не найден");
 					if(array_search("Администратор", $conf['user']['gid'])){

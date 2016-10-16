@@ -6,4 +6,4 @@ if(get($_SERVER, 'HTTP_REFERER') && ($gt = mpgt("/". implode("/", array_slice(ex
 	inc("modules/". $index['src'], array("arg"=>array("blocknum"=>$blocknum)+$arg));
 }elseif((get($_GET, '')) && ($index = rb("index", "alias", "[{$_GET['']}]"))){ mpre("Доступ к выводу блока по алиасу (временно выключен)");
 	inc("modules/". $index['src'], array("arg"=>array("alias"=>$_GET[''])+$arg));
-}
+}else{ inc("modules/themes/404"); }

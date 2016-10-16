@@ -126,8 +126,7 @@
 						$(".themes_header_seo_blocks").on("click", function(e){
 							window.open("/seo:admin/r:seo-index_themes?&where[location_id]="+index.id+"&where[themes_index]="+themes_index.id);
 						}).text(index.name);
-					}else{
-						console.log("canonical:", canonical);
+					}else{// console.log("canonical:", canonical);
 						$(".themes_header_seo_blocks").on("ajax", function(e, modpath, table, get, post, complete, rollback){
 							var href = "/"+modpath+":ajax/class:"+table; console.log("get:", get);
 							$.each(get, function(key, val){ href += (key == "uri" ? "" : "/"+ key+ ":"+ val); });
@@ -179,4 +178,27 @@
 
 <? if(get($conf, 'settings', 'themes_orders')): ?>
 	<? inc("modules/themes/blocks/orders.tpl") ?>
+<? endif; ?>
+
+<? if($themes_scrolltop = get($conf, 'settings', 'themes_scrolltop')): ?>
+	<script sync>
+		(function($, script){
+			$(script).parent().one("init", function(e){
+				$(e.delegateTarget).data("themes_scrolltop", 1);
+				$("<button"+">").addClass("themes_scrolltop").text("<?=$themes_scrolltop?>").css({"position":"fixed", "top":"90%", "left":"1%", "display":"none"}).appendTo("body");
+				$(document).on("click", "button.themes_scrolltop", function(e){
+					$(e.delegateTarget).scrollTop(0);
+				}).on("scroll", function(e){
+					var hide = $(e.delegateTarget).data("themes_scrolltop");
+					if(($(e.delegateTarget).scrollTop() > 300) && hide){
+						$(e.delegateTarget).find(".themes_scrolltop").show();
+						$(e.delegateTarget).data("themes_scrolltop", 0);
+					}else if(($(e.delegateTarget).scrollTop() < 300) && !hide){
+						$(e.delegateTarget).find(".themes_scrolltop").hide();
+						$(e.delegateTarget).data("themes_scrolltop", 1);
+					}
+				})
+			}).ready(function(e){ $(script).parent().trigger("init"); })
+		})(jQuery, document.currentScript)
+	</script>
 <? endif; ?>

@@ -1186,7 +1186,7 @@ function mpget($name, $value = null){
 }
 function mpct($file_name, $arg = array(), $vr = 1){
 	global $conf, $tpl;
-	foreach(explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) as $k=>$v)
+	foreach(explode('::', $conf["db"]["open_basedir"]) as $k=>$v)
 		if (file_exists($file = "$v/$file_name")) break;
 	if (!file_exists($file = "$v/$file_name")) return false;
 	$conf['settings']['data-file'] = $file;
@@ -1197,7 +1197,7 @@ function mpct($file_name, $arg = array(), $vr = 1){
 }
 function mpeval($file_name, $arg = array(), $vr = 1){
 	global $conf;
-	foreach(explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) as $k=>$v)
+	foreach(explode('::', $conf["db"]["open_basedir"]) as $k=>$v)
 		if (file_exists($file = "$v/$file_name")) break;
 	if (!file_exists($file = "$v/$file_name")) return "<div style=\"margin-top:100px; text-align:center;\"><span style=color:red;>Ошибка доступа к файлу</span> $v/$file_name</div>";
 	ob_start();
@@ -1210,7 +1210,7 @@ function mpeval($file_name, $arg = array(), $vr = 1){
 function mpreaddir($file_name, $merge=0){
 	global $conf;
 	$itog = array();
-	$prefix = $merge ? explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) : array('./');
+	$prefix = $merge ? explode('::', $conf["db"]["open_basedir"]) : array('./');
 	if ($merge < 0) krsort($prefix);
 	foreach($prefix as $k=>$v){
 		if (!is_dir("$v/$file_name")) continue;
@@ -1226,7 +1226,7 @@ function mpreaddir($file_name, $merge=0){
 }
 function mpopendir($file_name, $merge=1){
 	global $conf;
-	$prefix = $merge ? explode('::', strtr(strtr($conf["db"]["open_basedir"], array(":"=>"::")), array("phar:://"=>"phar://"))) : array('./');
+	$prefix = $merge ? explode('::', $conf["db"]["open_basedir"]) : array('./');
 	if ($merge < 0) krsort($prefix);
 	foreach($prefix as $k=>$v){
 		$file = strtr("$v/$file_name", array('/modules/..'=>''));

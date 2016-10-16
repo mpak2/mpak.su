@@ -12,6 +12,18 @@
 #  Header set Cache-Control "max-age=2592000"
 #</FilesMatch>
 <IfModule mod_rewrite.c>
+	## STOP Semalt.com Crawler Spam 
+	RewriteCond %{HTTP_REFERER} semalt\.com [NC,OR] 
+	RewriteCond %{HTTP_REFERER} uptime\.com [NC,OR] 
+	RewriteCond %{HTTP_REFERER} top1\-seo\-service\.com [NC,OR] 
+	RewriteCond %{HTTP_REFERER} free\-video\-tool\.com [NC,OR] 
+	RewriteCond %{HTTP_REFERER} responsive\-test\.net [NC,OR] 
+	RewriteCond %{HTTP_REFERER} keywords\-monitoring\-your\-success\.com [NC,OR] 
+	RewriteCond %{HTTP_REFERER} 1\-99seo\.com [NC,OR] 
+	RewriteCond %{HTTP_REFERER} 1\-free\-share\-buttons\.com [NC,OR] 
+	RewriteCond %{HTTP_REFERER} xn\-\-\-\-\-6kcababh0bybhav3apmfcrfglgii\.progon\.pw [NC] 
+	RewriteRule .* - [F]
+
 	AddType application/x-httpd-php .phar
 	php_value short_open_tag 1
 	php_value file_uploads 1

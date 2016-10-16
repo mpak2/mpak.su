@@ -90,7 +90,7 @@
 										</span>
 										<span><input type="text" value="<?=get($fields, $field, 'Default')?>" name="f[<?=$field?>][default]" style="width:60px;" placeholder="Значение"></span>
 										<span><input type="text" value="<?=get($fields, $field, 'Comment')?>" name="f[<?=$field?>][comment]" placeholder="Коментарий"></span>
-										<span><input type="checkbox" name="f[<?=$field?>][index]" <?=(get($tpl, 'indexes', $field) ? "checked" : "")?>></span>
+										<span><input type="checkbox" name="f[<?=$field?>][index]" <?=((get($tpl, 'indexes', $field) || get($tpl, 'indexes', substr($_GET['r'], strlen($conf['db']['prefix'])). "-{$field}")) ? "checked" : "")?>></span>
 									</div>
 								<? endforeach; ?>
 								<div>
