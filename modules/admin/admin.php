@@ -1,7 +1,8 @@
 <?
 
 if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управляющие данные
-	if(get($_GET, "id") && array_key_exists("id", $_POST) && !$_POST['id']){ # Удаление элемента
+	if(!$order = (get($conf, "settings", substr($_GET['r'], strlen($conf['db']['prefix'])). "=>order") ?: "sort")){ mpre("Ошибка формирования сортировки таблицы");
+	}elseif(get($_GET, "id") && array_key_exists("id", $_POST) && !$_POST['id']){ # Удаление элемента
 
 		if(get($conf, 'settings', 'admin_history_log')){
 //			if($admin_history_type = rb("{$conf['db']['prefix']}admin_history_type", "name", $w = "[Удаление]")){
@@ -15,22 +16,32 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 		} exit(qw("DELETE FROM {$_GET['r']} WHERE id=". (int)$_GET['id']));
 
 	}elseif(get($_POST, "inc") && ($inc = rb($_GET['r'], "id", $_POST['inc']))){ # Правка записи и добавление новой
-		if($dec = ql($sql = "SELECT * FROM {$_GET['r']} WHERE sort<". (int)$inc['sort']. " AND ". (mpdbf($_GET['r'], get($_GET, 'where'), true) ?: 1). " ORDER BY ". (get($_GET, 'order') ?: "sort"). " DESC LIMIT 1", 0)){
+		if(!$list = qn($sql = "SELECT * FROM {$_GET['r']} WHERE ". (mpdbf($_GET['r'], get($_GET, 'where'), true) ?: 1). " ORDER BY ". (get($_GET, 'order') ?: $order))){ mpre("Элементы в списке не найдены");
+		}elseif(!$keys = array_keys($list)){ mpre("Ошибка формирования ключей массива");
+		}elseif(($nn = array_search($_POST['inc'], $keys)) === false){ mpre("Элемент в списке не найден");
+		}elseif(!$dec = get($list, $keys[$nn-1])){ mpre("Ошибка запроса заменяемого элемента");
+		}else{// mpre($dec, $keys);
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
-		}else{ mpre($sql); }/* mpre($_inc, $_dec);*/ exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
+			exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
+		} die();
 	}elseif(get($_POST, "dec") && ($dec = rb($_GET['r'], "id", $_POST['dec']))){ # Правка записи и добавление новой
-		if($inc = ql($sql = "SELECT * FROM {$_GET['r']} WHERE `sort`>". (int)$dec['sort']. " AND ". (($where = get($_GET, 'where')) ? mpdbf($_GET['r'], $where, true) : 1). " ORDER BY ". (get($_GET, 'order') ?: "sort"). " LIMIT 1", 0)){
+		if(!$list = qn($sql = "SELECT * FROM {$_GET['r']} WHERE ". (($where = get($_GET, 'where')) ? mpdbf($_GET['r'], $where, true) : 1). " ORDER BY ". (get($_GET, 'order') ?: $order))){ mpre("Элементы в списке не найдены");
+		}elseif(!$keys = array_keys($list)){ mpre("Ошибка формирования ключей массива");
+		}elseif(($nn = array_search($_POST['dec'], $keys)) === false){ mpre("Элемент в списке не найден", $_POST['dec'], $keys);
+		}elseif(!$inc = get($list, $keys[$nn+1])){ mpre("Ошибка запроса заменяемого элемента");
+		}else{// mpre($nn, $inc);
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
-		}else{ mpre($sql); } exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
+			exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
+		} die;
 	}elseif(get($_POST, "first") && ($inc = rb($_GET['r'], "id", $_POST["first"]))){ # Правка записи и добавление новой
-		if($dec = ql($sql = "SELECT * FROM {$_GET['r']} WHERE ". (mpdbf($_GET['r'], get($_GET, 'where'), true) ?: 1). " ORDER BY ". (get($_GET, 'order') ?: "sort"). " LIMIT 1", 0)){
+		if($dec = ql($sql = "SELECT * FROM {$_GET['r']} WHERE ". (mpdbf($_GET['r'], get($_GET, 'where'), true) ?: 1). " ORDER BY ". (get($_GET, 'order') ?: $order). " LIMIT 1", 0)){
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
 		}else{ mpre($sql); }/* mpre($_inc, $_dec);*/ exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
 	}elseif(get($_POST, "last") && ($inc = rb($_GET['r'], "id", $_POST["last"]))){ # Правка записи и добавление новой
-		if($dec = ql($sql = "SELECT * FROM {$_GET['r']} WHERE ". (mpdbf($_GET['r'], get($_GET, 'where'), true) ?: 1). " ORDER BY ". (get($_GET, 'order') ?: "sort"). " DESC LIMIT 1", 0)){
+		if($dec = ql($sql = "SELECT * FROM {$_GET['r']} WHERE ". (mpdbf($_GET['r'], get($_GET, 'where'), true) ?: 1). " ORDER BY ". (get($_GET, 'order') ?: $order). " DESC LIMIT 1", 0)){
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
 		}else{ mpre($sql); }/* mpre($_inc, $_dec);*/ exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
@@ -135,7 +146,7 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 		if(array_key_exists("sort", $el) && !$el['sort']){ # Если у нас есть поле сортировки и оно пустое, то назначаем его равным id
 			$el = fk($_GET['r'], array("id"=>$el['id']), null, array("sort"=>$el['id']));
 		} exit(htmlspecialchars(json_encode($el)));
-	}
+	} exit("Аварийный выход");
 }else{ # Выборка таблицы
 	if(strpos($_GET['r'], "-") && ($r = explode("-", $_GET['r']))){
 		$_GET['r'] = $conf['db']['prefix']. first($r). "_". last($r);

@@ -38,5 +38,7 @@ qw("CREATE TABLE `{$table}` (
 ) ENGINE=MyISAM DEFAULT CHARSET=cp1251");
 } 
 
+mpsettings("{$arg['modpath']}_admin_index_install", "Установка");
+mpsettings("{$arg['modpath']}_admin_index_init", "Скрипты");
 mpsettings("{$arg['modpath']}_stop", "<!-- Окончание: {path} -->");
 mpsettings("{$arg['modpath']}_start", "<!-- Начало: {path} -->");

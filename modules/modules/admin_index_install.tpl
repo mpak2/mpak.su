@@ -62,7 +62,9 @@
 			</div>
 			<? foreach(array_diff_key(array_flip(mpreaddir("modules", 1)), rb("index", "folder")) as $m=>$k): ?>
 				<div>
-					<? inc("modules/{$m}/info.php") ?>
+					<? if(mpopendir($f = "modules/{$m}/info.php")): ?>
+						<? inc($f) ?>
+					<? endif; ?>
 					<span><?=$m?></span>
 					<span><?=get($conf, 'modversion', 'name')?></span>
 					<span><?=get($conf, 'modversion', 'author')?></span>
@@ -74,7 +76,13 @@
 						<span style="color:red;"><?=get($conf, 'modversion', 'admin')?></span>
 					<? endif; ?>
 					</span>
-					<span><a class="install" modpath="<?=$m?>" href="javascript:void(0)">Установить</a></span>
+					<span>
+						<? if(substr($m, 0, 1) == "_"): ?>
+							<span style="color:gray;">Недоступен</span>
+						<? else: ?>
+							<a class="install" modpath="<?=$m?>" href="javascript:void(0)">Установить</a>
+						<? endif; ?>
+					</span>
 				</div>
 			<? endforeach; ?>
 		</div>

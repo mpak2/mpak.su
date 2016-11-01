@@ -785,10 +785,11 @@ function erb($src, $key = 'id'){
 }
 # Автоматическое определение кодировки строки и приведение ее в нужную форму.
 function mpde($string) { 
-	static $list = array('utf-8', 'windows-1251');
-	foreach ($list as $item) {
-		$sample = @iconv($item, $item, $string);
-		if (md5($sample) == md5($string))
+	ini_set('mbstring.substitute_character', "none");
+	foreach(array('utf-8', 'windows-1251') as $item) {
+//		$sample = iconv($item, $item. "//IGNORE", $string); # Начиная с этой версии, функция возвращает FALSE на некорректных символах, только если в выходной кодировке не указан //IGNORE. До этого, функция возвращала часть строки
+		$sample = mb_convert_encoding($string, $item, $item);
+		if(md5($sample) == md5($string))
 			return iconv($item, "utf-8", $string);
 	} return null;
 }
@@ -847,6 +848,7 @@ function mpdbf($tn, $post = null, $and = false){
 		return $sel['id'] = $conf['db']['conn']->lastInsertId();
 	}
 } function fdk(&$tn, $find, $insert = array(), $update = array(), $log = false){
+	global $conf;
 	if(is_array($tn)){
 		$func_get_args = array_merge([$tn], array_keys($find), ['id'], array_values($find));
 		if($update){
@@ -864,7 +866,11 @@ function mpdbf($tn, $post = null, $and = false){
 		if($line = qn("SELECT * FROM `$tn` WHERE id IN (". (is_numeric($index_id) ? $index_id : in($index_id)). ")")){
 			if(1 == count($line)){
 				return first($line);
-			}else{ mpre("Количество элементов подходящих под условие больше одного", $tn, $find, $line);
+			}elseif(!$mn = explode("_", substr($tn, strlen($conf['db']['prefix'])), 2)){ mpre("Ошибка парсинга адреса таблицы");
+			}else{// mpre("Количество элементов подходящих под условие больше одного", $mn, $tn, $find, $line);
+				mpre("Дублирующийся элемент", implode("<br />\t", array_map(function($l) use($mn){
+					return "<a href='/seo:admin/r:{$mn[0]}-{$mn[1]}?&where[id]={$l['id']}'>{$l['name']} ({$l['id']})</a>";
+				}, $line)));
 				return $line;
 			}
 		}else{ mpre("sql:", $sql); return false; }
@@ -1099,6 +1105,18 @@ function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'ima
 		mpevent("Ошибка загрузки внешнего файла", $href, get($conf, 'user', 'uid'), func_get_args());
 		pre("Ошибка загрузки файла", $href);
 	} return null;
+} function hid($tn, $href, $id = false, $fn = "img", $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpeg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
+	global $conf, $arg;
+	if(!$data = file_get_contents($href)){ pre("Ошибка загрузки файла", $href);
+	}elseif(!($ext = '.'. preg_replace("/[\W]+.*/", '', preg_replace("/.*?\./", '', $href))) && (array_search(strtolower($ext), $exts) || isset($exts['*']))){ pre("Запрещенное к загрузке расширение", $ext);
+	}elseif(!$el = fk($tn, $w = ($id ? ["id"=>$id] : null), $w = ['id'=>NULL])){ mpre("Ошибка получения идентификатора элемента {$tn}");
+	}elseif(!$f = "{$tn}_{$fn}_". (int)$el['id']. $ext){ mpre("Ошибка формирования имени файла");
+	}elseif(!$ufn = mpopendir('include/images')){ mpre("Директория с изображениями не определена");
+	}elseif(!file_put_contents("$ufn/$f", $data)){ mpre("Ошибка сохранения файла");
+	}elseif(!$el = fk($tn, array("id"=>$el['id']), null, array($fn=>"images/$f"))){ mpre("Ошибка занесения имени файла в таблицу");
+	}else{// mpevent("Загрузка внешнего файла", $href, (!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0), func_get_args());
+		return $el['id'];
+	}
 }
 function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf;
@@ -1227,10 +1245,10 @@ function mpreaddir($file_name, $merge=0){
 function mpopendir($file_name, $merge=1){
 	global $conf;
 	$prefix = $merge ? explode('::', $conf["db"]["open_basedir"]) : array('./');
-	if ($merge < 0) krsort($prefix);
+	if($merge < 0) krsort($prefix);
 	foreach($prefix as $k=>$v){
-		$file = strtr("$v/$file_name", array('/modules/..'=>''));
-		if (file_exists($file)){
+		$file = strtr(/*mpre*/("$v/$file_name"), array('/modules/..'=>''));
+		if(file_exists($file)){
 			return $file; break;
 		}
 	}
@@ -1438,14 +1456,12 @@ function pre(){
 		}
 	} foreach($list as $k=>$v){
 		if(true){ # Комментарии выводим для javascript шаблонов. Чтобы они игнорировались как код
-			echo "/*<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend>[$k] {$v['file']}:{$v['line']} <b>{$v['function']}</b> ()</legend>*/";
+			echo "<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend>[$k] {$v['file']}:{$v['line']} <b>{$v['function']}</b> ()</legend>";
 		}else{
-			echo "/*\n[$k] {$v['file']}:{$v['line']} <b>{$v['function']}</b> ()<br>\n*/";
-		}
-		foreach($v['args'] as $n=>$z){
-			echo "/*<pre>\n\t"; print_r($z); echo "\n</pre>*/";
-		}
-		if(true) echo "/*</fieldset>*/\n";
+			echo "\n[$k] {$v['file']}:{$v['line']} <b>{$v['function']}</b> ()<br>\n";
+		} foreach($v['args'] as $n=>$z){
+			echo "<pre>\n\t"; print_r($z); echo "\n</pre>";
+		} if(true) echo "</fieldset>\n";
 	} return get(func_get_args(), 0);
 } function mpre(){
 	global $conf, $arg, $argv;

@@ -184,8 +184,8 @@
 	<script sync>
 		(function($, script){
 			$(script).parent().one("init", function(e){
-				$(e.delegateTarget).data("themes_scrolltop", 1);
-				$("<button"+">").addClass("themes_scrolltop").text("<?=$themes_scrolltop?>").css({"position":"fixed", "top":"90%", "left":"1%", "display":"none"}).appendTo("body");
+				$(document).data("themes_scrolltop", 1);
+				$("<button"+">").addClass("themes_scrolltop").text("<?=$themes_scrolltop?>").css({"position":"fixed", "top":"90%", "right":"3%", "display":"none"}).appendTo("body");
 				$(document).on("click", "button.themes_scrolltop", function(e){
 					$(e.delegateTarget).scrollTop(0);
 				}).on("scroll", function(e){

@@ -52,7 +52,7 @@ if(!$alias = "{$arg['modpath']}:{$arg['fn']}". (($keys = array_keys(array_diff_k
 						mpevent("Мета элемент", $src);
 						exit(header("Location: {$location[0]}"));
 					}else{ mpre("Мета информация обновлена", $meta); }
-				}else{ mpre("В адресе категории <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a> и метаинформации заменены не все теги", $src, $meta); }
+				}else{ mpre("В адресе категории <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a> и метаинформации заменены не все теги", $src, $meta, "доступные для замены элементы", $mpzam+$settings); }
 			}else{ mpre("Ошибка формирования адреса страницы <a href='/seo:admin/r:seo-cat?&where[alias]={$seo_cat['alias']}'>{$seo_cat['alias']}</a>"); }
 		}else{ mpre("Таблица языка перекодировки не найдена <a href='/seo:admin/r:mp_seo_characters_lang'>{$w}</a>"); }
 	}else if($src = trim(htmlspecialchars_decode(mb_strtolower(strtr(implode("/", array_slice(explode("/", $seo_cat['href']), 0, 2)), $settings), 'UTF-8')))){ // mpre($src); # Список элементов

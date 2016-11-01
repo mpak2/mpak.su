@@ -23,9 +23,9 @@ if(strpos(__DIR__, "phar://") === 0){ # Файл index.php внутри phar а�
 }else{ # Не в phar
 	if(file_exists($phar = __DIR__. DIRECTORY_SEPARATOR. "index.phar")){
 		$conf["db"]["open_basedir"] = "phar://{$phar}";
-		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: __DIR__). "::". $conf["db"]["open_basedir"];
+		$conf["db"]["open_basedir"] = strtr(ini_get("open_basedir") ?: __DIR__, [':'=>'::']). "::". $conf["db"]["open_basedir"];
 	}else{
-		$conf["db"]["open_basedir"] = strtr((ini_get("open_basedir") ?: __DIR__), [':'=>'::']);
+		$conf["db"]["open_basedir"] = strtr(ini_get("open_basedir") ?: __DIR__, [':'=>'::']);
 	}
 }
 
@@ -273,7 +273,7 @@ if($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". (get($_GET, 'inde
 	}else{
 		$tc = file_get_contents($t);
 	}
-}else{ die("Шаблон {$f} не найден"); }
+}else{ die(pre(__LINE__, "Шаблон {$f} не найден")); }
 
 if(!array_key_exists('null', $_GET)){
 	$content = str_replace('<!-- [modules] -->', $content, $tc);
@@ -286,9 +286,13 @@ if(!get($_COOKIE, "{$conf['db']['prefix']}modified_since") && ($conf['settings']
 	header('Last-Modified: '. date("r"));
 	header("Expires: ". gmdate("r", time()+(get($conf, 'settings', "themes_expires") ?: 86400)));
 } $content = array_key_exists("null", $_GET) ? $content : strtr($content, mpzam($conf['settings'], "settings", "<!-- [", "] -->"));
-//if(!get($conf, 'settings', 'canonical')){// mpre("Страница не прописана в СЕО кеш не делаем");
+
 if(!function_exists("sys_getloadavg")){// mpre("Функция загрузки процессора не найдена");
 }elseif(!$sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())){ mpre("Ошибка выборки статистики загрузки процессора");
+}elseif($conf['user']['sess']['uid']){// mpre("Сохранение действует только для гостей");
+	if(file_exists($cache_name)){
+		unlink($cache_name);
+	} error_log(implode("/", $sys_getloadavg). " xxx ". ($conf['user']['sess']['uid'] <= 0 ? "{$guest['uname']}{$conf['user']['sess']['id']}" : $conf['user']['uname']). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 }elseif(http_response_code() != 200){// pre("Кешируем только корректно отдаваемые страницы");
 	if(!file_exists($cache_name)){
 		error_log(implode("/", $sys_getloadavg). " <<< ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);	
@@ -300,10 +304,6 @@ if(!function_exists("sys_getloadavg")){// mpre("Функция загрузки 
 }elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/robots.txt", "/sitemap.xml", "/favicon.ico", "/users:login", "/users:reg", "/admin"])){ // mpre("Не кешируем системные файлы");
 }elseif(get($_SERVER, 'HTTP_CACHE_CONTROL')){
 	error_log(implode("/", $sys_getloadavg). " ^^^ http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-}elseif($conf['user']['sess']['uid']){// mpre("Сохранение действует только для гостей");
-	if(file_exists($cache_name)){
-		unlink($cache_name);
-	} error_log(implode("/", $sys_getloadavg). " xxx ". ($conf['user']['sess']['uid'] <= 0 ? "{$guest['uname']}{$conf['user']['sess']['id']}" : $conf['user']['uname']). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 }elseif(empty($cache_name)){// mpre("Адрес кеша страницы не задан");
 }elseif(!file_exists($dir = dirname($cache_name)) && !mkdir($dir, 0755, true)){ mpre("Ошибка создания директории кеша");
 }elseif(!($cache_exists = file_exists($cache_name)) &0){ mpre("Информация о файле");
@@ -319,7 +319,7 @@ if(!function_exists("sys_getloadavg")){// mpre("Функция загрузки 
 		if(!$dir_header = "$dir/{$header}"){ mpre("Ошибка формирования адреса директории типа файла");
 		}elseif(file_exists($cache_name)){// mpre("Обновление кеша");
 			file_put_contents("{$dir_header}/". basename($cache_name), gzencode($content));
-			error_log(implode("/", $sys_getloadavg). " ==> ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+			error_log(implode("/", $sys_getloadavg). " ==> ". http_response_code(). " http://{$conf['settings']['http_host']}{$REQUEST_URI} ". number_format(filesize($cache_name)/1e3, 2). "кб". "\n", 3, $cache_log);
 		}elseif(!file_exists($dir_header) && !($dir_header = call_user_func(function($dir_header){
 				if(mkdir($dir_header, 0777, true)) return $dir_header;
 			}, $dir_header))){ mpre("Ошибка создания директории расширения");

@@ -219,8 +219,16 @@
 						<? if($t = implode("_", array_slice(explode("_", $_GET['r']), 1))): # Короткое имя текущей таблицы ?>
 							<ul class="admin">
 								<? foreach(array_unique(array_map(function($f){ return first(explode('.', $f)); }, mpreaddir("/modules/{$arg['modpath']}", 1))) as $f): ?>
-									<? if((strpos($f, "admin_") === 0) && ($fl = implode('_', array_slice(explode('_', $f), 1))) && (!($ft = implode('_', array_slice(explode('_', $t), 1))) || (strpos(($fl), $ft) === 0))): # Адреса страниц начинающихся на admin_ и совпадающие с текущей таблицуй ?>
-										<li><a href="/<?=$arg['modpath']?>:<?=$f?><?=(($id = get($_GET, 'where', 'id')) ? "/{$id}" : "")?>"><?=(get($conf, 'settings', ($af = "{$arg['modpath']}_{$f}")) ?: $af)?></a></li>
+									<?// if((strpos($f, "admin_") === 0) && ($fl = implode('_', array_slice(explode('_', $f), 1))) && (!($ft = implode('_', array_slice(explode('_', $t), 1))) || (strpos(($fl), $ft) === 0))): # Адреса страниц начинающихся на admin_ и совпадающие с текущей таблицуй ?>
+									<? if(strpos($f, "admin_") === false):// mpre("Имя файла не админ_") ?>
+									<? elseif(!$fl = implode('_', array_slice(explode('_', $f), 1))): mpre("Ошибка формирования алиаса файла") ?>
+									<? elseif(!$ft = implode('_', array_slice(explode('_', $t), 1))): mpre("Ошибка формирования имени файла") ?>
+									<? elseif(strpos($fl, $ft) !== 0):// mpre("Имя не соответствует формату страницы") ?>
+									<? elseif(!$href = "/{$arg['modpath']}:{$f}". (($id = get($_GET, 'where', 'id')) ? "/{$id}" : ""). ""): mpre("Ошибка формирования адреса страницы") ?>
+									<? elseif(!$st = get($conf, 'settings', ($af = "{$arg['modpath']}_{$f}"))):// mpre("Имя страница в свойствах раздела не установлено") ?>
+										<li><a href="<?=$href?>" style="color:#ccc;"><?=$af?></a></li>
+									<? else: ?>
+										<li><a href="<?=$href?>"><?=$st?></a></li>
 									<? endif; ?>
 								<? endforeach; ?>
 								<li><b><a href="/sqlanaliz:admin_sql/r:<?=$_GET['r']?>">БД</a></b></li>
