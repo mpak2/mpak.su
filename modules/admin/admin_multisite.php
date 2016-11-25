@@ -4,19 +4,21 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 	$conf['settings']['theme'] = "zhiraf";
 }else{ global $conf; # Пользовательская страница
 	$http_host = first(explode(":", idn_to_utf8(($host = strpos($http_host = mb_strtolower($_SERVER['HTTP_HOST'], 'UTF-8'), "www.")) === 0 ? substr($http_host, 4) : $http_host)));
-	if(!($themes_index = rb("themes-index", "name", "[$http_host]"))){
-		if(get($conf, "settings", "themes_index_ignore") && ($themes_index_ignore = rb("themes-index_ignore", "name", "[{$http_host}]"))){
-			if(array_key_exists("count", $themes_index_ignore)){
-				$themes_index_ignore = fk("themes-index_ignore", array("id"=>$themes_index_ignore['id']), null, array("count"=>$themes_index_ignore['count']+1));
-			} exit("Сайт {$http_host} в списке игнорированных");
-		}else if(trim($http_host) && get($conf, 'settings', 'themes_index_ignore_host') && ($_hosts = explode(".", $_SERVER['HTTP_HOST'])) && ($themes_index_ignore_host = rb("themes-index_ignore_host", "name", "[". implode(",", $_hosts). "]"))){
-			$themes_index_ignore = fk("themes-index_ignore", $w = ['name'=>$http_host], $w += ['index_ignore_host_id'=>$themes_index_ignore_host['id']], $w);
-		}else if((gethostbyname($_SERVER['HTTP_HOST']) == $_SERVER['SERVER_ADDR']) || (get($conf, "settings", 'admin_gethostbyname') == gethostbyname($http_host))){ # Хост настроен на сервер или совпадает с указанным в админке ip
-			if($themes_index = fk("themes-index", $w = array("name"=>$http_host), $w, $w)){
-				inc("modules/{$arg['modpath']}/{$arg['fn']}_init", array("themes_index"=>$themes_index)); # Скрипт создания сайта
-			}else{ mpre("Ошибка добавления нового хоста"); }
-		}else{ $http_host = $_SERVER['SERVER_ADDR']; }
-	}
+	if($themes_index = rb("themes-index", "name", "[$http_host]")){// mpre("Хост найден в списке хостов");
+	}else if(get($conf, "settings", "themes_index_ignore") && ($themes_index_ignore = rb("themes-index_ignore", "name", "[{$http_host}]"))){ mpre("Хост в списке игнорированных");
+		if(array_key_exists("count", $themes_index_ignore)){
+			$themes_index_ignore = fk("themes-index_ignore", array("id"=>$themes_index_ignore['id']), null, array("count"=>$themes_index_ignore['count']+1));
+		} exit("Сайт {$http_host} в списке игнорированных");
+	}else if(get($conf, 'settings', 'themes_index_ignore_host') && ($_hosts = explode(".", $_SERVER['HTTP_HOST'])) && ($themes_index_ignore_host = rb("themes-index_ignore_host", "name", "[". implode(",", $_hosts). "]"))){
+		$themes_index_ignore = fk("themes-index_ignore", $w = ['name'=>$http_host], $w += ['index_ignore_host_id'=>$themes_index_ignore_host['id']], $w);
+	}else if((gethostbyname($_SERVER['HTTP_HOST']) == $_SERVER['SERVER_ADDR']) || (get($conf, "settings", 'admin_gethostbyname') == gethostbyname($http_host))){ # Хост настроен на сервер или совпадает с указанным в админке ip
+		if(!trim($http_host)){ mpre("Хост пустышка");
+			$http_host = $_SERVER['SERVER_ADDR'];
+		}else if(!$themes_index = fk("themes-index", $w = array("name"=>$http_host), $w, $w)){ mpre("Ошибка добавления нового хоста");
+		}else{ header('HTTP/1.0 403 Forbidden');
+			inc("modules/{$arg['modpath']}/{$arg['fn']}_init", array("themes_index"=>$themes_index));
+		}
+	}else{ $http_host = $_SERVER['SERVER_ADDR']; }
 
 
 	if($conf['user']['sess']['themes_index'] = $conf['themes']['index'] = $themes_index){
@@ -25,7 +27,7 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 		}elseif(!array_key_exists("themes-index", $_sess = get($conf, 'user', 'sess'))){// mpre("Поле для записи хоста в таблице сессии не задано");
 		}elseif($_sess["themes-index"] == $themes_index['id']){// mpre("Информация о хосте уже обновлена");
 		}elseif(!$_sess = fk("{$conf['db']['prefix']}sess", ['id'=>$_sess['id']], null, ["themes-index"=>$themes_index['id']])){ mpre("Ошибка обновления хоста в сессиях");
-		}else{ mpre("Обновление хоста", $themes_index, $_sess); }
+		}else{ /*mpre("Обновление хоста", $themes_index, $_sess);*/ }
 
 		if(get($themes_index, 'index_id') && ($_SERVER['REQUEST_URI'] != "/robots.txt")){
 			$conf['user']['sess']['themes_index'] = $conf['themes']['index'] = $themes_index = rb("themes-index", "id", $themes_index['index_id']);
@@ -38,18 +40,15 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 			$conf['settings']['theme'] = $themes_index['theme'];
 		}elseif($themes_index_theme = rb("themes-index_theme", "id", $themes_index['index_theme_id'])){
 			$conf['settings']['theme'] = $themes_index_theme['path'];
-		} $conf['settings']['title'] = get($themes_index, 'title');
+		}
+		$conf['settings']['title'] = get($themes_index, 'title');
+		$conf['settings']['description'] = get($themes_index, 'description');
 
-		if(/*mpre*/($url = preg_replace("#\/(стр|p)\:[0-9]+#", "", first(explode("?", urldecode($_SERVER['REQUEST_URI']))))) && (strlen($url) > 1) && (substr($url, -1) == "/")){
-			header("HTTP/1.1 301 Moved Permanently");
-			if(array_search("Администратор", $conf['user']['gid'])){
-				mpre("Адрес заканчивается на правый слеш - перенаправляем без слеша <a href='". substr($url, 0, -1). "'>". substr($url, 0, -1). "</a>");
-			}else{ exit(header("Location: ". substr($url, 0, -1))); }
-		} if($log = FALSE){ mpre("Адрес страницы" , $url, $_GET); }
-
-		if(array_key_exists("null", $_GET)){
-			# Ресурсы не трогаем
-		}else if(strpos($_SERVER['REQUEST_URI'], "//") === 0){
+		if(array_key_exists("null", $_GET)){ # Ресурсы не трогаем
+		}elseif(preg_match("#^webdav.(.*)#", $_SERVER['HTTP_HOST']) && ($get = mpgt($_SERVER['REQUEST_URI'])) && ($_SERVER['REQUEST_URI'] = "/webdav". $_SERVER['REQUEST_URI'])){// mpre("Вебдав", $_SERVER['REQUEST_URI']);
+			$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = array("id"=>0, "name"=>$_SERVER['REQUEST_URI']), 'name'), $_GET);
+		}elseif(!$url = preg_replace("#\/(стр|p)\:[0-9]+#", "", first(explode("?", urldecode($_SERVER['REQUEST_URI']))))){ mpre("Ошибка формирования исходного адреса страницы");
+		}elseif(strpos($_SERVER['REQUEST_URI'], "//") === 0){
 			 if($log = true){ mpre("Перенаправление" , $_SERVER['REQUEST_URI']); }
 			header("HTTP/1.0 404 Not Found");
 			$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = array("id"=>0, "name"=>"/themes:404"), 'name'), $_GET);
@@ -77,7 +76,7 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 			$_REQUEST += $_GET = mpgt($conf['settings']['canonical'] = $themes_index['href']);
 		}elseif($_seo_index = rb("seo-index", "id", get($_seo_index_themes = rb("seo-index_themes", "index_id", "themes_index", get($seo_index = rb("seo-index", "name", "[{$url}]"), "id"), $themes_index['id']), 'seo-index'))){
 			if($_seo_location = rb("seo-location", "id", $_seo_index_themes['location_id'])){
-				$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = $_seo_location += (array_key_exists('up', $_seo_index_themes) ? array("up"=>get($_seo_index_themes, 'up')) : []), 'name'), $_GET);
+				$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = $_seo_location + $_seo_index_themes + (array_key_exists('up', $_seo_index_themes) ? array("up"=>get($_seo_index_themes, 'up')) : []), 'name'), $_GET);
 				if(!$modpath = get($conf, 'modules', first(array_keys($_GET['m'])))){ mpre("Модуль не определен");
 				}else{
 					$conf['settings']['modpath'] = $modpath['folder'];
@@ -147,7 +146,7 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 			}elseif(get($seo_index, 'seo-index') && ($_seo_index = rb("seo-index", "id", $seo_index['seo-index']))){
 //				mpre($_seo_index);
 			}else{
-				$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = $seo_location += (array_key_exists('up', $seo_index_themes) ? array("up"=>get($seo_index_themes, 'up')) : []), 'name'), $_GET);
+				$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = $seo_location + $seo_index_themes + (array_key_exists('up', $seo_index_themes) ? array("up"=>get($seo_index_themes, 'up')) : []), 'name'), $_GET);
 				if(!$modpath = get($conf, 'modules', first(array_keys($_GET['m'])))){ mpre("Модуль не определен");
 				}else{// mpre($modpath);
 					$conf['settings']['modpath'] = $modpath['folder'];
@@ -159,7 +158,12 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 				$conf['settings']['description'] = htmlspecialchars($seo_index_themes['description']);
 				$conf['settings']['keywords'] = htmlspecialchars($seo_index_themes['keywords']);
 			}
-		}else if(($keys = array_keys($ar = array_keys($_GET['m']))) && !rb($conf['modules'], "modname", "[". $ar[max($keys)]. "]") && !get($conf, 'modules', $ar[max($keys)])){
+		}elseif((strlen($url) > 1) && (substr($url, -1) == "/") && (first(array_keys(get($get, 'm'))) == "webdav")){
+			header("HTTP/1.1 301 Moved Permanently");
+			if(array_search("Администратор", $conf['user']['gid'])){
+				mpre("Адрес заканчивается на правый слеш - перенаправляем без слеша <a href='". substr($url, 0, -1). "'>". substr($url, 0, -1). "</a>");
+			}else{ exit(header("Location: ". substr($url, 0, -1))); }
+		}elseif(($keys = array_keys($ar = array_keys($_GET['m']))) && !rb($conf['modules'], "modname", "[". $ar[max($keys)]. "]") && !get($conf, 'modules', $ar[max($keys)])){
 			mpevent("Страница не найдена 404", $url);
 			header("HTTP/1.0 404 Not Found");
 			$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = array("id"=>0, "name"=>"/themes:404"), 'name'), $_GET);
@@ -189,7 +193,7 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 
 		if(get($_GET, "theme")){ # Шаблон задан в адресной строке
 			$conf['settings']['theme'] = $_GET['theme'];
-		} if($log){ mpre($_GET); }
+		}
 
 		if(get($themes_index, 'index_cat_id')){
 			$conf['themes']['index_cat'] = rb("themes-index_cat", "id", $themes_index['index_cat_id']);

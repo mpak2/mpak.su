@@ -78,16 +78,14 @@ if($dump = get($_REQUEST, 'dump')){
 			/*if(!$fld['name']){ # Удаление ключа
 				qw($sql = "ALTER TABLE `". mpquot($table). "` DROP COLUMN `". mpquot($f). "`"); mpre($sql);
 			}*/ if(!$fld['name']){
-				$fields = array_map(function($field) use($f){
-					return "{$field['name']} {$field['type']}";
-				}, array_diff_key($tpl['fields'], array_flip(array($f))));
+				$FIELDS = array_diff_key($tpl['fields'], array_flip(array($f)));
 				mpre("База данных sqlite не поддерживает удаление полей, поэтому делаем через промежуточную таблицу", $transaction = array(
 					"BEGIN TRANSACTION;",
-					"CREATE TEMPORARY TABLE backup(". implode(",", $fields). ");",
-					"INSERT INTO backup SELECT ". implode(", ", (array_map(function($f){ return (first(explode(" ", $f)) == "id" ? "{$f}" : $f); }, array_keys(array_diff_key($tpl['fields'], array_flip(array($f))))))). " FROM ". mpquot($table). ";",
+					"CREATE TEMPORARY TABLE backup(". implode(",", array_map(function($f){ return ($f['name'] == "id" ? "{$f['name']} {$f['type']} PRIMARY KEY" : "{$f['name']} {$f['type']}"); }, $tpl['fields'])). ");",
+					"INSERT INTO backup SELECT * FROM ". mpquot($table). ";",
 					"DROP TABLE ". mpquot($table). ";",
-					"CREATE TABLE ". mpquot($table). "(". implode(",", $fields). ");",
-					"INSERT INTO ". mpquot($table). " SELECT * FROM backup;",
+					"CREATE TABLE ". mpquot($table). "(". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "{$f['name']} INTEGER PRIMARY KEY" : "{$f['name']} {$f['type']}". ($f['dflt_value'] ? " DEFAULT {$f['dflt_value']}" : "")); }, $FIELDS))). ");",
+					"INSERT INTO ". mpquot($table). " SELECT ". implode(",", array_column($FIELDS, "name")). " FROM backup;",
 					"DROP TABLE backup;",
 					"COMMIT;",
 				)); foreach($transaction as $sql){ qw($sql); }

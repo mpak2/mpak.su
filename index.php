@@ -49,15 +49,16 @@ mp_require_once("include/config.php"); # Конфигурация
 if(!$cache_dir = !empty($conf['fs']['cache']) ? $conf['fs']['cache'] : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
 }elseif(!$cache_name = ("{$cache_dir}/{$conf['settings']['http_host']}/". (($REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])) == "/" ? "index" : md5($_SERVER['REQUEST_URI'])). ".gz")){ print_r("Ошибка формирования временного файла кеш");
 }elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
+//}elseif(array_key_exists('HTTP_USER_AGENT', $_SERVER) && strpos($_SERVER['HTTP_USER_AGENT'], "YandexWebmaster")){// mpre("Проверка владения сайта вебмастером");
 }elseif(array_key_exists('HTTP_CACHE_CONTROL', $_SERVER)){// pre("Обновление");
 }elseif($_POST || array_key_exists("sess", $_COOKIE)){// print_r("Создание сессии");
 }elseif(!function_exists("sys_getloadavg")){// mpre("Функция загрузки процессора не найдена");
-}elseif(($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) && ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])){// mpre("Процессор загрузен меньше среднего значения за 15 минут");
+}elseif(($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) && ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2]) && (rand(0, $sys_getloadavg[0]) <= 1)){// mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
+//}elseif(!rand(0, $sys_getloadavg[0])){// mpre("С увеличением нагрузки - уменьшаем вероятность обновления страниц");
 }elseif(is_link($cache_name)){
 	if(!$cache_link = readlink($cache_name)){ print_r("Ошибка получения свойств симлинка");
 	}elseif(!$type = implode("/", array_slice(explode("/", $cache_link), 0, -1))){ print_r("Тип контента не определен");
 	}else{ header("Content-Type: {$type}"); }
-
 	error_log(implode("/", $sys_getloadavg). " <== {$type} http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 	header('Content-Encoding: gzip');
 	exit(readfile($cache_name));
@@ -267,7 +268,7 @@ if((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/
 	$zblocks = blocks();
 }
 
-if($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". (get($_GET, 'index') ?: (get($conf, 'settings', 'index') ?: "index")) . ".html")){
+if(($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". (get($_GET, 'index') ?: (get($conf, 'settings', 'index') ?: "index")) . ".html")) || array_key_exists('null', $_GET)){
 	if(get($conf, 'settings', 'theme_exec')){
 		ob_start(); inc($f); $tc = ob_get_contents(); ob_clean();
 	}else{
@@ -301,7 +302,7 @@ if(!function_exists("sys_getloadavg")){// mpre("Функция загрузки 
 		error_log(implode("/", $sys_getloadavg). " <<< ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);	
 	}
 }elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Адрес на сайте не определен");
-}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/robots.txt", "/sitemap.xml", "/favicon.ico", "/users:login", "/users:reg", "/admin"])){ // mpre("Не кешируем системные файлы");
+}elseif(array_search($_SERVER['REQUEST_URI'], [1=>/*"/robots.txt", "/sitemap.xml", "/favicon.ico",*/ "/users:login", "/users:reg", "/admin"])){ // mpre("Не кешируем системные файлы");
 }elseif(get($_SERVER, 'HTTP_CACHE_CONTROL')){
 	error_log(implode("/", $sys_getloadavg). " ^^^ http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 }elseif(empty($cache_name)){// mpre("Адрес кеша страницы не задан");

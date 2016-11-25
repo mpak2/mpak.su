@@ -3,7 +3,7 @@
 if(get($_REQUEST, 'class') && $class = "{$conf['db']['prefix']}{$arg['modpath']}_". ($t = first(explode(" ", $_REQUEST['class'])))){
 	if($arg['access'] > 1){
 		mpevent("ajax://{$arg['modpath']}:ajax/class:{$t}", $conf['user']['uid'], $_REQUEST);
-		$where = array_diff_key($_REQUEST, array_flip(array("class", "m", "null")));
+		$where = array_diff_key($_GET, array_flip(array("class", "m", "null")));
 		$w = array("time"=>time()) + array_diff_key($_REQUEST, array("id"=>false));
 		if($arg['access'] >= 2){
 			if(get($_POST, 'id') < 0){

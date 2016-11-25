@@ -19,13 +19,18 @@
 					var yandex_id = $(e.currentTarget).parents("[yandex_id]").attr("yandex_id");
 					var index_id = $(e.currentTarget).parents("[index_id]").attr("index_id");
 					$.post("/<?=$arg['modname']?>:<?=$arg['fn']?>/"+yandex_id+"/null", {index_id:index_id, api:api}, function(response){
-						if(isNaN(response)){ alert(response) }else{
-							$(e.currentTarget).find("strong").unwrap().css("color", "green");
-//							document.location.reload(true);
-						}
+						$(e.currentTarget).find("strong").unwrap().css("color", "green");
+					}, 'json').fail(function(response){
+						$(e.currentTarget).find("strong").unwrap().css("color", "red");
+//						alert(response.responseText)
+						console.error(response);
 					})
+/*						if(isNaN(response)){
+						}else{
+//							document.location.reload(true);
+						}*/
 					$(e.currentTarget).find("strong").removeClass("reg").css("color", "black");
-				}).on("upgrade", function(e, data){
+				}).on("upgrade", function(e, data){// console.log("upgrade", data);
 					$.ajax({
 						type: "POST",
 						url: "/<?=$arg['modpath']?>:<?=$arg['fn']?>/<?=$yandex['id']?>/null",
@@ -37,36 +42,37 @@
 								$(e.delegateTarget).find("[index_id="+data.index_id+"] .tops span.inc").text(length).show();
 							}else if(data.api == "stats"){
 								if(count = response['index-count']){
-									var b = $(e.delegateTarget).find(xpath = "[index_id="+data.index_id+"] .index-count b").text()|0;
+									var b = $(e.delegateTarget).find(xpath = "[index_id="+data.index_id+"] .index_count b").text()|0;
 									if((cnt = count - b) > 0){
-										$(e.delegateTarget).find("[index_id="+data.index_id+"] .index-count span.inc").text(cnt).show();
+										$(e.delegateTarget).find("[index_id="+data.index_id+"] .index_count span.inc").text(cnt).show();
 									}else if(cnt < 0){
-										$(e.delegateTarget).find("[index_id="+data.index_id+"] .index-count span.inc").text(cnt).removeClass("inc").addClass("dec").show();
+										$(e.delegateTarget).find("[index_id="+data.index_id+"] .index_count span.inc").text(cnt).removeClass("inc").addClass("dec").show();
 									}else{ console.log("b:", b, "index_count:", count); }
-								}else{ console.error("stats", response); }
+								}else{ console.error("Количество индексов не задано", response); }
 
 								if(count = response['internal-links-count']){
-									var b = $(e.delegateTarget).find(xpath = "[index_id="+data.index_id+"] .internal-links-count b").text()|0;
+									var b = $(e.delegateTarget).find(xpath = "[index_id="+data.index_id+"] .internal_links_count b").text()|0;
 									if((cnt = count - b) > 0){
-										$(e.delegateTarget).find("[index_id="+data.index_id+"] .internal-links-count span.inc").text(cnt).show();
+										$(e.delegateTarget).find("[index_id="+data.index_id+"] .internal_links_count span.inc").text(cnt).show();
 									}else if(cnt < 0){
-										$(e.delegateTarget).find("[index_id="+data.index_id+"] .internal-links-count span.inc").text(cnt).removeClass("inc").addClass("dec").show();
-									}else{ console.log("b:", b, "internal-links-count:", count); }
-								}else{ console.error("stats", response); }
+										$(e.delegateTarget).find("[index_id="+data.index_id+"] .internal_links_count span.inc").text(cnt).removeClass("inc").addClass("dec").show();
+									}else{ console.log("b:", b, "internal_links_count:", count); }
+								}else{ console.error("Количество ссылок не задано", response); }
 
 								if(count = response['url-errors']){
-									var b = $(e.delegateTarget).find(xpath = "[index_id="+data.index_id+"] .url-errors b").text()|0;
+									var b = $(e.delegateTarget).find(xpath = "[index_id="+data.index_id+"] .url_errors b").text()|0;
 									if((cnt = count - b) > 0){
-										$(e.delegateTarget).find("[index_id="+data.index_id+"] .url-errors span.inc").text(cnt).show();
+										$(e.delegateTarget).find("[index_id="+data.index_id+"] .url_errors span.inc").text(cnt).show();
 									}else if(cnt < 0){
-										$(e.delegateTarget).find("[index_id="+data.index_id+"] .url-errors span.inc").text(cnt).removeClass("inc").addClass("dec").show();
-									}else{ console.log("b:", b, "url-errors:", count); }
-								}else{ console.error("stats", response); }
+										$(e.delegateTarget).find("[index_id="+data.index_id+"] .url_errors span.inc").text(cnt).removeClass("inc").addClass("dec").show();
+									}else{ console.log("b:", b, "url_errors:", count); }
+								}else{ console.error("Количество ошибок не задано", response); }
 							} console.log(data, response);
 						},
 						error:function(response){
-//							alert(response.responseText);
-							console.error("error:", response.responseText);
+							console.log("response:", response);
+//							console.log("response.responseText:", response.responseText);
+							alert(response.responseText);
 						}
 					});
 				}).on("click", "a.upgrade", function(e){
@@ -114,7 +120,7 @@
 						},
 						dataType:'json',
 						error:function(error){
-							alert(error.responseText);
+							console.error(error.responseText);
 						}
 					})
 				})
@@ -124,7 +130,7 @@
 			<div>
 				<span class="yandex_token">
 					<? foreach(rb("yandex_token") as $yandex_token): ?>
-						<a yandex_token_id="<?=$yandex_token['id']?>" href="javascript:">
+						<a yandex_token_id="<?=$yandex_token['id']?>" href="javascript:" style="font-weight:<?=($yandex_token['id'] == $yandex['yandex_token_id'] ? "bold" : "inherid")?>;">
 							<?=(get($yandex_token, 'login') ?: $yandex_token['name'])?>
 						</a>
 							<span title="Количество сайтов в вебмастере"><?=count(rb("yandex_webmaster", "yandex_token_id", "id", $yandex_token['id']))?></span> /
@@ -169,8 +175,8 @@
 						<span>
 							<a href='/themes:admin/r:<?=$conf['db']['prefix']?>themes_index?&where[id]=<?=$index['id']?>'><?=$index['id']?></a>
 						</span>
-						<span class="name" style="color:<?=(get($index, 'index_id') ? "#ccc" : "black")?>;">
-							<span class="status" style="float:right;"></span>
+						<span class="name" style="position:relatite; color:<?=(get($index, 'index_id') ? "#ccc" : "black")?>;">
+							<span class="status" style="position:absolute; right:0;"></span>
 							<?=$index['name']?>
 						</span>
 						<span><?=get($yandex_webmaster, 'tcy')?></span>
@@ -190,9 +196,9 @@
 								<?=$yandex_metrika['code_status']?>
 							<? endif; ?>
 						</span>
-						<span><?=get($yandex_webmaster, 'url-count')?></span>
-						<span class="index-count">
-							<b><?=get($yandex_webmaster, 'index-count')?></b>
+						<span><?=get($yandex_webmaster, 'url_count')?></span>
+						<span class="index_count">
+							<b><?=get($yandex_webmaster, 'index_count')?></b>
 							<span class="inc">0</span>
 						</span>
 						<span>
@@ -210,12 +216,12 @@
 								<a href="/themes:admin/r:<?=$conf['db']['prefix']?>themes_yandex_texts?&where[index_id]=<?=$index['id']?>"><?=count($tpl['yandex_texts'])?></a>
 							<? endif; ?>
 						</span>
-						<span class="url-errors">
-							<b><?=get($yandex_webmaster, 'url-errors')?></b>
+						<span class="url_errors">
+							<b><?=get($yandex_webmaster, 'url_errors')?></b>
 							<span class="inc">0</span>
 						</span>
-						<span class="internal-links-count">
-							<b><?=get($yandex_webmaster, 'internal-links-count')?></b>
+						<span class="internal_links_count">
+							<b><?=get($yandex_webmaster, 'internal_links_count')?></b>
 							<span class="inc">0</span>
 						</span>
 						<span>

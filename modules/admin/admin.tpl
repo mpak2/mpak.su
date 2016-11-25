@@ -66,6 +66,8 @@
 			.lines .settings ul li {display:list-item;}
 			.lines .settings ul li:before {content:none;}
 			.lines .settings .table>div>span:last-child {text-align:right;}
+			
+			.table .th.top {position:absolute; z-index:10; top:0;}
 		</style>
 		<script>
 			(function($, script){
@@ -162,13 +164,53 @@
 							$(e.currentTarget).css({height:"200px", position:"absolute", top:"7px", width:width+"px"});
 						}
 					}// console.log("is:", $(e.currentTarget).is("[multiple]"), $(e));
-				})
-			})(jQuery, document.scripts[document.scripts.length-1])
+				}).one("init", function(e){
+					setTimeout(function(){
+						var th = $(e.delegateTarget).find(".table .th");
+						$(th).parent().css("position", "relative");
+						$(th).find(">span").each(function(n, span){
+							var width = $(span).width();
+							$(span).css("width", width+"px");
+						})
+						
+						$(window).on("resize", function(e){
+							$(document).trigger("scroll");
+						}).on("scroll", document, function(e){
+							var scroll = $(th).css({"width":"100%", "left":0}).offset().top;
+							var top = $(e.delegateTarget).scrollTop();
+							console.log("scroll:", scroll, "top:", top);
+							if(top > scroll){
+								$(".th.top").css("top", top-scroll)
+								if(!$(".th.top").length){
+									console.log("addClass:top");
+									$(th).clone().addClass("top").appendTo($(th).parent());
+								}
+							}else if($(".th.top").length && (top < scroll)){ console.log("removeClass:top");
+								$(".th.top").remove();
+//								$(th).removeClass("top");
+							}
+						})
+					}, 1000)
+				}).ready(function(e){ $(script).parent().trigger("init"); })
+			})(jQuery, document.currentScript)
 		</script>
 		<form action="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?><?=(get($_GET, "edit") ? "/{$_GET['edit']}" : "")?>/null" method="post" enctype="multipart/form-data">
-			<script src="/include/jquery/jquery.iframe-post-form.js"></script>
-			<script>
+			<script sync>
 				(function($, script){
+					$(script).parent().one("init", function(e){
+						var forms = $(e.delegateTarget).attr("target", "response_"+(timeStamp = e.timeStamp));
+						$("<"+"iframe>").attr("name", "response_"+timeStamp).appendTo(forms).load(function(){
+							var response = $(this).contents().find("body").html();
+							if(json = $.parseJSON(response)){
+								console.log("json:", json);
+//								document.location.reload(true);
+								document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "where") ? "?&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?>';
+							}else{ alert(response); }
+						}).hide();
+					}).ready(function(e){ $(script).parent().trigger("init"); })
+				})(jQuery, document.currentScript)
+
+				/*(function($, script){
 					$(script).parent().one("init", function(e){
 						setTimeout(function(){
 							$(e.delegateTarget).iframePostForm({
@@ -190,7 +232,7 @@
 							});
 						}, 200)
 					}).trigger("init")
-				})(jQuery, document.scripts[document.scripts.length-1])
+				})(jQuery, document.scripts[document.scripts.length-1])*/
 			</script>
 			<div class="table">
 				<div>
@@ -219,20 +261,22 @@
 						<? if($t = implode("_", array_slice(explode("_", $_GET['r']), 1))): # Короткое имя текущей таблицы ?>
 							<ul class="admin">
 								<? foreach(array_unique(array_map(function($f){ return first(explode('.', $f)); }, mpreaddir("/modules/{$arg['modpath']}", 1))) as $f): ?>
-									<?// if((strpos($f, "admin_") === 0) && ($fl = implode('_', array_slice(explode('_', $f), 1))) && (!($ft = implode('_', array_slice(explode('_', $t), 1))) || (strpos(($fl), $ft) === 0))): # Адреса страниц начинающихся на admin_ и совпадающие с текущей таблицуй ?>
 									<? if(strpos($f, "admin_") === false):// mpre("Имя файла не админ_") ?>
 									<? elseif(!$fl = implode('_', array_slice(explode('_', $f), 1))): mpre("Ошибка формирования алиаса файла") ?>
-									<? elseif(!$ft = implode('_', array_slice(explode('_', $t), 1))): mpre("Ошибка формирования имени файла") ?>
-									<? elseif(strpos($fl, $ft) !== 0):// mpre("Имя не соответствует формату страницы") ?>
+									<? elseif(!($ft = implode('_', array_slice(explode('_', $t), 1))) &0): mpre("Ошибка формирования внутреннего имени таблицы") ?>
+									<? elseif(!$ft || (strpos($fl, $ft) !== 0)):// mpre("Имя не соответствует формату страницы") ?>
 									<? elseif(!$href = "/{$arg['modpath']}:{$f}". (($id = get($_GET, 'where', 'id')) ? "/{$id}" : ""). ""): mpre("Ошибка формирования адреса страницы") ?>
+									<?// elseif(!$dir = mpopendir($od = $fl)): mpre("Имя файла в файловой системе не найдено {$od}") ?>
+									<? elseif(!($title = mpopendir("modules/{$arg['modpath']}/{$f}.tpl")) && !($title = mpopendir("modules/{$arg['modpath']}/{$f}.php"))): mpre("Имя файла в файловой системе не найдено"); ?>
+									<? elseif(!$bold = (strpos($title, "phar://") === 0 ? "inherit" : "bold")): mpre("Ошибка вычисления толщины текста"); ?>
 									<? elseif(!$st = get($conf, 'settings', ($af = "{$arg['modpath']}_{$f}"))):// mpre("Имя страница в свойствах раздела не установлено") ?>
-										<li><a href="<?=$href?>" style="color:#ccc;"><?=$af?></a></li>
+										<li title="<?=$title?>"><a href="<?=$href?>" style="font-weight:<?=$bold?>; color:#bbb;"><?=$af?></a></li>
 									<? else: ?>
-										<li><a href="<?=$href?>"><?=$st?></a></li>
+										<li title="<?=$title?>"><a href="<?=$href?>" style="font-weight:<?=$bold?>;"><?=$st?></a></li>
 									<? endif; ?>
 								<? endforeach; ?>
 								<li><b><a href="/sqlanaliz:admin_sql/r:<?=$_GET['r']?>">БД</a></b></li>
-								<li class="settings" style="position:relative;">
+								<li class="settings" style="position:relative; z-index:10;">
 									<div class="settings" style="display:none; position:absolute; width:300px; background-color:white; right:0px; top:20; text-align:left; min-height:50px;">
 										<h2>Свойства</h2>
 										<div style="padding:10px; border:1px solid #eee; border-top:0;">

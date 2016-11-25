@@ -264,18 +264,16 @@ if (!function_exists('modules')){
 				}else if(get($conf, 'modules', $k) && ($_SERVER['REQUEST_URI'] != "/admin")){
 					header("HTTP/1.0 403 Access Denied");
 					exit(header("Location: /users:login"));
+				}else if(!mpopendir($f = "modules/{$mod['link']}/deny.php") && !mpopendir($f = "modules/admin/deny.php")){ pre("Не найдена страница запрета доступа");
 				}else{
-					if (file_exists(mpopendir("modules/{$mod['link']}/deny.php"))){
-	//					$content = mpct("modules/{$mod['link']}/deny.php", $conf['arg'] = array('modpath'=>$mod['folder']));
+//				if(){
 						ob_start();
-							inc("modules/{$mod['link']}/deny.php", array('arg'=>array('modpath'=>$mod['folder'])));
+							inc($f, array('arg'=>array('modpath'=>$mod['folder'])));
 						$content .= ob_get_contents(); ob_end_clean();
-					}else if(!array_key_exists("themes", $_GET)){
+					/*}else if(!array_key_exists("themes", $_GET)){
 						if(!array_key_exists('null', $_GET) && ($_SERVER['REQUEST_URI'] != "/admin")){
-	//						header("HTTP/1.0 404 Not Found");
-	//						header("Location: /themes:404{$_SERVER['REQUEST_URI']}");// header("Location: /admin");
 						}
-					}
+					}*/
 				}
 			}else{ mpre("Адрес установлен не верно", get($conf, 'settings', 'canonical')); }
 		} return $content;
@@ -1242,14 +1240,22 @@ function mpreaddir($file_name, $merge=0){
 	}
 	return $itog;
 }
-function mpopendir($file_name, $merge=1){
+function mpopendir($file_name = null, $merge=1){
 	global $conf;
-	$prefix = $merge ? explode('::', $conf["db"]["open_basedir"]) : array('./');
-	if($merge < 0) krsort($prefix);
-	foreach($prefix as $k=>$v){
-		$file = strtr(/*mpre*/("$v/$file_name"), array('/modules/..'=>''));
-		if(file_exists($file)){
-			return $file; break;
+	if($file_name === null){
+		foreach(explode('::', $conf["db"]["open_basedir"]) as $dir){
+			if(!strpos($dir, "://") && is_dir($dir)){
+				$basedir = $dir;
+			}
+		} return $basedir;
+	}else{
+		$prefix = $merge ? explode('::', $conf["db"]["open_basedir"]) : array('./');
+		if($merge < 0) krsort($prefix);
+		foreach($prefix as $k=>$v){
+			$file = strtr(/*mpre*/("$v/$file_name"), array('/modules/..'=>''));
+			if(file_exists($file)){
+				return $file; break;
+			}
 		}
 	}
 }

@@ -1,8 +1,8 @@
 <?
 
-$online = qn("SELECT * FROM {$conf['db']['prefix']}sess WHERE last_time > ". (time()-$conf['settings']['sess_time']). " AND CHAR_LENGTH(sess)=32 ORDER BY last_time DESC");
+$online = qn($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE last_time > ". (time()-abs($conf['settings']['sess_time'])). " AND CHAR_LENGTH(sess)=32 ORDER BY last_time DESC");
 $users = rb("{$conf['db']['prefix']}users", "id", "id", rb($online, "uid"));
-$count = ql("SELECT COUNT(*) AS count FROM {$conf['db']['prefix']}sess WHERE last_time > ". (time()-$conf['settings']['sess_time']). " AND CHAR_LENGTH(sess)=32 ORDER BY last_time DESC", 0, 'count');
+//$count = ql("SELECT COUNT(*) AS count FROM {$conf['db']['prefix']}sess WHERE last_time > ". (time()-$conf['settings']['sess_time']). " AND CHAR_LENGTH(sess)=32 ORDER BY last_time DESC", 0, 'count');
 $logo = array(
 	"Mediapartners-Google.png"=>"Mediapartners-Google",
 	"naver.com.png"=>"naver",
@@ -100,8 +100,8 @@ $guest = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE name=\"". m
 	<style>
 		.online a {padding:0 !important;}
 	</style>
-	<div style="clear:both;">на сайте <b><?=$count?></b> <?=mpfm($count, 'посетитель', 'посетителя', 'посетителей')?></div>
-	<? foreach($on as $os): ?>
+	<div style="clear:both;">на сайте <b><?=($count = count($online))?></b> <?=mpfm($count, 'посетитель', 'посетителя', 'посетителей')?></div>
+	<? if(!empty($on)) foreach($on as $os): ?>
 		<? foreach($os as $s=>$o): ?>
 			<? $keys = array_keys($ar = array_slice($o, 0, 1)) ?>
 			<? $v = $ar[min($keys)]; ?>

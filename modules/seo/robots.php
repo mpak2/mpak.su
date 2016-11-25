@@ -14,8 +14,7 @@ if(!($SEO_ROBOTS = call_user_func(function() use($conf, $arg){
 	if(get($conf, 'settings', 'seo_robots_disallow')){
 		return rb('robots_disallow');
 	}else{ return []; }})) &0){ mpre("Список запрещенных адресов не задан");
-}else{// mpre($SEO_ROBOTS, $SEO_ROBOTS_AGENT, $SEO_ROBOTS_DISALLOW);
-}
+}else{// mpre($SEO_ROBOTS, $SEO_ROBOTS_AGENT, $SEO_ROBOTS_DISALLOW); }
 
 foreach(['*'=>['name'=>'*'], 'Yandex'=>['name'=>'Yandex']] + rb($SEO_ROBOTS_AGENT, "name") as $seo_robots_agent){// mpre($seo_robots_agent);
 	echo "User-agent: {$seo_robots_agent['name']}\n";

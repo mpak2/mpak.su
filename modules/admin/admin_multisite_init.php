@@ -22,12 +22,13 @@ if(get($conf, "settings", "themes_index_tags")){ # Добавляем теги �
 		if((count($tag = array_filter(array_column($THEMES_INDEX_TAGS, 'theme'))) == 1) && ($theme = first($tag))){
 			mpevent("Устновка темы", $theme);
 			$themes_index = fk("themes-index", array("id"=>$themes_index['id']), null, array("theme"=>$theme));
+//			header("Location: /");
 		}
 	}else{ pre("Теги хоста не найдены"); }
 } if(array_key_exists("sort", $themes_index) && !$themes_index['sort']){ # Заполним сортировку
 	$themes_index = fk("themes-index", array("id"=>$themes_index['id']), null, array("sort"=>$themes_index['id']));
 } if(array_key_exists("prime", $themes_index)){ # Добавление простого числа к сайту;
-	inc("modules/themes/admin_index_prime.tpl");
+//	inc("modules/themes/admin_index_prime.tpl");
 } if(array_key_exists("index_theme_id", $themes_index)){ # Устанавливаем тему;
-	inc("modules/themes/admin_index_prime_themes.tpl");
+	inc("modules/themes/admin_index_themes.tpl", ['themes_index'=>$themes_index]);
 }
