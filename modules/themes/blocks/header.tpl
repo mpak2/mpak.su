@@ -1,7 +1,7 @@
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
 
 <style>
-	div.table {display:table; width:100%; vertical-align:top;}
+	div.table {display:table; width:100%; vertical-align:top; border-collapse:collapse;}
 	div.table > div {display:table-row;}
 	div.table > div > span {display:table-cell; padding:3px; vertical-align:top;}
 	div.table > div.th > span {background-color:#444; color:white;}

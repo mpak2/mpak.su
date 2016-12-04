@@ -186,8 +186,8 @@ function inc($file_name, $variables = [], $req = false){
 			}
 			$GLOBALS['arg'] = $_arg;
 			return false;
-		}else if(!array_key_exists('arg', $variables)){ # Установленная переменная arg признак не выводить ошибку
-			mpre("Подключаемый файл не найден", $file_name);
+		}else if(($debug_backtrace = debug_backtrace()) && !array_key_exists('arg', $variables)){ # Установленная переменная arg признак не выводить ошибку
+			mpre("Подключаемый файл не найден", $file_name, "Источник вызова", "{$debug_backtrace[1]['file']}:{$debug_backtrace[1]['line']}");
 		}
 	}else{
 		$php = inc("{$file_name}.php", $variables, $req);
@@ -207,12 +207,17 @@ function seo($href, $return = true){
 				return $index['name'];
 			}else{ return $href; }
 		}elseif($themes_index = get($conf, 'user', 'sess', 'themes_index')){ # МногоСайтов
-			if($tpl['seo_index_themes'] = rb("{$conf['db']['prefix']}seo_index_themes", "location_id", "themes_index", "id", $seo_location['id'], $themes_index['id'])){
-				if($tpl['index'] = rb("{$conf['db']['prefix']}seo_index", "id", "id", rb($tpl['seo_index_themes'], "index_id"))){
-					if(count($tpl['index']) != 1){
-						mpre("Внешний адрес <a href='/seo:admin/r:mp_seo_index_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>не найден</a>", $tpl['seo_index_themes']);
-					}else{ return get(first($tpl['index']), 'name'); }
-				}else{ return $href; }
+			if(!$SEO_INDEX_THEMES = rb("{$conf['db']['prefix']}seo_index_themes", "location_id", "themes_index", "id", $seo_location['id'], $themes_index['id'])){
+				return $href;
+			}elseif(!$tpl['index'] = rb("{$conf['db']['prefix']}seo_index", "id", "id", rb($SEO_INDEX_THEMES, "index_id"))){
+			}elseif((count($tpl['index']) == 1) && ($seo_index = first($tpl['index']))){
+				return $seo_index['name'];
+			}elseif($tpl['index'] && ($HREFS = array_map(function($index) use($seo_location, $SEO_INDEX_THEMES){
+					if(!$seo_index_themes = rb($SEO_INDEX_THEMES, 'index_id', $index['id'])){ mpre("Ошибка поиска адресации");
+					}else{
+						return "<a href='/seo:admin/r:seo-index_themes?&where[id]={$seo_index_themes['id']}'>{$seo_location['name']}</a> <a href='/seo:admin/r:seo-index?&where[id]={$index['id']}'>{$index['name']}</a>";
+					}
+				}, $tpl['index']))){ mpre('Дублирующиеся внешние ссылки', array_values($HREFS));
 			}else{ return $href; }
 		}else{ return $href; }
 	}else{ return $href; }
@@ -261,9 +266,13 @@ if (!function_exists('modules')){
 							}
 						}
 					$content .= ob_get_contents(); ob_end_clean();
-				}else if(get($conf, 'modules', $k) && ($_SERVER['REQUEST_URI'] != "/admin")){
+				}else if(get($conf, 'modules', $k) && ($k != "admin")){
 					header("HTTP/1.0 403 Access Denied");
-					exit(header("Location: /users:login"));
+					if(!strpos($v, "admin")){
+						exit(header("Location: /admin"));
+					}else{
+						exit(header("Location: /users:login"));
+					}
 				}else if(!mpopendir($f = "modules/{$mod['link']}/deny.php") && !mpopendir($f = "modules/admin/deny.php")){ pre("Не найдена страница запрета доступа");
 				}else{
 //				if(){
