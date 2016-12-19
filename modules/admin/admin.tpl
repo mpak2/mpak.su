@@ -68,6 +68,7 @@
 			.lines .settings .table>div>span:last-child {text-align:right;}
 			
 			.table .th.top {position:absolute; z-index:10; top:0;}
+			.info_comm{color: #a5a5a5;}
 		</style>
 		<script>
 			(function($, script){
@@ -330,10 +331,15 @@
 							<span>
 								<? if($name == "id"): # Вертикальное отображение ?>
 									<?=(get($tpl, 'edit', "id") ?: "Номер записи назначаеся ситемой")?>
-								<? elseif(array_search($name, array(1=>"img", "img2", "img3"))): ?>
+								<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#^img(\d*|_.+)?#iu",$name)): ?>
 									<input type="file" name="<?=$name?>[]" multiple="true">
-								<? elseif($name == "file"): ?>
-									<input type="file" name="file[]" multiple="true">
+									<span class="info_comm">										
+										<?$linesda = get($tpl,'lines');?>
+										<a href="/<?=$arg['modpath']?>:img/<?=get($linesda,key($linesda))['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$name?>/w:65/h:65/null/img.png" target="_blank"><?=get($tpl,'edit',$name);?></a>
+									</span>
+								<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#^file(\d*|_.+)?#iu",$name)): ?>
+									<input type="file" name="<?=$name?>[]" multiple="true">
+									<span class="info_comm"><?=get($tpl,'edit',$name);?></span>
 								<? elseif($name == "hide"): ?>
 									<select name="hide">
 										<? foreach(get($tpl, 'spisok', 'hide') as $k=>$v): ?>
@@ -375,7 +381,7 @@
 											</option>
 										<? endforeach; ?> 
 									</select>
-								<? elseif($name == "text"): ?>
+								<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#^text(\d*|_.+)?#iu",$name)): ?>
 									<?=mpwysiwyg($name, get($tpl, 'edit', $name) ?: "")?>
 								<? elseif($tpl_espisok = get($tpl, 'espisok', $name)): ?>
 									<select name="<?=$name?>">
@@ -385,7 +391,7 @@
 										<? endforeach; ?>
 									</select>
 								<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>
-									<input type="text" name="<?=$name?>" value="<?=htmlspecialchars(get($tpl, 'edit') ? rb($_GET['r'], "id", get($_GET, 'edit'), $name) : (get($_GET, 'where', $name) ?: get($field, 'Default')))?>" placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
+									<input type="text" name="<?=$name?>" value="<?=htmlspecialchars(get($tpl, 'edit') ? rb($_GET['r'], "id", get($_GET, 'edit'), $name) : get($field, 'Default'))?>" placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
 								<? endif; ?>
 							</span>
 						</div>
@@ -440,7 +446,7 @@
 												<a class="edit" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&edit=<?=$v?><? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'order') ? "&order={$_GET['order']}" : "")?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : "")?>"></a>
 												<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&where[id]=<?=$v?>"><?=$v?></a>
 											</span>
-										<? elseif(array_search($k, array(1=>"img", "img2", "img3"))): ?>
+										<? elseif(!preg_match("#_id$#ui",$k) AND preg_match("#^img(\d*|_.+)?#iu",$k)): ?>
 											<div class="imgs" fn="<?=$k?>" style="position:relative; width:70px; height:70px;">
 													<? if($lines[$k]): ?>
 														<a class="del" href="javascript:void(0)" style="position:absolute; top:5px; right:5px;" title="Удалить изображение">
@@ -449,7 +455,7 @@
 													<? endif; ?>
 													<img src="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?><?=($lines[$k] ? "" : "/rand:". time())?>/w:65/h:65/null/img.png" style="border:1px solid #aaa; padding:2px;"  title="<?=$v?>">
 											</div>
-										<? elseif($k == "file"): ?>
+										<? elseif(!preg_match("#_id$#ui",$k) AND preg_match("#^file(\d*|_.+)?#iu",$k)): ?>
 											<a target="blank" href="/<?=$arg['modpath']?>:file/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:file/null/<?=basename($lines[$k])?>" title="<?=$v?>">
 												<?=$v?>
 											</a>
@@ -525,10 +531,10 @@
 										<input type="text" disabled>
 									<? elseif($name == "id"): ?>
 										<button type="submit"><?=(get($_GET, "edit") ? "Редактировать" : "Добавить")?></button>
-									<? elseif(array_search($name, array(1=>"img", "img2", "img3"))): ?>
+									<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#^img(\d*|_.+)?#iu",$name)): ?>
 										<input type="file" name="<?=$name?>[]" multiple="true">
-									<? elseif($name == "file"): ?>
-										<input type="file" name="file[]" multiple="true">
+									<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#^file(\d*|_.+)?#iu",$name)): ?>
+										<input type="file" name="<?=$name?>[]" multiple="true">
 									<? elseif($name == "hide"): ?>
 										<select name="hide">
 											<? foreach(get($tpl, 'spisok', 'hide') as $k=>$v): ?>
