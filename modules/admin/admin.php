@@ -113,14 +113,22 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 				}else{ mpre("Тип записи не найден {$w}"); }
 			}else{ /*mpre("Логирование запросов выключено");*/ }
 		}
-
-		foreach(array(
+		
+		
+		
+		//поиск изображений и файлов
+		preg_match_all("#(img|file)(\d+|_[^,]+)?#iu",implode(",",array_keys($_FILES)),$matchFiles);
+		//маска
+		$exts = array(
 			"img"=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp'),
-			"img2"=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp'),
-			"img3"=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp'),
 			"file"=>array("*"=>"*")
-		) as $f=>$ext){
-			if($file = get($_FILES, $f)){ # POST содержащий  файл
+		);
+		
+		
+		foreach($matchFiles[0] as $mKey=>$param_name){
+			$f = $matchFiles[1][$mKey];
+			$ext = $exts[$f];
+			if($file = get($_FILES, $param_name)){ # POST содержащий  файл
 				if(is_array($file['error'])){ # Множественная загрузка
 					foreach($file['error'] as $key=>$error){
 						if($file['name'][$key]){
@@ -131,17 +139,19 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 									$el = fk($_GET['r'], null, $w = array_diff_key($el, array_flip(array("id", "sort"))), $w);
 								} if(array_key_exists("sort", $el) && ($el['sort'] == 0)){
 									$el = fk($_GET['r'], array("id"=>$el['id']), null, array("sort"=>$el['id']));
-								} $file_id = mpfid($_GET['r'], $f, $el['id'], $key, $ext);
+								} $file_id = mpfid($_GET['r'], $param_name, $el['id'], $key, $ext);
 							}
 						}
 					}
-				}else if($file_id = mpfid($_GET['r'], $f, $el['id'], null, $ext)){
+				}else if($file_id = mpfid($_GET['r'], $param_name, $el['id'], null, $ext)){
 					# Файл загружен
 				}else{ exit("Ошибка загрузки файла {$file['name']}"); }
 			}elseif(get($_POST, $f)){ # Адрес внешнего изображения
 				$file_id = mphid($class, $f, $el['id'], $_POST[$f], $ext);
 			}
+			
 		}
+		
 		
 		if(array_key_exists("sort", $el) && !$el['sort']){ # Если у нас есть поле сортировки и оно пустое, то назначаем его равным id
 			$el = fk($_GET['r'], array("id"=>$el['id']), null, array("sort"=>$el['id']));
