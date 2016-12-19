@@ -45,7 +45,7 @@ $defaultmimes = array(
 	'xml' => 'text/xml',
 );
 
-if($path = mpopendir($_SERVER['REDIRECT_URL'])): mpre("Директория с файлом не найдена");
+if($path = mpopendir($_SERVER['REQUEST_URI'])): mpre("Директория с файлом не найдена");
 }elseif($ext = strtolower(last(explode('.', $path))])){ mpre("Расширение файла не найдено");
 }elseif(!get($defaultmimes, $ext) || !file_exists($path)){
 	header("HTTP/1.1 404 Not Found");
