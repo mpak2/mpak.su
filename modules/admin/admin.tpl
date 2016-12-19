@@ -462,8 +462,10 @@
 												<span><?=$v?></span>
 												<a class="dec" href="javascript:void(0);" style="background:url(i/mgif.gif); background-position:0 -90px; width: 10px; height: 14px; display:inline-block;"></a>
 											</div>
-										<? elseif($k == "hide"): ?>
-											<?=(get($tpl, 'spisok', 'hide', $v) ?: "")?>
+										<? elseif($k == "hide"): ?>											
+											<span class="<?=($v?'info_comm':"");?>">
+												<?=(get($tpl, 'spisok', 'hide', $v) ?: "")?>
+											</span>
 										<? elseif($k == "uid"): ?>
 											<span style="white-space:nowrap;">
 												<? if($uid = rb("{$conf['db']['prefix']}users", "id", (int)$v)): ?>
