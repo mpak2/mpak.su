@@ -96,4 +96,4 @@
 div.table {display:table; width:100%;}
 div.table > div {display:table-row;}
 div.table > div > span {display:table-cell; vertical-align:top;}
-div.table > div.th >span {background-color:#aaa; color:white; font-weight:bold; border:1px solid #ddd;}
+div.table > div.th >span {background-color:#aaa; color:#008ee9; font-weight:bold; border:1px solid #ddd;}
