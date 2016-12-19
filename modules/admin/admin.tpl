@@ -303,9 +303,6 @@
 							</ul>
 						<? endif; ?>
 					</span>
-					<? if(!get($tpl, 'edit')): ?>
-						<span style="width:430px;"><?=$tpl['pager']?></span>
-					<? endif; ?>
 				</div>
 			</div>
 			<div class="table">
