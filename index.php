@@ -45,31 +45,9 @@ if(!function_exists('mp_require_once')){
 	}
 }
 mp_require_once("include/config.php"); # Конфигурация
-
-if(!$cache_dir = !empty($conf['fs']['cache']) ? $conf['fs']['cache'] : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
-}elseif(!$cache_name = ("{$cache_dir}/{$conf['settings']['http_host']}/". (($REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])) == "/" ? "index" : md5($_SERVER['REQUEST_URI'])). ".gz")){ print_r("Ошибка формирования временного файла кеш");
-}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
-//}elseif(array_key_exists('HTTP_USER_AGENT', $_SERVER) && strpos($_SERVER['HTTP_USER_AGENT'], "YandexWebmaster")){// mpre("Проверка владения сайта вебмастером");
-}elseif(array_key_exists('HTTP_CACHE_CONTROL', $_SERVER)){// pre("Обновление");
-}elseif($_POST || array_key_exists("sess", $_COOKIE)){// print_r("Создание сессии");
-}elseif(!function_exists("sys_getloadavg")){// mpre("Функция загрузки процессора не найдена");
-}elseif(($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) && ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2]) && (rand(0, $sys_getloadavg[0]) <= 1)){// mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
-//}elseif(!rand(0, $sys_getloadavg[0])){// mpre("С увеличением нагрузки - уменьшаем вероятность обновления страниц");
-}elseif(is_link($cache_name)){
-	if(!$cache_link = readlink($cache_name)){ print_r("Ошибка получения свойств симлинка");
-	}elseif(!$type = implode("/", array_slice(explode("/", $cache_link), 0, -1))){ print_r("Тип контента не определен");
-	}else{ header("Content-Type: {$type}"); }
-	error_log(implode("/", $sys_getloadavg). " <== {$type} http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-	header('Content-Encoding: gzip');
-	exit(readfile($cache_name));
-}elseif(!file_exists($cache_name)){// print_r("Кеш страницы не найден");
-}else{// print_r("Кеш {$cache_name}", filesize($cache_name));
-	header('Content-Encoding: gzip');
-	error_log(implode("/", $sys_getloadavg). " <   http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-	exit(readfile($cache_name));
-}
-
 mp_require_once("include/mpfunc.php"); # Функции системы
+
+cache();
 
 if(!$guest = ['id'=>0, "uname"=>"гость", "pass"=>"nopass", "reg_time"=>0, "last_time"=>time()]){ mpre("Ошибка создания пользователя");
 }elseif(!$sess = array('id'=>0, 'uid'=>$guest['id'], "refer"=>0, 'last_time'=>time(), 'count'=>0, 'count_time'=>0, 'cnull'=>0, 'sess'=>($_COOKIE["sess"] ?: md5("{$_SERVER['REMOTE_ADDR']}:".microtime())), 'ref'=>mpquot(mpidn(urldecode($_SERVER['HTTP_REFERER']))), 'ip'=>mpquot($_SERVER['REMOTE_ADDR']), 'agent'=>mpquot($_SERVER['HTTP_USER_AGENT']), 'url'=>mpquot(urldecode($_SERVER['REQUEST_URI'])))){ pre("Ошибка создания сессии");
@@ -288,49 +266,5 @@ if(!get($_COOKIE, "{$conf['db']['prefix']}modified_since") && ($conf['settings']
 	header("Expires: ". gmdate("r", time()+(get($conf, 'settings', "themes_expires") ?: 86400)));
 } $content = array_key_exists("null", $_GET) ? $content : strtr($content, mpzam($conf['settings'], "settings", "<!-- [", "] -->"));
 
-if(!function_exists("sys_getloadavg")){// mpre("Функция загрузки процессора не найдена");
-}elseif(!$sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())){ mpre("Ошибка выборки статистики загрузки процессора");
-}elseif($conf['user']['sess']['uid']){// mpre("Сохранение действует только для гостей");
-	if(file_exists($cache_name)){
-		unlink($cache_name);
-	} error_log(implode("/", $sys_getloadavg). " xxx ". ($conf['user']['sess']['uid'] <= 0 ? "{$guest['uname']}{$conf['user']['sess']['id']}" : $conf['user']['uname']). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-}elseif(http_response_code() != 200){// pre("Кешируем только корректно отдаваемые страницы");
-	if(!file_exists($cache_name)){
-		error_log(implode("/", $sys_getloadavg). " <<< ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);	
-	}elseif(!unlink($cache_name)){ mpre("Ошибка удаления файла");
-	}else{
-		error_log(implode("/", $sys_getloadavg). " <<< ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);	
-	}
-}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Адрес на сайте не определен");
-}elseif(array_search($_SERVER['REQUEST_URI'], [1=>/*"/robots.txt", "/sitemap.xml", "/favicon.ico",*/ "/users:login", "/users:reg", "/admin"])){ // mpre("Не кешируем системные файлы");
-}elseif(get($_SERVER, 'HTTP_CACHE_CONTROL')){
-	error_log(implode("/", $sys_getloadavg). " ^^^ http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-}elseif(empty($cache_name)){// mpre("Адрес кеша страницы не задан");
-}elseif(!file_exists($dir = dirname($cache_name)) && !mkdir($dir, 0755, true)){ mpre("Ошибка создания директории кеша");
-}elseif(!($cache_exists = file_exists($cache_name)) &0){ mpre("Информация о файле");
-}elseif($header = call_user_func(function($HEADERS) use($dir){
-		if($HEADER = array_filter(array_map(function($headers){
-			foreach(explode(";", $headers) as $header){
-				if((count($hc = explode(":", $header)) == 2) && (strtolower(trim($hc[0])) == strtolower("Content-Type"))){ return trim($hc[1]); }
-			}
-		}, $HEADERS))){
-			return array_pop($HEADER);
-		}else{ return false; };
-	}, headers_list())){
-		if(!$dir_header = "$dir/{$header}"){ mpre("Ошибка формирования адреса директории типа файла");
-		}elseif(file_exists($cache_name)){// mpre("Обновление кеша");
-			file_put_contents("{$dir_header}/". basename($cache_name), gzencode($content));
-			error_log(implode("/", $sys_getloadavg). " ==> ". http_response_code(). " http://{$conf['settings']['http_host']}{$REQUEST_URI} ". number_format(filesize($cache_name)/1e3, 2). "кб". "\n", 3, $cache_log);
-		}elseif(!file_exists($dir_header) && !($dir_header = call_user_func(function($dir_header){
-				if(mkdir($dir_header, 0777, true)) return $dir_header;
-			}, $dir_header))){ mpre("Ошибка создания директории расширения");
-			exit(print_r($dir_header));
-		}elseif(!file_put_contents("{$dir_header}/". basename($cache_name), gzencode($content))){ mpre("Ошибка созранения содержимого страницы в расширение");
-		}elseif(!symlink($header. "/". basename($cache_name), $cache_name)){ mpre("Ошибка создания симлинка на содержимое страницы расширения");
-		}else{
-			error_log(implode("/", $sys_getloadavg). " >>> http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-		}
-}elseif(!file_put_contents($cache_name, gzencode($content, 9))){ mpre("Ошибка создания кеша");
-}else{// pre("Создание кеш файла {$cache_name}");
-	error_log(implode("/", $sys_getloadavg). " ". ($cache_exists ? "==>" : ">>>"). " ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-} echo $content;
+cache($content);
+echo $content;

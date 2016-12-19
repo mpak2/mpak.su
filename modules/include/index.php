@@ -45,17 +45,16 @@ $defaultmimes = array(
 	'xml' => 'text/xml',
 );
 
-$path = mpopendir($_SERVER['REDIRECT_URL']);
-$keys = array_keys($ar = explode('.', $path));
-if(($ext = strtolower($ar[max($keys)])) && array_key_exists($ext, $defaultmimes) && file_exists($path)){
+if($path = mpopendir($_SERVER['REDIRECT_URL'])): mpre("Директория с файлом не найдена");
+}elseif($ext = strtolower(last(explode('.', $path))])){ mpre("Расширение файла не найдено");
+}elseif(!get($defaultmimes, $ext) || !file_exists($path)){
+	header("HTTP/1.1 404 Not Found");
+}else{
 	if(!ob_get_length()){
 		header("Content-type: {$defaultmimes[$ext]}");
 	} $f = fopen($path, "rb");
-	while (!feof($f)) {
+	while(!feof($f)) {
 		echo fread($f, 256);
 	}
-}else{
-	header("HTTP/1.1 404 Not Found");
 }
 
-?>

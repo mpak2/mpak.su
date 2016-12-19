@@ -302,6 +302,9 @@
 							</ul>
 						<? endif; ?>
 					</span>
+					<? if(!get($tpl, 'edit')): ?>
+						<span style="width:430px;"><?=$tpl['pager']?></span>
+					<? endif; ?>
 				</div>
 			</div>
 			<div class="table">
@@ -382,7 +385,7 @@
 										<? endforeach; ?>
 									</select>
 								<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>
-									<input type="text" name="<?=$name?>" value="<?=htmlspecialchars(get($tpl, 'edit') ? rb($_GET['r'], "id", get($_GET, 'edit'), $name) : get($field, 'Default'))?>" placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
+									<input type="text" name="<?=$name?>" value="<?=htmlspecialchars(get($tpl, 'edit') ? rb($_GET['r'], "id", get($_GET, 'edit'), $name) : (get($_GET, 'where', $name) ?: get($field, 'Default')))?>" placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
 								<? endif; ?>
 							</span>
 						</div>

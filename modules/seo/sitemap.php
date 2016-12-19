@@ -13,7 +13,7 @@ if(array_key_exists("null", $_GET)){
 	<? if($themes_index = get($conf, 'themes', 'index')): ?> 
 		<? foreach(rb("seo-index_themes", 1000, "themes_index", "id", $themes_index['id']) as $seo_index_themes):// mpre($seo_index_themes) ?>
 			<? if(!$seo_index = rb("seo-index", "id", $seo_index_themes['index_id'])): mpre("Адрес не найден") ?> 
-			<? elseif(!($seo_index_changefreq = rb("seo-index_changefreq", "id", get($seo_index, 'index_changefreq_id'))) &0): mpre("Период изменения не найден") ?>
+			<? elseif((get($conf, 'settings', 'seo_index_changefreq') && !($seo_index_changefreq = rb("seo-index_changefreq", "id", get($seo_index, 'index_changefreq_id')))) & ($seo_index_changefreq = [])): mpre("Период изменения не найден") ?>
 			<? elseif(array_key_exists("hide", $seo_index) && get($seo_index, 'hide')):// mpre("Поле скрыто") ?>
 			<? else: ?>
 					<url>

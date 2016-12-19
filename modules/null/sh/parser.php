@@ -15,7 +15,7 @@ function tmpopendir($file_name, $merge=1){
 
 if($argv){
 	if(file_exists(__DIR__. "/../../../index.phar")){
-		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: "phar:/". dirname(dirname(dirname(dirname(__FILE__)))). "/index.phar:". dirname(dirname(dirname(dirname(__FILE__)))));
+		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: "phar:/". dirname(dirname(dirname(dirname(__FILE__)))). "/index.phar::". dirname(dirname(dirname(dirname(__FILE__)))));
 		if($mpfunc = tmpopendir("include/mpfunc.php")){ include $mpfunc; }else{
 			include "phar://../../../index.phar/include/config.php";
 			include "phar://../../../index.phar/include/mpfunc.php";

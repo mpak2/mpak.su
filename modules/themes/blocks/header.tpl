@@ -97,7 +97,7 @@
 			<? if(($tracking = get($themes_yandex_metrika_index, "tracking")) > 0): # Не выводим если стоит отрицательное число ?>
 				<!-- PrimeGate CallTracking-->
 					<script>
-						setTimeout(function(){
+/*						setTimeout(function(){
 							var headID = document.getElementsByTagName("head")[0]; 
 							var newScript = document.createElement('script');
 							newScript.type = 'text/javascript';
@@ -107,7 +107,23 @@
 								ga('set', 'dimension1', id);
 								ga('send', 'pageview');
 							}; headID.appendChild(newScript);
-						}, 100)
+						}, 100)*/
+						
+						(function () {
+								var pg = document.createElement('script');
+								var protocol = 'https:' == document.location.protocol ? 'https://' : 'http://';
+								pg.src = protocol + 'js.primegate.io/primegate.min.js'; pg.setAttribute('async', 'true');
+								document.documentElement.getElementsByTagName('head')[0].appendChild(pg);
+								PrimeGate = {}; window.pg = []; components = ['init', 'track', 'identify'];
+								for (var i in components) {
+										PrimeGate[components[i]] = (function(component) {
+												return function () {
+														window.pg.push(component, [].slice.call(arguments, 0));
+									}
+								}(components[i]));
+								}
+						})();
+						PrimeGate.init(<?=$tracking?>);
 					</script>
 				<!-- PrimeGate CallTracking-->
 			<? endif; ?>
@@ -167,7 +183,9 @@
 				console.log(e.type, "pre");
 			}).one("init", function(e){ // Перетаскивание админских элементов
 				$.getScript("//code.jquery.com/ui/1.11.4/jquery-ui.js", function(){
-					$("fieldset.pre").draggable({handle:"legend"}).css("position", "absolute").find("legend").css("cursor", "pointer");
+					setTimeout(function(){ // Ожидаем загрузки всех элементов на страницу
+						$("fieldset.pre").draggable({handle:"legend"}).css("position", "absolute").find("legend").css("cursor", "pointer");
+					}, 1000);
 				})
 			}).trigger("init")
 		</script>
