@@ -165,6 +165,7 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 	}else{
 		$tpl['tables'] = array_column(ql("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\""), "Tables_in_{$conf['db']['name']}");
 	}
+	sort($tpl['tables']);
 	foreach($tpl['tables'] as $key=>$tables){
 		$short = implode("_", array_slice(explode("_", $tables), 0, -1));
 		if(($top = array_search($short, $tpl['tables'])) !== false){
