@@ -1,5 +1,4 @@
 <?
-
 if(get($_GET,'id')){
 	$defaultmimes = array(
 		'aif' => 'audio/x-aiff',
@@ -44,11 +43,17 @@ if(get($_GET,'id')){
 		'tiff' => 'image/tiff',
 		'txt' => 'text/plain',
 		'xml' => 'text/xml',
-	);
-	$file = ql("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_". mpquot($_GET['tn']). " WHERE id=". (int)$_GET['id'], 0);
-	header("Content-Disposition: inline; filename='". $file['name']. ".". last(explode(".", $file['file'])). "'");
-	header("Content-type: application/". last(explode(".", $file['file'])));
-	mpfile($file[ $_GET['fn'] ], $file['name']); //	mpre($file);
-}
+		'svg' => 'image/svg+xml',
+	);	
+	
+	$file = rb(get($_GET,'tn'),'id',intval(get($_GET,'id')));
+	$ext = last(explode(".", $file['file']));	
 
+	file_download(
+		mpopendir('include/'.get($file,get($_GET,'fn'))),//путь
+		"{$file['name']}.{$ext}",//имя
+		get($defaultmimes,$ext)?:"application/{$ext}"//mime
+	);
+	
+}
 ?>
