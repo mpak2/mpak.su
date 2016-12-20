@@ -13,7 +13,7 @@
 		ul.tabs li:hover ul li {background-color:white; z-index:999;}
 		ul.tabs > li.sub > a:after {content:'↵';};
 	</style>
-	<? foreach(get($tpl, 'menu') ?: array() as $k=>$ar): ?>
+	<? sort($tpl['tables']); foreach(get($tpl, 'menu') ?: array() as $k=>$ar): ?>
 		<li class="<?=($r = $tpl['tables'][$k])?> <?=($_GET['r'] == $r ? "act" : "")?> <?=($ar ? "sub" : "")?>">
 			<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$conf['db']['prefix']?><?=($s = substr($r, strlen($conf['db']['prefix'])))?>">
 				<? if(array_key_exists($s, $conf['settings']) && ($n = $conf['settings'][$s])): ?>
