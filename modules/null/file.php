@@ -1,6 +1,6 @@
 <?
 
-if($_GET['id']){
+if(get($_GET,'id')){
 	$defaultmimes = array(
 		'aif' => 'audio/x-aiff',
 		'aiff' => 'audio/x-aiff',
