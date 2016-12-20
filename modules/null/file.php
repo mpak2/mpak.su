@@ -51,7 +51,7 @@ if(get($_GET,'id')){
 
 	file_download(
 		mpopendir('include/'.get($file,get($_GET,'fn'))),//путь
-		"{$file['name']}.{$ext}",//имя
+		(get($file,'name')?:get($_GET,'')).".".$ext,//имя
 		get($defaultmimes,$ext)?:"application/{$ext}"//mime
 	);
 	
