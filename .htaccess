@@ -13,17 +13,24 @@
 #</FilesMatch>
 <IfModule mod_rewrite.c>
 	AddDefaultCharset UTF-8
-	AddType application/x-httpd-php .phar
+	AddType application/x-httpd-php .phar .tpl
 	php_value short_open_tag 1
 	php_value file_uploads 1
 	php_value suhosin.executor.include.whitelist phar
 #	php_value upload_max_filesize 200M
 
+	<FilesMatch ".(tpl)$">
+	  Order allow,deny
+	  Deny from all
+	</FilesMatch>
+	RewriteRule ^modules/.*$ /index.php?null
+
 	RewriteEngine Off
 	RewriteCond %{REQUEST_FILENAME} !/crossdomain.xml
 #	RewriteCond %{REQUEST_FILENAME} !/img/*\.(gif|png|jpeg|jpg)
 	RewriteCond %{REQUEST_FILENAME} !/img/.*
-	RewriteCond %{REQUEST_FILENAME} !/include/.* 
+	RewriteCond %{REQUEST_FILENAME} !/include/.*
+	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteCond %{REQUEST_FILENAME} !/index.php.* 
 
 	RewriteEngine On
