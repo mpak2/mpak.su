@@ -177,7 +177,7 @@ EOF;
 
 	echo "<div style='margin:100px;'>Устанавливаются модули: <p>";
 	foreach(mpreaddir($folder = 'modules', 1) as $k=>$file){
-		if($file == '.' || $file == '..' || $file == 'index.html' || $file == 'null' || $file == '.htadmin_access' || empty($_POST['modules'][$file])) continue;
+		if($file == '.' || $file == '..' || $file == 'index.html' || $file == 'null' || $file == '.htaccess' || empty($_POST['modules'][$file])) continue;
 		if (file_exists(mpopendir($info = "modules/$file/info.php"))){
 //			mpct($info, array('modpath'=>$file));
 			inc("modules/$file/info.php");

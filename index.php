@@ -31,7 +31,7 @@ if(strpos(__DIR__, "phar://") === 0){ # Файл index.php внутри phar а�
 
 $conf['settings'] = array(
 	'http_host' => strtolower(function_exists("idn_to_utf8") ? idn_to_utf8($_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST']),
-	'admin_access_array' => array('0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ'),
+	'access_array' => array('0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ'),
 	'microtime' => microtime(true),
 );
 
