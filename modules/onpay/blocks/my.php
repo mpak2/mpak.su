@@ -21,7 +21,7 @@ $status = array(0=>'', 1=>'<span style=color:green>оплачен</span>');
 
 ?>
 <div>
-	<? if($arg['access'] > 3): ?>
+	<? if($arg['admin_access'] > 3): ?>
 		<span>
 			<a href="/?m[onpay]=admin&r=mp_onpay_operations&where[uid]=<?=$arg['uid']?>">
 				<img src="/img/aedit.png">

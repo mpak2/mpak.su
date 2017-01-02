@@ -13,7 +13,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}` (
   PRIMARY KEY (`id`),
   KEY `hide` (`hide`),
   KEY `hide_2` (`hide`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 mpqw($sql);
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('gbook', 'gbook_admin_site', 'Администрация сайта', '1', 'Подпись под сообщениями оставленными через админстраницу.')");

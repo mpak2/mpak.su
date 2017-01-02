@@ -13,15 +13,13 @@ if($dump = get($_REQUEST, 'dump')){
 				exit(mpre(false, $file['tmp_name'], qw(file_get_contents($file['tmp_name']))));
 //			}else{ mpre("Ошибка создания временного файла"); }
 		}else{ mpre("Ошибка загрузки файла", $file); }
-	}else if(get($_REQUEST, 'upload')){
-		if($cmd = "mysqldump -u{$conf['db']['name']} -p{$conf['db']['pass']} {$conf['db']['name']} ". implode(" ", array_keys($dump))){
-			header("Content-Disposition: attachment; filename=". ((count($dump) == 1) ? first(array_keys($dump)) : $conf['db']['name']). ".sql");
+	}else if(get($_REQUEST, 'upload')){		
+		if($cmd = "mysqldump {$conf['db']['name']} ".implode(" ",array_keys($dump))." -u {$conf['db']['login']} -p{$conf['db']['pass']}"){			
+			header("content-disposition: attachment; filename={$conf['db']['name']}".((count($dump)==1)?".".first(array_keys($dump)):"").".sql");			
 			exit(passthru($cmd));
 		}
 	}else{
-		foreach($dump as $t=>$v){
-			$tpl['dump'][$t] = `mysqldump -u{$conf['db']['name']} -p{$conf['db']['pass']} {$conf['db']['name']} $t`;
-		}
+		$tpl['dump'] = "mysqldump {$conf['db']['name']} ".implode(" ",array_keys($dump))." -u {$conf['db']['login']} -p{$conf['db']['pass']}";
 	}
 }else if(array_key_exists("null", $_GET)){
 	if($_POST){
@@ -60,7 +58,7 @@ if($dump = get($_REQUEST, 'dump')){
 					time INT(11) NOT NULL,
 					uid INT(11) NOT NULL,
 					name VARCHAR(255) NOT NULL
-				) CHARACTER SET utf8 COLLATE utf8_unicode_ci");
+				) DEFAULT CHARSET=utf8");
 			} exit(json_encode(array("table"=>$table)));
 		} exit(mpre("Ошибочный запрос", $_POST));
 	}
@@ -134,8 +132,9 @@ if($dump = get($_REQUEST, 'dump')){
 				$tpl['indexes'] = indexes($table);
 			} $tpl['fields'] = fields($table);
 		}else{ // $conf['db']['type'] == 'mysql'
+			
 			if($fld['after'] || ($fields[$f]['Type'] != $fld['type']) || ($fields[$f]['Comment'] != $fld['comment']) || ($fields[$f]['Default'] != $fld['default']) || ($fld['name'] && ($fld['name'] != $f))){
-				qw(mpre($sql = ("ALTER TABLE `". mpquot($table). "` CHANGE `". mpquot($f). "` `". mpquot($fld['name'] ?: $f). "` ". mpquot($fld['type'] ?: $fields[$f]['Type']). ($fields[$f]['Null'] == "NO" ? " NOT NULL" : " NULL"). (($fld['default'] !== "") ? " DEFAULT ". ($fld['default'] == "NULL" ? mpquot($fld['default']) : "'". mpquot($fld['default']). "'") : ""). " COMMENT '". mpquot($fld['comment']). "'")));
+				qw(mpre($sql = ("ALTER TABLE `". mpquot($table). "` CHANGE `". mpquot($f). "` `". mpquot($fld['name'] ?: $f). "` ". mpquot($fld['type'] ?: $fields[$f]['Type']). ($fields[$f]['Null'] == "NO" ? " NOT NULL" : " NULL"). (($fld['default'] !== "") ? " DEFAULT ". ($fld['default'] == "NULL" ? mpquot($fld['default']) : "'". mpquot($fld['default']). "'") : ""). " COMMENT '". mpquot($fld['comment']). "'") . ($fld['after'] ? " AFTER `". mpquot($fld['after'])."`": "") ));                           
 			}
 
 			if(!get($fld, 'index')){// mpre("Ключ не отмечен для создания");

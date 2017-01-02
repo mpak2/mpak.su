@@ -7,7 +7,7 @@ $conf['modversion']=array(
 	'version'=>'0.0002',
 	'description'=>'Место общения',
 	'enabled'=>'2',
-	'access'=>'1',
+	'admin_access'=>'1',
 	'admin'=>3,
 	'md5'=>'39599bbb8e4482fb35d88d8cda48a4f7',
 );

@@ -14,9 +14,9 @@ EOF;*/
 }//$param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 //$uid = $_GET['id'] && array_key_exists('users', $_GET['m']) ? $_GET['id'] : $conf['user']['id'];
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
-	if($arg['access'] <= 1){
+	if($arg['admin_access'] <= 1){
 		echo "Доступ только для чтения"; exit;
-	}elseif($_POST['del'] && $arg['access'] > 2){
+	}elseif($_POST['del'] && $arg['admin_access'] > 2){
 		mpqw("DELETE FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE uid=". (int)$conf['user']['uid']. " AND id=". (int)$_POST['del']); exit;
 	}else if($mpdbf = mpdbf($tn = "{$conf['db']['prefix']}{$arg['modpath']}_index", $post = (array('time'=>time(), 'uid'=>$conf['user']['uid'])+$_POST))){
 		mpqw($sql = "INSERT INTO $tn SET $mpdbf"); echo $sql;
@@ -72,14 +72,14 @@ if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && 
 		<div data_id="<?=$v['id']?>" style="margin-top:10px;">
 			<span style="float:right;">
 				<span><?=date('d.m.Y', $v['time'])?></span>
-				<? if($arg['access'] > 2): ?>
+				<? if($arg['admin_access'] > 2): ?>
 					<span class="del_<?=$arg['blocknum']?>" style="cursor:pointer;">
 						<img src="/img/del.png">
 					</span>
 				<? endif; ?>
 			</span>
 			<div>
-				<? if($arg['access'] > 3): ?>
+				<? if($arg['admin_access'] > 3): ?>
 					<span>
 						<a href="/?m[faq]=admin&r=mp_faq_index&where[id]=<?=$v['id']?>">
 							<img src="/img/aedit.png">

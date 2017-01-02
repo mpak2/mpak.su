@@ -75,7 +75,7 @@ if(!array_shift($get = $_GET['m'])){
 ?>
 
 <div id="admin_menu">
-	<? foreach($m as $k=>$v): if($conf['modules'][ $mp = basename(dirname($v)) ]['access'] < 4) continue; ?>
+	<? foreach($m as $k=>$v): if($conf['modules'][ $mp = basename(dirname($v)) ]['admin_access'] < 4) continue; ?>
 		&nbsp;<a href="/<?=$mp?>:<?=$fn = array_shift(explode('.', basename($v)))?>" title="<?=$mp?>_<?=$fn?>">
 			<?=($conf['settings']["{$mp}_{$fn}"] ?: "{$mp}_{$fn}")?>
 		</a>

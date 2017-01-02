@@ -1,6 +1,6 @@
 <?
 
-$online = qn($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE last_time > ". (time()-abs($conf['settings']['sess_time'])). " AND CHAR_LENGTH(sess)=32 ORDER BY last_time DESC");
+$online = qn($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE last_time > ". (time()-abs($conf['settings']['sess_time'])). " AND LENGTH(sess)=32 ORDER BY last_time DESC");
 $users = rb("{$conf['db']['prefix']}users", "id", "id", rb($online, "uid"));
 //$count = ql("SELECT COUNT(*) AS count FROM {$conf['db']['prefix']}sess WHERE last_time > ". (time()-$conf['settings']['sess_time']). " AND CHAR_LENGTH(sess)=32 ORDER BY last_time DESC", 0, 'count');
 $logo = array(
@@ -106,13 +106,13 @@ $guest = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE name=\"". m
 			<? $keys = array_keys($ar = array_slice($o, 0, 1)) ?>
 			<? $v = $ar[min($keys)]; ?>
 			<? $user = rb($users, "id", $v['uid']); ?>
-			<div style="float:left; margin:1px; border:1px solid #ddd; position:relative;" title="<?=(array_key_exists('bot', $v) ? get($user, 'agent') : get($user, 'name'). (get($v, 'name') != $conf['settings']['default_usr'] ? "" : "-{$v['id']}"). (!empty($v['ref']) && ($arg['access'] > 3) ? " ". get($user, 'count'). "/". get($user, 'cnull'). " (". get($user, 'ref'). ")" : ""))?>">
-				<? if($v['id'] != $guest['id']): ?>
+			<div style="float:left; margin:1px; border:1px solid #ddd; position:relative;" title="<?=(array_key_exists('bot', $v) ? get($user, 'agent') : get($user, 'name'). (get($v, 'name') != $conf['settings']['default_usr'] ? "" : "-{$v['id']}"). (!empty($v['ref']) && ($arg['admin_access'] > 3) ? " ". get($user, 'count'). "/". get($user, 'cnull'). " (". get($user, 'ref'). ")" : ""))?>">
+				<? if($v['id'] != get($guest,'id')): ?>
 					<a href="/<?=$arg['modpath']?>/<?=$v['id']?>">
-				<? elseif($arg['access'] > 3): ?>
+				<? elseif($arg['admin_access'] > 3): ?>
 					<a href="/?m[sess]=admin&where[id]=<?=$v['id']?>">
 				<? else: ?>
-					<a href="/<?=$arg['modpath']?>/<?=$guest['id']?>">
+					<a href="/<?=$arg['modpath']?>/<?=get($guest,'id')?>">
 				<? endif; ?>
 					<? if(array_key_exists('bot', $v)): ?>
 						<div style="position:absolute; top:1px; left:1px; opacity:0.8;"><?=count($o)?></div>

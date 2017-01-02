@@ -7,7 +7,7 @@ $conf['modversion']=array(
 	'version'=>'0.0001',
 	'description'=>'Раздел призентаций',
 	'enabled'=>'2',
-	'access'=>'1',
+	'admin_access'=>'1',
 	'admin'=>'3',
 	'md5'=>'86d546fad50220a45aada827f330938f',
 );

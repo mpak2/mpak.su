@@ -4,7 +4,7 @@
 		<? foreach(rb("cat") as $cat): ?>
 			<li style="display:inline; margin-left:10px;">
 				<h1 style="margin-top:10px;"><?=$cat['name']?></h1>
-				<? foreach(rb("index", "cat_id", "id", $cat['id']) as $index): ?>
+				<? foreach(rb("imgs", "cat_id", "id", $cat['id']) as $index): ?>
 					<? if($index['img']): ?>
 						<span style="padding:5px; display:inline-block;" class="gallery">
 							<a href="/foto:img/<?=$index['id']?>/tn:index/fn:img/w:600/h:800/null/img.png">

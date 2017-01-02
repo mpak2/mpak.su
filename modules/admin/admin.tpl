@@ -205,7 +205,7 @@
 							if(json = $.parseJSON(response)){
 								console.log("json:", json);
 //								document.location.reload(true);
-								document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "where") ? "?&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?>';
+								document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}".(isset($_GET['p'])?"/p:{$_GET['p']}":""). (get($_GET, "where") ? "?&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?>';
 							}else{ alert(response); }
 						}).hide();
 					}).ready(function(e){ $(script).parent().trigger("init"); })
@@ -632,7 +632,7 @@
 				})(jQuery, document.scripts[document.scripts.length-1])
 			</script>
 			Таблица не найдена
-			<? if($conf['modules']['sqlanaliz']['access'] > 4): ?>
+			<? if($conf['modules']['sqlanaliz']['admin_access'] > 4): ?>
 				<button class="table">Создать</button>
 			<? endif; ?>
 		</div>

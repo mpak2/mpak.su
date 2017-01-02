@@ -52,7 +52,7 @@
 						<? foreach($anket as $v): ++$num; ?>
 							<div style="overflow:hidden; white-space:nowrap;">
 								<span>
-									<? if($arg['access'] > 3): ?>
+									<? if($arg['admin_access'] > 3): ?>
 										<span>
 											<a href="/?m[users]=admin&r=mp_users_anket_data&where[uid]=<?=$arg['uid']?>&where[anket_id]=<?=$v['id']?>">
 												<img src="/img/aedit.png">

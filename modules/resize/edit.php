@@ -1,7 +1,7 @@
 <?
 
 if($_GET['id']){
-	$conf['tpl'][$arg['fn']] = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE id=".(int)$_GET['id']. ($arg['access'] < 5 ? " AND uid=".(int)$conf['user']['uid'] : '')), 0);
+	$conf['tpl'][$arg['fn']] = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE id=".(int)$_GET['id']. ($arg['admin_access'] < 5 ? " AND uid=".(int)$conf['user']['uid'] : '')), 0);
 }elseif($_FILES){
 	mpqw("INSERT INTO ". ($tn = "{$conf['db']['prefix']}{$arg['modpath']}_index"). " SET time=". time(). ", uid=".(int)$conf['user']['uid']);
 	if($fn = mpfn($tn, 'img', $id = mysql_insert_id())){

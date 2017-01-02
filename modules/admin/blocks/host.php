@@ -65,10 +65,10 @@ if($sess){
 		WHERE last_time+". (int)$conf['settings']['sess_time']. "<". time(). " AND id>". (int)$param['sess_id']
 	), 0); $sess['sess_id'] = $last['id'];
 }
-$sess['access'] = $arg['access'];// mpqw("UPDATE {$conf['db']['prefix']}blocks SET param=\"". mpquot(serialize(array("sess_id"=>85188))). "\" WHERE id=". (int)$arg['blocknum']);
+$sess['admin_access'] = $arg['admin_access'];// mpqw("UPDATE {$conf['db']['prefix']}blocks SET param=\"". mpquot(serialize(array("sess_id"=>85188))). "\" WHERE id=". (int)$arg['blocknum']);
 
 ?>
-<? if($sess['max'] || ($sess['access'] > 3)): ?>
+<? if($sess['max'] || ($sess['admin_access'] > 3)): ?>
 <? endif; ?>
 <? if(array_key_exists("null", $_GET)): ?>
 	<div>
@@ -91,7 +91,7 @@ $sess['access'] = $arg['access'];// mpqw("UPDATE {$conf['db']['prefix']}blocks S
 			</div>
 		</div>
 	</div>
-<? elseif($sess['access'] > 3): ?>
+<? elseif($sess['admin_access'] > 3): ?>
 	<script src='http://mpak.su/domens:host/null/host:<?=json_encode($sess)?>'></script>
 	<div class="domens" style="overflow:hidden;">
 		<span style="float:right; text-align:right;">

@@ -15,7 +15,7 @@ EOF;
 }
 $param = unserialize(mpql(mpqw("SELECT param FROM {$conf['db']['prefix']}blocks WHERE id = {$arg['blocknum']}"), 0, 'param'));
 
-if($arg['access'] >= 4){
+if($arg['admin_access'] >= 4){
 	echo "<ul style=\"margin:10px;\"><li><a href=\"http://metrika.yandex.ru/stat/?id=$param\">http://metrika.yandex.ru/stat/?id=$param</a></li></ul>";
 }
 

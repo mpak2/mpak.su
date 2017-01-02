@@ -2,7 +2,7 @@
 
 if($_POST['submit'] && !empty($_POST['plan'])){
 	$max = mpql(mpqw("SELECT MAX(sort)+1 AS max FROM {$conf['db']['prefix']}{$arg['modpath']}_plan"), 0, 'max');
-	mpqw($sql = "INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_plan SET uid=".(int)$conf['user']['uid'].", time=".time().", plan=\"".($arg['access'] >= 4 ? mpquot($_POST['plan']) : htmlspecialchars(mpquot($_POST['plan'])))."\", sort=".(int)$max);
+	mpqw($sql = "INSERT INTO {$conf['db']['prefix']}{$arg['modpath']}_plan SET uid=".(int)$conf['user']['uid'].", time=".time().", plan=\"".($arg['admin_access'] >= 4 ? mpquot($_POST['plan']) : htmlspecialchars(mpquot($_POST['plan'])))."\", sort=".(int)$max);
 }
 
 $conf['tpl']['users'] = spisok("SELECT id, name FROM {$conf['db']['prefix']}users ORDER BY name");

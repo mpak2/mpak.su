@@ -1,11 +1,11 @@
 <?
 
 if(get($_REQUEST, 'class') && $class = "{$conf['db']['prefix']}{$arg['modpath']}_". ($t = first(explode(" ", $_REQUEST['class'])))){
-	if($arg['access'] > 1){
+	if($arg['admin_access'] > 1){
 		mpevent("ajax://{$arg['modpath']}:ajax/class:{$t}", $conf['user']['uid'], $_REQUEST);
 		$where = array_diff_key($_REQUEST, array_flip(array("class", "m", "null")));
 		$w = array("time"=>time()) + array_diff_key($_REQUEST, array("id"=>false));
-		if($arg['access'] >= 2){
+		if($arg['admin_access'] >= 2){
 			if(get($_POST, 'id') < 0){
 				qw("DELETE FROM {$class} WHERE ". implode(" AND ", array_map(function($k, $v){
 					return "`$k`=". (is_numeric($v) ? (int)$v : "\"". mpquot($v). "\"");
@@ -22,7 +22,7 @@ if(get($_REQUEST, 'class') && $class = "{$conf['db']['prefix']}{$arg['modpath']}
 				} exit(json_encode($fdk));
 			}
 		}else{
-			$error = "Прав доступа {$arg['access']} недостаточно для изменения данных";
+			$error = "Прав доступа {$arg['admin_access']} недостаточно для изменения данных";
 			mpevent("Аякс запрос /{$arg['modpath']}:{$class[0]}", $conf['user']['uid'], $error, $_REQUEST);
 			exit($error);
 		}

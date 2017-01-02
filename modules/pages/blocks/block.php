@@ -31,7 +31,7 @@ if(array_key_exists('confnum', $arg)){
 $page = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index WHERE id=". (int)$param['pid']), 0); //$dat
 
 ?>
-<? if($arg['access'] > 3): ?>
+<? if($arg['admin_access'] > 3): ?>
 	<div style="text-align:right;">
 		<a href="/?m[<?=$arg['modpath']?>]=admin&r=mp_pages_index&where[id]=<?=$page['id']?>">
 			<img src="/img/edit.png">

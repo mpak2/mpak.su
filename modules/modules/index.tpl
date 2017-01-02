@@ -1,14 +1,14 @@
 <ul>
 	<? foreach($conf['tpl']['modules'] as $n=>$m): ?>
 	<? if(
-		($arg['access'] > 0 && ($if = mpopendir("modules/{$m['folder']}/index.php"))) ||
-		($arg['access'] > 3 && $af = mpopendir("modules/{$m['folder']}/admin.php"))
+		($arg['admin_access'] > 0 && ($if = mpopendir("modules/{$m['folder']}/index.php"))) ||
+		($arg['admin_access'] > 3 && $af = mpopendir("modules/{$m['folder']}/admin.php"))
 	): ?>
 	<li style="margin:5px;">
 		<? if(!empty($if)): ?>
 			<a href="/<?=$m['folder']?>"><?=$m['name']?> (<?=($m['description'])?>)</a>
 		<? endif; ?>
-		<? if($arg['access'] > 3 && $af): ?>
+		<? if($arg['admin_access'] > 3 && $af): ?>
 			<? if(empty($if)): ?>
 				<?=$m['description']?>
 			<? endif; ?>

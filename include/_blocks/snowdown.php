@@ -24,7 +24,7 @@ $snowflake = array(
 $snow = array("Отключить", "Включить");
 
 ?>
-<? if($arg['access'] >= 3): ?>
+<? if($arg['admin_access'] >= 3): ?>
 	<style>
 		.settings_<?=$arg['blocknum']?> > div {overflow:hidden;}
 		.settings_<?=$arg['blocknum']?> > div > div:nth-child(1) {float:right; width:80px;}

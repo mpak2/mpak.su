@@ -7,7 +7,7 @@ $conf['modversion']=array(
 	'version'=>'1.0035',
 	'description'=>'Управление блоками',
 	'enabled'=>'2',
-	'access'=>'1',
+	'admin_access'=>'1',
 	'admin'=>'6',
 	'md5'=>'ad313480a59fad11f06c808068cc6661',
 );

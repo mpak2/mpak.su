@@ -6,10 +6,11 @@ qw("CREATE TABLE `{$table}` (
   `name` varchar(255) NOT NULL,
   `hide` int(11) NOT NULL,
   `alias` varchar(255) NOT NULL,
-  `href` varchar(255) NOT NULL DEFAULT '/{name}',
+  `href` varchar(255) NOT NULL DEFAULT '{name}',
   `title` varchar(255) NOT NULL DEFAULT '{name}',
-  `description` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251");
+  `description` text NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 } if(mpsettings($t = "seo_characters", "Символы") && ($table = ("{$conf['db']['prefix']}{$t}"))){
 qw("CREATE TABLE `{$table}` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -19,7 +20,7 @@ qw("CREATE TABLE `{$table}` (
   `to` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `sort` (`sort`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251");
+) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 } if(mpsettings($t = "seo_characters_lang", "Язык") && ($table = ("{$conf['db']['prefix']}{$t}"))){
 qw("CREATE TABLE `{$table}` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -48,14 +49,14 @@ qw("CREATE TABLE `{$table}` (
   KEY `name` (`name`),
   KEY `location_id` (`location_id`),
   KEY `index_type_id` (`index_type_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251");
+) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 } if(mpsettings($t = "seo_index_type", "Типы") && ($table = ("{$conf['db']['prefix']}{$t}"))){
 qw("CREATE TABLE `{$table}` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `description` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251");
+) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 } if(mpsettings($t = "seo_location", "Внутренние") && ($table = ("{$conf['db']['prefix']}{$t}"))){
 qw("CREATE TABLE `{$table}` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -71,14 +72,14 @@ qw("CREATE TABLE `{$table}` (
   KEY `uid` (`uid`),
   KEY `index_id` (`index_id`),
   KEY `cat_id` (`cat_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251");
+) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 } if(mpsettings($t = "seo_location_status", "Статус") && ($table = ("{$conf['db']['prefix']}{$t}"))){
 qw("CREATE TABLE `{$table}` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `description` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251;");
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
 }
 
  if(mpsettings($t = "seo_robots", "Робот") && !tables($table = ("{$conf['db']['prefix']}{$t}"))){

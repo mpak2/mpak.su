@@ -7,7 +7,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}` (
   `count` int(11) NOT NULL,
   PRIMARY KEY  (`id`),
   KEY `param` (`param`,`value`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 mpqw($sql);
 
 ?>

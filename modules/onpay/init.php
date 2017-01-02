@@ -8,7 +8,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_balanc
   `description` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uid` (`uid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 mpqw($sql);
 
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_operations` (
@@ -25,7 +25,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_operat
   `m` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `type` (`type`,`comment`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 mpqw($sql);
 
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_pay` (
@@ -38,7 +38,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_pay` (
   KEY `time` (`time`),
   KEY `uid` (`uid`),
   KEY `sum` (`sum`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 mpqw($sql);
 
 echo '<p>'.$sql = "SELECT p.uid, SUM(p.sum) AS sum FROM {$conf['db']['prefix']}users AS u LEFT JOIN {$conf['db']['prefix']}{$arg['modpath']}_pay AS p ON (u.id=p.uid) GROUP BY p.uid";

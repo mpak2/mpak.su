@@ -177,12 +177,12 @@ EOF;
 
 	echo "<div style='margin:100px;'>Устанавливаются модули: <p>";
 	foreach(mpreaddir($folder = 'modules', 1) as $k=>$file){
-		if($file == '.' || $file == '..' || $file == 'index.html' || $file == 'null' || $file == '.htaccess' || empty($_POST['modules'][$file])) continue;
+		if($file == '.' || $file == '..' || $file == 'index.html' || $file == 'null' || $file == '.htadmin_access' || empty($_POST['modules'][$file])) continue;
 		if (file_exists(mpopendir($info = "modules/$file/info.php"))){
 //			mpct($info, array('modpath'=>$file));
 			inc("modules/$file/info.php");
 			echo $conf['modversion']['description']. ', ';
-			qw("INSERT INTO {$conf['db']['prefix']}modules_index (`folder`, `name`, `author`, `contact`, `version`, `description`, `enabled`, `access`, `admin`) VALUES ('$file', '{$conf['modversion']['name']}', '{$conf['modversion']['author']}', '{$conf['modversion']['contact']}', '{$conf['modversion']['version']}', '{$conf['modversion']['description']}', 2, ".(strlen($conf['modversion']['access']) ? $conf['modversion']['access'] : '1').", {$conf['modversion']['admin']})");
+			qw("INSERT INTO {$conf['db']['prefix']}modules_index (`folder`, `name`, `author`, `contact`, `version`, `description`, `enabled`, `admin_access`, `admin`) VALUES ('$file', '{$conf['modversion']['name']}', '{$conf['modversion']['author']}', '{$conf['modversion']['contact']}', '{$conf['modversion']['version']}', '{$conf['modversion']['description']}', 2, ".(strlen($conf['modversion']['admin_access']) ? $conf['modversion']['admin_access'] : '1').", {$conf['modversion']['admin']})");
 		} if($file != 'settings' && $file != 'modules') $scripts[] = $file;
 	}
 	foreach($scripts as $k=>$file){
@@ -201,7 +201,7 @@ EOF;
 
 	# Добавляем доступ группы Администратор к модулю админстраница
 	$admin_grp_id = mpfdk("{$conf['db']['prefix']}users_grp", $w = array("name"=>"Администратор"), $w);
-	mpqw("INSERT INTO {$conf['db']['prefix']}modules_gaccess (`mid`, `gid`, `access`, `description`) VALUE ((SELECT id FROM {$conf['db']['prefix']}modules WHERE folder='admin'), ". (int)$admin_grp_id. ", 1, 'Доступ на чтение модуля админменю группе администраторов')");
+	mpqw("INSERT INTO {$conf['db']['prefix']}modules_gaccess (`mid`, `gid`, `admin_access`, `description`) VALUE ((SELECT id FROM {$conf['db']['prefix']}modules WHERE folder='admin'), ". (int)$admin_grp_id. ", 1, 'Доступ на чтение модуля админменю группе администраторов')");
 	mpqw("UPDATE `{$conf['db']['prefix']}settings` SET `value`='{$_POST['theme']}' WHERE `name`='theme'");
 	setcookie("{$conf['db']['prefix']}sess", ($sess = md5("{$_SERVER['REMOTE_ADDR']}:".microtime())));
 	mpqw("INSERT INTO `{$conf['db']['prefix']}sess` SET uid=(SELECT id FROM {$conf['db']['prefix']}users WHERE name=\"".mpquot($_POST['user'])."\"), last_time=".time().", ip=\"".mpquot($_SERVER['REMOTE_ADDR'])."\", agent=\"".mpquot($_SERVER['HTTP_USER_AGENT'])."\", sess=\"$sess\"");

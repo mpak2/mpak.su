@@ -4,7 +4,7 @@ $conf['db']['back'] = $conf['db']['conn'];
 $conf['db']['conn'] = @mysql_connect('localhost', $conf['settings']['chat_all_login'], $conf['settings']['chat_all_pass']); # Соединение с базой данных
 mysql_select_db('fobs_su', $conf['db']['conn']); mpqw("SET NAMES UTF8");
 
-if($_POST['text'] && ($arg['access'] > 1)){
+if($_POST['text'] && ($arg['admin_access'] > 1)){
 	require_once(mpopendir('include/idna_convert.class.inc')); $IDN = new idna_convert();
 	$text = preg_replace( '/(?<!S)((http(s?):\/\/)|(www\.[A-Za-zА-Яа-яЁё0-9-_]+\.))+([A-Za-zА-Яа-яЁё0-9\/*+-_?&;:%=.,#]+)/u', '<a href="http$3://$4$5" target="_blank" rel="nofollow">http$3://$4$5</a>', htmlspecialchars($_POST['text']));
 	$text = preg_replace ( '/(?<!S)([A-Za-zА-Яа-яЁё0-9_.\-]+\@{1}[A-Za-zА-Яа-яЁё0-9\.|-|_]*[.]{1}[a-z-а-я]{2,5})/u', '<a href="mailto:$1">$1</a>', $text );

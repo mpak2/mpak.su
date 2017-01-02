@@ -1,6 +1,6 @@
 <?
 
-$conf['tpl']['uid'] = (($arg['access'] >= 5) && ((int)$_GET['id'] ? (int)$_GET['id'] : $conf['user']['uid']));
+$conf['tpl']['uid'] = (($arg['admin_access'] >= 5) && ((int)$_GET['id'] ? (int)$_GET['id'] : $conf['user']['uid']));
 
 /*if ($conf['user']['uname'] == $conf['settings']['default_usr']){
 	header("Location: /users:deny"); die;
@@ -26,7 +26,7 @@ if($_FILES || $_POST){
 			header("Location: /users/0"); exit;
 		}
 	}elseif($_POST['id'] && array_key_exists('value', $_POST) && array_search('Зарегистрированные', $conf['user']['gid'])){
-		if((($conf['user']['uid'] == $conf['tpl']['uid']) || ($arg['access'] >= 5)) && array_key_exists($_POST['id'], $conf['tpl']['fields'])){
+		if((($conf['user']['uid'] == $conf['tpl']['uid']) || ($arg['admin_access'] >= 5)) && array_key_exists($_POST['id'], $conf['tpl']['fields'])){
 			mpqw($sql = "UPDATE {$conf['db']['prefix']}{$arg['modpath']} SET ". mpquot($_POST['id'])."=\"". mpquot($_POST['value']). "\" WHERE id=".(int)$conf['tpl']['uid']);
 
 			if(mysql_affected_rows()){

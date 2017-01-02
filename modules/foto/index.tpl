@@ -7,7 +7,7 @@
 		<? endforeach; ?>
 	</ul>
 	<div id="gallery" style="overflow:hidden;">
-		<? foreach(rb("imgs", "cat_id", "id", ($_GET['cat_id'] ?: rb("cat"))) as $imgs): ?>
+		<? foreach(rb("imgs", "cat_id", "id", (intval(get($_GET,'cat_id')) ?: rb("cat"))) as $imgs): ?>
 			<div style="float:left; padding: 10px; min-height:115px;">
 				<a title="<?=$imgs['description']?>" alt="<?=$imgs['description']?>" href="/foto:img/<?=$imgs['id']?>/tn:imgs/fn:img/w:800/h:600/null/img.png">
 					<img src="/foto:img/<?=$imgs['id']?>/tn:imgs/fn:img/w:120/h:120/null/img.png">
@@ -15,6 +15,6 @@
 				</a>
 			</div>
 		<? endforeach; ?>
-		<div style="clear:both;"><?=$conf['tpl']['mpager']?></div>
+		<div style="clear:both;"><?=get($conf,'tpl','mpager')?></div>
 	</div>
 </div>

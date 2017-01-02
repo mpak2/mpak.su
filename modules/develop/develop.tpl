@@ -1,4 +1,4 @@
-<? if($arg['access'] >= 4): ?>
+<? if($arg['admin_access'] >= 4): ?>
 	<div class="cont">
 		<div class="TicketBlock">
 			<h1>Задинамить новую админку</h1>

@@ -1,7 +1,7 @@
 <?
 
 if(!empty($_REQUEST['class']) && $class = explode(" ", $_REQUEST['class'])){ # klesh запросы
-	if($arg['access'] >= 3){
+	if($arg['admin_access'] >= 3){
 		if(array_key_exists("debug", $_GET)){
 		}else if($class[0] == "del"){
 			mpqw($sql = "DELETE FROM {$conf['db']['prefix']}{$arg['modpath']}_{$class[1]} WHERE id=". (int)$_REQUEST['id']); die($_REQUEST['id']);

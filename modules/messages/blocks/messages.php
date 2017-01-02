@@ -9,7 +9,7 @@ if(array_key_exists('confnum', $arg)){
 	return;
 }
 if(get($conf, 'modules', $arg['modname'])){
-	if($arg['access'] > 1 || $conf['settings']['messages_display']){
+	if($arg['admin_access'] > 1 || $conf['settings']['messages_display']){
 		$count = mpql(mpqw("SELECT COUNT(*) as count FROM {$conf['db']['prefix']}messages WHERE addr={$conf['user']['uid']}"), 0, 'count');
 		echo "<a href=\"/{$arg['modpath']}\">Входящие ($count)</a>";
 	}
