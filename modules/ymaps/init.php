@@ -13,7 +13,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index`
   `description` text NOT NULL,
   `text` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 mpqw($sql);
 
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_placemark` (
@@ -27,7 +27,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_placem
   `text` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `index_id` (`index_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 mpqw($sql);
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('ymaps', 'ymaps_placemark', 'Отметки', '4', '')");

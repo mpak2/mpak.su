@@ -27,7 +27,7 @@
 	<? else: ?>
 		<div style="margin-top:150px; text-align:center;">
 			Данная страница не найдена на сайте.<br />Возможно она была удалена.
-			<? if($arg['access'] > 3): ?>
+			<? if($arg['admin_access'] > 3): ?>
 				<script>
 					$(function(){
 						$("a.add").on("click", function(){

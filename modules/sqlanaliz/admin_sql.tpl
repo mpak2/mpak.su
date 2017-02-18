@@ -1,11 +1,9 @@
 <div class="sql analiz">
 	<? if($file = get($tpl, 'file')): ?>
 		<? mpre($file); ?>
-	<? elseif($dump = get($tpl, 'dump')): ?>
-		<? foreach($dump as $k=>$d): ?>
-			<h1><?=$k?></h1>
-			<pre style="margin:5px; padding:5px; border-top:2px solid #ddd; border-bottom:2px solid #ddd;"><?=$d?></pre>
-		<? endforeach; ?>
+	<? elseif($dump = get($tpl, 'dump')): ?>		
+		<h1>mysqldump</h1>
+		<pre style="margin:5px; padding:5px; border-top:2px solid #ddd; border-bottom:2px solid #ddd;"><?=$dump?></pre>
 	<? else: ?>
 		<div class="table" style="width:100%;">
 			<div>

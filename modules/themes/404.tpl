@@ -1,5 +1,5 @@
 <div class="error" style="text-align:center;">
-	<? if(get($conf, 'modules', first(explode(":", get($tpl, 'link'))), 'access') >= 4): ?>
+	<? if(get($conf, 'modules', first(explode(":", get($tpl, 'link'))), 'admin_access') >= 4): ?>
 		<span style="float:right;">
 			<script>
 				(function($, script){

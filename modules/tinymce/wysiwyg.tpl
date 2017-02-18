@@ -47,6 +47,13 @@
 <? endif; ?>
 <div>
 	<textarea id="elm<?=($conf['tpl']['elm']=get($conf, 'tpl', 'elm')+1)?>" name="<?=$conf['settings']['tinymce_name']?>" rows="15" cols="80" style="width: 100%" class="tinymce">
-		<?=$conf['settings']['tinymce_text']?>
+		<?
+			/*
+				stripslashes - решает проблему роста слешей при каждом сохранении
+				\" -> \\\\\\\\\"
+				но при выводе текста всеравно надо обрабатывать: <?=stripslashes($var['text']);?>
+			*/
+		?>
+		<?=stripslashes($conf['settings']['tinymce_text'])?>
 	</textarea>
 </div>

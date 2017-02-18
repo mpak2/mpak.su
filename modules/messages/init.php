@@ -11,7 +11,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}` (
   PRIMARY KEY (`id`),
   KEY `addr` (`addr`),
   KEY `open` (`open`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 mpqw($sql);
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('messages', 'messages_display', '0', '1', 'Блок сообщений всегда виден на главной странице')");

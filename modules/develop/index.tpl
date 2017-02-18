@@ -80,7 +80,7 @@
 			$.post("/<?=$arg['modname']?>/null", {plan_id:plan_id, text:text}, function(data){
 				if(isNaN(data)){
 					dat = $.parseJSON(data);
-					$("<div>")
+					$("<div></div>")
 						.append("<div>"+dat.time+"</div>")
 						.append("<div>"+dat.name+"</div>")
 						.append("<div>"+dat.text+"</div>")
@@ -91,7 +91,7 @@
 	});
 </script>
 
-<!-- script type="text/javascript" src="/include/jquery/jquery.jeditable.js"></script -->
+<!-- <script type="text/javascript" src="/include/jquery/jquery.jeditable.js"></script> -->
 <script type="text/javascript" src="/include/jquery/my/jquery.klesh.js"></script>
 <script>
 	$(function(){
@@ -112,30 +112,31 @@
 </script>
 
 <div style="border-bottom:1px solid black; overflow:hidden; margin:0 15px;">
-	<? foreach($tpl['cat'] as $k=>$v): ?>
+	
+	<?$summ=0; foreach($tpl['cat'] as $k=>$v): ?>
 		<div class="mn"<?=(isset($_GET['cat_id']) && $_GET['cat_id'] == $k ? " style='background-color:#eee;'" : '')?>>
-			<a href="/<?=$arg['modname']?>/cat_id:<?=$v['id']?><?=($_GET['performers_id'] ? "/performers_id:". (int)$_GET['performers_id'] : "")?>"><?=$v['name']?></a> [<? $summ+=(int)$tpl['cc'][ $k ]['cnt']; echo (int)$tpl['cc'][ $k ]['cnt'] ?>]
+			<a href="/<?=$arg['modname']?>/cat_id:<?=$v['id']?><?=(get($_GET,'performers_id') ? "/performers_id:". intval(get($_GET,'performers_id')) : "")?>"><?=$v['name']?></a> [<? $summ+=intval(get($tpl,'cc',$k,'cnt')); echo intval(get($tpl,'cc',$k,'cnt')); ?>]
 		</div>
 	<? endforeach; ?>
 	<div class="mn"<?=(!isset($_GET['cat_id']) ? " style='background-color:#eee;'" : '')?>>
-		<a href="/<?=$arg['modname']?><?=($_GET['performers_id'] ? "/performers_id:". (int)$_GET['performers_id'] : "")?>">Все</a> [<?=$summ?>]
+		<a href="/<?=$arg['modname']?><?=(get($_GET,'performers_id') ? "/performers_id:". intval(get($_GET,'performers_id')) : "")?>">Все</a> [<?=$summ?>]
 	</div>
 </div>
 
 <? if(empty($_GET['id'])): ?>
 <div style="padding:5px; overflow:hidden;">
-	<form method="post" action="/<?=$arg['modname']?>/cat_id:0<?=($_GET['performers_id'] ? "/performers_id:". (int)$_GET['performers_id'] : "")?>">
+	<form method="post" action="/<?=$arg['modname']?>/cat_id:0<?=(get($_GET,'performers_id') ? "/performers_id:". intval(get($_GET,'performers_id')) : "")?>">
 		<div id="new" style="margin-top:3px; overflow:hidden;">
 			<textarea name="plan" style="width:100%;" title="Ваше предложение"></textarea>
 			<span style="float:right;">
 				<select name="performers_id">
 					<? foreach($tpl['performers'] as $p): ?>
-						<option value="<?=$p['id']?>" <?=($_GET['performers_id'] == $p['id'] ? "selected" : "")?>><?=$p['name']?></option>
+						<option value="<?=$p['id']?>" <?=(get($_GET,'performers_id') == $p['id'] ? "selected" : "")?>><?=$p['name']?></option>
 					<? endforeach; ?>
 				</select>
 				<input type="submit" name="submit" value="Добавить">
 			</span>
-			<?=$tpl['performers'][ $_GET['performers_id'] ]['name']?>
+			<?=$tpl['performers'][ get($_GET,'performers_id') ]['name']?>
 		</div>
 	</form>
 	<? echo mpager($tpl['pcount']); ?>
@@ -145,9 +146,9 @@
 <? foreach($tpl['dev'] as $k=>$v): ?>
 	<div plan_id="<?=$v['id']?>" style="margin:5px; overflow:hidden; position:relative;">
 		<div class="my_left">
-			<div id="est_<?=$v['id']?>" style="font-size:200%; margin-top:15px;"><?=(int)$tpl['golos'][ $v['id'] ]?></div>голосов
+			<div id="est_<?=$v['id']?>" style="font-size:200%; margin-top:15px;"><?=intval(get($tpl,'golos',get($v,'id')))?></div>голосов
 			<div class="golos">
-				<? if($tpl['mygolos'][ $v['id'] ]): ?>
+				<? if(get($tpl,'mygolos',get($v,'id'))): ?>
 					Принят
 				<? else: ?>
 					<a href="javascript: return false;" name="<?=$v['id']?>" style="color:white;">Голосовать</a>
@@ -157,13 +158,13 @@
 		<div class="my_right">
 			<div style="float:right; padding:5px 10px;"><?$tpl['cat'][ $v['cat_id'] ]?></div>
 			<div style="float:right;">
-				<div class="klesh performers" plan_id="<?=$v['id']?>" style="display:inline-block;"><?=$tpl['performers'][ $v['performers_id'] ]['name']?></div>
+				<div class="klesh performers" plan_id="<?=$v['id']?>" style="display:inline-block;"><?=$tpl['performers'][ get($v,'performers_id') ]['name']?></div>
 			</div>
 			<div style="float:left;">
 				<div class="klesh cat" plan_id="<?=$v['id']?>"><?=$tpl['cat'][ $v['cat_id'] ]['name']?></div>
 			</div>
 			<div style="margin-top:30px; font-weight:bold;">
-				<? if($arg['access'] > 3): ?>
+				<? if($arg['admin_access'] > 3): ?>
 					<span>
 						<a href="/?m[<?=$arg['modpath']?>]=admin&r=<?=$conf['db']['prefix']?><?=$arg['modpath']?>_plan&where[id]=<?=$v['id']?>">
 							<img src="/img/aedit.png">
@@ -174,7 +175,7 @@
 				<?=$v['plan']?>
 			</div>
 			<div class="comment" style="margin-top:10px;">
-				<div style="text-align:right; padding:0 15px;"><a class="com_open" href="javascript:void(0);">Коммент [<?=count($tpl['work'][ $v['id'] ])?>]</a></div>
+				<div style="text-align:right; padding:0 15px;"><a class="com_open" href="javascript:void(0);">Коммент [<?=count(get($tpl,'work',get($v,'id')))?>]</a></div>
 				<div style="display:none; overflow:hidden;">
 					<div style="float:right; width:120px; text-align:center;">
 						<div><?=$conf['user']['uname']?></div>
@@ -184,11 +185,11 @@
 				</div>
 			</div>
 			<div class="com">
-				<? if($tpl['work'][ $v['id'] ]) foreach($tpl['work'][ $v['id'] ] as $w): ?>
+				<? if(get($tpl,'work',get($v,'id'))) foreach($tpl['work'][ $v['id'] ] as $w): ?>
 					<div>
 						<div><?=date("Y.m.d H:i:s", $w['time'])?></div>
 						<div>
-							<? if($arg['access'] > 3): ?>
+							<? if($arg['admin_access'] > 3): ?>
 								<a href="/?m[<?=$arg['modpath']?>]=admin&r=<?=$conf['db']['prefix']?><?=$arg['modpath']?>_work&where[id]=<?=$w['id']?>">
 									<img src="/img/aedit.png">
 								</a>

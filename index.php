@@ -119,7 +119,7 @@ foreach(mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index", "Спи�
 		qw(pre("ALTER TABLE {$conf['db']['prefix']}modules RENAME {$conf['db']['prefix']}modules_index"));
 	}else{ pre("Ошибка обработки ошибки", $error); }
 })) as $modules){
-	if(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) $modules['access'] = 5;
+	if(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) $modules['admin_access'] = 5;
 	$conf['modules'][ $modules['folder'] ] = $modules;
 	$conf['modules'][ $modules['folder'] ]['modname'] = $modules['modname'] = (strpos($_SERVER['HTTP_HOST'], "xn--") !== false) ? mb_strtolower($modules['name'], 'UTF-8') : $modules['folder'];
 	$conf['modules'][ $modules['modname'] ] = &$conf['modules'][ $modules['folder'] ];
@@ -214,13 +214,13 @@ if(get($conf, "settings", "admin_multisite")){ # Включение режима
 	inc("modules/admin/admin_multisite.php", array("content"=>($content = "")));
 }
 
-foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_gaccess", 'Права доступа группы к модулю', function($error) use($conf){
+foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_gaccess ORDER BY sort", 'Права доступа группы к модулю', function($error) use($conf){
 	if(strpos($error, "doesn't exist")){
 		qw(mpre("ALTER TABLE {$conf['db']['prefix']}modules_gaccess RENAME {$conf['db']['prefix']}modules_index_gaccess"));
 	}
 })) as $k=>$v){
 	if(array_key_exists($v['gid'], $conf['user']['gid']) && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false){
-		$conf['modules'][ $v['mid'] ]['access'] = $v['access'];
+		$conf['modules'][ $v['mid'] ]['admin_access'] = $v['admin_access'];
 	}
 }
 foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_uaccess ORDER BY uid", 'Права доступа пользователя к модулю', function($error) use($conf){
@@ -229,7 +229,7 @@ foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_uac
 	}
 })) as $k=>$v){
 	if ($conf['user']['uid'] == $v['uid'] && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false)
-		$conf['modules'][ $v['mid'] ]['access'] = $v['access'];
+		$conf['modules'][ $v['mid'] ]['admin_access'] = $v['admin_access'];
 }
 
 if(!empty($conf['settings']["theme/*:{$conf['settings']['fn']}"])) $conf['settings']['theme'] = $conf['settings']["theme/*:{$conf['settings']['fn']}"];

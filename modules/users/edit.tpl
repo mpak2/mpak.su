@@ -87,7 +87,7 @@
 		<table>
 			<tr>
 				<td>Старый пароль: </td>
-				<td><input id="old" type="password"<?=($arg['access'] >= 5 ? ' disabled' : '')?>></td>
+				<td><input id="old" type="password"<?=($arg['admin_access'] >= 5 ? ' disabled' : '')?>></td>
 			</tr>
 			<tr>
 				<td>Новый пароль: </td>

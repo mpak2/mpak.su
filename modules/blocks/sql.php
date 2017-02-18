@@ -21,36 +21,38 @@ $amenu = <<<EOF
 EOF;
 
 $menu = array(
-//	array('id'=>'11', 'theme'=>'!zhiraf', 'src'=>'admin/blocks/host', 'name'=>'Оплата хостинга', 'access'=>'-1', 'reg_id'=>'1', 'hide'=>'1',),
+//	array('id'=>'11', 'theme'=>'!zhiraf', 'src'=>'admin/blocks/host', 'name'=>'Оплата хостинга', 'admin_access'=>'-1', 'reg_id'=>'1', 'hide'=>'1',),
 
-	array('id'=>'1', 'theme'=>'!zhiraf', 'src'=>'users/blocks/login', 'name'=>'Авторизация', 'access'=>'1', 'reg_id'=>'1'),
-	array('id'=>'2', 'theme'=>'!zhiraf', 'src'=>'menu/blocks/menu', 'name'=>'Верхнее меню', 'shablon'=>'2', 'access'=>'1', 'reg_id'=>'3'),
-	array('id'=>'3', 'theme'=>'!zhiraf', 'src'=>'pages/blocks/list', 'name'=>'Меню', 'access'=>'1', 'reg_id'=>'1'),
-//	array('id'=>'4', 'theme'=>'!zhiraf', 'src'=>'../include/blocks/htmlcod', 'name'=>'Админменю', 'access'=>'0', 'reg_id'=>'1', 'param'=>$amenu),
-//	array('id'=>'5', 'theme'=>'!zhiraf', 'src'=>'messages/blocks/messages', 'name'=>'Сообщения', 'access'=>'1', 'reg_id'=>'1'),
-	array('id'=>'6', 'theme'=>'!zhiraf', 'src'=>'blocks/blocks/support', 'name'=>'Поддержка', 'access'=>'0', 'reg_id'=>'1', 'param'=>$spt),
-	array('id'=>'7', 'theme'=>'zhiraf', 'src'=>'admin/blocks/top', 'name'=>'АдминШапка', 'access'=>'0', 'reg_id'=>'4'),
-	array('id'=>'8', 'theme'=>'zhiraf', 'src'=>'admin/blocks/modlist', 'name'=>'СписокМодулей', 'access'=>'0', 'reg_id'=>'-1'),
-	array('id'=>'9', 'theme'=>'zhiraf', 'src'=>'users/blocks/online', 'name'=>'Кто на сайте', 'access'=>'0', 'reg_id'=>'-1'),
-	array('id'=>'10', 'theme'=>'!zhiraf', 'src'=>'themes/blocks/header.tpl', 'name'=>'Заголовоки сайта', 'alias'=>'header', 'shablon'=>'1', 'access'=>'1', 'reg_id'=>''),
+	array('id'=>'1', 'theme'=>'!zhiraf', 'src'=>'users/blocks/login', 'name'=>'Авторизация', 'admin_access'=>'1', 'reg_id'=>'1'),
+	array('id'=>'2', 'theme'=>'!zhiraf', 'src'=>'menu/blocks/menu', 'name'=>'Верхнее меню', 'shablon'=>'2', 'admin_access'=>'1', 'reg_id'=>'3'),
+	array('id'=>'3', 'theme'=>'!zhiraf', 'src'=>'pages/blocks/list', 'name'=>'Меню', 'admin_access'=>'1', 'reg_id'=>'1'),
+//	array('id'=>'4', 'theme'=>'!zhiraf', 'src'=>'../include/blocks/htmlcod', 'name'=>'Админменю', 'admin_access'=>'0', 'reg_id'=>'1', 'param'=>$amenu),
+//	array('id'=>'5', 'theme'=>'!zhiraf', 'src'=>'messages/blocks/messages', 'name'=>'Сообщения', 'admin_access'=>'1', 'reg_id'=>'1'),
+	array('id'=>'6', 'theme'=>'!zhiraf', 'src'=>'blocks/blocks/support', 'name'=>'Поддержка', 'admin_access'=>'0', 'reg_id'=>'1', 'param'=>$spt),
+	array('id'=>'7', 'theme'=>'zhiraf', 'src'=>'admin/blocks/top', 'name'=>'АдминШапка', 'admin_access'=>'0', 'reg_id'=>'4'),
+	array('id'=>'8', 'theme'=>'zhiraf', 'src'=>'admin/blocks/modlist', 'name'=>'СписокМодулей', 'admin_access'=>'0', 'reg_id'=>'-1'),
+	array('id'=>'9', 'theme'=>'zhiraf', 'src'=>'users/blocks/online', 'name'=>'Кто на сайте', 'admin_access'=>'0', 'reg_id'=>'-1'),
+	array('id'=>'10', 'theme'=>'!zhiraf', 'src'=>'themes/blocks/header.tpl', 'name'=>'Заголовоки сайта', 'alias'=>'header', 'shablon'=>'1', 'admin_access'=>'1', 'reg_id'=>''),
 
-//	array('id'=>'9', 'theme'=>'!zhiraf', 'src'=>'users/blocks/user', 'name'=>'Свойства пользователя', 'access'=>'1', 'reg_id'=>'7'),
-//	array('id'=>'12', 'theme'=>'!zhiraf', 'src'=>'pages/blocks/my', 'name'=>'Мои статьи', 'access'=>'1', 'reg_id'=>'7'),
+//	array('id'=>'9', 'theme'=>'!zhiraf', 'src'=>'users/blocks/user', 'name'=>'Свойства пользователя', 'admin_access'=>'1', 'reg_id'=>'7'),
+//	array('id'=>'12', 'theme'=>'!zhiraf', 'src'=>'pages/blocks/my', 'name'=>'Мои статьи', 'admin_access'=>'1', 'reg_id'=>'7'),
 );
 
 foreach($menu as $line){
 	$blocks_index = fk("{$arg['modpath']}-index", $w = array("id"=>$line['id']), $line, $line);
 };
 
-qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='1', `gid`='2', `access`='1', `description`='Права доступа администратора к блоку смены шаблонов'");
-qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='3', `gid`='2', `access`='1', `description`='Права доступа администратора к блоку админменю'");
-qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='6', `gid`='2', `access`='1', `description`='Права доступа администратора к блоку поддержка'");
+qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='1', `gid`='2', `admin_access`='1', `sort`='1', `description`='Права доступа администратора к блоку смены шаблонов'");
+qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='3', `gid`='2', `admin_access`='1', `sort`='2', `description`='Права доступа администратора к блоку админменю'");
+qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='6', `gid`='2', `admin_access`='1', `sort`='3', `description`='Права доступа администратора к блоку поддержка'");
 
-qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='7', `gid`='2', `access`='1', `description`='Права доступа администратора к админ шапке'");
-qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='8', `gid`='2', `access`='1', `description`='Права доступа администратора к списку модулей'");
-qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='9', `gid`='2', `access`='1', `description`='Права доступа администратора к кто на сайте'");
+qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='7', `gid`='2', `admin_access`='1', `sort`='4', `description`='Права доступа администратора к админ шапке'");
+qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='8', `gid`='2', `admin_access`='0', `sort`='5', `description`='Права доступа администратора к списку модулей'");
+qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='9', `gid`='2', `admin_access`='0', `sort`='6', `description`='Права доступа администратора к кто на сайте'");
+qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='8', `gid`='1', `admin_access`='5', `sort`='7', `description`='Права доступа администратора к списку модулей'");
+qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='9', `gid`='1', `admin_access`='5', `sort`='8', `description`='Права доступа администратора к кто на сайте'");
 
-//qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='11', `gid`='3', `access`='1', `description`='Права доступа администратора к списку модулей'");
+//qw("INSERT INTO `{$conf['db']['prefix']}{$arg['modpath']}_index_gaccess` SET `index_id`='11', `gid`='3', `admin_access`='1', `description`='Права доступа администратора к списку модулей'");
 
 qw("UPDATE `{$conf['db']['prefix']}{$arg['modpath']}_index` SET `sort`=`id`");
 qw("UPDATE `{$conf['db']['prefix']}{$arg['modpath']}_reg` SET `sort`=`id`");

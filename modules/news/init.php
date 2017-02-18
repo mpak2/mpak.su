@@ -8,7 +8,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_cat` (
   `description` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `parent` (`cat_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 mpqw($sql);
 
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index` (
@@ -24,7 +24,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index`
   KEY `time` (`time`),
   KEY `kid` (`cat_id`),
   KEY `uid` (`uid`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 mpqw($sql);
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_cat', 'Категории', '4', '')");

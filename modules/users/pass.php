@@ -1,8 +1,8 @@
 <?
 
 if($conf['user']['uid'] > 0){
-	if((mphash($conf['user']['uname'], $_POST['old']) == $conf['user']['pass']) || ($arg['access'] >= 5) || $conf['user']['flush']){
-		$uid = ($_GET['id'] && ($arg['access'] >= 5) ? $_GET['id'] : $conf['user']['uid']);
+	if((mphash($conf['user']['uname'], $_POST['old']) == $conf['user']['pass']) || ($arg['admin_access'] >= 5) || $conf['user']['flush']){
+		$uid = ($_GET['id'] && ($arg['admin_access'] >= 5) ? $_GET['id'] : $conf['user']['uid']);
 		if($_POST['new'] && $_POST['new'] == $_POST['ret']){
 			if(strlen($_POST['new'])){
 				$user = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']} WHERE id=". (int)$uid), 0);

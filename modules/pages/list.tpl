@@ -6,7 +6,7 @@
 		<ul style="padding-left:20px;">
 			<? foreach($cat as $k=>$v): ?>
 				<li style="border:0; overflow:hidden;">
-					<? if($arg['access'] > 3 || $v['uid'] == $conf['user']['uid']): ?>
+					<? if($arg['admin_access'] > 3 || $v['uid'] == $conf['user']['uid']): ?>
 						<span style="float:right;">
 							<a href="/<?=$arg['modname']?>:правка/<?=$v['id']?>"><img src="/img/edit.png"></a>
 							<a href="/<?=$arg['modname']?>:правка/del:<?=$v['id']?>"><img src="/img/del.png"></a>

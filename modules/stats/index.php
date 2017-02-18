@@ -64,7 +64,7 @@ foreach($stat as $k=>$v){
 		echo ( isset($name[$k][$line['value']]) ? $name[$k][$line['value']] : $line['value'] );
 //		if (array_search($GLOABSL['conf']['settings']['admin_grp'], $GLOBALS['conf']['user']['gid'])) echo "del it";
 
-//		&& $GLOBALS['conf']['modules'][ $GLOBALS['conf']['modules']['stats']['id'] ]['access'] >= 4
+//		&& $GLOBALS['conf']['modules'][ $GLOBALS['conf']['modules']['stats']['id'] ]['admin_access'] >= 4
 		if ($k == 'modules' && $line['value'] != 'admin') echo "</a>";
 		echo ( isset($img[$k][$line['value']]) ? "&nbsp;<img src='/modules/stats/img/".$img[$k][$line['value']]."'>" : '' );
 		echo "</td><td width='4%'>&nbsp;</td><td>{$line['count']}</td></tr></table></td></tr>";

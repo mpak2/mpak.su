@@ -58,7 +58,7 @@ if($tn = $form['tn']){
 
 if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && $_POST){
 	if(array_key_exists("hide", $data[ $_POST['hide'] ])){
-		if($arg['access'] > 3){
+		if($arg['admin_access'] > 3){
 			mpqw($sql = "UPDATE `{$tn}` SET hide=1 WHERE id=". (int)$_POST['hide']);
 		}else if($data[ $_POST['hide'] ]['uid'] == $conf['user']['uid']){
 			mpqw($sql = "UPDATE `{$tn}` SET hide=1 WHERE uid=". (int)$conf['user']['uid']. " AND id=". (int)$_POST['hide']);

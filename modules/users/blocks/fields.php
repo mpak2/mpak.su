@@ -111,7 +111,7 @@ foreach($tpl['index'] as $k=>$v){
 				}, <?=json_encode($tpl['spisok'][ $k ])?>);*/
 //				$(".<?=$tpl['tn']?>_data.<?=$k?>.klesh[uid=<?=$conf['user']['uid']?>]").klesh("/<?=$arg['modname']?>:ajax");
 		<? endforeach; ?>
-		<? if($arg['access'] > 3): ?>
+		<? if($arg['admin_access'] > 3): ?>
 			$(".fields.<?=$param["Таблица"]?> .hide").click(function(){
 				var hide = $(this).attr("hide");// alert(hide);
 				var opacity = $(this).is(".opacity");
@@ -138,7 +138,7 @@ foreach($tpl['index'] as $k=>$v){
 		.fields.<?=$param["Таблица"]?> div.list > div > span { display:inline-block; min-width:100px; min-height:25px; vertical-align:top; line-height:25px;}
 		.fields.<?=$param["Таблица"]?> div.list > div > span:first-child { font-weight:bold; }
 	</style>
-	<? if($arg['access'] > 3): ?>
+	<? if($arg['admin_access'] > 3): ?>
 		<span style="float:right;">
 			<a href="/?m[<?=$tpl['table'][0]?>]=admin&r=<?=$conf['db']['prefix']?><?=$param["Таблица"]?><?=($_GET[ $param["Таблица"] ] ? "&where[id]=". (int)$_GET[ $param["Таблица"] ] : "")?>"><img src="/img/aedit.png"></a>
 		</span>
@@ -151,9 +151,9 @@ foreach($tpl['index'] as $k=>$v){
 		<?=$tpl['index']['name']?>
 	</h1>
 	<div class="list">
-		<? foreach($tpl['index'] as $k=>$v): if(array_search($k, $tpl['hide']) && $arg['access'] <= 3) continue; # Не выводим скрытые поля ?>
+		<? foreach($tpl['index'] as $k=>$v): if(array_search($k, $tpl['hide']) && $arg['admin_access'] <= 3) continue; # Не выводим скрытые поля ?>
 			<div>
-				<? if($arg['access'] > 3): ?>
+				<? if($arg['admin_access'] > 3): ?>
 					<div class="hide <?=(array_search($k, $tpl['hide']) ? "opacity" : "")?>" hide="<?=$k?>"></div>
 				<? endif; ?>
 				<span title="<?=$k?>"><?=($tpl['etitle'][ $k ] ?: $k)?></span>
@@ -164,7 +164,7 @@ foreach($tpl['index'] as $k=>$v){
 		<? endforeach; ?>
 		<? foreach($tpl['fields'] as $f): ?>
 			<div>
-				<? if($arg['access'] > 3): ?>
+				<? if($arg['admin_access'] > 3): ?>
 					<div fields_id="<?=$f['id']?>" class="edit"></div>
 				<? endif; ?>
 				<span title="Доп поле <?=$f['id']?>"><?=$f['name']?></span>

@@ -7,8 +7,8 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_cat` (
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `cat_id` (`cat_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
-mpqw($sql);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+qw($sql);
 
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -22,8 +22,10 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index`
   PRIMARY KEY (`id`),
   KEY `cat_id` (`cat_id`),
   KEY `uid` (`uid`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
-mpqw($sql);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+qw($sql);
 
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_cat', 'Категории', '4', '')");
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_index', 'Статьи', '4', '')");
+
+
+qw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_cat', 'Категории', '4', '')");
+qw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_index', 'Статьи', '4', '')");

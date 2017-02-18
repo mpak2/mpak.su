@@ -7,7 +7,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_cat` (
   `description` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `sort` (`sort`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 mpqw($sql);
 
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_golos` (
@@ -18,7 +18,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_golos`
   PRIMARY KEY (`id`),
   UNIQUE KEY `uid` (`uid`,`plan_id`),
   KEY `time` (`time`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 mpqw($sql);
 
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_performers` (
@@ -30,7 +30,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_perfor
   PRIMARY KEY (`id`),
   KEY `time` (`time`),
   KEY `uid` (`uid`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 mpqw($sql);
 
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_plan` (
@@ -42,7 +42,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_plan` 
   `sort` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `kid` (`cat_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 mpqw($sql);
 
 echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_work` (
@@ -55,7 +55,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_work` 
   PRIMARY KEY (`id`),
   KEY `plan_id` (`plan_id`),
   KEY `uid` (`uid`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 mpqw($sql);
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('develop', 'develop_host', 'http://mpak.su', '1', 'Сайт для ссылки разработки')");

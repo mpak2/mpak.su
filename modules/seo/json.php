@@ -1,7 +1,7 @@
 <?
 
 if(!empty($_REQUEST['class']) && $class = explode(" ", $_REQUEST['class'])){ # klesh запросы
-	if($arg['access'] >= 4){
+	if($arg['admin_access'] >= 4){
 		$w = array_diff_key($_REQUEST, array("m"=>false, "class"=>false, "limit"=>false));
 		$t = "{$conf['db']['prefix']}{$arg['modpath']}_". mpquot($class[0]);
 		$json = qn($sql = "SELECT * FROM $t WHERE 1".

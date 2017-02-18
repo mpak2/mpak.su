@@ -23,8 +23,25 @@ function conn($init = null){
 	} return $conf['db']['conn'];
 }
 
+function MpGenPassword($max=10){
+	$chars="qazxswedcvfrtgbnhyujmkiolp1234567890QAZXSWEDCVFRTGBNHYUJMKIOLP";
+	$size=StrLen($chars)-1; 
+	$password=''; 
+    while($max--)
+		$password.=$chars[rand(0,$size)];
+	return $password;
+}
+
+function MpGenUniquePath($dir="/tmp"){
+	$path = $dir ."/" . MpGenPassword();	
+	if(file_exists($path))
+		$path = MpGenUniquePath();
+	return $path;
+}
+
 function cache($content = false){
 	global $conf;
+<<<<<<< HEAD
 	header('Last-Modified: '. date("r"));
 
 	if(array_search("pdo_sqlite", get_loaded_extensions())){ # PDO подерживает sqlite используем его для сохранения кеша
@@ -54,12 +71,38 @@ function cache($content = false){
 			}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ mpre("Ошибка составления имени файла");
 			}elseif(!file_exists($conn_file) && !touch($conn_file) /*&& !chmod($conn_file, 0777)*/){ mpre("Файл бд кеша не найден {$conn_file}");
 			}elseif(!$conn = conn("sqlite:{$conn_file}")){
+=======
+	$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache";
+	if(!file_exists($cache_dir)){mkdir($cache_dir);}
+	if(!is_dir($cache_dir)){mpre("Ошибка установки временной директории кеша");return 0;}
+	$cache_log = dirname($cache_dir). "/cache.log";
+	$REQUEST_URI = urldecode($_SERVER['REQUEST_URI']);
+	
+	if(array_search("pdo_sqlite", get_loaded_extensions())){ # PDO подерживает sqlite используем его для сохранения кеша		
+		$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite";
+		if(!$conn_file_exists = file_exists($conn_file)){				
+			if(!touch($conn_file)){mpre("Файл бд кеша не найден {$conn_file}");return 0;}
+		}
+		$conn = conn("sqlite:{$conn_file}");
+		$sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg());
+
+
+		if(!$content){ # Отдаем кеш из sqlite		
+			if(!$sys_getloadavg){// mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
+			}elseif(!$REQUEST_URI){ mpre("Ошибка определения адреса");
+			}elseif(get($_SERVER, 'HTTP_CACHE_CONTROL')){
+				error_log(implode("/", $sys_getloadavg). " ^^^ http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+			}elseif(array_key_exists('HTTP_CACHE_CONTROL', $_SERVER)){// pre("Обновление");
+			}elseif($_POST || array_key_exists("sess", $_COOKIE)){// print_r("Создание сессии");			
+			}elseif(!$conn){
+>>>>>>> 20fa1a3b362df3225796a3d4c1fefba0be769e89
 			}elseif(!($TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name"))){ mpre("Параметры таблицы не определены");
 			}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ mpre("Ошибка создания запроса");
 			}elseif(!$row = mpql($RES, 0)){ mpre("Ошибка извлечения строк");
 			}else{
 				foreach(explode("\n", $row['headers']) as $header){
 					header($header);
+<<<<<<< HEAD
 				}
 				header('Last-Modified: '. date("r", filectime($file_name)));
 //				header("Expires: " . gmdate("D, d M Y H:i:s", time() + 60*60*24*10) . " GMT");
@@ -89,8 +132,15 @@ function cache($content = false){
 				error_log(implode("/", $sys_getloadavg). " <== http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 				header('Content-Encoding: gzip');
 				exit($row['content']);
+=======
+				} 
+				header('Content-Encoding: gzip');
+				exit($LINE['content']);
+>>>>>>> 20fa1a3b362df3225796a3d4c1fefba0be769e89
 			}
+			//pre($cache_dir );
 		}else{ # Сохраняем кеш в sqlite
+<<<<<<< HEAD
 			if(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
 			}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
 			}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ mpre("Ошибка составления имени файла");
@@ -98,6 +148,17 @@ function cache($content = false){
 			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Ошибка определения адреса");
 			}elseif(!file_exists($conn_file) && !touch($conn_file) && !mkdir(dirname($conn_file))){ mpre("Файл бд кеша не найден {$conn_file}");
 			}elseif(!$conn = conn("sqlite:{$conn_file}")){
+=======
+				
+			if(http_response_code() != 200){// pre("Кешируем только корректно отдаваемые страницы");
+				if($conn_file_exists)
+					$conn->query("DELETE FROM `cache` WHERE `uri`='{$REQUEST_URI}'");
+				error_log(implode("/", $sys_getloadavg). " <<< ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);	
+			}elseif($conf['user']['sess']['uid']){// mpre("Сохранение действует только для гостей");
+				if($conn_file_exists)
+					$conn->query("DELETE FROM `cache` WHERE `uri`='{$REQUEST_URI}'");
+				error_log(implode("/", $sys_getloadavg). " xxx ". ($conf['user']['sess']['uid'] <= 0 ? "{$guest['uname']}{$conf['user']['sess']['id']}" : $conf['user']['uname']). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+>>>>>>> 20fa1a3b362df3225796a3d4c1fefba0be769e89
 			}elseif(!($TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name")) && !($TABLES = call_user_func(function() use($conf, $conn){
 					if(!(qw($sql = "CREATE TABLE cache (id INTEGER PRIMARY KEY, uri TEXT, headers TEXT, content BLOB)", "Создание таблицы кешей", null, null, $conn)) &0){ mpre("Ошибка создания таблицы кешей {$sql}");
 					}elseif(qw($sql = "CREATE INDEX `cache-uri` ON `cache` (`uri`);", "Создание ключей", null, null, $conn) &0){ mpre("Ошибка создания ключей таблицы {$sql}");
@@ -139,12 +200,10 @@ function cache($content = false){
 			}
 		}
 	}else{ # Не поддерживается sqlite поэтому храним в файлах
+		$cache_name = "{$cache_dir}/{$conf['settings']['http_host']}/". ($REQUEST_URI=="/" ? "index" : md5($_SERVER['REQUEST_URI'])). ".gz";
+		
 		if(!$content){ # Отдаем кеш из файлов
-			if(!$cache_dir = !empty($conf['fs']['cache']) ? $conf['fs']['cache'] : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
-			}elseif(!$cache_name = ("{$cache_dir}/{$conf['settings']['http_host']}/". (($REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])) == "/" ? "index" : md5($_SERVER['REQUEST_URI'])). ".gz")){ print_r("Ошибка формирования временного файла кеш");
-			}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
-			//}elseif(array_key_exists('HTTP_USER_AGENT', $_SERVER) && strpos($_SERVER['HTTP_USER_AGENT'], "YandexWebmaster")){// mpre("Проверка владения сайта вебмастером");
-			}elseif(array_key_exists('HTTP_CACHE_CONTROL', $_SERVER)){// pre("Обновление");
+			if(array_key_exists('HTTP_CACHE_CONTROL', $_SERVER)){// pre("Обновление");
 			}elseif($_POST || array_key_exists("sess", $_COOKIE)){// print_r("Создание сессии");
 			}elseif(!function_exists("sys_getloadavg")){// mpre("Функция загрузки процессора не найдена");
 			}elseif(($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) && ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2]) && (rand(0, $sys_getloadavg[0]) <= 1)){// mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
@@ -162,11 +221,16 @@ function cache($content = false){
 				error_log(implode("/", $sys_getloadavg). " <   http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 				exit(readfile($cache_name));
 			}
+<<<<<<< HEAD
 		}else{ # Сохраняем кеш в файлах
 			if(!$cache_dir = !empty($conf['fs']['cache']) ? $conf['fs']['cache'] : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
 			}elseif(!function_exists("sys_getloadavg")){// mpre("Функция загрузки процессора не найдена");
 			}elseif(!$cache_name = ("{$cache_dir}/{$conf['settings']['http_host']}/". (($REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])) == "/" ? "index" : md5($_SERVER['REQUEST_URI'])). ".gz")){ print_r("Ошибка формирования временного файла кеш");
 			}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
+=======
+		}else{ # Сохраняем кеш в файлах			
+			if(!function_exists("sys_getloadavg")){// mpre("Функция загрузки процессора не найдена");
+>>>>>>> 20fa1a3b362df3225796a3d4c1fefba0be769e89
 			}elseif(!$sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())){ mpre("Ошибка выборки статистики загрузки процессора");
 			}elseif($conf['user']['sess']['uid']){// mpre("Сохранение действует только для гостей");
 				if(file_exists($cache_name)){
@@ -262,7 +326,7 @@ function meta($where, $meta = null){
 }
 
 //функция скачки файла (чтение файла идет по 5метров)
-function file_download ($file,$filename,$mimetype='application/octet-stream') {
+function file_download ($file,$filename,$mimetype='application/octet-stream',$end=true) {
    if(!$filename) $filename = preg_replace("#.*\/([^\/]+)$#iu",'$1',$file);
    if (file_exists ($file)) {
      header ($_SERVER["SERVER_PROTOCOL"] . ' 200 OK');
@@ -285,7 +349,8 @@ function file_download ($file,$filename,$mimetype='application/octet-stream') {
      header ($_SERVER["SERVER_PROTOCOL"] . ' 404 Not Found');
      header ('Status: 404 Not Found');
    }
-exit();
+if($end)
+	exit();
 }//функция скачки файла (чтение файла идет по 5метров)
  
 # Проверка вхождения тегов в коде и их корректная вложенность друг в друга
@@ -370,7 +435,7 @@ function inc($file_name, $variables = [], $req = false){
 			if(!array_key_exists('arg', $variables)){ # Если не переопределяем список аргументов
 				if(($path = explode("/", $file_name)) && ($path[0] == "modules")){
 					if($mod = get($conf, 'modules', $path[1])){
-						$GLOBALS['arg'] = $arg = array("modpath"=>$path[1], 'modname'=>$mod['modname'], "access"=>$mod['access'], "fn"=>first(explode(".", $path[2])));
+						$GLOBALS['arg'] = $arg = array("modpath"=>$path[1], 'modname'=>$mod['modname'], "admin_access"=>$mod['admin_access'], "fn"=>first(explode(".", $path[2])));
 					}
 				}
 			} if(array_search("Администратор", get($conf, 'user', 'gid'))){
@@ -443,7 +508,8 @@ if (!function_exists('modules')){
 				}
 
 				$v = $v != 'del' && $v != 'init' && $v != 'sql' && strlen($v) ? $v : 'index';
-				if(get($mod, 'access') >= ((strpos($v, 'admin') === 0) ? 4 : 1)){
+				if(get($mod, 'admin_access') >= ((strpos($v, 'admin') === 0) ? 4 : 1)){
+					
 					$conf['db']['info'] = "Модуль '". ($name = $mod['name']). "'";
 					if(preg_match("/[a-z]/", $v)){ $g = "/{$v}.*.php"; }else{ $g = "/*.{$v}.php"; }// pre($g);
 					if(($glob = glob($gb = (mpopendir("modules/{$mod['link']}"). $g)))
@@ -454,7 +520,7 @@ if (!function_exists('modules')){
 					}
 
 					$fe = ((strpos($_SERVER['HTTP_HOST'], "xn--") !== false) && (count($g) > 1)) ? array_shift($g) : $v;
-					$arg = array('modpath'=>$mod['folder'], 'modname'=>$mod['modname'], 'fn'=>$v, "fe"=>$fe, 'access'=>$mod['access']);
+					$arg = array('modpath'=>$mod['folder'], 'modname'=>$mod['modname'], 'fn'=>$v, "fe"=>$fe, 'admin_access'=>$mod['admin_access']);
 					ob_start();
 						if($glob){
 	//						$content .= mpct("modules/{$mod['link']}/{$glob}", $arg);
@@ -475,9 +541,11 @@ if (!function_exists('modules')){
 						}
 					$content .= ob_get_contents(); ob_end_clean();
 				}else if(get($conf, 'modules', $k) && ($_SERVER['REQUEST_URI'] != "/admin")){
-					header("HTTP/1.0 403 Access Denied");
+					header("HTTP/1.0 403 admin_access Denied");
 					exit(header("Location: /users:login"));
 				}else if(!mpopendir($f = "modules/{$mod['link']}/deny.php") && !mpopendir($f = "modules/admin/deny.php")){ pre("Не найдена страница запрета доступа");
+				
+				
 				}else{
 //				if(){
 						ob_start();
@@ -488,6 +556,7 @@ if (!function_exists('modules')){
 						}
 					}*/
 				}
+				
 			}else{ mpre("Адрес установлен не верно", get($conf, 'settings', 'canonical')); }
 		} return $content;
 	}
@@ -513,7 +582,8 @@ if(!function_exists('blocks')){
 		foreach($_GET['m'] as $k=>$v){
 			$md[ $k ] = $v ? $v : "index";
 		}
-
+		
+		$reg = [];
 		foreach($blocks_reg as $r){
 			if($r["term"] == 0){ # Условия выключены
 				$reg[ $r['id'] ] = $r;
@@ -543,14 +613,15 @@ if(!function_exists('blocks')){
 			$gt = mpgt(urldecode(last(explode($_SERVER['HTTP_HOST'], $_SERVER['HTTP_REFERER']))));
 		}else{ $gt = mpgt("/"); }
 
+		
 		foreach(rb($blocks, "reg_id", "id", $reg+array_flip(["NULL", 0])) as $k=>$v){
 			$conf['blocks']['info'][$v['id']] = $v;
-			if($v['access'] < 0){
-				$conf['blocks']['info'][ $v['id'] ]['access'] = get($conf, 'modules', first(explode('/', $v['src'])), 'access');
+			if($v['admin_access'] < 0){
+				$conf['blocks']['info'][ $v['id'] ]['admin_access'] = get($conf, 'modules', first(explode('/', $v['src'])), 'admin_access');
 			}
 		}
 
-		foreach(mpql(mpqw("SELECT *, index_id AS index_id FROM {$conf['db']['prefix']}blocks_index_gaccess ORDER BY id", 'Права доступа группы к блоку', function($error, $conf){
+		foreach(mpql(mpqw("SELECT *, index_id AS index_id FROM {$conf['db']['prefix']}blocks_index_gaccess ORDER BY sort", 'Права доступа группы к блоку', function($error, $conf){
 			if(strpos($error, ".{$conf['db']['prefix']}blocks_index_gaccess' doesn't exist")){
 				qw("ALTER TABLE {$conf['db']['prefix']}blocks_gaccess RENAME {$conf['db']['prefix']}blocks_index_gaccess");
 			}elseif(strpos($error, "Unknown column 'index_id' in 'field list'")){
@@ -560,7 +631,7 @@ if(!function_exists('blocks')){
 		})) as $k=>$v){
 			if(get($conf, 'user', 'gid', $v['gid'])){
 				if(get($conf, 'blocks', 'info', $v['index_id'])){
-					$conf['blocks']['info'][ $v['index_id'] ]['access'] = $v['access'];
+					$conf['blocks']['info'][ $v['index_id'] ]['admin_access'] = $v['admin_access'];
 				}
 			}
 		} foreach(mpql(mpqw("SELECT *, index_id AS index_id FROM {$conf['db']['prefix']}blocks_index_uaccess ORDER BY id", 'Права доступа пользователя к блоку', function($error, $conf){
@@ -572,7 +643,7 @@ if(!function_exists('blocks')){
 			mpre($error);
 		})) as $k=>$v){
 			if(/*get($conf, 'blocks', 'info', $v['index_id']) &&*/ ($conf['user']['uid'] == $v['uid'] || (!$v['uid'] && ($conf['user']['uid'] == 0)))){
-				$conf['blocks']['info'][ $v['index_id'] ]['access'] = $v['access'];
+				$conf['blocks']['info'][ $v['index_id'] ]['admin_access'] = $v['admin_access'];
 			}
 		}
 
@@ -580,8 +651,8 @@ if(!function_exists('blocks')){
 			if(($conf['settings']['theme'] == $v['theme']) || ((substr($v['theme'], 0, 1) == "!") && ($conf['settings']['theme'] != substr($v['theme'], 1)))){
 				$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
 				$mod = get($conf, 'modules', basename(dirname(dirname($v['src'])))) ?: array("folder"=>'');
-				$arg = array('blocknum'=>$v['id'], 'modpath'=>$mod['folder'], 'modname'=>(get($mod, 'modname') ?: ""), 'fn'=>basename(first(explode('.', $v['src']))), 'uid'=>0, 'access'=>$conf['blocks']['info'][ $v['id'] ]['access']);
-				if($conf['blocks']['info'][ $v['id'] ]['access'] /*&& strlen($cb = mpeval("modules/{$v['src']}", $arg))*/){
+				$arg = array('blocknum'=>$v['id'], 'modpath'=>$mod['folder'], 'modname'=>(get($mod, 'modname') ?: ""), 'fn'=>basename(first(explode('.', $v['src']))), 'uid'=>0, 'admin_access'=>$conf['blocks']['info'][ $v['id'] ]['admin_access']);
+				if($conf['blocks']['info'][ $v['id'] ]['admin_access'] /*&& strlen($cb = mpeval("modules/{$v['src']}", $arg))*/){
 					ob_start();
 						inc("modules/{$v['src']}", array('arg'=>$arg));
 					$cb = ob_get_contents(); ob_end_clean();
@@ -857,10 +928,14 @@ function mpsmtp($to, $subj, $text, $from = null, $files = array(), $login = null
 
 function mpue($name){
 	return str_replace('%', '%25', trim($name));
-} function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = false){
+} 
+function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = false){
 	global $conf;
+
+
+
 	if(!get($conf, 'settings', 'sql_memcache_disable') && function_exists('memcache_connect')){
-		if($data = memcache_connect("localhost")){
+		if($memcache = memcache_connect("localhost")){
 			if($data){
 				memcache_set($memcache, $key, $data, $compress, $limit);
 				if($event) mpevent($conf['settings']['users_event_memcache_set'], $key, $conf['user']['uid']);
@@ -1200,14 +1275,15 @@ function mpwr($tn, $get = null, $prefix = null){
 	if(empty($prefix)) $where = ' WHERE 1=1';
 	$f = mpqn(mpqw("DESC {$tn}"), 'Field');
 	foreach($get !== null ? $get : $_GET as $k=>$v){
-		$n = array_pop(explode('.', $k));
+		$buf = explode('.', $k);
+		$n = array_pop($buf);unset($buf );
 		if((substr($k, 0, 1) == '!') && ($f[substr($k, 1)] || $f[$n])){
 			$where .= " AND {$prefix}`". mpquot(substr($k, 1)). "`<>\"". mpquot($v). "\"";
 		}elseif(is_numeric($v) && (substr($k, 0, 1) == '+') && ($f[substr($k, 1)] || $f[$n])){
 			$where .= " AND {$prefix}`". mpquot(substr($k, 1)). "`>". (int)$v;
 		}elseif(is_numeric($v) && (substr($k, 0, 1) == '-') && ($f[substr($k, 1)] || $f[$n])){
 			$where .= " AND {$prefix}`". mpquot(substr($k, 1)). "`<". (int)$v;
-		}elseif(($v !== "") && $f[$n] && gettype($v) == "string"){
+		}elseif(($v !== "") && get($f,$n) && gettype($v) == "string"){
 			$where .= " AND {$prefix}`". mpquot($k). "`=\"". mpquot($v). "\"";
 		}
 	} return $where;
@@ -1537,12 +1613,17 @@ function mpqw($sql, $info = null, $callback = null, $params = null, $conn = null
 //			$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 			$result = $conn->query($sql);
 		}
-	}catch(Exception $e){
-		mpre($sql, $error = $e->getMessage());
+	}catch(Exception $e){		
+		mpre($sql, $error = $e->getMessage());		
+		ob_start();
+			debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);		
+		mpre(ob_get_clean());
 		if(is_callable($callback)){
 			$callback($error, $conf);
 		}
-	} if(!empty($conf['settings']['analizsql_log'])){
+		$result = [];
+	} 
+	if(!empty($conf['settings']['analizsql_log'])){
 		$conf['db']['sql'][] = $q = array(
 			'info' => $info ? $info : $conf['db']['info'],
 			'time' => microtime(true)-$mt,
@@ -1551,8 +1632,10 @@ function mpqw($sql, $info = null, $callback = null, $params = null, $conn = null
 		if(!empty($conf['settings']['sqlanaliz_time_log']) && $q['time'] > $conf['settings']['sqlanaliz_time_log']){
 			mpevent("Долгий запрос к базе данных", $sql. " {$q['time']}c.", $conf['user']['uid'], $q);
 		}
-	} return($result);
-} function qw($sql, $info = null, $callback = null, $params = null, $conn = null){
+	} 
+	return($result);
+} 
+function qw($sql, $info = null, $callback = null, $params = null, $conn = null){
 	$return = call_user_func("mpqw", $sql, $info, $callback, $params, $conn);
 }
 function mpfile($filename, $description = null){
@@ -1589,7 +1672,7 @@ function mpgc($value, $param = null){
 }
 function mpwysiwyg($name, $content = null, $tpl = ""){
 	global $conf;
-	if(!empty($conf['modules']['redactor']['access'])){
+	if(!empty($conf['modules']['redactor']['admin_access'])){
 		$conf['settings']['redactor_name'] = $name;
 		$conf['settings']['redactor_text'] = $content;
 		if($tpl && $fn = mpopendir("modules/redactor/". basename($tpl))){
@@ -1597,7 +1680,7 @@ function mpwysiwyg($name, $content = null, $tpl = ""){
 		}else{
 			include mpopendir("modules/redactor/wysiwyg.tpl");
 		}
-	}elseif(!empty($conf['modules']['tinymce']['access'])){
+	}elseif(!empty($conf['modules']['tinymce']['admin_access'])){
 		$conf['settings']['tinymce_name'] = $name;
 		$conf['settings']['tinymce_text'] = $content;
 		if($tpl && $fn = mpopendir("modules/tinymce/". basename($tpl))){
@@ -1613,7 +1696,7 @@ function mpwysiwyg($name, $content = null, $tpl = ""){
 		$spaw2 = ob_get_contents();
 		ob_end_clean();
 		return $spaw2;
-	}elseif(!empty($conf['modules']['rte']['access'])){
+	}elseif(!empty($conf['modules']['rte']['admin_access'])){
 		$conf['settings']['rte_name'] = $name;
 		$conf['settings']['rte_text'] = $content;
 		include mpopendir("modules/rte/wysiwyg.tpl");
@@ -1624,7 +1707,7 @@ function mpwysiwyg($name, $content = null, $tpl = ""){
 function mpmenu($m = array()){
 	global $conf, $arg;
 	# Скрываем меню в админке для администраторов
-	if($conf['settings']['admin_mpmenu_hide'] && $arg['access'] < 5) return;
+	if($conf['settings']['admin_mpmenu_hide'] && $arg['admin_access'] < 5) return;
 	if(array_key_exists("null", $_GET)) return false;
 	$tab = (int)$_GET['r'];
 	if($_GET['r']){
@@ -1675,7 +1758,7 @@ function pre(){
 	if(($gid = get($conf, 'user', 'gid')) && (array_search("Администратор", $gid))){
 		return call_user_func_array('pre', func_get_args());  # Выводим для возможности использования внутри условных операторов if(true && mpre("То, что смотрим") && true){ echo "Условие сработает"; }
 	}
-//	if(empty($argv) && ($arg['access'] < $access)) return;
+//	if(empty($argv) && ($arg['admin_access'] < $admin_access)) return;
 }
 function mpqwt($result){
 	echo "<table style='background-color:#888;' cellspacing=0 cellpadding=3 border=1><tr>";

@@ -14,7 +14,7 @@
 // Purpose of file:
 // ----------------------------------------------------------------------
 
-if($_FILES && ($arg['access'] > 1)){
+if($_FILES && ($arg['admin_access'] > 1)){
 	mpre($_FILES);
 }elseif($_GET['id'] || $_GET['cat_id']){
 	$img = array('jpg', 'jpeg', 'gif', 'png');
@@ -81,7 +81,7 @@ if($_FILES && ($arg['access'] > 1)){
 
 
 $tpl['cat'] = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_cat"));
-$tpl['files'] = mpqn(mpqw("SELECT * FROM ". ($tn = "{$conf['db']['prefix']}{$arg['modpath']}_files"). mpwr($tn). " AND ". ($arg['access'] <= 3 ? "uid=". (int)$conf['users']['uid'] : "1")), 'cat_id', 'id');
+$tpl['files'] = mpqn(mpqw("SELECT * FROM ". ($tn = "{$conf['db']['prefix']}{$arg['modpath']}_files"). mpwr($tn). " AND ". ($arg['admin_access'] <= 3 ? "uid=". (int)$conf['users']['uid'] : "1")), 'cat_id', 'id');
 
 //mpre($tpl['files']);
 

@@ -7,7 +7,7 @@ $conf['modversion']=array(
 	'version'=>'1.0015',
 	'description'=>'Собственная платежная система',
 	'enabled'=>'2',
-	'access'=>'1',
+	'admin_access'=>'1',
 	'admin'=>'7',
 	'md5'=>'efe9c53eb4cfb4d0debf3ead8e044e95',
 );

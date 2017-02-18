@@ -60,8 +60,8 @@ class xmlrpc_server extends IXR_Server {
         list($_id, $user_login, $user_pass) = $args;
 		$user = mpql(mpqw("SELECT * FROM {$GLOBALS['conf']['db']['prefix']}users WHERE name = '".mpquot($user_login)."'"), 0);
 		$mod = mpql(mpqw("SELECT id FROM `{$GLOBALS['conf']['db']['prefix']}modules` WHERE `folder`='pages'"), 0);
-		$uaid = mpql(mpqw("SELECT * FROM {$GLOBALS['conf']['db']['prefix']}modules_uaccess WHERE `uid`={$user['id']} AND `mid`='{$mod['id']}'"), 0, 'access');
-		$gaid = mpql(mpqw("SELECT MAX(`access`) as aid FROM {$GLOBALS['conf']['db']['prefix']}modules_gaccess WHERE gid IN (SELECT gid FROM `{$GLOBALS['conf']['db']['prefix']}users_mem` WHERE `uid`='{$user['id']}') AND `mid`='{$mod['id']}' ORDER BY access DESC"), 0, 'aid');
+		$uaid = mpql(mpqw("SELECT * FROM {$GLOBALS['conf']['db']['prefix']}modules_uaccess WHERE `uid`={$user['id']} AND `mid`='{$mod['id']}'"), 0, 'admin_access');
+		$gaid = mpql(mpqw("SELECT MAX(`admin_access`) as aid FROM {$GLOBALS['conf']['db']['prefix']}modules_gaccess WHERE gid IN (SELECT gid FROM `{$GLOBALS['conf']['db']['prefix']}users_mem` WHERE `uid`='{$user['id']}') AND `mid`='{$mod['id']}' ORDER BY admin_access DESC"), 0, 'aid');
         if(!$user || $user['pass'] != mphash($user_login, $user_pass) || max($gaid, $uaid) < 4){
 			$this->error = new IXR_Error(403, 'Bad login/pass combination.');
             return false;

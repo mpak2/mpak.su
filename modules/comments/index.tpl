@@ -76,7 +76,7 @@
 				<div>
 					<span style="float:right;">
 						<?=date('Y.m.d H:i:s', $v['time'])?>
-						<? if($arg['access'] > 3): ?>
+						<? if($arg['admin_access'] > 3): ?>
 							<a href="/?m[<?=$arg['modpath']?>]=admin&r=<?=$conf['db']['prefix']?><?=$arg['modpath']?>_txt&where[id]=<?=$v['id']?>">
 								<img src="/img/aedit.png">
 							</a>

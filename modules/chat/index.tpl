@@ -63,13 +63,13 @@
 		<table width=100% border=0>
 			<tr>
 				<td>
-					<input type='text' id='str' style='width: 100%' onKeyPress='if(microsoftKeyPress()) {this.onchange();}' onchange="$.post('/?m[<?=$arg['modpath']?>]', {text: this.value}, function(response){ if(response){ update(false) } } ); this.value='';" <?=($arg['access'] >= 2 ? "" : "disabled")?>>
+					<input type='text' id='str' style='width: 100%' onKeyPress='if(microsoftKeyPress()) {this.onchange();}' onchange="$.post('/?m[<?=$arg['modpath']?>]', {text: this.value}, function(response){ if(response){ update(false) } } ); this.value='';" <?=($arg['admin_access'] >= 2 ? "" : "disabled")?>>
 				</td>
 				<td width=1>
 					<input type='hidden' id='upl'>
 				</td>
 				<td width=1>
-					<input type='button' value='Добавить' <?=($arg['access'] >= 2 ? "" : "disabled")?>>
+					<input type='button' value='Добавить' <?=($arg['admin_access'] >= 2 ? "" : "disabled")?>>
 				</td>
 			</tr>
 		</table>

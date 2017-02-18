@@ -9,7 +9,7 @@ qw("CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_cat` (
   PRIMARY KEY (`id`),
   KEY `uid` (`uid`),
   KEY `sort` (`sort`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251");
+) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 
 qw("CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -26,7 +26,7 @@ qw("CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index` (
   KEY `hide` (`hide`),
   KEY `time` (`time`),
   KEY `uid` (`uid`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251");
+) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('faq', 'faq_index', 'Чаво', '4', '')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('faq', 'faq_cat', 'Категории', '4', '')");

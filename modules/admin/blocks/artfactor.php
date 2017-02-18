@@ -65,7 +65,7 @@ if(!array_shift($get = $_GET['m'])){
 ?>
 <div id="admin_menu">
 	<? foreach($cat as $n=>$c): ?>
-		<? foreach($mod[ $c['id'] ] as $k=>$v): if($conf['modules'][ $v['id'] ]['access'] < 4) continue; ?>
+		<? foreach($mod[ $c['id'] ] as $k=>$v): if($conf['modules'][ $v['id'] ]['admin_access'] < 4) continue; ?>
 			&nbsp;<a href="/?m[<?=$v['folder']?>]=admin" <?=($_GET['m'][ $v['folder'] ] == 'admin' ? " class='active'" : "")?>><?=$v['name']?></a>
 		<? endforeach; ?>
 	<? endforeach; ?>

@@ -8,7 +8,7 @@ qw("CREATE TABLE `{$table}` (
   `alias` varchar(255) NOT NULL,
   `theme` varchar(255) NOT NULL,
   `shablon` varchar(255) NOT NULL,
-  `access` smallint(6) NOT NULL,
+  `admin_access` smallint(6) NOT NULL,
   `pol` smallint(6) NOT NULL,
   `reg_id` int(11) NOT NULL,
   `sort` int(11) NOT NULL,
@@ -18,25 +18,27 @@ qw("CREATE TABLE `{$table}` (
   KEY `hide` (`hide`),
   KEY `theme` (`theme`),
   KEY `sort` (`sort`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251");
+) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 } if(mpsettings($t = "blocks_index_gaccess", "Группы") && !tables($table = ("{$conf['db']['prefix']}{$t}"))){
 qw("CREATE TABLE `{$table}` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `index_id` int(11) NOT NULL,
   `gid` int(11) NOT NULL,
-  `access` smallint(6) NOT NULL,
+  `admin_access` smallint(6) NOT NULL,
   `description` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251");
+  `sort` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `sort` (`sort`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 } if(mpsettings($t = "blocks_index_uaccess", "Пользователи") && !tables($table = ("{$conf['db']['prefix']}{$t}"))){
 qw("CREATE TABLE `{$table}` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `index_id` int(11) NOT NULL,
   `uid` int(11) NOT NULL,
-  `access` smallint(6) NOT NULL,
+  `admin_access` smallint(6) NOT NULL,
   `description` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251");
+) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 } if(mpsettings($t = "blocks_reg", "Регионы") && !tables($table = ("{$conf['db']['prefix']}{$t}"))){
 qw("CREATE TABLE `{$table}` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -52,7 +54,7 @@ qw("CREATE TABLE `{$table}` (
   KEY `reg_id` (`reg_id`),
   KEY `fn` (`fn`),
   KEY `term` (`term`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251");
+) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 } if(mpsettings($t = "blocks_reg_modules", "Модули") && !tables($table = ("{$conf['db']['prefix']}{$t}"))){
 qw("CREATE TABLE `{$table}` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -65,7 +67,7 @@ qw("CREATE TABLE `{$table}` (
   PRIMARY KEY (`id`),
   KEY `sort` (`sort`),
   KEY `modules_index` (`modules_index`)
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251");
+) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 } if(mpsettings($t = "blocks_shablon", null) && !tables($table = ("{$conf['db']['prefix']}{$t}"))){
 qw("CREATE TABLE `{$table}` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -73,5 +75,7 @@ qw("CREATE TABLE `{$table}` (
   `description` varchar(255) NOT NULL,
   `shablon` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=cp1251");
+) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 }
+mpsettings("{$arg['modpath']}=>espisok", "admin_access");
+mpsettings("{$arg['modpath']}_index_gaccess=>order", "sort");

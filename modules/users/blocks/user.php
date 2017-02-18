@@ -68,7 +68,7 @@ foreach(range(1900, date("Y")) as $v){
 	$year[$v] = array("id"=>$v, "name"=>$v);
 };
 
-if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && (($conf['user']['uid'] == $arg['uid']) || ($arg['access'] > 3)) && $_POST){
+if(array_key_exists('blocks', $_GET['m']) && array_key_exists('null', $_GET) && ($_GET['id'] == $arg['blocknum']) && (($conf['user']['uid'] == $arg['uid']) || ($arg['admin_access'] > 3)) && $_POST){
 	if($_FILES){
 		if($fn = mpfn("{$conf['db']['prefix']}{$arg['modpath']}", "img", $conf['user']['uid'])){
 			mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']} SET img=\"". mpquot($fn). "\" WHERE id=". (int)$conf['user']['uid']);
@@ -131,7 +131,7 @@ foreach($conf['user'] as $k=>$v){
 	#f_<?=$arg['blocknum']?> > div > div:first-child {float:left; width:150px;}
 </style>
 <div id="user_info_<?=$arg['blocknum']?>" style="overflow:hidden;">
-	<? if($arg['access'] > 3): ?>
+	<? if($arg['admin_access'] > 3): ?>
 		<span style="float:right;">
 			<a href="/?m[<?=$arg['modpath']?>]=admin&r=mp_users&where[id]=<?=$user['id']?>"><img src="/img/aedit.png"></a>
 		</span>

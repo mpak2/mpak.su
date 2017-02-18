@@ -205,7 +205,11 @@
 							if(json = $.parseJSON(response)){
 								console.log("json:", json);
 //								document.location.reload(true);
+<<<<<<< HEAD
 								document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""). (get($_GET, "where") ? "?&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?>';
+=======
+								document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}".(isset($_GET['p'])?"/p:{$_GET['p']}":""). (get($_GET, "where") ? "?&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?>';
+>>>>>>> 20fa1a3b362df3225796a3d4c1fefba0be769e89
 							}else{ alert(response); }
 						}).hide();
 					}).ready(function(e){ $(script).parent().trigger("init"); })
@@ -462,8 +466,10 @@
 												<span><?=$v?></span>
 												<a class="dec" href="javascript:void(0);" style="background:url(i/mgif.gif); background-position:0 -90px; width: 10px; height: 14px; display:inline-block;"></a>
 											</div>
-										<? elseif($k == "hide"): ?>
-											<?=(get($tpl, 'spisok', 'hide', $v) ?: "")?>
+										<? elseif($k == "hide"): ?>											
+											<span class="<?=($v?'info_comm':"");?>">
+												<?=(get($tpl, 'spisok', 'hide', $v) ?: "")?>
+											</span>
 										<? elseif($k == "uid"): ?>
 											<span style="white-space:nowrap;">
 												<? if($uid = rb("{$conf['db']['prefix']}users", "id", (int)$v)): ?>
@@ -630,7 +636,7 @@
 				})(jQuery, document.scripts[document.scripts.length-1])
 			</script>
 			Таблица не найдена
-			<? if($conf['modules']['sqlanaliz']['access'] > 4): ?>
+			<? if($conf['modules']['sqlanaliz']['admin_access'] > 4): ?>
 				<button class="table">Создать</button>
 			<? endif; ?>
 		</div>
