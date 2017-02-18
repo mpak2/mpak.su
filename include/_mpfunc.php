@@ -23,88 +23,29 @@ function conn($init = null){
 	} return $conf['db']['conn'];
 }
 
-function MpGenPassword($max=10){
-	$chars="qazxswedcvfrtgbnhyujmkiolp1234567890QAZXSWEDCVFRTGBNHYUJMKIOLP";
-	$size=StrLen($chars)-1; 
-	$password=''; 
-    while($max--)
-		$password.=$chars[rand(0,$size)];
-	return $password;
-}
-
-function MpGenUniquePath($dir="/tmp"){
-	$path = $dir ."/" . MpGenPassword();	
-	if(file_exists($path))
-		$path = MpGenUniquePath();
-	return $path;
-}
-
 function cache($content = false){
 	global $conf;
-	header('Last-Modified: '. date("r"));
-
 	if(array_search("pdo_sqlite", get_loaded_extensions())){ # PDO подерживает sqlite используем его для сохранения кеша
 		if(!$content){ # Отдаем кеш из sqlite
 			if(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
 			}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
-			}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])*/){ // mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
-			}elseif($sys_getloadavg[0] >= 50){ # Очередь процессов на выполнение больше критического предела - отдаем ошибку
-				error_log(implode("/", $sys_getloadavg). " --- 503 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-				header('HTTP/1.1 503 Service Temporarily Unavailable');
-				header('Status: 503 Service Temporarily Unavailable');
-				exit(header('Retry-After: '. array_rand(60, 600)));//random() Почторить через небольшой период времени
-			}elseif(($sys_getloadavg[0] < 3) && (rand(0, $sys_getloadavg[0]) <= 1)){// mpre("Обновление страницы при небольшой загрузке процессора");
-//			}elseif(pre("cache", microtime(true))){
+			}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) && ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2]) /*&& (rand(0, $sys_getloadavg[0]) <= 1)*/){// mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
 			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Ошибка определения адреса");
-//			}elseif(array_key_exists('HTTP_CACHE_CONTROL', $_SERVER)){// pre("Обновление");
 			}elseif(get($_SERVER, 'HTTP_CACHE_CONTROL')){
 				error_log(implode("/", $sys_getloadavg). " ^^^ http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-//			}elseif(get($_SERVER, 'HTTP_IF_MODIFIED_SINCE')){// pre("Кешируем только корректно отдаваемые страницы");
-//				error_log(implode("/", $sys_getloadavg). " !!! ". ($conf['user']['sess']['uid'] <= 0 ? "{$guest['uname']}{$conf['user']['sess']['id']}" : $conf['user']['uname']). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-//				exit(header('HTTP/1.0 304 Not Modified'));
-			}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg"/*, "/sitemap.xml", "/robots.txt", "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
+			}elseif(array_key_exists('HTTP_CACHE_CONTROL', $_SERVER)){// pre("Обновление");
 			}elseif($_POST || array_key_exists("sess", $_COOKIE)){// print_r("Создание сессии");
-			}elseif(get($_SERVER, 'HTTP_IF_MODIFIED_SINCE')){
-				exit(header('HTTP/1.0 304 Not Modified'));
-			}elseif(header("Cache-control: max-age=864000") || header("Expires: ".gmdate("r", time() + 86400*10))){ mpre("Установка времени кеширования в браузере");
 			}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ mpre("Ошибка составления имени файла");
 			}elseif(!file_exists($conn_file) && !touch($conn_file) /*&& !chmod($conn_file, 0777)*/){ mpre("Файл бд кеша не найден {$conn_file}");
 			}elseif(!$conn = conn("sqlite:{$conn_file}")){
 			}elseif(!($TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name"))){ mpre("Параметры таблицы не определены");
 			}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ mpre("Ошибка создания запроса");
-			}elseif(!$row = mpql($RES, 0)){ mpre("Ошибка извлечения строк");
-			}else{
-				foreach(explode("\n", $row['headers']) as $header){
+			}elseif(!$LINE = mpql($RES, 0)){ mpre("Ошибка извлечения строк");
+			}else{ error_log(implode("/", $sys_getloadavg). " <== http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+				foreach(explode("\n", $LINE['headers']) as $header){
 					header($header);
-				}
-				header('Last-Modified: '. date("r", filectime($file_name)));
-//				header("Expires: " . gmdate("D, d M Y H:i:s", time() + 60*60*24*10) . " GMT");
-				header("Expires: ".gmdate("r", time() + 86400*10));
-			}
-			if($sys_getloadavg[0] >= 20){
-				error_log(implode("/", $sys_getloadavg). " >-< 503 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-				header('HTTP/1.1 503 Service Temporarily Unavailable');
-				header('Status: 503 Service Temporarily Unavailable');
-				exit(header('Retry-After: '. array_rand(60, 3600)));//random() Почторить через большой период времени
-			}elseif(empty($row)){ # Пустой результат
-			}elseif(($sys_getloadavg[0] < 10) && !empty($sys_getloadavg) && (rand(0, $sys_getloadavg[0]) <= 1)){ # При небольшой загрузке процессора обновляем содержомое страницы в отдельном от пользователя потоке
-				# TODO Реализовать отдачу готового кеша и продолжить формировать новый в отдельном процессе уже независимо от потока пользователя. Время затраченное на формирование нового кеша уже не будет включено во время отдачи страницы
-//				if($_SERVER['REMOTE_ADDR'] != "91.122.47.82"){
-
-/*				if(!function_exists($f = "pcntl_fork")){ mpre("Функция {$f} не доступна");
-					header('Content-Encoding: gzip');
-					exit($row['content']);
-				}elseif(-1 == ($conf['settings']['fork'] = pcntl_fork())) { mpre("Ошибка образотки результата pcntl_fork");
-				}elseif($conf['settings']['fork']){# сюда попадет родительский процесс
-					header('Content-Encoding: gzip');
-					exit($row['content']);
-				}else{// а сюда - дочерний процесс
-//					error_log(implode("/", $sys_getloadavg). " ||| http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-				}*/
-			}else{
-				error_log(implode("/", $sys_getloadavg). " <== http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-				header('Content-Encoding: gzip');
-				exit($row['content']);
+				} header('Content-Encoding: gzip');
+				exit($LINE['content']);
 			}
 		}else{ # Сохраняем кеш в sqlite
 			if(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
@@ -112,7 +53,7 @@ function cache($content = false){
 			}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ mpre("Ошибка составления имени файла");
 			}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2]) && (rand(0, $sys_getloadavg[0]) <= 1)*/){// mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
 			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Ошибка определения адреса");
-			}elseif(!file_exists($conn_file) && !touch($conn_file) && !mkdir(dirname($conn_file))){ mpre("Файл бд кеша не найден {$conn_file}");
+			}elseif(!file_exists($conn_file) && !touch($conn_file) /*&& !chmod($conn_file, 0777)*/){ mpre("Файл бд кеша не найден {$conn_file}");
 			}elseif(!$conn = conn("sqlite:{$conn_file}")){
 			}elseif(!($TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name")) && !($TABLES = call_user_func(function() use($conf, $conn){
 					if(!(qw($sql = "CREATE TABLE cache (id INTEGER PRIMARY KEY, uri TEXT, headers TEXT, content BLOB)", "Создание таблицы кешей", null, null, $conn)) &0){ mpre("Ошибка создания таблицы кешей {$sql}");
@@ -180,9 +121,9 @@ function cache($content = false){
 			}
 		}else{ # Сохраняем кеш в файлах
 			if(!$cache_dir = !empty($conf['fs']['cache']) ? $conf['fs']['cache'] : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
-			}elseif(!function_exists("sys_getloadavg")){// mpre("Функция загрузки процессора не найдена");
 			}elseif(!$cache_name = ("{$cache_dir}/{$conf['settings']['http_host']}/". (($REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])) == "/" ? "index" : md5($_SERVER['REQUEST_URI'])). ".gz")){ print_r("Ошибка формирования временного файла кеш");
 			}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
+			}elseif(!function_exists("sys_getloadavg")){// mpre("Функция загрузки процессора не найдена");
 			}elseif(!$sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())){ mpre("Ошибка выборки статистики загрузки процессора");
 			}elseif($conf['user']['sess']['uid']){// mpre("Сохранение действует только для гостей");
 				if(file_exists($cache_name)){
@@ -196,7 +137,7 @@ function cache($content = false){
 					error_log(implode("/", $sys_getloadavg). " <<< ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);	
 				}
 			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Адрес на сайте не определен");
-			}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/robots.txt", "/sitemap.xml", /*"/favicon.ico",*/ "/users:login", "/users:reg", "/admin"])){ // mpre("Не кешируем системные файлы");
+			}elseif(array_search($_SERVER['REQUEST_URI'], [1=>/*"/robots.txt", "/sitemap.xml", "/favicon.ico",*/ "/users:login", "/users:reg", "/admin"])){ // mpre("Не кешируем системные файлы");
 			}elseif(get($_SERVER, 'HTTP_CACHE_CONTROL')){
 				error_log(implode("/", $sys_getloadavg). " ^^^ http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 			}elseif(empty($cache_name)){// mpre("Адрес кеша страницы не задан");
@@ -231,7 +172,6 @@ function cache($content = false){
 		}
 	}
 }
-
 
 # Изменяет мета информацию страницы записывая ее в раздел seo
 # Первый аргумент массив - array(внутренний, внешний адреса) или строка - внутренний адрес на сайте $_SERVER['REQUEST_URI'], второй параметр - установка метаинформации
@@ -279,7 +219,7 @@ function meta($where, $meta = null){
 }
 
 //функция скачки файла (чтение файла идет по 5метров)
-function file_download ($file,$filename,$mimetype='application/octet-stream',$end=true) {
+function file_download ($file,$filename,$mimetype='application/octet-stream') {
    if(!$filename) $filename = preg_replace("#.*\/([^\/]+)$#iu",'$1',$file);
    if (file_exists ($file)) {
      header ($_SERVER["SERVER_PROTOCOL"] . ' 200 OK');
@@ -302,8 +242,7 @@ function file_download ($file,$filename,$mimetype='application/octet-stream',$en
      header ($_SERVER["SERVER_PROTOCOL"] . ' 404 Not Found');
      header ('Status: 404 Not Found');
    }
-if($end)
-	exit();
+exit();
 }//функция скачки файла (чтение файла идет по 5метров)
  
 # Проверка вхождения тегов в коде и их корректная вложенность друг в друга
@@ -351,12 +290,9 @@ function tables($table = null){
 		$tpl['tables'] = qn("SELECT * FROM sqlite_master WHERE type='table'", "name");
 	}else{
 		$tpl['tables'] = qn("SHOW TABLES", "Tables_in_{$conf['db']['name']}");
-	}// pre($tpl['tables']);
-
-	if($table){ return $tpl['tables'][$table]; }else{
-		ksort($tpl['tables']);// pre(array_keys($tpl['tables']));
-		return $tpl['tables'];
-	}
+	} if($table){
+		return $tpl['tables'][$table];
+	} return $tpl['tables'];
 } function fields($table, $type = false){
 	global $conf;
 	if($conf['db']['type'] == "sqlite"){
@@ -388,7 +324,7 @@ function inc($file_name, $variables = [], $req = false){
 			if(!array_key_exists('arg', $variables)){ # Если не переопределяем список аргументов
 				if(($path = explode("/", $file_name)) && ($path[0] == "modules")){
 					if($mod = get($conf, 'modules', $path[1])){
-						$GLOBALS['arg'] = $arg = array("modpath"=>$path[1], 'modname'=>$mod['modname'], "admin_access"=>$mod['admin_access'], "fn"=>first(explode(".", $path[2])));
+						$GLOBALS['arg'] = $arg = array("modpath"=>$path[1], 'modname'=>$mod['modname'], "access"=>$mod['access'], "fn"=>first(explode(".", $path[2])));
 					}
 				}
 			} if(array_search("Администратор", get($conf, 'user', 'gid'))){
@@ -453,41 +389,60 @@ if (!function_exists('modules')){
 	function modules($content){ # Загрузка содержимого модуля
 		global $conf, $arg, $tpl;
 		foreach($_GET['m'] as $k=>$v){ $k = urldecode($k);
-			if(!$mod = (get($conf, 'modules', $k) ?: rb(get($conf, 'modules'), "modname", "[{$k}]"))){ pre("Модуль не найден в списке модулей");
-			}elseif(!$mod['link'] = (is_link($f = mpopendir("modules/{$mod['folder']}")) ? readlink($f) : $mod['folder'])){ pre("Ошибка определения ссылки на раздел");
-			}elseif(!ini_set("include_path" ,mpopendir("modules/{$mod['link']}"). ":./modules/{$mod['link']}:". ini_get("include_path"))){ pre("Сбой добавления локального пути до скриптов");
-//			}elseif(get($conf, 'settings', 'modules_title') && (!$conf['settings']['title'] = $conf['modules'][ $k ]['name']. ' : '. $conf['settings']['title'])){ pre("Ошибка установки заголовка раздела по умолчанию");
-			}elseif((strpos($v, 'admin_access') >= 1) && !is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])))){ pre("Недостаточно прав доступа к разделу");
-//				}else if(!mpopendir($f = "modules/{$mod['link']}/deny.php") && !mpopendir($f = "modules/admin/deny.php")){ pre("Не найдена страница запрета доступа");
-//				header("HTTP/1.0 403 admin_access Denied");
-//				exit(header("Location: /users:login"));
-			}elseif(!$v = $v != 'del' && $v != 'init' && $v != 'sql' && strlen($v) ? $v : 'index'){ pre("Ошибка определения имени скрипта");
-			}elseif(!$conf['db']['info'] = "Модуль '". ($name = $mod['name']). "'"){ pre("Ошибка установки описания запрос к БД");
-//			}elseif(!$g = (preg_match("/[a-z]/", $v) ? "/{$v}.*.php" : "/*.{$v}.php")){ pre("Ошибка определения шаблона запроса к файловой системе");
-			}elseif(!$g = "/{$v}.*"){ pre("Ошибка определения шаблона запроса к файловой системе");
-			}elseif((!$glob = glob($gd = mpopendir("modules/{$mod['link']}"). $g)) && (!$glob = glob($gd = "modules/{$mod['link']}". $g)) &0){ pre("Список файлов раздела {$gd}");
-			}elseif((!$glob = basename(array_pop($glob))) && (!$g = explode(".", $glob)) && ($v = array_shift($g))){ pre("Ошибка определения имен файлов");
-//			}elseif(!$fe = ((strpos($_SERVER['HTTP_HOST'], "xn--") !== false) && (count($g) > 1)) ? array_shift($g) : $v){ mpre("Ошибка определения русскоязычного названия имени");
-			}elseif(!$arg = array('modpath'=>$mod['folder'], 'modname'=>$mod['modname'], 'fn'=>$v, "fe"=>"", 'admin_access'=>$mod['admin_access'])){ pre("Ошибка формирования аргументов страницы");
-			}elseif($v == "admin"){// exit(pre($v, $arg, $mod));
-				ob_start();
-					if(!inc("modules/{$mod['link']}/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')))){
-						inc("modules/admin/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')));
+			if($mod = get($conf, 'modules', $k) ?: rb(get($conf, 'modules'), "modname", "[{$k}]")){
+				$mod['link'] = (is_link($f = mpopendir("modules/{$mod['folder']}")) ? readlink($f) : $mod['folder']);
+				ini_set("include_path" ,mpopendir("modules/{$mod['link']}"). ":./modules/{$mod['link']}:". ini_get("include_path"));
+				if(get($conf, 'settings', 'modules_title')){
+					$conf['settings']['title'] = $conf['modules'][ $k ]['name']. ' : '. $conf['settings']['title'];
+				}
+
+				$v = $v != 'del' && $v != 'init' && $v != 'sql' && strlen($v) ? $v : 'index';
+				if(get($mod, 'access') >= ((strpos($v, 'admin') === 0) ? 4 : 1)){
+					$conf['db']['info'] = "Модуль '". ($name = $mod['name']). "'";
+					if(preg_match("/[a-z]/", $v)){ $g = "/{$v}.*.php"; }else{ $g = "/*.{$v}.php"; }// pre($g);
+					if(($glob = glob($gb = (mpopendir("modules/{$mod['link']}"). $g)))
+						|| ($glob = glob($gb = ("modules/{$mod['link']}". $g)))){
+						$glob = basename(array_pop($glob));
+						$g = explode(".", $glob);
+						$v = array_shift($g);
 					}
-				$content .= ob_get_contents(); ob_end_clean();
-			}else{
-				ob_start();
-					/*if(!get($conf, 'settings', 'seo_meta')){ pre("Обработкич мета информации страницы выключен");
-					}elseif((($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? $canonical['name'] : $_SERVER['REQUEST_URI'])) && ($get = mpgt($uri))){
-						if(!array_key_exists("null", $get) && !array_key_exists("p", $get) && ($conf['settings']['theme/*:admin'] != $conf['settings']['theme']) && !array_search($arg['fn'], ['', 'ajax', 'json', '404'])){ # Нет перезагрузки страницы адреса
-							inc("modules/seo/admin_meta.php", array('arg'=>$arg, "uri"=>$uri, "get"=>$get, "canonical"=>$canonical));
+
+					$fe = ((strpos($_SERVER['HTTP_HOST'], "xn--") !== false) && (count($g) > 1)) ? array_shift($g) : $v;
+					$arg = array('modpath'=>$mod['folder'], 'modname'=>$mod['modname'], 'fn'=>$v, "fe"=>$fe, 'access'=>$mod['access']);
+					ob_start();
+						if($glob){
+	//						$content .= mpct("modules/{$mod['link']}/{$glob}", $arg);
+						}elseif(($v == "admin")){
+							if(!inc("modules/{$mod['link']}/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')))){
+								inc("modules/admin/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')));
+							}
+						}else{
+							if(get($conf, 'settings', 'seo_meta')){ # Обработчик у каждой страницы всего сайта
+								if((($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? $canonical['name'] : $_SERVER['REQUEST_URI'])) && ($get = mpgt($uri))){
+									if(!array_key_exists("null", $get) && !array_key_exists("p", $get) && ($conf['settings']['theme/*:admin'] != $conf['settings']['theme']) && !array_search($arg['fn'], ['', 'ajax', 'json', '404'])){ # Нет перезагрузки страницы адреса
+										inc("modules/seo/admin_meta.php", array('arg'=>$arg, "uri"=>$uri, "get"=>$get, "canonical"=>$canonical));
+									}
+								}
+							} if(!inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg))){ # Если не создано скриптов и шаблона для страницы запускаетм общую
+								inc("modules/{$mod['link']}/default.tpl", array('arg'=>$arg));
+							}
+						}
+					$content .= ob_get_contents(); ob_end_clean();
+				}else if(get($conf, 'modules', $k) && ($_SERVER['REQUEST_URI'] != "/admin")){
+					header("HTTP/1.0 403 Access Denied");
+					exit(header("Location: /users:login"));
+				}else if(!mpopendir($f = "modules/{$mod['link']}/deny.php") && !mpopendir($f = "modules/admin/deny.php")){ pre("Не найдена страница запрета доступа");
+				}else{
+//				if(){
+						ob_start();
+							inc($f, array('arg'=>array('modpath'=>$mod['folder'])));
+						$content .= ob_get_contents(); ob_end_clean();
+					/*}else if(!array_key_exists("themes", $_GET)){
+						if(!array_key_exists('null', $_GET) && ($_SERVER['REQUEST_URI'] != "/admin")){
 						}
 					}*/
-					if(!inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg))){ # Если не создано скриптов и шаблона для страницы запускаетм общую
-						inc("modules/{$mod['link']}/default.tpl", array('arg'=>$arg));
-					}
-				$content .= ob_get_contents(); ob_end_clean();
-			}
+				}
+			}else{ mpre("Адрес установлен не верно", get($conf, 'settings', 'canonical')); }
 		} return $content;
 	}
 }
@@ -495,165 +450,123 @@ if (!function_exists('modules')){
 if(!function_exists('blocks')){
 	function blocks($bid = null){# Загружаем список блоков и прав доступа
 		global $theme, $conf, $arg;
-		if(!$conf['db']['info'] = "Выборка шаблонов блоков"){ pre("Установка описания запросам");
-		}elseif(!$BLOCKS = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}blocks_index WHERE hide=0". ($bid ? " AND id=". (int)$bid : " ORDER BY sort"), "Запрос списка блоков", function($error) use($conf){
-				if(strpos($error, "Unknown column 'hide' in 'where clause'")){
-					qw(pre("ALTER TABLE {$conf['db']['prefix']}blocks_index CHANGE `enabled` `hide` smallint(6) NOT NULL", $error));
-					qw("UPDATE {$conf['db']['prefix']}blocks_index SET hide=-1 WHERE hide=1; UPDATE {$conf['db']['prefix']}blocks_index SET hide=1 WHERE hide=0; UPDATE {$conf['db']['prefix']}blocks_index SET hide=0 WHERE hide=-1");
+		$conf['db']['info'] = "Выборка шаблонов блоков";
+		$blocks = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}blocks_index WHERE hide=0". ($bid ? " AND id=". (int)$bid : " ORDER BY sort"), "Запрос списка блоков", function($error) use($conf){
+			if(strpos($error, "Unknown column 'hide' in 'where clause'")){
+				qw(pre("ALTER TABLE {$conf['db']['prefix']}blocks_index CHANGE `enabled` `hide` smallint(6) NOT NULL", $error));
+				qw("UPDATE {$conf['db']['prefix']}blocks_index SET hide=-1 WHERE hide=1; UPDATE {$conf['db']['prefix']}blocks_index SET hide=1 WHERE hide=0; UPDATE {$conf['db']['prefix']}blocks_index SET hide=0 WHERE hide=-1");
+			}
+		}));
+		$blocks_reg = mpqn(mpqw("SELECT *, `name` as name FROM {$conf['db']['prefix']}blocks_reg", "Запрос списка регионов", function($error, $conf){
+			if(strpos($error, "Unknown column 'name' in 'field list'")){
+				qw(pre("ALTER TABLE {$conf['db']['prefix']}blocks_reg CHANGE `description` `name` varchar(255)", $error));
+			}else{ mpre("Ошибка не определена", $error); }
+		}));
+		$blocks_reg_modules = qn("SELECT * FROM {$conf['db']['prefix']}blocks_reg_modules ORDER BY sort");
+
+		foreach($_GET['m'] as $k=>$v){
+			$md[ $k ] = $v ? $v : "index";
+		}
+
+		foreach($blocks_reg as $r){
+			if($r["term"] == 0){ # Условия выключены
+				$reg[ $r['id'] ] = $r;
+			}else{
+				$brm = rb($blocks_reg_modules, "reg_id", "id", $r['id']);
+				if(($array_column = array_column($brm, 'name')) && max($array_column)){ # Если стоит страница
+					$br = first($brm = rb($brm, "name", "id", array_flip($md)));
+				} if(($array_column = array_column($brm, 'modules_index')) && max($array_column)){
+					$brm = rb($brm, "modules_index", "id", array("all")+rb($conf['modules'], "folder", "id", $md));
+				} if(($array_column = array_column($brm, 'theme')) && max($array_column)){ # Условие на тему
+					$brm = rb($brm, "theme", "id", array_flip(array("", $conf['settings']['theme'])));
+				} if(($array_column = array_column($brm, 'uri')) && max($array_column)){ # Адрес страницы в системе. Всегда не главная. (может быть не равен $_SERVER['REDIRECT_URL'])
+					$brm = rb($brm, "uri", "id", array_flip(array("", $_SERVER['REQUEST_URI'])));
+				} if(($array_column = array_column($brm, 'url')) && max($array_column)){ # Адрес страницы из адресной строки браузера работает если нужно поставил условием главную страницу
+					$brm = rb($brm, "url", "id", array_flip(array("", $_SERVER['REDIRECT_URL'])));
+				}// mpre(array_flip($md)); mpre($br);
+
+				if(!empty($brm) && ($r["term"] > 0)){ # Условие только
+					$reg[ $r['id'] ] = $r;
+				}elseif(empty($brm) && ($r["term"] < 0)){ # Исключающее условие
+					$reg[ $r['id'] ] = $r;
 				}
-			}))){ pre("Список блоков не найден");
-		}elseif(!$BLOCKS_REG = mpqn(mpqw("SELECT *, `name` as name FROM {$conf['db']['prefix']}blocks_reg", "Запрос списка регионов", function($error, $conf){
-				if(strpos($error, "Unknown column 'name' in 'field list'")){
-					qw(pre("ALTER TABLE {$conf['db']['prefix']}blocks_reg CHANGE `description` `name` varchar(255)", $error));
-				}else{ mpre("Ошибка не определена", $error); }
-			}))){ pre("Список регионов блоков не задан");
-		}else{
-			foreach($BLOCKS as $k=>$block){
-				if(($conf['settings']['theme'] != $block['theme']) && (substr($block['theme'], 0, 1) == "!") && ($conf['settings']['theme'] == substr($block['theme'], 1))){ mpre("У блока отмечен другой шаблон", $v);
-				}elseif(!$conf['db']['info'] = "Блок '{$block['name']}'"){ pre("Описание к запросам блока");
-				}elseif(!$mod = get($conf, 'modules', basename(dirname(dirname($block['src'])))) ?: array("folder"=>'')){ mpre("Ошибка определения модуля");
-				}elseif(!$arg = array('blocknum'=>$block['id'], 'modpath'=>$mod['folder'], 'modname'=>(get($mod, 'modname') ?: ""), 'fn'=>basename(first(explode('.', $block['src']))), 'uid'=>0, 'admin_access'=>$conf['blocks']['info'][ $v['id'] ]['admin_access'])){ pre("Ошибка формирования аргументов блока");
-//				}elseif(!$block['admin_access']){ pre("Прав доступа недосточно", $block);
-				}elseif($conf["settings"]["bid"] = $bid){ pre("Блок к которому мы обращаемся в параметрах блока");
-					$result = $cb;
-				}else{// pre($k, $block);
+			} # Условие исключая не срабатывает
+		}
+
+		if(get($_SERVER, 'HTTP_REFERER')){
+			$gt = mpgt(urldecode(last(explode($_SERVER['HTTP_HOST'], $_SERVER['HTTP_REFERER']))));
+		}else{ $gt = mpgt("/"); }
+
+		foreach(rb($blocks, "reg_id", "id", $reg+array_flip(["NULL", 0])) as $k=>$v){
+			$conf['blocks']['info'][$v['id']] = $v;
+			if($v['access'] < 0){
+				$conf['blocks']['info'][ $v['id'] ]['access'] = get($conf, 'modules', first(explode('/', $v['src'])), 'access');
+			}
+		}
+
+		foreach(mpql(mpqw("SELECT *, index_id AS index_id FROM {$conf['db']['prefix']}blocks_index_gaccess ORDER BY id", 'Права доступа группы к блоку', function($error, $conf){
+			if(strpos($error, ".{$conf['db']['prefix']}blocks_index_gaccess' doesn't exist")){
+				qw("ALTER TABLE {$conf['db']['prefix']}blocks_gaccess RENAME {$conf['db']['prefix']}blocks_index_gaccess");
+			}elseif(strpos($error, "Unknown column 'index_id' in 'field list'")){
+				qw("ALTER TABLE {$conf['db']['prefix']}blocks_index_gaccess CHANGE `bid` `index_id` int(11) NOT NULL");
+			}else{ mpre("Ошибка не определена", $error); }
+			mpre($error);
+		})) as $k=>$v){
+			if(get($conf, 'user', 'gid', $v['gid'])){
+				if(get($conf, 'blocks', 'info', $v['index_id'])){
+					$conf['blocks']['info'][ $v['index_id'] ]['access'] = $v['access'];
+				}
+			}
+		} foreach(mpql(mpqw("SELECT *, index_id AS index_id FROM {$conf['db']['prefix']}blocks_index_uaccess ORDER BY id", 'Права доступа пользователя к блоку', function($error, $conf){
+			if(strpos($error, ".{$conf['db']['prefix']}blocks_index_uaccess' doesn't exist")){
+				qw("ALTER TABLE {$conf['db']['prefix']}blocks_uaccess RENAME {$conf['db']['prefix']}blocks_index_uaccess");
+			}elseif(strpos($error, "Unknown column 'index_id' in 'field list'")){
+				qw("ALTER TABLE {$conf['db']['prefix']}blocks_index_uaccess CHANGE `bid` `index_id` int(11) NOT NULL");
+			}else{ mpre("Ошибка не определена", $error); }
+			mpre($error);
+		})) as $k=>$v){
+			if(/*get($conf, 'blocks', 'info', $v['index_id']) &&*/ ($conf['user']['uid'] == $v['uid'] || (!$v['uid'] && ($conf['user']['uid'] == 0)))){
+				$conf['blocks']['info'][ $v['index_id'] ]['access'] = $v['access'];
+			}
+		}
+
+		foreach(rb($blocks, "reg_id", "id", $reg+array_flip(["NULL", 0])) as $k=>$v){
+			if(($conf['settings']['theme'] == $v['theme']) || ((substr($v['theme'], 0, 1) == "!") && ($conf['settings']['theme'] != substr($v['theme'], 1)))){
+				$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
+				$mod = get($conf, 'modules', basename(dirname(dirname($v['src'])))) ?: array("folder"=>'');
+				$arg = array('blocknum'=>$v['id'], 'modpath'=>$mod['folder'], 'modname'=>(get($mod, 'modname') ?: ""), 'fn'=>basename(first(explode('.', $v['src']))), 'uid'=>0, 'access'=>$conf['blocks']['info'][ $v['id'] ]['access']);
+				if($conf['blocks']['info'][ $v['id'] ]['access'] /*&& strlen($cb = mpeval("modules/{$v['src']}", $arg))*/){
 					ob_start();
-						inc("modules/{$block['src']}", array('arg'=>$arg));
+						inc("modules/{$v['src']}", array('arg'=>$arg));
 					$cb = ob_get_contents(); ob_end_clean();
 
-					if(!is_numeric($block['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($block['shablon'] ?: "block.html")))){
-						$shablon[ $block['shablon'] ] = file_get_contents($file_name);
-					}else{ $shablon[ $block['shablon'] ] = "<!-- [block:content] -->"; }
-
-					$cb = strtr($shablon[ $block['shablon'] ], $w = array(
-						'<!-- [block:content] -->'=>$cb,
-						'<!-- [block:id] -->'=>$block['id'],
-						'<!-- [block:name] -->'=>$block['name'],
-						'<!-- [block:modpath] -->'=>$arg['modpath'],
-						'<!-- [block:fn] -->'=>$arg['fn'],
-						'<!-- [block:title] -->'=>$block['name']
-					));
-					$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$block['name'], "{fn}"=>$arg['fn'], "{id}"=>$block['id']);
-					$result["<!-- [block:{$block['id']}] -->"] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
-					if(array_key_exists('alias', $block) && ($alias = get($block, 'alias')) && ($n = "<!-- [block:{$alias}] -->")){ # Подключение блока по его алиасу
-						$result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"];
-					} if($n = "<!-- [blocks:". $block['reg_id'] . "] -->"){ # Все блоки региона
-						$result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"];
-					} if(array_key_exists($block['reg_id'], $reg) && array_key_exists($n = "<!-- [blocks:". $reg[ $block['reg_id'] ]['reg_id']. "] -->", $result)){ # Блоки вышестоящего региона
-						$result[$n] .= strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
-					}else{
-						$result[$n] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
-					}
-				}
-			} return $result;
-
-/*			exit(pre($_GET['m']));
-			foreach($_GET['m'] as $k=>$v){
-				$md[ $k ] = $v ? $v : "index";
-			}
-			
-			$reg = [];
-			foreach($blocks_reg as $r){
-				if($r["term"] == 0){ # Условия выключены
-					$reg[ $r['id'] ] = $r;
-				}else{
-					$brm = rb($blocks_reg_modules, "reg_id", "id", $r['id']);
-					if(($array_column = array_column($brm, 'name')) && max($array_column)){ # Если стоит страница
-						$br = first($brm = rb($brm, "name", "id", array_flip($md)));
-					} if(($array_column = array_column($brm, 'modules_index')) && max($array_column)){
-						$brm = rb($brm, "modules_index", "id", array("all")+rb($conf['modules'], "folder", "id", $md));
-					} if(($array_column = array_column($brm, 'theme')) && max($array_column)){ # Условие на тему
-						$brm = rb($brm, "theme", "id", array_flip(array("", $conf['settings']['theme'])));
-					} if(($array_column = array_column($brm, 'uri')) && max($array_column)){ # Адрес страницы в системе. Всегда не главная. (может быть не равен $_SERVER['REDIRECT_URL'])
-						$brm = rb($brm, "uri", "id", array_flip(array("", $_SERVER['REQUEST_URI'])));
-					} if(($array_column = array_column($brm, 'url')) && max($array_column)){ # Адрес страницы из адресной строки браузера работает если нужно поставил условием главную страницу
-						$brm = rb($brm, "url", "id", array_flip(array("", $_SERVER['REDIRECT_URL'])));
-					}// mpre(array_flip($md)); mpre($br);
-
-					if(!empty($brm) && ($r["term"] > 0)){ # Условие только
-						$reg[ $r['id'] ] = $r;
-					}elseif(empty($brm) && ($r["term"] < 0)){ # Исключающее условие
-						$reg[ $r['id'] ] = $r;
-					}
-				} # Условие исключая не срабатывает
-			}
-
-			if(get($_SERVER, 'HTTP_REFERER')){
-				$gt = mpgt(urldecode(last(explode($_SERVER['HTTP_HOST'], $_SERVER['HTTP_REFERER']))));
-			}else{ $gt = mpgt("/"); }
-
-			
-			foreach(rb($blocks, "reg_id", "id", $reg+array_flip(["NULL", 0])) as $k=>$v){
-				$conf['blocks']['info'][$v['id']] = $v;
-				if($v['admin_access'] < 0){
-					$conf['blocks']['info'][ $v['id'] ]['admin_access'] = get($conf, 'modules', first(explode('/', $v['src'])), 'admin_access');
-				}
-			}
-
-			foreach(mpql(mpqw("SELECT *, index_id AS index_id FROM {$conf['db']['prefix']}blocks_index_gaccess ORDER BY sort", 'Права доступа группы к блоку', function($error, $conf){
-				if(strpos($error, ".{$conf['db']['prefix']}blocks_index_gaccess' doesn't exist")){
-					qw("ALTER TABLE {$conf['db']['prefix']}blocks_gaccess RENAME {$conf['db']['prefix']}blocks_index_gaccess");
-				}elseif(strpos($error, "Unknown column 'index_id' in 'field list'")){
-					qw("ALTER TABLE {$conf['db']['prefix']}blocks_index_gaccess CHANGE `bid` `index_id` int(11) NOT NULL");
-				}else{ mpre("Ошибка не определена", $error); }
-				mpre($error);
-			})) as $k=>$v){
-				if(get($conf, 'user', 'gid', $v['gid'])){
-					if(get($conf, 'blocks', 'info', $v['index_id'])){
-						$conf['blocks']['info'][ $v['index_id'] ]['admin_access'] = $v['admin_access'];
-					}
-				}
-			} foreach(mpql(mpqw("SELECT *, index_id AS index_id FROM {$conf['db']['prefix']}blocks_index_uaccess ORDER BY id", 'Права доступа пользователя к блоку', function($error, $conf){
-				if(strpos($error, ".{$conf['db']['prefix']}blocks_index_uaccess' doesn't exist")){
-					qw("ALTER TABLE {$conf['db']['prefix']}blocks_uaccess RENAME {$conf['db']['prefix']}blocks_index_uaccess");
-				}elseif(strpos($error, "Unknown column 'index_id' in 'field list'")){
-					qw("ALTER TABLE {$conf['db']['prefix']}blocks_index_uaccess CHANGE `bid` `index_id` int(11) NOT NULL");
-				}else{ mpre("Ошибка не определена", $error); }
-				mpre($error);
-			})) as $k=>$v){
-				if(($conf['user']['uid'] == $v['uid'] || (!$v['uid'] && ($conf['user']['uid'] == 0)))){
-					$conf['blocks']['info'][ $v['index_id'] ]['admin_access'] = $v['admin_access'];
-				}
-			}
-
-			foreach(rb($blocks, "reg_id", "id", $reg+array_flip(["NULL", 0])) as $k=>$v){
-				if(($conf['settings']['theme'] == $v['theme']) || ((substr($v['theme'], 0, 1) == "!") && ($conf['settings']['theme'] != substr($v['theme'], 1)))){
-					$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
-					$mod = get($conf, 'modules', basename(dirname(dirname($v['src'])))) ?: array("folder"=>'');
-					$arg = array('blocknum'=>$v['id'], 'modpath'=>$mod['folder'], 'modname'=>(get($mod, 'modname') ?: ""), 'fn'=>basename(first(explode('.', $v['src']))), 'uid'=>0, 'admin_access'=>$conf['blocks']['info'][ $v['id'] ]['admin_access']);
-					if($conf['blocks']['info'][ $v['id'] ]['admin_access']){
-						ob_start();
-							inc("modules/{$v['src']}", array('arg'=>$arg));
-						$cb = ob_get_contents(); ob_end_clean();
-
-						if($conf["settings"]["bid"] = $bid){ $result = $cb; }else{
-							if(!is_numeric($v['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($v['shablon'] ?: "block.html")))){
-								$shablon[ $v['shablon'] ] = file_get_contents($file_name);
-							}else{ $shablon[ $v['shablon'] ] = "<!-- [block:content] -->"; }
-							$cb = strtr($shablon[ $v['shablon'] ], $w = array(
-								'<!-- [block:content] -->'=>$cb,
-								'<!-- [block:id] -->'=>$v['id'],
-								'<!-- [block:name] -->'=>$v['name'],
-								'<!-- [block:modpath] -->'=>$arg['modpath'],
-								'<!-- [block:fn] -->'=>$arg['fn'],
-								'<!-- [block:title] -->'=>$v['name']
-							));
-							$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$v['name'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
-							$result["<!-- [block:{$v['id']}] -->"] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
-							if(array_key_exists('alias', $v) && ($alias = get($v, 'alias')) && ($n = "<!-- [block:{$alias}] -->")){ # Подключение блока по его алиасу
-								$result[$n] = get($result, $n). $result["<!-- [block:{$v['id']}] -->"];
-							} if($n = "<!-- [blocks:". $v['reg_id'] . "] -->"){ # Все блоки региона
-								$result[$n] = get($result, $n). $result["<!-- [block:{$v['id']}] -->"];
-							} if(array_key_exists($v['reg_id'], $reg) && array_key_exists($n = "<!-- [blocks:". $reg[ $v['reg_id'] ]['reg_id']. "] -->", $result)){ # Блоки вышестоящего региона
-								$result[$n] .= strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
-							}else{
-								$result[$n] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
-							}
+					if($conf["settings"]["bid"] = $bid){ $result = $cb; }else{
+						if(!is_numeric($v['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($v['shablon'] ?: "block.html")))){
+							$shablon[ $v['shablon'] ] = file_get_contents($file_name);
+						}else{ $shablon[ $v['shablon'] ] = "<!-- [block:content] -->"; }
+						$cb = strtr($shablon[ $v['shablon'] ], $w = array(
+							'<!-- [block:content] -->'=>$cb,
+							'<!-- [block:id] -->'=>$v['id'],
+							'<!-- [block:name] -->'=>$v['name'],
+							'<!-- [block:modpath] -->'=>$arg['modpath'],
+							'<!-- [block:fn] -->'=>$arg['fn'],
+							'<!-- [block:title] -->'=>$v['name']
+						));
+						$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$v['name'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
+						$result["<!-- [block:{$v['id']}] -->"] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
+						if(array_key_exists('alias', $v) && ($alias = get($v, 'alias')) && ($n = "<!-- [block:{$alias}] -->")){ # Подключение блока по его алиасу
+							$result[$n] = get($result, $n). $result["<!-- [block:{$v['id']}] -->"];
+						} if($n = "<!-- [blocks:". $v['reg_id'] . "] -->"){ # Все блоки региона
+							$result[$n] = get($result, $n). $result["<!-- [block:{$v['id']}] -->"];
+						} if(array_key_exists($v['reg_id'], $reg) && array_key_exists($n = "<!-- [blocks:". $reg[ $v['reg_id'] ]['reg_id']. "] -->", $result)){ # Блоки вышестоящего региона
+							$result[$n] .= strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
+						}else{
+							$result[$n] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
 						}
 					}
 				}
-			} return $result;*/
-		}
+			}
+		} return $result;
 	}
 }
 
@@ -873,19 +786,17 @@ function mpsmtp($to, $subj, $text, $from = null, $files = array(), $login = null
 			$mail->addAddress($recipient);
 		}
 	}	
-	if(is_string($files)){
+	if(is_string($files))
 		$files = array($files);
-	}elseif(is_array($files)){
-		foreach($files as $key => $filepath){
-			if(file_exists($filepath)){
-				if(is_int($key)){
-					$mail->addAttachment($filepath);
-				}else{
-					$mail->addAttachment($filepath,$key);
-				}
+	foreach($files as $key => $filepath){
+		if(file_exists($filepath)){
+			if(is_int($key)){
+				$mail->addAttachment($filepath);
+			}else{
+				$mail->addAttachment($filepath,$key);
 			}
 		}
-	}
+	}	
 	$mail->Subject = $subj;
 	$mail->Body    = $text;
 	//$mail->AltBody = '____';
@@ -898,14 +809,10 @@ function mpsmtp($to, $subj, $text, $from = null, $files = array(), $login = null
 
 function mpue($name){
 	return str_replace('%', '%25', trim($name));
-} 
-function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = false){
+} function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = false){
 	global $conf;
-
-
-
 	if(!get($conf, 'settings', 'sql_memcache_disable') && function_exists('memcache_connect')){
-		if($memcache = memcache_connect("localhost")){
+		if($data = memcache_connect("localhost")){
 			if($data){
 				memcache_set($memcache, $key, $data, $compress, $limit);
 				if($event) mpevent($conf['settings']['users_event_memcache_set'], $key, $conf['user']['uid']);
@@ -1245,15 +1152,14 @@ function mpwr($tn, $get = null, $prefix = null){
 	if(empty($prefix)) $where = ' WHERE 1=1';
 	$f = mpqn(mpqw("DESC {$tn}"), 'Field');
 	foreach($get !== null ? $get : $_GET as $k=>$v){
-		$buf = explode('.', $k);
-		$n = array_pop($buf);unset($buf );
+		$n = array_pop(explode('.', $k));
 		if((substr($k, 0, 1) == '!') && ($f[substr($k, 1)] || $f[$n])){
 			$where .= " AND {$prefix}`". mpquot(substr($k, 1)). "`<>\"". mpquot($v). "\"";
 		}elseif(is_numeric($v) && (substr($k, 0, 1) == '+') && ($f[substr($k, 1)] || $f[$n])){
 			$where .= " AND {$prefix}`". mpquot(substr($k, 1)). "`>". (int)$v;
 		}elseif(is_numeric($v) && (substr($k, 0, 1) == '-') && ($f[substr($k, 1)] || $f[$n])){
 			$where .= " AND {$prefix}`". mpquot(substr($k, 1)). "`<". (int)$v;
-		}elseif(($v !== "") && get($f,$n) && gettype($v) == "string"){
+		}elseif(($v !== "") && $f[$n] && gettype($v) == "string"){
 			$where .= " AND {$prefix}`". mpquot($k). "`=\"". mpquot($v). "\"";
 		}
 	} return $where;
@@ -1373,7 +1279,9 @@ function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'ima
 	}elseif(!$ufn = mpopendir('include/images')){ mpre("Директория с изображениями не определена");
 	}elseif(!file_put_contents("$ufn/$f", $data)){ mpre("Ошибка сохранения файла");
 	}elseif(!$el = fk($tn, array("id"=>$el['id']), null, array($fn=>"images/$f"))){ mpre("Ошибка занесения имени файла в таблицу");
-	}else{ return $el; }
+	}else{// mpevent("Загрузка внешнего файла", $href, (!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0), func_get_args());
+		return $el['id'];
+	}
 }
 function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf;
@@ -1419,18 +1327,17 @@ function mpager($count, $null=null, $cur=null, $url=null){
 			$url = strtr($u = urldecode($_SERVER['REQUEST_URI']), array("/{$p}:{$_GET[$p]}"=>'', "&{$p}={$_GET[$p]}"=>''));
 		}else if(!($url = get($conf, 'settings', 'canonical'))){ # Если адрес не установлен в сео, берем из свойств апача
 			$url = $u = urldecode(get($_SERVER, 'REQUEST_URI'));
-		}else{
 		} $url = seo($url);
 	} if($null){
 		$url = str_replace($u, $u. (strpos($url, '&') || strpos($url, '?') ? "&null" : "/null"), $url);
 	}else if($null === false){
 		$url = strtr($url, array("/null"=>"", "&null"=>"", "?null"=>""));
-	}
+	} $url = (is_array($url) ? get($url, 'name') : $url);
 	if(2 > $count = ceil($count)) return;
 	$return = "<script>$(function(){ $(\".pager\").find(\"a[href='". urldecode(get($_SERVER, 'REQUEST_URI')). "']\").addClass(\"active\").css(\"font-weight\", \"bold\"); })</script>";
 	$return .=  "<div class=\"pager\">";
 	$mpager['first'] = $url;
-	$return .= "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>";
+	$return .= "<a rel=\"prev\" href=\"". $url. ($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>";
 	$mpager['prev'] = $url. ($cur > 1 ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur-1) : "/{$p}:".($cur-1)) : '');
 	for($i = max(0, min($cur-5, $count-10)); $i < ($max = min($count, max($cur+5, 10))); $i++){
 		$mpager[ $i+1 ] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:$i") : '');
@@ -1580,20 +1487,14 @@ function mpqw($sql, $info = null, $callback = null, $params = null, $conn = null
 				$result->bindValue(":{$name}", $value);
 			} $result->execute();
 		}else{
-//			$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 			$result = $conn->query($sql);
 		}
-	}catch(Exception $e){		
-		mpre($sql, $error = $e->getMessage());		
-		ob_start();
-			debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);		
-		mpre(ob_get_clean());
+	}catch(Exception $e){
+		mpre($sql, $error = $e->getMessage());
 		if(is_callable($callback)){
 			$callback($error, $conf);
 		}
-		$result = [];
-	} 
-	if(!empty($conf['settings']['analizsql_log'])){
+	} if(!empty($conf['settings']['analizsql_log'])){
 		$conf['db']['sql'][] = $q = array(
 			'info' => $info ? $info : $conf['db']['info'],
 			'time' => microtime(true)-$mt,
@@ -1602,10 +1503,8 @@ function mpqw($sql, $info = null, $callback = null, $params = null, $conn = null
 		if(!empty($conf['settings']['sqlanaliz_time_log']) && $q['time'] > $conf['settings']['sqlanaliz_time_log']){
 			mpevent("Долгий запрос к базе данных", $sql. " {$q['time']}c.", $conf['user']['uid'], $q);
 		}
-	} 
-	return($result);
-} 
-function qw($sql, $info = null, $callback = null, $params = null, $conn = null){
+	} return($result);
+} function qw($sql, $info = null, $callback = null, $params = null, $conn = null){
 	$return = call_user_func("mpqw", $sql, $info, $callback, $params, $conn);
 }
 function mpfile($filename, $description = null){
@@ -1618,6 +1517,7 @@ function mpfile($filename, $description = null){
 		header("Content-Transfer-Encoding: binary");
 		header("Content-Length: ".filesize("$file_name"));
 		header("Content-Disposition: attachment; filename=\"".($description ? "$description". (substr($description, strlen($ext)*-1) == $ext ? "" : ".". $ext) : basename($file_name))."\"");
+		header("Expires: ".gmdate("r", time() + 86400*10));
 		header('Cache-Control: max-age=28800');
 //		header("Cache-Control: max-age=3600, must-revalidate");
 //		header("Pragma: no-cache");
@@ -1642,7 +1542,7 @@ function mpgc($value, $param = null){
 }
 function mpwysiwyg($name, $content = null, $tpl = ""){
 	global $conf;
-	if(!empty($conf['modules']['redactor']['admin_access'])){
+	if(!empty($conf['modules']['redactor']['access'])){
 		$conf['settings']['redactor_name'] = $name;
 		$conf['settings']['redactor_text'] = $content;
 		if($tpl && $fn = mpopendir("modules/redactor/". basename($tpl))){
@@ -1650,7 +1550,7 @@ function mpwysiwyg($name, $content = null, $tpl = ""){
 		}else{
 			include mpopendir("modules/redactor/wysiwyg.tpl");
 		}
-	}elseif(!empty($conf['modules']['tinymce']['admin_access'])){
+	}elseif(!empty($conf['modules']['tinymce']['access'])){
 		$conf['settings']['tinymce_name'] = $name;
 		$conf['settings']['tinymce_text'] = $content;
 		if($tpl && $fn = mpopendir("modules/tinymce/". basename($tpl))){
@@ -1666,7 +1566,7 @@ function mpwysiwyg($name, $content = null, $tpl = ""){
 		$spaw2 = ob_get_contents();
 		ob_end_clean();
 		return $spaw2;
-	}elseif(!empty($conf['modules']['rte']['admin_access'])){
+	}elseif(!empty($conf['modules']['rte']['access'])){
 		$conf['settings']['rte_name'] = $name;
 		$conf['settings']['rte_text'] = $content;
 		include mpopendir("modules/rte/wysiwyg.tpl");
@@ -1677,7 +1577,7 @@ function mpwysiwyg($name, $content = null, $tpl = ""){
 function mpmenu($m = array()){
 	global $conf, $arg;
 	# Скрываем меню в админке для администраторов
-	if($conf['settings']['admin_mpmenu_hide'] && $arg['admin_access'] < 5) return;
+	if($conf['settings']['admin_mpmenu_hide'] && $arg['access'] < 5) return;
 	if(array_key_exists("null", $_GET)) return false;
 	$tab = (int)$_GET['r'];
 	if($_GET['r']){
@@ -1712,23 +1612,37 @@ EOF;
 
 function pre(){
 	global $conf;
-	if(!$debug_backtrace = debug_backtrace()){ mpre("Ошибка получения списка функций");
-	}elseif(!is_numeric($num = (get($debug_backtrace, 2, 'function') == 'mpre' ? 2 : 0))){ print_r("Ошибка определения функции");
-	}elseif(!$list[] = get($debug_backtrace, $num)){ print_r("Ошибка получения фукнции инициатора pre[{$num}]");
-	}else{// echo "<pre><b>"; print_r($func); echo "</b></pre><pre>"; /*print_r($pre);*/ print_r($debug_backtrace); echo "</pre>";
-		foreach($list as $pre){
-			echo "<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend> {$pre['file']}:{$pre['line']} <b>{$pre['function']}</b> ()</legend>";
-			foreach(get($pre, 'args') as $n=>$z){
-				echo "<pre>\n\t"; print_r($z); echo "\n</pre>";
-			} if(true) echo "</fieldset>\n";
+	$lines = false;
+	$keys = array_keys($ar = array_slice($func_get_args = func_get_args(), -1, 1));
+	if(is_bool($bool = $ar[max($keys)]) && ($lines = $bool)){
+		$func_get_args = array_slice(func_get_args(), -1, 1);
+	}else{ /*exit(var_dump($lines));*/ }
+
+	$debug_backtrace = debug_backtrace();
+
+	if($lines){
+		$list = $debug_backtrace;
+	}else{
+		if($l = rb($debug_backtrace, "function", "[mpre]")){
+			$list = array($l);
+		}else{
+			$list = array(rb($debug_backtrace, "function", "[pre]"));
 		}
+	} foreach($list as $k=>$v){
+		if(true){ # Комментарии выводим для javascript шаблонов. Чтобы они игнорировались как код
+			echo "<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend>[$k] {$v['file']}:{$v['line']} <b>{$v['function']}</b> ()</legend>";
+		}else{
+			echo "\n[$k] {$v['file']}:{$v['line']} <b>{$v['function']}</b> ()<br>\n";
+		} foreach($v['args'] as $n=>$z){
+			echo "<pre>\n\t"; print_r($z); echo "\n</pre>";
+		} if(true) echo "</fieldset>\n";
 	} return get(func_get_args(), 0);
 } function mpre(){
 	global $conf, $arg, $argv;
 	if(($gid = get($conf, 'user', 'gid')) && (array_search("Администратор", $gid))){
 		return call_user_func_array('pre', func_get_args());  # Выводим для возможности использования внутри условных операторов if(true && mpre("То, что смотрим") && true){ echo "Условие сработает"; }
 	}
-//	if(empty($argv) && ($arg['admin_access'] < $admin_access)) return;
+//	if(empty($argv) && ($arg['access'] < $access)) return;
 }
 function mpqwt($result){
 	echo "<table style='background-color:#888;' cellspacing=0 cellpadding=3 border=1><tr>";

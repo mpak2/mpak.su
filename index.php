@@ -236,7 +236,7 @@ if(!empty($conf['settings']["theme/*:{$conf['settings']['fn']}"])) $conf['settin
 if(!empty($conf['settings']["theme/{$conf['settings']['modpath']}:*"])) $conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:*"];
 if(!empty($conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"])) $conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"];
 
-if((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]){
+if((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]){ # Изменяем тему админ страницы
 	$conf['settings']['theme'] = $conf['settings']["theme/*:admin"];
 } if(isset($_GET['m']['sqlanaliz'])){
 	$zblocks = blocks();
