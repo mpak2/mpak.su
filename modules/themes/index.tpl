@@ -8,17 +8,17 @@
 			<? foreach(rb("index_cat") as $index_cat): ?>
 				<div>
 					<h2><?=$index_cat['name']?></h2>
-					<ul style="overflow:hidden; padding:0;">
+					<ul style="padding:0;">
 						<? foreach(rb("index", "index_cat_id", "id", $index_cat['id']) as $index): ?>
-							<li style="float:left; margin-left:20px;"><a target="blank" href="http://<?=$index['name']?>"><?=$index['name']?></a></li>
+							<li style="display:inline-block; margin-left:20px;"><a target="blank" href="http://<?=$index['name']?>"><?=$index['name']?></a></li>
 						<? endforeach; ?>
 					</ul>
 				</div>
 			<? endforeach; ?>
 		<? else: ?>
-			<ul>
+			<ul style="padding:0;">
 				<? foreach(rb("index") as $index): ?>
-					<li style="float:left; margin-left:20px;"><a target="blank" href="http://<?=$index['name']?>"><?=$index['name']?></a></li>
+					<li style="display:inline-block; margin-left:20px;"><a target="blank" href="http://<?=$index['name']?>"><?=$index['name']?></a></li>
 				<? endforeach; ?>
 			</ul>
 		<? endif; ?>

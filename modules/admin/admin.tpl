@@ -205,7 +205,7 @@
 							if(json = $.parseJSON(response)){
 								console.log("json:", json);
 //								document.location.reload(true);
-								document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "where") ? "?&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?>';
+								document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""). (get($_GET, "where") ? "?&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?>';
 							}else{ alert(response); }
 						}).hide();
 					}).ready(function(e){ $(script).parent().trigger("init"); })
@@ -598,7 +598,7 @@
 											<? endforeach; ?>
 										</select>
 									<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>
-										<input type="text" name="<?=$name?>" value="<?=(get($tpl, 'edit', $name) ?: (get($field, 'Default') ?: (get($_GET, 'where', $name) ?: "")))?>" placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
+										<input type="text" name="<?=$name?>" value="<?=((get($tpl, 'edit', $name) || is_numeric(get($tpl, 'edit', $name))) ? $tpl['edit'][$name] : (get($field, 'Default') ?: (get($_GET, 'where', $name) ?: "")))?>" placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
 									<? endif; ?>
 								</span>
 							<? endforeach; ?>
