@@ -457,16 +457,33 @@ if (!function_exists('modules')){
 			}elseif(!$mod['link'] = (is_link($f = mpopendir("modules/{$mod['folder']}")) ? readlink($f) : $mod['folder'])){ pre("Ошибка определения ссылки на раздел");
 			}elseif(!ini_set("include_path" ,mpopendir("modules/{$mod['link']}"). ":./modules/{$mod['link']}:". ini_get("include_path"))){ pre("Сбой добавления локального пути до скриптов");
 //			}elseif(get($conf, 'settings', 'modules_title') && (!$conf['settings']['title'] = $conf['modules'][ $k ]['name']. ' : '. $conf['settings']['title'])){ pre("Ошибка установки заголовка раздела по умолчанию");
-			}elseif((strpos($v, 'admin_access') >= 1) && !is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])))){ pre("Недостаточно прав доступа к разделу");
-//				}else if(!mpopendir($f = "modules/{$mod['link']}/deny.php") && !mpopendir($f = "modules/admin/deny.php")){ pre("Не найдена страница запрета доступа");
-//				header("HTTP/1.0 403 admin_access Denied");
-//				exit(header("Location: /users:login"));
+
+//			}elseif((!$MODULES_INDEX_GACCESS = rb("modules-index_gaccess", "mid", "gid", "id", $mod['id'], ($conf['user']['gid'] ?: false))) &0){ mpre("Разрешения для группы");
+			}elseif((!$MODULES_INDEX_UACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM `{$conf['db']['prefix']}modules_index_uaccess` WHERE `mid`=". (int)$mod['id']. " AND `uid`=". (int)$conf['user']['uid'], "Запрос прав доступа пользователя к разделу", function($error) use($conf){
+					if(!strpos($error, "Unknown column 'admin_access'")){ pre("Неопределенная ошибка", $error);
+					}else{ qw(mpre("ALTER TABLE `{$conf['db']['prefix']}modules_index_uaccess` CHANGE `access` `admin_access` int(11) NOT NULL")); }
+				}))) &0){ mpre("Разрешения для группы");
+			}elseif((!$MODULES_INDEX_GACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM `{$conf['db']['prefix']}modules_index_gaccess` WHERE `mid`=". (int)$mod['id']. " AND `gid` IN (". in($conf['user']['gid']). ")", "Запрос прав доступа групп пользователя", function($error) use($conf){
+					if(!strpos($error, "Unknown column 'admin_access'")){ pre("Неопределенная ошибка", $error);
+					}else{ qw(mpre("ALTER TABLE `{$conf['db']['prefix']}modules_index_gaccess` CHANGE `access` `admin_access` int(11) NOT NULL")); }
+				}))) &0){ mpre("Разрешения для группы");
+//			}elseif((!$MODULES_INDEX_UACCESS = rb("modules-index_uaccess", "mid", "uid", "id", $mod['id'], $conf['user']['uid'])) &0){ mpre("Разрешения для пользователей");
+			}elseif(!is_numeric($access = ("admin" == $mod['folder'] ? 4 : 1))){ mpre("Ошибка подсчета дефолтного доступа к разделам");
+			}elseif(!$gmax = ($MODULES_INDEX_GACCESS ? max(array_column($MODULES_INDEX_GACCESS, 'admin_access')) : 1)){ mpre("Ошибка максимального разрешения для группы");
+			}elseif(!$umax = ($MODULES_INDEX_UACCESS ? max(array_column($MODULES_INDEX_UACCESS, 'admin_access')) : 1)){ mpre("Ошибка максимального разрешения для пользователя");
+//			}elseif(pre($umax, $MODULES_INDEX_GACCESS, $gmax, $MODULES_INDEX_GACCESS)){ mpre("Разрешение для пользователя и группы");
+//			}elseif(pre($gmax, $umax)){
+			}elseif(!is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < $access)){ mpre("Недостаточно прав доступа к разделу");
+				if(/*!mpopendir($f = "modules/{$mod['link']}/deny.php") &&*/ !mpopendir($f = "modules/admin/deny.php")){ pre("Не найдена страница запрета доступа");
+					header("HTTP/1.0 403 admin_access Denied");
+					exit(header("Location: /users:login"));
+				}else{ inc("modules/admin/deny.php"); }
 			}elseif(!$v = $v != 'del' && $v != 'init' && $v != 'sql' && strlen($v) ? $v : 'index'){ pre("Ошибка определения имени скрипта");
 			}elseif(!$conf['db']['info'] = "Модуль '". ($name = $mod['name']). "'"){ pre("Ошибка установки описания запрос к БД");
 //			}elseif(!$g = (preg_match("/[a-z]/", $v) ? "/{$v}.*.php" : "/*.{$v}.php")){ pre("Ошибка определения шаблона запроса к файловой системе");
 			}elseif(!$g = "/{$v}.*"){ pre("Ошибка определения шаблона запроса к файловой системе");
 			}elseif((!$glob = glob($gd = mpopendir("modules/{$mod['link']}"). $g)) && (!$glob = glob($gd = "modules/{$mod['link']}". $g)) &0){ pre("Список файлов раздела {$gd}");
-			}elseif((!$glob = basename(array_pop($glob))) && (!$g = explode(".", $glob)) && ($v = array_shift($g))){ pre("Ошибка определения имен файлов");
+			}elseif(!empty($glob) && (!$glob = basename(array_pop($glob))) && (!$g = explode(".", $glob)) && ($v = array_shift($g))){ pre("Ошибка определения имен файлов");
 //			}elseif(!$fe = ((strpos($_SERVER['HTTP_HOST'], "xn--") !== false) && (count($g) > 1)) ? array_shift($g) : $v){ mpre("Ошибка определения русскоязычного названия имени");
 			}elseif(!$arg = array('modpath'=>$mod['folder'], 'modname'=>$mod['modname'], 'fn'=>$v, "fe"=>"", 'admin_access'=>$mod['admin_access'])){ pre("Ошибка формирования аргументов страницы");
 			}elseif($v == "admin"){// exit(pre($v, $arg, $mod));
@@ -494,7 +511,7 @@ if (!function_exists('modules')){
 
 if(!function_exists('blocks')){
 	function blocks($bid = null){# Загружаем список блоков и прав доступа
-		global $theme, $conf, $arg;
+		global $conf, $arg;
 		if(!$conf['db']['info'] = "Выборка шаблонов блоков"){ pre("Установка описания запросам");
 		}elseif(!$BLOCKS = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}blocks_index WHERE hide=0". ($bid ? " AND id=". (int)$bid : " ORDER BY sort"), "Запрос списка блоков", function($error) use($conf){
 				if(strpos($error, "Unknown column 'hide' in 'where clause'")){
@@ -509,11 +526,27 @@ if(!function_exists('blocks')){
 			}))){ pre("Список регионов блоков не задан");
 		}else{
 			foreach($BLOCKS as $k=>$block){
-				if(($conf['settings']['theme'] != $block['theme']) && (substr($block['theme'], 0, 1) == "!") && ($conf['settings']['theme'] == substr($block['theme'], 1))){ mpre("У блока отмечен другой шаблон", $v);
+				if(!$theme = (substr($block['theme'], 0, 1) == "!" && ($conf['settings']['theme'] != substr($block['theme'], 1)) ? $conf['settings']['theme'] : $block['theme'])){ mpre("Ошибка расчета темы с учетом отрицания");
+				}elseif(($conf['settings']['theme'] != $block['theme']) && ($conf['settings']['theme'] != $theme)){// mpre("У блока отмечен другой шаблон", $theme);
 				}elseif(!$conf['db']['info'] = "Блок '{$block['name']}'"){ pre("Описание к запросам блока");
 				}elseif(!$mod = get($conf, 'modules', basename(dirname(dirname($block['src'])))) ?: array("folder"=>'')){ mpre("Ошибка определения модуля");
-				}elseif(!$arg = array('blocknum'=>$block['id'], 'modpath'=>$mod['folder'], 'modname'=>(get($mod, 'modname') ?: ""), 'fn'=>basename(first(explode('.', $block['src']))), 'uid'=>0, 'admin_access'=>$conf['blocks']['info'][ $v['id'] ]['admin_access'])){ pre("Ошибка формирования аргументов блока");
+				}elseif(!$arg = array('blocknum'=>$block['id'], 'modpath'=>$mod['folder'], 'modname'=>(get($mod, 'modname') ?: ""), 'fn'=>basename(first(explode('.', $block['src']))), 'uid'=>0, 'admin_access'=>$block['admin_access'])){ pre("Ошибка формирования аргументов блока");
 //				}elseif(!$block['admin_access']){ pre("Прав доступа недосточно", $block);
+
+				}elseif((!$BLOCKS_INDEX_UACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM `{$conf['db']['prefix']}blocks_index_uaccess` WHERE `index_id`=". (int)$block['id']. " AND `uid`=". (int)$conf['user']['uid'], "Запрос прав доступа пользователя к разделу", function($error) use($conf){
+						if(!strpos($error, "Unknown column 'admin_access'")){ pre("Неопределенная ошибка", $error);
+						}else{ qw(mpre("ALTER TABLE `{$conf['db']['prefix']}blocks_index_uaccess` CHANGE `access` `admin_access` int(11) NOT NULL")); }
+					}))) &0){ mpre("Разрешения для пользователя");
+				}elseif((!$BLOCKS_INDEX_GACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM `{$conf['db']['prefix']}blocks_index_gaccess` WHERE `index_id`=". (int)$block['id']. " AND `gid` IN (". in($conf['user']['gid']). ")", "Запрос прав доступа групп пользователя", function($error) use($conf){
+						if(!strpos($error, "Unknown column 'admin_access'")){ pre("Неопределенная ошибка", $error);
+						}else{ qw(mpre("ALTER TABLE `{$conf['db']['prefix']}blocks_index_gaccess` CHANGE `access` `admin_access` int(11) NOT NULL")); }
+				}))) &0){ mpre("Разрешения для группы");
+//				}elseif(!is_numeric($access = ("admin" == $mod['folder'] ? 4 : 1))){ mpre("Ошибка подсчета дефолтного доступа к разделам");
+				}elseif(!is_numeric($access = $block['admin_access'])){ mpre("Разрешения для блока");
+				}elseif(!is_numeric($gmax = ($BLOCKS_INDEX_GACCESS ? max(array_column($BLOCKS_INDEX_GACCESS, 'admin_access')) : $access))){ mpre("Ошибка максимального разрешения для группы");
+				}elseif(!is_numeric($umax = ($BLOCKS_INDEX_UACCESS ? max(array_column($BLOCKS_INDEX_UACCESS, 'admin_access')) : $access))){ mpre("Ошибка максимального разрешения для пользователя");
+				}elseif(!is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < 1)){ mpre("Недостаточно прав доступа к разделу");
+
 				}elseif($conf["settings"]["bid"] = $bid){ pre("Блок к которому мы обращаемся в параметрах блока");
 					$result = $cb;
 				}else{// pre($k, $block);
@@ -539,120 +572,13 @@ if(!function_exists('blocks')){
 						$result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"];
 					} if($n = "<!-- [blocks:". $block['reg_id'] . "] -->"){ # Все блоки региона
 						$result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"];
-					} if(array_key_exists($block['reg_id'], $reg) && array_key_exists($n = "<!-- [blocks:". $reg[ $block['reg_id'] ]['reg_id']. "] -->", $result)){ # Блоки вышестоящего региона
+					} if(array_key_exists($block['reg_id'], $BLOCKS_REG) && array_key_exists($n = "<!-- [blocks:". $BLOCKS_REG[ $block['reg_id'] ]['reg_id']. "] -->", $result)){ # Блоки вышестоящего региона
 						$result[$n] .= strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
 					}else{
 						$result[$n] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
 					}
 				}
 			} return $result;
-
-/*			exit(pre($_GET['m']));
-			foreach($_GET['m'] as $k=>$v){
-				$md[ $k ] = $v ? $v : "index";
-			}
-			
-			$reg = [];
-			foreach($blocks_reg as $r){
-				if($r["term"] == 0){ # Условия выключены
-					$reg[ $r['id'] ] = $r;
-				}else{
-					$brm = rb($blocks_reg_modules, "reg_id", "id", $r['id']);
-					if(($array_column = array_column($brm, 'name')) && max($array_column)){ # Если стоит страница
-						$br = first($brm = rb($brm, "name", "id", array_flip($md)));
-					} if(($array_column = array_column($brm, 'modules_index')) && max($array_column)){
-						$brm = rb($brm, "modules_index", "id", array("all")+rb($conf['modules'], "folder", "id", $md));
-					} if(($array_column = array_column($brm, 'theme')) && max($array_column)){ # Условие на тему
-						$brm = rb($brm, "theme", "id", array_flip(array("", $conf['settings']['theme'])));
-					} if(($array_column = array_column($brm, 'uri')) && max($array_column)){ # Адрес страницы в системе. Всегда не главная. (может быть не равен $_SERVER['REDIRECT_URL'])
-						$brm = rb($brm, "uri", "id", array_flip(array("", $_SERVER['REQUEST_URI'])));
-					} if(($array_column = array_column($brm, 'url')) && max($array_column)){ # Адрес страницы из адресной строки браузера работает если нужно поставил условием главную страницу
-						$brm = rb($brm, "url", "id", array_flip(array("", $_SERVER['REDIRECT_URL'])));
-					}// mpre(array_flip($md)); mpre($br);
-
-					if(!empty($brm) && ($r["term"] > 0)){ # Условие только
-						$reg[ $r['id'] ] = $r;
-					}elseif(empty($brm) && ($r["term"] < 0)){ # Исключающее условие
-						$reg[ $r['id'] ] = $r;
-					}
-				} # Условие исключая не срабатывает
-			}
-
-			if(get($_SERVER, 'HTTP_REFERER')){
-				$gt = mpgt(urldecode(last(explode($_SERVER['HTTP_HOST'], $_SERVER['HTTP_REFERER']))));
-			}else{ $gt = mpgt("/"); }
-
-			
-			foreach(rb($blocks, "reg_id", "id", $reg+array_flip(["NULL", 0])) as $k=>$v){
-				$conf['blocks']['info'][$v['id']] = $v;
-				if($v['admin_access'] < 0){
-					$conf['blocks']['info'][ $v['id'] ]['admin_access'] = get($conf, 'modules', first(explode('/', $v['src'])), 'admin_access');
-				}
-			}
-
-			foreach(mpql(mpqw("SELECT *, index_id AS index_id FROM {$conf['db']['prefix']}blocks_index_gaccess ORDER BY sort", 'Права доступа группы к блоку', function($error, $conf){
-				if(strpos($error, ".{$conf['db']['prefix']}blocks_index_gaccess' doesn't exist")){
-					qw("ALTER TABLE {$conf['db']['prefix']}blocks_gaccess RENAME {$conf['db']['prefix']}blocks_index_gaccess");
-				}elseif(strpos($error, "Unknown column 'index_id' in 'field list'")){
-					qw("ALTER TABLE {$conf['db']['prefix']}blocks_index_gaccess CHANGE `bid` `index_id` int(11) NOT NULL");
-				}else{ mpre("Ошибка не определена", $error); }
-				mpre($error);
-			})) as $k=>$v){
-				if(get($conf, 'user', 'gid', $v['gid'])){
-					if(get($conf, 'blocks', 'info', $v['index_id'])){
-						$conf['blocks']['info'][ $v['index_id'] ]['admin_access'] = $v['admin_access'];
-					}
-				}
-			} foreach(mpql(mpqw("SELECT *, index_id AS index_id FROM {$conf['db']['prefix']}blocks_index_uaccess ORDER BY id", 'Права доступа пользователя к блоку', function($error, $conf){
-				if(strpos($error, ".{$conf['db']['prefix']}blocks_index_uaccess' doesn't exist")){
-					qw("ALTER TABLE {$conf['db']['prefix']}blocks_uaccess RENAME {$conf['db']['prefix']}blocks_index_uaccess");
-				}elseif(strpos($error, "Unknown column 'index_id' in 'field list'")){
-					qw("ALTER TABLE {$conf['db']['prefix']}blocks_index_uaccess CHANGE `bid` `index_id` int(11) NOT NULL");
-				}else{ mpre("Ошибка не определена", $error); }
-				mpre($error);
-			})) as $k=>$v){
-				if(($conf['user']['uid'] == $v['uid'] || (!$v['uid'] && ($conf['user']['uid'] == 0)))){
-					$conf['blocks']['info'][ $v['index_id'] ]['admin_access'] = $v['admin_access'];
-				}
-			}
-
-			foreach(rb($blocks, "reg_id", "id", $reg+array_flip(["NULL", 0])) as $k=>$v){
-				if(($conf['settings']['theme'] == $v['theme']) || ((substr($v['theme'], 0, 1) == "!") && ($conf['settings']['theme'] != substr($v['theme'], 1)))){
-					$conf['db']['info'] = "Блок '{$conf['blocks']['info'][ $v['id'] ]['name']}'";
-					$mod = get($conf, 'modules', basename(dirname(dirname($v['src'])))) ?: array("folder"=>'');
-					$arg = array('blocknum'=>$v['id'], 'modpath'=>$mod['folder'], 'modname'=>(get($mod, 'modname') ?: ""), 'fn'=>basename(first(explode('.', $v['src']))), 'uid'=>0, 'admin_access'=>$conf['blocks']['info'][ $v['id'] ]['admin_access']);
-					if($conf['blocks']['info'][ $v['id'] ]['admin_access']){
-						ob_start();
-							inc("modules/{$v['src']}", array('arg'=>$arg));
-						$cb = ob_get_contents(); ob_end_clean();
-
-						if($conf["settings"]["bid"] = $bid){ $result = $cb; }else{
-							if(!is_numeric($v['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($v['shablon'] ?: "block.html")))){
-								$shablon[ $v['shablon'] ] = file_get_contents($file_name);
-							}else{ $shablon[ $v['shablon'] ] = "<!-- [block:content] -->"; }
-							$cb = strtr($shablon[ $v['shablon'] ], $w = array(
-								'<!-- [block:content] -->'=>$cb,
-								'<!-- [block:id] -->'=>$v['id'],
-								'<!-- [block:name] -->'=>$v['name'],
-								'<!-- [block:modpath] -->'=>$arg['modpath'],
-								'<!-- [block:fn] -->'=>$arg['fn'],
-								'<!-- [block:title] -->'=>$v['name']
-							));
-							$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$v['name'], "{fn}"=>$arg['fn'], "{id}"=>$v['id']);
-							$result["<!-- [block:{$v['id']}] -->"] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
-							if(array_key_exists('alias', $v) && ($alias = get($v, 'alias')) && ($n = "<!-- [block:{$alias}] -->")){ # Подключение блока по его алиасу
-								$result[$n] = get($result, $n). $result["<!-- [block:{$v['id']}] -->"];
-							} if($n = "<!-- [blocks:". $v['reg_id'] . "] -->"){ # Все блоки региона
-								$result[$n] = get($result, $n). $result["<!-- [block:{$v['id']}] -->"];
-							} if(array_key_exists($v['reg_id'], $reg) && array_key_exists($n = "<!-- [blocks:". $reg[ $v['reg_id'] ]['reg_id']. "] -->", $result)){ # Блоки вышестоящего региона
-								$result[$n] .= strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
-							}else{
-								$result[$n] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
-							}
-						}
-					}
-				}
-			} return $result;*/
 		}
 	}
 }

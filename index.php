@@ -83,13 +83,7 @@ if(!$_POST && !get($_COOKIE, "sess")){// print_r("Сессия выключен�
 
 $conf['settings'] += array_column(rb("{$conf['db']['prefix']}settings"), "value", "name");
 
-if(strlen($_POST['name']) && strlen($_POST['pass']) && ($_POST['reg'] == 'Аутентификация') && ($uid = mpql(mpqw("SELECT id FROM {$conf['db']['prefix']}users WHERE type_id=1 AND name = \"".mpquot($_POST['name'])."\" AND pass='".mphash($_POST['name'], $_POST['pass'])."'", 'Проверка существования пользователя'), 0))){
-	$sess = fk("{$conf['db']['prefix']}sess", ['id'=>$sess['id']], null, ['uid'=>$uid['id']]);
-	$user = fk("{$conf['db']['prefix']}users", ['id'=>$uid['id']], null, ['last_time'=>time()]);
-	if(get($_POST, 'HTTP_REFERER')){
-		exit(header("Location: {$_POST['HTTP_REFERER']}"));
-	} setcookie("{$conf['db']['prefix']}modified_since", "1", 0, "/");
-}elseif(isset($_GET['logoff'])){ # Если пользователь покидает сайт
+if(isset($_GET['logoff'])){ # Если пользователь покидает сайт
 	qw("UPDATE {$conf['db']['prefix']}sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
 	setcookie("{$conf['db']['prefix']}modified_since", "", 0, "/");
 	if(!empty($_SERVER['HTTP_REFERER'])){
@@ -97,6 +91,17 @@ if(strlen($_POST['name']) && strlen($_POST['pass']) && ($_POST['reg'] == 'Аут
 	} # Стираем просроченные сессии
 	qw($sql = "DELETE FROM {$conf['db']['prefix']}sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление сессий');
 	qw($sql = "DELETE FROM {$conf['db']['prefix']}sess_post WHERE time < ".(time() - $conf['settings']['sess_time']), 'Удаление данных сессии');
+}elseif(!$_POST || (get($_POST, 'reg') != 'Аутентификация')){// pre("Нет запроса на аутентификацию");
+}elseif(!strlen($_POST['name'])){ pre("Имя не задано");
+}elseif(!strlen($_POST['pass'])){ pre("Пароль не задан");
+//}elseif(!$sql = "SELECT id FROM {$conf['db']['prefix']}users WHERE type_id=1 AND name = \"".mpquot($_POST['name'])."\" AND pass='".mphash($_POST['name'], $_POST['pass'])."'"){ mpre("Ошибка составления запроса");
+}elseif(!$user = rb("{$conf['db']['prefix']}users", "type_id", "name", "pass", 1, "[". mpquot($_POST['name']). "]", "[". mphash($_POST['name'], $_POST['pass']). "]")){ pre("Не верный пароль");
+	sleep(1);
+}elseif(!$sess = fk("{$conf['db']['prefix']}sess", ['id'=>$sess['id']], null, ['uid'=>$user['id']])){ mpre("Ошибка редактирования сессии");
+}elseif(!$user = fk("{$conf['db']['prefix']}users", ['id'=>$user['id']], null, ['last_time'=>time()])){ mpre("Ошибка установки времени входа пользователю");
+	if(get($_POST, 'HTTP_REFERER')){
+		exit(header("Location: {$_POST['HTTP_REFERER']}"));
+	} setcookie("{$conf['db']['prefix']}modified_since", "1", 0, "/");
 }
 
 if($sess['uid'] <= 0){ mpre("Посетитель является гостем");
@@ -215,7 +220,10 @@ if(get($conf, "settings", "admin_multisite")){ # Включение режима
 }
 
 foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_gaccess ORDER BY sort", 'Права доступа группы к модулю', function($error) use($conf){
-	if(strpos($error, "doesn't exist")){
+	if(strpos($error, "Unknown column 'sort'")){
+		qw(mpre("ALTER TABLE `mp_modules_index_gaccess` ADD `sort` int(11) NOT NULL  COMMENT '' AFTER `id`"));
+		qw(mpre("UPDATE `mp_modules_index_gaccess` SET sort=id"));
+	}elseif(strpos($error, "doesn't exist")){
 		qw(mpre("ALTER TABLE {$conf['db']['prefix']}modules_gaccess RENAME {$conf['db']['prefix']}modules_index_gaccess"));
 	}
 })) as $k=>$v){

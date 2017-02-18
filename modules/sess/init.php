@@ -18,7 +18,7 @@ echo '<p>'.$sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}` (
   KEY `uid` (`uid`,`cnull`,`count`),
   KEY `ip` (`ip`),
   KEY `agent` (`agent`),
-  FULLTEXT KEY `sess` (`sess`)
+  KEY `sess` (`sess`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 mpqw($sql);
 
