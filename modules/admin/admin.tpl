@@ -205,11 +205,7 @@
 							if(json = $.parseJSON(response)){
 								console.log("json:", json);
 //								document.location.reload(true);
-<<<<<<< HEAD
 								document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""). (get($_GET, "where") ? "?&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?>';
-=======
-								document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}".(isset($_GET['p'])?"/p:{$_GET['p']}":""). (get($_GET, "where") ? "?&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?>';
->>>>>>> 20fa1a3b362df3225796a3d4c1fefba0be769e89
 							}else{ alert(response); }
 						}).hide();
 					}).ready(function(e){ $(script).parent().trigger("init"); })
