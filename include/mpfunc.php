@@ -87,7 +87,7 @@ function cache($content = false){
 				header('Status: 503 Service Temporarily Unavailable');
 				exit(header('Retry-After: '. array_rand(60, 3600)));//random() Почторить через большой период времени
 			}elseif(empty($row)){ # Пустой результат
-			}elseif(($sys_getloadavg[0] < 10) && !empty($sys_getloadavg) && (rand(0, $sys_getloadavg[0]) <= 1)){ # При небольшой загрузке процессора обновляем содержомое страницы в отдельном от пользователя потоке
+			}elseif(($sys_getloadavg[0] < 10) && !empty($sys_getloadavg) && (rand(0, $sys_getloadavg[0]) < 1)){ # При небольшой загрузке процессора обновляем содержомое страницы в отдельном от пользователя потоке
 				# TODO Реализовать отдачу готового кеша и продолжить формировать новый в отдельном процессе уже независимо от потока пользователя. Время затраченное на формирование нового кеша уже не будет включено во время отдачи страницы
 //				if($_SERVER['REMOTE_ADDR'] != "91.122.47.82"){
 
@@ -454,6 +454,12 @@ if (!function_exists('modules')){
 		global $conf, $arg, $tpl;
 		foreach($_GET['m'] as $k=>$v){ $k = urldecode($k);
 			if(!$mod = (get($conf, 'modules', $k) ?: rb(get($conf, 'modules'), "modname", "[{$k}]"))){ pre("Модуль не найден в списке модулей");
+/*			if(!$mod = mpql(mpqw($sql = "SELECT *, `admin_access` AS admin_access, folder AS modname FROM mp_modules_index WHERE folder=\"". mpquot($k). "\"", "Запрос к таблице текущего модуля", function($error){
+					if(strpos($error, "Unknown column 'admin_access'")){
+						qw(mpre("ALTER TABLE `mp_modules_index` CHANGE `access` `admin_access` smallint(6) NOT NULL COMMENT ''"));
+					}
+				}), 0)){ pre("Модуль не найден {$sql}");*/
+//			}elseif(mpre()){
 			}elseif(!$mod['link'] = (is_link($f = mpopendir("modules/{$mod['folder']}")) ? readlink($f) : $mod['folder'])){ pre("Ошибка определения ссылки на раздел");
 			}elseif(!ini_set("include_path" ,mpopendir("modules/{$mod['link']}"). ":./modules/{$mod['link']}:". ini_get("include_path"))){ pre("Сбой добавления локального пути до скриптов");
 //			}elseif(get($conf, 'settings', 'modules_title') && (!$conf['settings']['title'] = $conf['modules'][ $k ]['name']. ' : '. $conf['settings']['title'])){ pre("Ошибка установки заголовка раздела по умолчанию");
@@ -513,8 +519,11 @@ if(!function_exists('blocks')){
 	function blocks($bid = null){# Загружаем список блоков и прав доступа
 		global $conf, $arg;
 		if(!$conf['db']['info'] = "Выборка шаблонов блоков"){ pre("Установка описания запросам");
-		}elseif(!$BLOCKS = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}blocks_index WHERE hide=0". ($bid ? " AND id=". (int)$bid : " ORDER BY sort"), "Запрос списка блоков", function($error) use($conf){
-				if(strpos($error, "Unknown column 'hide' in 'where clause'")){
+		}elseif(!$BLOCKS = mpql(mpqw($sql = "SELECT *, `admin_access` as admin_access FROM {$conf['db']['prefix']}blocks_index WHERE hide=0". ($bid ? " AND id=". (int)$bid : " ORDER BY sort"), "Запрос списка блоков", function($error) use($conf){
+				if(strpos($error, "Unknown column 'admin_access'")){
+					qw(pre("ALTER TABLE `mp_blocks_index` CHANGE `access` `admin_access` smallint(6) NOT NULL COMMENT ''"));
+					qw(pre("ALTER TABLE `mp_blocks_index` ADD INDEX (`admin_access`)"));
+				}elseif(strpos($error, "Unknown column 'hide' in 'where clause'")){
 					qw(pre("ALTER TABLE {$conf['db']['prefix']}blocks_index CHANGE `enabled` `hide` smallint(6) NOT NULL", $error));
 					qw("UPDATE {$conf['db']['prefix']}blocks_index SET hide=-1 WHERE hide=1; UPDATE {$conf['db']['prefix']}blocks_index SET hide=1 WHERE hide=0; UPDATE {$conf['db']['prefix']}blocks_index SET hide=0 WHERE hide=-1");
 				}
