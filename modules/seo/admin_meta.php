@@ -10,13 +10,14 @@ if(!$alias = "{$arg['modpath']}:{$arg['fn']}". (($keys = array_keys(array_diff_k
 }elseif(!$characters = array_column(rb("seo-characters", "characters_lang_id", "id", "[{$characters_lang['id']},0,NULL]"), "to", "from")){ mpre("Не установлена таблица перекодировки <a href='/seo:admin/r:mp_seo_characters'>seo_characters</a>");
 }elseif(!$seo_cat['href']){ mpre("Не задан адрес ссылки <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>");
 }elseif("/" != substr($seo_cat['href'], 0, 1)){ mpre("Не верный формат seo адреса <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>");
-}else{
+}else{// mpre($seo_cat);
 	if(array_diff_key($get, array_flip(['m']))){ $meta = []; $mpzam = mpzam($_GET, 'get'); # Проверка и формирование методанных объекта
 		if(($arg['fn'] == "img") && ($tn = get($get, 'tn'))){
 			$default = rb($tn, "id", get($get, 'id'));
-		}else{
+		}elseif($name = get($conf, 'settings', "{$arg['modpath']}_{$arg['fn']}")){
 			$default = rb($arg['fn'], "id", get($get, 'id'));
-		}
+		}else{ $default = []; }
+
 		foreach(array_intersect_key($seo_cat, array_flip(array('title', 'description', 'keywords', "href"))) as $n){
 			if(preg_match_all("#{([\w-_]+):(\w+)}#", $n, $match)){// mpre($n, $match);
 				foreach($match[0] as $n=>$m){
@@ -27,11 +28,9 @@ if(!$alias = "{$arg['modpath']}:{$arg['fn']}". (($keys = array_keys(array_diff_k
 			}
 		} if(!empty($e)){
 			foreach($e as $t){
-				if(strpos($t['table'], "-")){
-					if($id = get($get, $t['table'])){
-						$data[$t['table']] = rb($t['table'], "id", (int)$id);
-					}else{ mpre("Ключ не найден <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>"); }
-				}
+				if(!strpos($t['table'], "-")){// mpre("Раздел переменной не обозначен");
+				}elseif(!$id = get($get, $t['table'])){// mpre("Ключ не найден <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>");
+				}else{ $data[$t['table']] = rb($t['table'], "id", (int)$id); }
 			} while(($tabs = array_intersect_key((empty($d) ? ($d = $default) : $d), array_flip(array_map(function($v){ return "{$v}_id"; }, array_column($e, "table"))))) && (($loop = /*mpre*/(empty($loop) ? 1 : $loop+1)) < 10 /* Максимальное количество итераций */)){ # Если есть ключи от требующихся тегов
 				foreach($tabs as $k=>$id){
 					$data[$t = substr($k, 0, -3)] = rb($t, "id", $id);

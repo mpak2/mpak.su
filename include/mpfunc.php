@@ -41,7 +41,13 @@ function MpGenUniquePath($dir="/tmp"){
 
 function cache($content = false){
 	global $conf;
-	header('Last-Modified: '. date("r"));
+
+//	if(is_numeric(array_search('admin', array_keys(get(mpgt($_SERVER['REQUEST_URI']), 'm'))))){// mpre("admin");
+	if(!get($_COOKIE, "{$conf['db']['prefix']}modified_since") && ($conf['settings']['modpath'] != "admin")){// get($_SERVER, 'HTTP_IF_MODIFIED_SINCE']);
+//		header("Cache-Control: max-age=". (get($conf, 'settings', "themes_expires") ?: 86400). ", public");
+//		header('Last-Modified: '. date("r"));
+//		header("Expires: ". gmdate("r", time()+(get($conf, 'settings', "themes_expires") ?: 86400)));
+	}
 
 	if(array_search("pdo_sqlite", get_loaded_extensions())){ # PDO подерживает sqlite используем его для сохранения кеша
 		if(!$content){ # Отдаем кеш из sqlite
@@ -64,9 +70,9 @@ function cache($content = false){
 //				exit(header('HTTP/1.0 304 Not Modified'));
 			}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg"/*, "/sitemap.xml", "/robots.txt", "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
 			}elseif($_POST || array_key_exists("sess", $_COOKIE)){// print_r("Создание сессии");
-			}elseif(get($_SERVER, 'HTTP_IF_MODIFIED_SINCE')){
+			}elseif(get($_SERVER, 'HTTP_IF_MODIFIED_SINCE') || (http_response_code() == 304)){ mpre("Кешированная страница. Отдаем только статус");
 				exit(header('HTTP/1.0 304 Not Modified'));
-			}elseif(header("Cache-control: max-age=864000") || header("Expires: ".gmdate("r", time() + 86400*10))){ mpre("Установка времени кеширования в браузере");
+//			}elseif(header("Cache-control: max-age=864000") || header("Expires: ".gmdate("r", time() + 86400*10))){ mpre("Установка времени кеширования в браузере");
 			}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ mpre("Ошибка составления имени файла");
 			}elseif(!file_exists($conn_file) && !touch($conn_file) /*&& !chmod($conn_file, 0777)*/){ mpre("Файл бд кеша не найден {$conn_file}");
 			}elseif(!$conn = conn("sqlite:{$conn_file}")){
@@ -77,9 +83,8 @@ function cache($content = false){
 				foreach(explode("\n", $row['headers']) as $header){
 					header($header);
 				}
-				header('Last-Modified: '. date("r", filectime($file_name)));
-//				header("Expires: " . gmdate("D, d M Y H:i:s", time() + 60*60*24*10) . " GMT");
-				header("Expires: ".gmdate("r", time() + 86400*10));
+//				header('Last-Modified: '. date("r", filectime($file_name)));
+//				header("Expires: ".gmdate("r", time() + 86400*10));
 			}
 			if($sys_getloadavg[0] >= 20){
 				error_log(implode("/", $sys_getloadavg). " >-< 503 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
@@ -266,12 +271,12 @@ function meta($where, $meta = null){
 						mpevent("Обновление мета информации", $seo_index['name']);
 						$seo_index_themes = fk("seo-index_themes", array("id"=>$seo_index_themes['id']), null, $meta += array("up"=>time(), "cat_id"=>$meta['cat_id']));
 					}else{ mpre("Ошибка структуры метаинформации (множественная информация для одного адреса)", $w); }
-				}elseif($seo_index_themes = fk("seo-index_themes", $w = array("index_id"=>$seo_index['id'], "location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id']), $w + (array)$meta)){
-					if(get($seo_index, "id")){
-						if($seo_location_themes = fk("seo-location_themes", $w = array("location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id'], "index_id"=>$seo_index['id']), $w)){
-							return $where + $seo_index_themes;
-						}else{ mpre("Ошибка добавления перенаправления", $w); }
-					}else{ return ($meta !== null ? $seo_index_themes : false); }
+				}elseif($seo_index_themes = fk("seo-index_themes", $w = array("index_id"=>$seo_index['id'], "themes_index"=>$themes_index['id']), $w + ["location_id"=>$seo_location['id']] + (array)$meta)){
+					if(!get($seo_index, "id")){ return ($meta !== null ? $seo_index_themes : false);
+					}elseif(!$seo_location_themes = fk("seo-location_themes", $w = array("location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id'], "index_id"=>$seo_index['id']), $w)){ mpre("Ошибка добавления перенаправления", $w);
+					}else{// mpre($seo_location_themes);
+						return $where + $seo_index_themes;
+					}
 				}else{ mpre("Ошибка добавления внутреннего адреса"); }
 			}else{ return null; }
 		}else{ mpre("Ошибка добавления метаинвормауции", $w + $meta + $update); }
@@ -429,22 +434,17 @@ function inc($file_name, $variables = [], $req = false){
 
 # Функция определения seo вдреса страницы. Если адрес не определен в таблице seo_redirect то false
 # Параметр return определяет возвращать ли ссылку обратно если переадресация не найдена
-
 function seo($href, $return = true){
 	global $conf;
 	if($seo_location = rb("{$conf['db']['prefix']}seo_location", "name", "id", (is_string($href) ? "[$href]" : true), (is_numeric(get($href, "id")) ? $href['id'] : true))){
 		if(array_key_exists("index_id", $seo_location) && $seo_location['index_id']){ # Односайтовый режим
-			if($index = rb("{$conf['db']['prefix']}seo_index", 'id', $seo_location['index_id'])){
-				return $index['name'];
-			}else{ return $href; }
+			if(!$index = rb("{$conf['db']['prefix']}seo_index", 'id', $seo_location['index_id'])){ return $href;
+			}else{ return $index['name']; }
 		}elseif($themes_index = get($conf, 'user', 'sess', 'themes_index')){ # МногоСайтов
-			if($tpl['seo_index_themes'] = rb("{$conf['db']['prefix']}seo_index_themes", "location_id", "themes_index", "id", $seo_location['id'], $themes_index['id'])){
-				if($tpl['index'] = rb("{$conf['db']['prefix']}seo_index", "id", "id", rb($tpl['seo_index_themes'], "index_id"))){
-					if(count($tpl['index']) != 1){
-						mpre("Внешний адрес <a href='/seo:admin/r:mp_seo_index_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>не найден</a>", $tpl['seo_index_themes']);
-					}else{ return get(first($tpl['index']), 'name'); }
-				}else{ return $href; }
-			}else{ return $href; }
+			if(!$SEO_INDEX_THEMES = rb("{$conf['db']['prefix']}seo_index_themes", "location_id", "themes_index", "id", $seo_location['id'], $themes_index['id'])){ return $href;
+			}elseif(!$tpl['index'] = rb("{$conf['db']['prefix']}seo_index", "id", "id", rb($SEO_INDEX_THEMES, "index_id"))){ return $href;
+			}elseif(count($tpl['index']) == 1){ return get(first($tpl['index']), 'name');
+			}else{ mpre("Внешний адрес <a href='/seo:admin/r:mp_seo_index_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>не найден</a>", $SEO_INDEX_THEMES); }
 		}else{ return $href; }
 	}else{ return $href; }
 }
@@ -454,17 +454,8 @@ if (!function_exists('modules')){
 		global $conf, $arg, $tpl;
 		foreach($_GET['m'] as $k=>$v){ $k = urldecode($k);
 			if(!$mod = (get($conf, 'modules', $k) ?: rb(get($conf, 'modules'), "modname", "[{$k}]"))){ pre("Модуль не найден в списке модулей");
-/*			if(!$mod = mpql(mpqw($sql = "SELECT *, `admin_access` AS admin_access, folder AS modname FROM mp_modules_index WHERE folder=\"". mpquot($k). "\"", "Запрос к таблице текущего модуля", function($error){
-					if(strpos($error, "Unknown column 'admin_access'")){
-						qw(mpre("ALTER TABLE `mp_modules_index` CHANGE `access` `admin_access` smallint(6) NOT NULL COMMENT ''"));
-					}
-				}), 0)){ pre("Модуль не найден {$sql}");*/
-//			}elseif(mpre()){
 			}elseif(!$mod['link'] = (is_link($f = mpopendir("modules/{$mod['folder']}")) ? readlink($f) : $mod['folder'])){ pre("Ошибка определения ссылки на раздел");
 			}elseif(!ini_set("include_path" ,mpopendir("modules/{$mod['link']}"). ":./modules/{$mod['link']}:". ini_get("include_path"))){ pre("Сбой добавления локального пути до скриптов");
-//			}elseif(get($conf, 'settings', 'modules_title') && (!$conf['settings']['title'] = $conf['modules'][ $k ]['name']. ' : '. $conf['settings']['title'])){ pre("Ошибка установки заголовка раздела по умолчанию");
-
-//			}elseif((!$MODULES_INDEX_GACCESS = rb("modules-index_gaccess", "mid", "gid", "id", $mod['id'], ($conf['user']['gid'] ?: false))) &0){ mpre("Разрешения для группы");
 			}elseif((!$MODULES_INDEX_UACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM `{$conf['db']['prefix']}modules_index_uaccess` WHERE `mid`=". (int)$mod['id']. " AND `uid`=". (int)$conf['user']['uid'], "Запрос прав доступа пользователя к разделу", function($error) use($conf){
 					if(!strpos($error, "Unknown column 'admin_access'")){ pre("Неопределенная ошибка", $error);
 					}else{ qw(mpre("ALTER TABLE `{$conf['db']['prefix']}modules_index_uaccess` CHANGE `access` `admin_access` int(11) NOT NULL")); }
@@ -473,12 +464,9 @@ if (!function_exists('modules')){
 					if(!strpos($error, "Unknown column 'admin_access'")){ pre("Неопределенная ошибка", $error);
 					}else{ qw(mpre("ALTER TABLE `{$conf['db']['prefix']}modules_index_gaccess` CHANGE `access` `admin_access` int(11) NOT NULL")); }
 				}))) &0){ mpre("Разрешения для группы");
-//			}elseif((!$MODULES_INDEX_UACCESS = rb("modules-index_uaccess", "mid", "uid", "id", $mod['id'], $conf['user']['uid'])) &0){ mpre("Разрешения для пользователей");
-			}elseif(!is_numeric($access = ("admin" == $mod['folder'] ? 4 : 1))){ mpre("Ошибка подсчета дефолтного доступа к разделам");
+			}elseif(!is_numeric($access = (("admin" == $mod['folder'] || (strpos($v, "admin") === 0)) ? 4 : 1))){ mpre("Ошибка подсчета дефолтного доступа к разделам");
 			}elseif(!$gmax = ($MODULES_INDEX_GACCESS ? max(array_column($MODULES_INDEX_GACCESS, 'admin_access')) : 1)){ mpre("Ошибка максимального разрешения для группы");
 			}elseif(!$umax = ($MODULES_INDEX_UACCESS ? max(array_column($MODULES_INDEX_UACCESS, 'admin_access')) : 1)){ mpre("Ошибка максимального разрешения для пользователя");
-//			}elseif(pre($umax, $MODULES_INDEX_GACCESS, $gmax, $MODULES_INDEX_GACCESS)){ mpre("Разрешение для пользователя и группы");
-//			}elseif(pre($gmax, $umax)){
 			}elseif(!is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < $access)){ mpre("Недостаточно прав доступа к разделу");
 				if(/*!mpopendir($f = "modules/{$mod['link']}/deny.php") &&*/ !mpopendir($f = "modules/admin/deny.php")){ pre("Не найдена страница запрета доступа");
 					header("HTTP/1.0 403 admin_access Denied");
@@ -492,7 +480,7 @@ if (!function_exists('modules')){
 			}elseif(!empty($glob) && (!$glob = basename(array_pop($glob))) && (!$g = explode(".", $glob)) && ($v = array_shift($g))){ pre("Ошибка определения имен файлов");
 //			}elseif(!$fe = ((strpos($_SERVER['HTTP_HOST'], "xn--") !== false) && (count($g) > 1)) ? array_shift($g) : $v){ mpre("Ошибка определения русскоязычного названия имени");
 			}elseif(!$arg = array('modpath'=>$mod['folder'], 'modname'=>$mod['modname'], 'fn'=>$v, "fe"=>"", 'admin_access'=>$mod['admin_access'])){ pre("Ошибка формирования аргументов страницы");
-			}elseif($v == "admin"){// exit(pre($v, $arg, $mod));
+			}elseif($v == "admin"){
 				ob_start();
 					if(!inc("modules/{$mod['link']}/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')))){
 						inc("modules/admin/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')));
@@ -500,12 +488,13 @@ if (!function_exists('modules')){
 				$content .= ob_get_contents(); ob_end_clean();
 			}else{
 				ob_start();
-					/*if(!get($conf, 'settings', 'seo_meta')){ pre("Обработкич мета информации страницы выключен");
-					}elseif((($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? $canonical['name'] : $_SERVER['REQUEST_URI'])) && ($get = mpgt($uri))){
+					if(!get($conf, 'settings', 'seo_meta')){// pre("Обработкич мета информации страницы выключен");
+					}elseif(($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? get($canonical, 'name') : $_SERVER['REQUEST_URI']) && (!$get = mpgt($uri))){
+					}else{
 						if(!array_key_exists("null", $get) && !array_key_exists("p", $get) && ($conf['settings']['theme/*:admin'] != $conf['settings']['theme']) && !array_search($arg['fn'], ['', 'ajax', 'json', '404'])){ # Нет перезагрузки страницы адреса
 							inc("modules/seo/admin_meta.php", array('arg'=>$arg, "uri"=>$uri, "get"=>$get, "canonical"=>$canonical));
 						}
-					}*/
+					}
 					if(!inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg))){ # Если не создано скриптов и шаблона для страницы запускаетм общую
 						inc("modules/{$mod['link']}/default.tpl", array('arg'=>$arg));
 					}
@@ -533,6 +522,14 @@ if(!function_exists('blocks')){
 					qw(pre("ALTER TABLE {$conf['db']['prefix']}blocks_reg CHANGE `description` `name` varchar(255)", $error));
 				}else{ mpre("Ошибка не определена", $error); }
 			}))){ pre("Список регионов блоков не задан");
+		}elseif((!$BLOCKS_INDEX_UACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM `{$conf['db']['prefix']}blocks_index_uaccess` WHERE `uid`=". (int)$conf['user']['uid'], "Запрос прав доступа пользователя к разделу", function($error) use($conf){
+				if(!strpos($error, "Unknown column 'admin_access'")){ pre("Неопределенная ошибка", $error);
+				}else{ qw(mpre("ALTER TABLE `{$conf['db']['prefix']}blocks_index_uaccess` CHANGE `access` `admin_access` int(11) NOT NULL")); }
+			}))) &0){ mpre("Разрешения для пользователя");
+		}elseif((!$BLOCKS_INDEX_GACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM `{$conf['db']['prefix']}blocks_index_gaccess` WHERE `gid` IN (". in($conf['user']['gid']). ")", "Запрос прав доступа групп пользователя", function($error) use($conf){
+				if(!strpos($error, "Unknown column 'admin_access'")){ pre("Неопределенная ошибка", $error);
+				}else{ qw(mpre("ALTER TABLE `{$conf['db']['prefix']}blocks_index_gaccess` CHANGE `access` `admin_access` int(11) NOT NULL")); }
+		}))) &0){ mpre("Разрешения для группы");
 		}else{
 			foreach($BLOCKS as $k=>$block){
 				if(!$theme = (substr($block['theme'], 0, 1) == "!" && ($conf['settings']['theme'] != substr($block['theme'], 1)) ? $conf['settings']['theme'] : $block['theme'])){ mpre("Ошибка расчета темы с учетом отрицания");
@@ -540,25 +537,14 @@ if(!function_exists('blocks')){
 				}elseif(!$conf['db']['info'] = "Блок '{$block['name']}'"){ pre("Описание к запросам блока");
 				}elseif(!$mod = get($conf, 'modules', basename(dirname(dirname($block['src'])))) ?: array("folder"=>'')){ mpre("Ошибка определения модуля");
 				}elseif(!$arg = array('blocknum'=>$block['id'], 'modpath'=>$mod['folder'], 'modname'=>(get($mod, 'modname') ?: ""), 'fn'=>basename(first(explode('.', $block['src']))), 'uid'=>0, 'admin_access'=>$block['admin_access'])){ pre("Ошибка формирования аргументов блока");
-//				}elseif(!$block['admin_access']){ pre("Прав доступа недосточно", $block);
-
-				}elseif((!$BLOCKS_INDEX_UACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM `{$conf['db']['prefix']}blocks_index_uaccess` WHERE `index_id`=". (int)$block['id']. " AND `uid`=". (int)$conf['user']['uid'], "Запрос прав доступа пользователя к разделу", function($error) use($conf){
-						if(!strpos($error, "Unknown column 'admin_access'")){ pre("Неопределенная ошибка", $error);
-						}else{ qw(mpre("ALTER TABLE `{$conf['db']['prefix']}blocks_index_uaccess` CHANGE `access` `admin_access` int(11) NOT NULL")); }
-					}))) &0){ mpre("Разрешения для пользователя");
-				}elseif((!$BLOCKS_INDEX_GACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM `{$conf['db']['prefix']}blocks_index_gaccess` WHERE `index_id`=". (int)$block['id']. " AND `gid` IN (". in($conf['user']['gid']). ")", "Запрос прав доступа групп пользователя", function($error) use($conf){
-						if(!strpos($error, "Unknown column 'admin_access'")){ pre("Неопределенная ошибка", $error);
-						}else{ qw(mpre("ALTER TABLE `{$conf['db']['prefix']}blocks_index_gaccess` CHANGE `access` `admin_access` int(11) NOT NULL")); }
-				}))) &0){ mpre("Разрешения для группы");
-//				}elseif(!is_numeric($access = ("admin" == $mod['folder'] ? 4 : 1))){ mpre("Ошибка подсчета дефолтного доступа к разделам");
 				}elseif(!is_numeric($access = $block['admin_access'])){ mpre("Разрешения для блока");
-				}elseif(!is_numeric($gmax = ($BLOCKS_INDEX_GACCESS ? max(array_column($BLOCKS_INDEX_GACCESS, 'admin_access')) : $access))){ mpre("Ошибка максимального разрешения для группы");
-				}elseif(!is_numeric($umax = ($BLOCKS_INDEX_UACCESS ? max(array_column($BLOCKS_INDEX_UACCESS, 'admin_access')) : $access))){ mpre("Ошибка максимального разрешения для пользователя");
-				}elseif(!is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < 1)){ mpre("Недостаточно прав доступа к разделу");
-
-				}elseif($conf["settings"]["bid"] = $bid){ pre("Блок к которому мы обращаемся в параметрах блока");
-					$result = $cb;
-				}else{// pre($k, $block);
+				}elseif((!$_BLOCKS_INDEX_UACCESS = rb($BLOCKS_INDEX_UACCESS, "index_id", "id", $block['id'])) &0){ mpre("Разрешения пользователя для конкретного блока");
+				}elseif((!$_BLOCKS_INDEX_GACCESS = rb($BLOCKS_INDEX_GACCESS, "index_id", "id", $block['id'])) &0){ mpre("Разрешения группы для конкретного блока");
+				}elseif(!is_numeric($gmax = ($_BLOCKS_INDEX_GACCESS ? max(array_column($_BLOCKS_INDEX_GACCESS, 'admin_access')) : $access))){ mpre("Ошибка максимального разрешения для группы");
+				}elseif(!is_numeric($umax = ($_BLOCKS_INDEX_UACCESS ? max(array_column($_BLOCKS_INDEX_UACCESS, 'admin_access')) : $access))){ mpre("Ошибка максимального разрешения для пользователя");
+				}elseif(!is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < 1)){// mpre("Недостаточно прав доступа к разделу");
+				}elseif($conf["settings"]["bid"] = $bid){ pre("Блок к которому мы обращаемся в параметрах блока");// $result = $cb;
+				}else{
 					ob_start();
 						inc("modules/{$block['src']}", array('arg'=>$arg));
 					$cb = ob_get_contents(); ob_end_clean();
@@ -575,9 +561,10 @@ if(!function_exists('blocks')){
 						'<!-- [block:fn] -->'=>$arg['fn'],
 						'<!-- [block:title] -->'=>$block['name']
 					));
+					
 					$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$block['name'], "{fn}"=>$arg['fn'], "{id}"=>$block['id']);
 					$result["<!-- [block:{$block['id']}] -->"] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
-					if(array_key_exists('alias', $block) && ($alias = get($block, 'alias')) && ($n = "<!-- [block:{$alias}] -->")){ # Подключение блока по его алиасу
+					if(get($block, 'alias') && ($n = "<!-- [block:{$block['alias']}] -->")){ # Подключение блока по его алиасу
 						$result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"];
 					} if($n = "<!-- [blocks:". $block['reg_id'] . "] -->"){ # Все блоки региона
 						$result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"];
@@ -1553,7 +1540,7 @@ function mpfile($filename, $description = null){
 		header("Content-Transfer-Encoding: binary");
 		header("Content-Length: ".filesize("$file_name"));
 		header("Content-Disposition: attachment; filename=\"".($description ? "$description". (substr($description, strlen($ext)*-1) == $ext ? "" : ".". $ext) : basename($file_name))."\"");
-		header('Cache-Control: max-age=28800');
+//		header('Cache-Control: max-age=28800');
 //		header("Cache-Control: max-age=3600, must-revalidate");
 //		header("Pragma: no-cache");
 //		readfile($file_name); exit;
@@ -1726,12 +1713,12 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 	if(!array_key_exists('nologo', $_GET) && (strtotime(get($_SERVER, 'HTTP_IF_MODIFIED_SINCE')) >= filectime($file_name))){
 		exit(header('HTTP/1.0 304 Not Modified'));
 	}else if(file_exists("$cache_name/$host_name/$prx/$fl_name") && (($filectime = filectime("$cache_name/$host_name/$prx/$fl_name")) > ($sfilectime = filectime($file_name)))){
-		header('Last-Modified: '. date("r", $filectime));
-		header("Expires: ".gmdate("r", time() + 86400*10));
+//		header('Last-Modified: '. date("r", $filectime));
+//		header("Expires: ".gmdate("r", time() + 86400*10));
 		return file_get_contents("$cache_name/$host_name/$prx/$fl_name");
 	}else if($src = imagecreatefromstring(file_get_contents($file_name))){
-		header('Last-Modified: '. date("r", filectime($file_name)));
-		header("Expires: ".gmdate("r", time() + 86400*10));
+//		header('Last-Modified: '. date("r", filectime($file_name)));
+//		header("Expires: ".gmdate("r", time() + 86400*10));
 		$width = imagesx($src);
 		$height = imagesy($src);
 		if(!array_key_exists('water', $_GET) && (empty($max_width) || empty($max_height) || (($width <= $max_width) && ($height <= $max_height)))){

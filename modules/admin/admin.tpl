@@ -283,7 +283,7 @@
 										<div style="padding:10px; border:1px solid #eee; border-top:0;">
 											<h4>Таблица</h4>
 											<div class="table" style="width:100%;">
-												<? foreach(["{$t}"=>["Название"=>"", "Заголовки"=>"=>title", "Сортировка"=>"=>order", "Счетчик"=>"=>ecounter", "Список"=>"=>espisok"], "{$arg['modpath']}"=>[/*"Список"=>"=>espisok"*/]] as $prx=>$params): ?>
+												<? foreach(["{$t}"=>["Название"=>"", "Заголовки"=>"=>title", "Сортировка"=>"=>order", "Счетчик"=>"=>ecounter"], "{$arg['modpath']}"=>["Список"=>"=>espisok"]] as $prx=>$params): ?>
 													<? foreach($params as $name=>$uri): ?>
 														<div>
 															<span><?=$name?></span>

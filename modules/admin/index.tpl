@@ -12,7 +12,7 @@
 					<h1><a href="/<?=$modules_index['folder']?>:admin"><?=$modules_index['name']?></a></h1>
 					<p><?=$modules_index['description']?></p>
 	<!--				<div class="button"><a href="/admin/hide:<?=$modules_index['id']?>/<?=$_GET['id']?>">скрыть</a></div>-->
-					<? if($conf['modules']['settings']['admin_access'] >= 4): ?>
+					<? if(get($conf, 'modules', 'settings', 'admin_access') >= 4): ?>
 						<div class="button"><a href="/settings:admin/r:mp_settings/?&where[modpath]=<?=$modules_index['folder']?>">настройки</a></div>
 					<? endif; ?>
 				</li>

@@ -268,11 +268,7 @@ if(!array_key_exists('null', $_GET)){
 
 $conf['settings']['microtime'] = substr(microtime(true)-$conf['settings']['microtime'], 0, 8);
 
-if(!get($_COOKIE, "{$conf['db']['prefix']}modified_since") && ($conf['settings']['modpath'] != "admin")){// get($_SERVER, 'HTTP_IF_MODIFIED_SINCE']);
-	header("Cache-Control: max-age=". (get($conf, 'settings', "themes_expires") ?: 86400). ", public");
-	header('Last-Modified: '. date("r"));
-	header("Expires: ". gmdate("r", time()+(get($conf, 'settings', "themes_expires") ?: 86400)));
-} $content = array_key_exists("null", $_GET) ? $content : strtr($content, mpzam($conf['settings'], "settings", "<!-- [", "] -->"));
+$content = array_key_exists("null", $_GET) ? $content : strtr($content, mpzam($conf['settings'], "settings", "<!-- [", "] -->"));
 
 cache($content);
 echo $content;

@@ -2,15 +2,15 @@
 <? elseif(!$YANDEX_METRIKA = rb("yandex_metrika")): mpre("Метрики хостов не найдены") ?>
 <? elseif(!$YANDEX_METRIKA_DIMENSIONS = rb("yandex_metrika_dimensions")): mpre("Измерения не найдены") ?>
 <? elseif(!$YANDEX_METRIKA_PERIOD = rb("yandex_metrika_period",5)): mpre("Периоды не найдены")?>
-<? elseif(!$YANDEX_METRIKA_PERIOD = rb(array_slice($YANDEX_METRIKA_PERIOD,1),"id")): mpre("Ошибка исключения первого элемента") ?>
+<? elseif(!get($_GET,"now") && (!$YANDEX_METRIKA_PERIOD = rb(array_slice($YANDEX_METRIKA_PERIOD,1),"id"))): mpre("Ошибка исключения первого элемента") ?>
 <? elseif(!$yandex_metrika_period = first($YANDEX_METRIKA_PERIOD)): mpre("Ошибка получения периода сортировки") ?>
 <? elseif(!$YANDEX_METRIKA_METRICS = rb("yandex_metrika_metrics","yandex_metrika_period_id","yandex_metrika_dimensions_id","id",$YANDEX_METRIKA_PERIOD,"[NULL,0]")): mpre("Значений метрик не найдено") ?>
 <? elseif(!$SORT = rb($YANDEX_METRIKA_METRICS,"yandex_metrika_period_id","id",$yandex_metrika_period["id"])): mpre("Ошибка получения метрик периода сортировки") ?>
 <? elseif(($SORT2 = array_column($SORT,"users","yandex_metrika_id")) && !arsort($SORT2)): mpre("Ошибка форматирования метрик периода сортировки") ?>
 <? elseif($VISIBLE = []): mpre("Массив видимых сайтов") ?>
-<? else: //$_GET["null"]= null; mpre($SORT,$SORT2)?>
+<? else:// mpre($YANDEX_METRIKA_PERIOD) ?>
 	<? if(!array_key_exists("null",$_GET)): ?>
-		<p><a href="/themes:admin_yandex_metrika_print/null">Версия для печати</a></p>
+		<p><a href="/themes:admin_yandex_metrika_print/null">Версия для печати</a> <a href="/themes:admin_yandex_metrika_print/now:1">Текущая неделя</a></p>
 	<? endif; ?>
 	<style>
 				.table {border-collapse:collapse; font-size:8px;}

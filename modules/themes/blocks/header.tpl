@@ -1,6 +1,6 @@
 <!--<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>-->
 <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script> Из за неработаюго метода .load() пока не можем перейти (Используется при обработки form.load в перехвате загрузки) -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
 
 <style>
 	div.table {display:table; width:100%; vertical-align:top; border-collapse:collapse;}
@@ -133,15 +133,18 @@
 <? if(!array_search("Администратор", $conf['user']['gid'])):// mpre("Раздел предназначен только администраторам") ?>
 <? elseif(!$themes_index = get($conf, 'themes', 'index')):// mpre("Хост сайта не найден") ?>
 <? elseif(($canonical = get($conf, 'settings', 'canonical')) &0): mpre("Канонический адрес не задан") ?>
-<? elseif(($seo_cat = rb("seo-cat", "id", get($canonical, 'cat_id'))) &0): mpre("Категория не найдена") ?>
-<? else:// mpre($canonical, $seo_cat) ?>
+<? elseif(($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? $canonical['name'] : $_SERVER['REQUEST_URI']) && (!$get = mpgt($uri)) &0)://mpre("Параметры адреса не определены <b>{$uri}</b>") ?>
+<? elseif(!$alias = first(array_keys((array)get($get, 'm'))). ":". first(get($get, 'm')). (($keys = array_keys(array_diff_key($get, array_flip(["m", "id"])))) ? "/". implode("/", $keys) : "")): mpre("Алиас сфоримрован ошибочно") ?>
+<?// elseif(mpre($uri, $get, $alias)): ?>
+<? elseif((!$seo_cat = rb("seo-cat", "id", get($canonical, 'cat_id'))) && (!$seo_cat = rb("seo-cat", "alias", (empty($alias) ? false : "[{$alias}]")))):// mpre("Категория не найдена") ?>
+<? else:// mpre($seo_cat) ?>
 		<div class="themes_header_seo_blocks" style="z-index:9999; border:1px solid #eee; border-radius:7px; position:fixed; background-color:rgba(255,255,255,0.7); color:black; padding:0 5px; left:10px; top:10px; width:auto;">
 			<div class="table">
 				<div>
 					<span><a href="/admin" title="Перейти в админраздел"><img src="/themes/theme:zhiraf/null/i/logo.png"></a></span>
 					<span>
 						<div title="Категория ссылки"><a href="/seo:admin/r:seo-cat?&where[id]=<?=get($seo_cat, 'id')?>"><?=get($seo_cat, 'name')?></a></div>
-						<div class="admin_content" title="Информация о странице"></div>
+						<div class="admin_content" title="Информация о странице"><?=$canonical['name']?></div>
 					</span>
 				</div>
 			</div>
@@ -151,7 +154,7 @@
 						var themes_index = $.parseJSON('<?=json_encode($themes_index)?>');
 						$(".themes_header_seo_blocks").on("click", ".admin_content", function(e){
 							window.open("/seo:admin/r:seo-index_themes?&where[location_id]="+index.id+"&where[themes_index]="+themes_index.id);
-						}).find(".admin_content").css("cursor", "pointer").text(index.name);
+						}).find(".admin_content").css("cursor", "pointer");
 					}else{// console.log("canonical:", canonical);
 						$(".themes_header_seo_blocks").on("ajax", function(e, modpath, table, get, post, complete, rollback){
 							var href = "/"+modpath+":ajax/class:"+table; console.log("get:", get);

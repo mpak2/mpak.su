@@ -56,12 +56,12 @@
 						}, 1000)
 					}
 				})($(".admin_yandex_metrika_metrics .table a.update:first"))
-			}).on("click", ".table > div.th > span", function(e){
+			})/*.on("click", ".table > div.th > span", function(e){
 				var index = $(e.currentTarget).index();
 				if(index > 0){
 					$(e.delegateTarget).find(".table > div > span:nth-child("+(index+1)+")").hide();
 				}
-			})
+			})*/
 		})(jQuery, document.scripts[document.scripts.length-1])
 	</script>
 	<div yandex_metrika_period_id="<?=$tpl['yandex_metrika_period']['id']?>">
