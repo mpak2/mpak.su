@@ -6,6 +6,14 @@ if(!function_exists('__autoload')){ # автозагрузка классов и
 	}
 }
 
+function base64($img, $w, $h, $c = 0){
+	if(!$img){ mpre("Изображение не задано");
+	}elseif(!$file_name = mpopendir("include/{$img}")){ mpre("ОШибка получения пути к файлу");
+	}elseif(!$ext = last(array_slice(explode(".", $file_name), -1))){ mpre("Ошибка определения расширения");
+	}elseif(!$data = mprs($file_name, $w, $h, $c)){ mpre("Ошибка загрузки содержимого файла");
+	}else{ return "data:image/{$ext};base64,". base64_encode($data); }
+}
+
 function conn($init = null){
 	global $conf;
 	try{
@@ -15,11 +23,11 @@ function conn($init = null){
 			$conf['db']['conn']->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 			$conf['db']['conn']->exec('PRAGMA foreign_keys=ON');
 		}else{
-			$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC));
+			$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>1));
 			$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
 		}// return $conf['db']['conn'];
-	}catch(Exception $e){
-		pre("Ошибка подключения к базе данных {$init}");
+	}catch(Exception $e){ cache(0);
+		die(pre("Ошибка подключения к базе данных {$init}"));
 	} return $conf['db']['conn'];
 }
 
@@ -42,16 +50,32 @@ function MpGenUniquePath($dir="/tmp"){
 function cache($content = false){
 	global $conf;
 
-//	if(is_numeric(array_search('admin', array_keys(get(mpgt($_SERVER['REQUEST_URI']), 'm'))))){// mpre("admin");
-	if(!get($_COOKIE, "{$conf['db']['prefix']}modified_since") && ($conf['settings']['modpath'] != "admin")){// get($_SERVER, 'HTTP_IF_MODIFIED_SINCE']);
-//		header("Cache-Control: max-age=". (get($conf, 'settings', "themes_expires") ?: 86400). ", public");
-//		header('Last-Modified: '. date("r"));
-//		header("Expires: ". gmdate("r", time()+(get($conf, 'settings', "themes_expires") ?: 86400)));
-	}
-
 	if(array_search("pdo_sqlite", get_loaded_extensions())){ # PDO подерживает sqlite используем его для сохранения кеша
 		if(!$content){ # Отдаем кеш из sqlite
-			if(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
+			if(is_numeric($content)){ # mpre("База данных не подключилась");
+				if(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ pre("Ошибка установки временной директории кеша");
+				}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ pre("Ошибка составления имени файла");
+				}elseif(!$conn = conn("sqlite:{$conn_file}")){ pre("Ошибка сохдания подключения sqlite");
+				}elseif(!$HTTP_HOST = idn_to_utf8($_SERVER['HTTP_HOST'])){ pre("Ошибка определения русскоязычного имени домена");
+				}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Ошибка определения адреса");
+				}elseif(!($TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name"))){ pre("Параметры таблицы не определены");
+				}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ pre("Ошибка создания запроса");
+				}elseif(!$row = mpql($RES, 0)){ pre("Кеш страницы не найден");
+					error_log(implode("/", $sys_getloadavg). " --! 503 http://{$HTTP_HOST}{$REQUEST_URI}\n", 3, $cache_log);
+					header('HTTP/1.1 503 Service Temporarily Unavailable');
+					header('Status: 503 Service Temporarily Unavailable');
+					exit(header('Retry-After: '. array_rand(60, 600)));//random() Почторить через небольшой период времени
+				}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])*/){ // mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
+				}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
+				}else{// exit("Проверка");
+					error_log(implode("/", $sys_getloadavg). " <<! http://{$HTTP_HOST}{$REQUEST_URI}\n", 3, $cache_log);
+					foreach(explode("\n", $row['headers']) as $header){
+						header($header);
+					} header('Content-Encoding: gzip');
+					exit($row['content']);
+				}
+				
+			}elseif(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
 			}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
 			}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])*/){ // mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
 			}elseif($sys_getloadavg[0] >= 50){ # Очередь процессов на выполнение больше критического предела - отдаем ошибку
@@ -75,7 +99,7 @@ function cache($content = false){
 //			}elseif(header("Cache-control: max-age=864000") || header("Expires: ".gmdate("r", time() + 86400*10))){ mpre("Установка времени кеширования в браузере");
 			}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ mpre("Ошибка составления имени файла");
 			}elseif(!file_exists($conn_file) && !touch($conn_file) /*&& !chmod($conn_file, 0777)*/){ mpre("Файл бд кеша не найден {$conn_file}");
-			}elseif(!$conn = conn("sqlite:{$conn_file}")){
+			}elseif(!$conn = conn("sqlite:{$conn_file}")){ mpre("Ошибка сохдания подключения sqlite");
 			}elseif(!($TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name"))){ mpre("Параметры таблицы не определены");
 			}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ mpre("Ошибка создания запроса");
 			}elseif(!$row = mpql($RES, 0)){ mpre("Ошибка извлечения строк");
@@ -90,7 +114,7 @@ function cache($content = false){
 				error_log(implode("/", $sys_getloadavg). " >-< 503 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 				header('HTTP/1.1 503 Service Temporarily Unavailable');
 				header('Status: 503 Service Temporarily Unavailable');
-				exit(header('Retry-After: '. array_rand(60, 3600)));//random() Почторить через большой период времени
+				exit(header('Retry-After: '. array_rand(60, 3600)));//random() Повторить через большой период времени
 			}elseif(empty($row)){ # Пустой результат
 			}elseif(($sys_getloadavg[0] < 10) && !empty($sys_getloadavg) && (rand(0, $sys_getloadavg[0]) < 1)){ # При небольшой загрузке процессора обновляем содержомое страницы в отдельном от пользователя потоке
 				# TODO Реализовать отдачу готового кеша и продолжить формировать новый в отдельном процессе уже независимо от потока пользователя. Время затраченное на формирование нового кеша уже не будет включено во время отдачи страницы
@@ -116,7 +140,7 @@ function cache($content = false){
 			}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
 			}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ mpre("Ошибка составления имени файла");
 			}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2]) && (rand(0, $sys_getloadavg[0]) <= 1)*/){// mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
-			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Ошибка определения адреса");
+			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){// mpre("Ошибка определения адреса {$_SERVER['REQUEST_URI']}");
 			}elseif(!file_exists($conn_file) && !touch($conn_file) && !mkdir(dirname($conn_file))){ mpre("Файл бд кеша не найден {$conn_file}");
 			}elseif(!$conn = conn("sqlite:{$conn_file}")){
 			}elseif(!($TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name")) && !($TABLES = call_user_func(function() use($conf, $conn){
@@ -444,7 +468,8 @@ function seo($href, $return = true){
 			if(!$SEO_INDEX_THEMES = rb("{$conf['db']['prefix']}seo_index_themes", "location_id", "themes_index", "id", $seo_location['id'], $themes_index['id'])){ return $href;
 			}elseif(!$tpl['index'] = rb("{$conf['db']['prefix']}seo_index", "id", "id", rb($SEO_INDEX_THEMES, "index_id"))){ return $href;
 			}elseif(count($tpl['index']) == 1){ return get(first($tpl['index']), 'name');
-			}else{ mpre("Внешний адрес <a href='/seo:admin/r:mp_seo_index_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>не найден</a>", $SEO_INDEX_THEMES); }
+			}elseif($themes_index = last($tpl['index'])){ return $themes_index['name'];
+			}else{ mpre("Внешний адрес дублируется <a href='/seo:admin/r:mp_seo_index_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>не найден</a>", $SEO_INDEX_THEMES); }
 		}else{ return $href; }
 	}else{ return $href; }
 }

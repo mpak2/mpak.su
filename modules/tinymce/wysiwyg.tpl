@@ -1,4 +1,4 @@
-<? if(!array_key_exists('tpl', $conf) || !array_key_exists('elm', $conf['tpl'])): ?>
+<? if(empty($tpl)): ?>
 	<script type="text/javascript" src="//www.google.com/jsapi"></script>
 	<script type="text/javascript"> google.load("jquery", "1"); </script>
 	<script type="text/javascript" src="/include/jquery/tiny_mce/jquery.tinymce.js"></script>
@@ -46,14 +46,7 @@
 	</script>
 <? endif; ?>
 <div>
-	<textarea id="elm<?=($conf['tpl']['elm']=get($conf, 'tpl', 'elm')+1)?>" name="<?=$conf['settings']['tinymce_name']?>" rows="15" cols="80" style="width: 100%" class="tinymce">
-		<?
-			/*
-				stripslashes - решает проблему роста слешей при каждом сохранении
-				\" -> \\\\\\\\\"
-				но при выводе текста всеравно надо обрабатывать: <?=stripslashes($var['text']);?>
-			*/
-		?>
-		<?=stripslashes($conf['settings']['tinymce_text'])?>
+	<textarea id="elm1" name="<?=$conf['settings']['tinymce_name']?>" rows="15" cols="80" style="width: 100%" class="tinymce">
+		<?=$conf['settings']['tinymce_text']?>
 	</textarea>
 </div>

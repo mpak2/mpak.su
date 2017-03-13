@@ -50,29 +50,29 @@ if(!$_POST){// mpre("Информационная страница");
 	}
 }elseif(!$yandex_webmaster = rb("yandex_webmaster", "index_id", $index['id'])){// mpre("Вебмастер не найден");
 	if(!$metrika = file_get_contents($url = 'https://api-metrika.yandex.ru/counters.json?per_page=10000', false, stream_context_create(array('http'=>array( 'method'=>'GET', "Content-Type: application/json", 'header'=>"Authorization: OAuth {$yandex_token['name']}", ))))){ mpre("Ошибка запроса к метрике яндекс");
-		}elseif(!$json = json_decode($metrika, true)){ mpre("Ошибка формирования жсон данных");
+	}elseif(!$json = json_decode($metrika, true)){ mpre("Ошибка формирования жсон данных");
+	}else{
+		foreach($json['counters'] as $counter){
+			if($index = rb("index", "name", "[{$counter['site']}]")){
+				if($yandex_metrika = fk("yandex_metrika", array("id"=>$counter['id']), $counter += array("index_id"=>$index['id'], "yandex_token_id"=>$yandex_token['id']), $counter)){
+					$yandex_metrika_index = fk("yandex_metrika_index", $w = array("index_id"=>$index['id'], "yandex_metrika_id"=>$yandex_metrika['id']), $w);
+				}
+			}
+		}
+
+		if(!$data = file_get_contents($url = 'https://webmaster.yandex.ru/api/v2/hosts', false, stream_context_create(
+				array('http'=>($param = array('method'=>'GET', 'header'=>"Authorization: OAuth {$yandex_token['name']}",)))
+			))){ mpre("Ошибка загрузки данных");
+		}elseif(!$xml = json_decode(json_encode(new SimpleXMLElement($data)), true)){ mpre("Ошибка json декодирования полученных из вебмастера данных");
 		}else{
-			foreach($json['counters'] as $counter){
-				if($index = rb("index", "name", "[{$counter['site']}]")){
-					if($yandex_metrika = fk("yandex_metrika", array("id"=>$counter['id']), $counter += array("index_id"=>$index['id'], "yandex_token_id"=>$yandex_token['id']), $counter)){
-						$yandex_metrika_index = fk("yandex_metrika_index", $w = array("index_id"=>$index['id'], "yandex_metrika_id"=>$yandex_metrika['id']), $w);
-					}
+			foreach($xml['host'] as $host){
+				if($index = rb("index", "name", "[{$host['name']}]")){
+					$yandex_webmaster = fk("yandex_webmaster", $w = array('id'=>last(explode("/", $host['@attributes']['href']))), $w += array('yandex_token_id'=>$yandex_token['id'], "href"=>last(explode(":", $host['@attributes']['href'])), 'verification'=>get($host, 'verification', '@attributes', 'state'), 'crawling'=>get($host, 'crawling', '@attributes', 'state'), "index_id"=>$index['id'])+$host, $w);
 				}
 			}
+		}
 
-			if(!$data = file_get_contents($url = 'https://webmaster.yandex.ru/api/v2/hosts', false, stream_context_create(
-					array('http'=>($param = array('method'=>'GET', 'header'=>"Authorization: OAuth {$yandex_token['name']}",)))
-				))){ mpre("Ошибка загрузки данных");
-			}elseif(!$xml = json_decode(json_encode(new SimpleXMLElement($data)), true)){ mpre("Ошибка json декодирования полученных из вебмастера данных");
-			}else{
-				foreach($xml['host'] as $host){
-					if($index = rb("index", "name", "[{$host['name']}]")){
-						$yandex_webmaster = fk("yandex_webmaster", $w = array('id'=>last(explode("/", $host['@attributes']['href']))), $w += array('yandex_token_id'=>$yandex_token['id'], "href"=>last(explode(":", $host['@attributes']['href'])), 'verification'=>get($host, 'verification', '@attributes', 'state'), 'crawling'=>get($host, 'crawling', '@attributes', 'state'), "index_id"=>$index['id'])+$host, $w);
-					}
-				}
-			}
-
-		} exit(json_encode($yandex_token));
+	} exit(json_encode($yandex_token));
 }elseif(!$yandex_token = rb("yandex_token", "id", $yandex_webmaster["yandex_token_id"])){ mpre("Токен не установлен");
 }else{// exit(mpre($yandex_token));
 	if("verify" == $_REQUEST['api']){ # Проверка принадлежности хоста

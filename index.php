@@ -59,10 +59,11 @@ try{
 		$conf['db']['conn']->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		$conf['db']['conn']->exec('PRAGMA foreign_keys=ON');
 	}else{
-		$conf['db']['conn'] = new PDO("{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC));
+		ini_set("default_socket_timeout", 0.1);
+		$conf['db']['conn'] = new PDO("{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>0.1));
 		$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
 	}// return $conf['db']['conn'];
-}catch(Exception $e){
+}catch(Exception $e){ cache(0);
 	pre("Ошибка подключения к базе данных");
 } if((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !tables()){
 	exit(inc('include/install.php'));

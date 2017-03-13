@@ -346,7 +346,7 @@
 								<? elseif($name == "uid"): ?>
 									<select name="<?=$name?>">
 										<option value="NULL"></option>
-										<? foreach(rb("{$conf['db']['prefix']}users") as $uid): ?>
+										<? foreach(rb("{$conf['db']['prefix']}users", 1000) as $uid): ?>
 											<option value="<?=$uid['id']?>" <?=((get($tpl, 'edit', $name) == $uid['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $uid['id'])) ? "selected" : "")?>><?=$uid['name']?></option>
 										<? endforeach; ?>
 									</select>
@@ -542,11 +542,11 @@
 										</select>
 									<? elseif($name == "uid"): ?>
 										<select name="<?=$name?>">
-											<? if(($f = get($tpl, 'edit', $name)) && !rb("{$conf['db']['prefix']}users", "id", $f)): ?>
+											<? if(($f = get($tpl, 'edit', $name)) && !rb("{$conf['db']['prefix']}users", 1000, "id", $f)): ?>
 												<option value="<?=$tpl['edit'][$name]?>" selected><?=$tpl['edit'][$name]?></option>
 											<? endif; ?>
 											<option value="NULL"></option>
-											<? foreach(rb("{$conf['db']['prefix']}users") as $uid): ?>
+											<? foreach(rb("{$conf['db']['prefix']}users", 1000) as $uid): ?>
 												<option value="<?=$uid['id']?>" <?=((get($tpl, 'edit', $name) == $uid['id']) || (!get($tpl, 'edit') && ($uid['id'] == $conf['user']['uid'])) ? "selected" : "")?>>
 													<?=$uid['id']?> <?=$uid['name']?>
 												</option>
@@ -600,7 +600,7 @@
 											<? endforeach; ?>
 										</select>
 									<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>
-										<input type="text" name="<?=$name?>" value="<?=((get($tpl, 'edit', $name) || is_numeric(get($tpl, 'edit', $name))) ? $tpl['edit'][$name] : (get($field, 'Default') ?: (get($_GET, 'where', $name) ?: "")))?>" placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
+										<input type="text" name="<?=$name?>" value="<?=htmlspecialchars((get($tpl, 'edit', $name) || is_numeric(get($tpl, 'edit', $name))) ? $tpl['edit'][$name] : (get($field, 'Default') ?: (get($_GET, 'where', $name) ?: "")))?>" placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
 									<? endif; ?>
 								</span>
 							<? endforeach; ?>

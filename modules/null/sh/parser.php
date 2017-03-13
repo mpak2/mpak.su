@@ -15,9 +15,8 @@ function tmpopendir($file_name, $merge=1){
 
 if($argv){
 	if(file_exists(__DIR__. "/../../../index.phar")){
-		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: "phar:/". dirname(dirname(dirname(dirname(__FILE__)))). "/index.phar::". dirname(dirname(dirname(dirname(__FILE__)))));
+		$conf["db"]["open_basedir"] = (ini_get("open_basedir") ?: "phar:/". dirname(dirname(dirname(dirname(__FILE__)))). "/index.phar:". dirname(dirname(dirname(dirname(__FILE__)))));
 		if($mpfunc = tmpopendir("include/mpfunc.php")){ include $mpfunc; }else{
-			include "phar://../../../index.phar/include/config.php";
 			include "phar://../../../index.phar/include/mpfunc.php";
 		} include "../../../include/config.php";
 	}else{
@@ -36,12 +35,7 @@ if($argv){
 	$html = new simple_html_dom();
 } $conf['user']['gid'] = array(1=>"Администратор");
 
-if (strlen($conf['db']['error'] = mysql_error())){
-#		echo "Ошибка соединения с базой данных<p>";
-}else{
-//	mysql_select_db($conf['db']['name'], $conf['db']['conn']);
-	mpqw("SET NAMES 'utf8'");
-} unset($conf['db']['pass']); $conf['db']['sql'] = array();
+unset($conf['db']['pass']); $conf['db']['sql'] = array();
 
 ###################################################################################################################################################
 

@@ -12,6 +12,7 @@ if(get($_REQUEST, 'class') && $class = "{$conf['db']['prefix']}{$arg['modpath']}
 				}, array_keys($where), array_values($where))));
 				exit("{}");
 			}elseif(!$fdk = fdk($class, $where, $w = ($where + ($_POST ? $w : [])), $w)){ exit(mpre("Ошибка запроса к БД", $class, $where, $w));
+			}elseif(!mail("info@galerea-hotel.ru", "Сообщение на сайте", implode("\n", $fdk))){ mpre("ОШибка отправки email сообщения");
 			}else{
 				if(array_key_exists("sort", $fdk) && ($fdk['sort'] == 0)){
 					$fdk = fdk($class, array("id"=>$fdk['id']), null, array("sort"=>$fdk['id']));

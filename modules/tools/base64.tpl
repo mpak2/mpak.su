@@ -4,6 +4,6 @@
 	<? if($conf['tpl']['base64']): ?>
 		<div style="margin:10px 0;"><img src="data:image/jpeg;base64,<?=$conf['tpl']['base64']?>"></div>
 		<div style="margin:10px 0;">Вместе с изображением используйте как</div>
-		<textarea style="width:100%; height:400px;">background-image: url(data:image/jpeg;base64,<?=$conf['tpl']['base64']?>)</textarea>
+		<textarea style="width:100%; height:400px;">background-image: url(data:image/jpeg;base64,<?=$conf['tpl']['base64']?>);</textarea>
 	<? endif; ?>
 </form>

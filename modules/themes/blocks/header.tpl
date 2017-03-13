@@ -79,9 +79,16 @@
 <? endif; ?>
 
 <? if(get($conf, 'settings', 'themes_yandex_metrika')): ?>
+<? elseif(!$themes_index = get($conf, 'themes', 'index')): mpre("Информация о хосте не найдена") ?>
+<? elseif(get($conf, 'settings', 'themes_yandex_metrika_index') && (!$THEMES_YANDEX_METRIKA_INDEX = rb("themes-yandex_metrika_index", "index_id", "id", $themes_index['id']))): mpre("У сайта не найдено устанволенных метрик") ?>
+<? elseif(get($conf, 'settings', 'themes_yandex_metrika') && (!$THEMES_YANDEX_METRIKA = rb("themes-yandex_metrika", "id", "id", rb($THEMES_YANDEX_METRIKA_INDEX, "yandex_metrika_id")))): mpre("Счетчики установленные на сайте не найдены") ?>
+<? elseif(get($conf, 'settings', 'themes_yandex_metrika') && (!$THEMES_YANDEX_METRIKA_GOAL = rb("themes-yandex_metrika_goal", "yandex_metrika_id", "id", $THEMES_YANDEX_METRIKA_INDEX))): mpre("Событий Яндекс.Метрики не найдено"); ?>
+<? else: ?>
 	<!-- Yandex.Metrika counter -->
-		<? foreach(rb("themes-yandex_metrika_index", "index_id", "id", get($conf, 'themes', 'index', 'id')) as $themes_yandex_metrika_index): ?> 
-			<? if($themes_yandex_metrika = rb("themes-yandex_metrika", "id", $themes_yandex_metrika_index['yandex_metrika_id'])): ?>
+		<? foreach($THEMES_YANDEX_METRIKA_INDEX as $themes_yandex_metrika_index): ?> 
+			<? if(!$themes_yandex_metrika = rb($THEMES_YANDEX_METRIKA, "id", $themes_yandex_metrika_index['yandex_metrika_id'])): mpre("Метрика связанная с хостом не найдена") ?>
+			<?// elseif(): ?>
+			<? else: ?>
 				<script sync type="text/javascript">
 					/*<![CDATA[*/
 					(function (d, w, c) {
@@ -102,6 +109,16 @@
 							d.addEventListener("DOMContentLoaded", f, false);
 						} else { f(); }
 					})(document, window, "yandex_metrika_callbacks");
+
+					if("undefined" == typeof(Ya)){ console.error("Счетчик не найден для передачи цели");
+//					}else if("<?=json_encode($THEMES_YANDEX_METRIKA_GOAL)?>"){
+					}else{// console.info("reachGoal:", "GET_FORM");
+						$.each(Ya._metrika.counters, function(nn, counter){
+							counter.reachGoal(goal = "GET_FORM");
+							console.info("Событие в Яндекс.метрике:", goal);
+						})
+					}
+
 					/*]]>*/
 				</script>
 			<? endif; ?> 
@@ -131,20 +148,24 @@
 <? endif; ?>
 
 <? if(!array_search("Администратор", $conf['user']['gid'])):// mpre("Раздел предназначен только администраторам") ?>
-<? elseif(!$themes_index = get($conf, 'themes', 'index')):// mpre("Хост сайта не найден") ?>
+<? elseif(!$themes_index = get($conf, 'themes', 'index')): mpre("Хост сайта не найден") ?>
 <? elseif(($canonical = get($conf, 'settings', 'canonical')) &0): mpre("Канонический адрес не задан") ?>
-<? elseif(($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? $canonical['name'] : $_SERVER['REQUEST_URI']) && (!$get = mpgt($uri)) &0)://mpre("Параметры адреса не определены <b>{$uri}</b>") ?>
+<? elseif(($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? $canonical['name'] : $_SERVER['REQUEST_URI']) && (!$get = mpgt($uri)) &0): mpre("Параметры адреса не определены <b>{$uri}</b>") ?>
 <? elseif(!$alias = first(array_keys((array)get($get, 'm'))). ":". first(get($get, 'm')). (($keys = array_keys(array_diff_key($get, array_flip(["m", "id"])))) ? "/". implode("/", $keys) : "")): mpre("Алиас сфоримрован ошибочно") ?>
 <?// elseif(mpre($uri, $get, $alias)): ?>
-<? elseif((!$seo_cat = rb("seo-cat", "id", get($canonical, 'cat_id'))) && (!$seo_cat = rb("seo-cat", "alias", (empty($alias) ? false : "[{$alias}]")))):// mpre("Категория не найдена") ?>
+<? elseif((!$seo_cat = rb("seo-cat", "id", get($canonical, 'cat_id'))) && (!$seo_cat = rb("seo-cat", "alias", (empty($alias) ? false : "[{$alias}]"))) &0):// mpre("Категория не найдена") ?>
 <? else:// mpre($seo_cat) ?>
 		<div class="themes_header_seo_blocks" style="z-index:9999; border:1px solid #eee; border-radius:7px; position:fixed; background-color:rgba(255,255,255,0.7); color:black; padding:0 5px; left:10px; top:10px; width:auto;">
 			<div class="table">
 				<div>
 					<span><a href="/admin" title="Перейти в админраздел"><img src="/themes/theme:zhiraf/null/i/logo.png"></a></span>
 					<span>
-						<div title="Категория ссылки"><a href="/seo:admin/r:seo-cat?&where[id]=<?=get($seo_cat, 'id')?>"><?=get($seo_cat, 'name')?></a></div>
-						<div class="admin_content" title="Информация о странице"><?=$canonical['name']?></div>
+						<div title="Категория ссылки">
+							<? if($name = get($seo_cat, 'name')): ?>
+								<a href="/seo:admin/r:seo-cat?&where[id]=<?=get($seo_cat, 'id')?>"><?=$name?></a>
+							<? else: ?>Категория не задана<? endif; ?>
+						</div>
+						<div class="admin_content" title="Информация о странице"><?=get($canonical, 'name')?></div>
 					</span>
 				</div>
 			</div>
