@@ -444,13 +444,9 @@
 												<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&where[id]=<?=$v?>"><?=$v?></a>
 											</span>
 										<? elseif(!preg_match("#_id$#ui",$k) AND preg_match("#^img(\d*|_.+)?#iu",$k)): ?>
-											<div class="imgs" fn="<?=$k?>" style="position:relative; width:70px; height:70px;">
-													<? if($lines[$k]): ?>
-														<a class="del" href="javascript:void(0)" style="position:absolute; top:5px; right:5px;" title="Удалить изображение">
-															<img src="/img/del.png" style="background-color:#eee; border:1px solid #888; border-radius:3px;">
-														</a>
-													<? endif; ?>
-													<img src="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?><?=($lines[$k] ? "" : "/rand:". time())?>/w:65/h:65/null/img.png" style="border:1px solid #aaa; padding:2px;"  title="<?=$v?>">
+											<div class="imgs" fn="<?=$k?>" style="position:relative; height:14px;">													
+												<a class="del <?=($lines[$k]?"":"disabled")?>" href="javascript:void(0)" title="Удалить изображение"><img src="/img/del.png"></a>
+												<img class="minPreview" src="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?><?=($lines[$k] ? "" : "/rand:". time())?>/w:65/h:65/null/img.png"  title="<?=$v?>">
 											</div>
 										<? elseif(!preg_match("#_id$#ui",$k) AND preg_match("#^file(\d*|_.+)?#iu",$k)): ?>
 											<a target="blank" href="/<?=$arg['modpath']?>:file/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:file/null/<?=basename($lines[$k])?>" title="<?=$v?>">
@@ -515,7 +511,7 @@
 												<?=(($substr = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))) == "index" ? "" : ":{$substr}")?>/<?=$lines['id']?>"><?=htmlspecialchars($v)?>
 											</a>
 										<? else: ?>
-											<?=htmlspecialchars($v)?>
+											<?=htmlspecialchars(strip_tags($v))?>
 										<? endif; ?>
 									</span>
 								<? endforeach; ?>
