@@ -511,7 +511,7 @@
 												<?=(($substr = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))) == "index" ? "" : ":{$substr}")?>/<?=$lines['id']?>"><?=htmlspecialchars($v)?>
 											</a>
 										<? else: ?>
-											<?=htmlspecialchars($v)?>
+											<?=htmlspecialchars(strip_tags($v))?>
 										<? endif; ?>
 									</span>
 								<? endforeach; ?>
