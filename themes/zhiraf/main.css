@@ -27,6 +27,7 @@ a
 	color:#008ee9;
 	text-decoration:underline;
 	cursor:pointer;
+	vertical-align: top;
 }
 a:hover
 {

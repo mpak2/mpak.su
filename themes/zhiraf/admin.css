@@ -95,5 +95,47 @@
 
 div.table {display:table; width:100%;}
 div.table > div {display:table-row;}
-div.table > div > span {display:table-cell; vertical-align:top;}
+div.table > div > span {display:table-cell; vertical-align:top; min-width: 50px; max-width: 200px; white-space: nowrap;overflow: hidden;text-overflow: ellipsis;}
+div.table > div:not(.th) > span {line-height: 18px;}
 div.table > div.th >span {background-color:#aaa; color:#008ee9; font-weight:bold; border:1px solid #ddd;}
+
+img.minPreview{border:1px solid #aaa; padding:2px;height:16px;}
+div.bigPreview{
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background-color: #fff;
+    border: 5px solid #fff;
+    border-radius: 3px;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+	-webkit-box-shadow: -10px 9px 33px -8px rgba(0,0,0,0.37);
+-moz-box-shadow: -10px 9px 33px -8px rgba(0,0,0,0.37);
+box-shadow: -10px 9px 33px -8px rgba(0,0,0,0.37);
+}
+div.bigPreview:before{
+	content: "";
+    display: block;
+    position: absolute;
+    width: 109px;
+    height: 109px;
+    border: 1px solid #666;
+    border-radius: 3px;
+    margin: -5px;
+}
+div.bigPreview:after{
+    content: "";
+    display: block;
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 8px 0 8px 10px;
+    border-color: transparent transparent transparent #666666;
+    right: -15px;
+    top: -2px;
+}
+a.del{vertical-align: top;display: inline-block;padding: 4px;margin-bottom: -4px;}
+a.del img{background-color: #eee;border: 1px solid #888;border-radius: 3px; padding: 0 1px;}
+a.del.disabled{opacity: 0.5; pointer-events: none;}
