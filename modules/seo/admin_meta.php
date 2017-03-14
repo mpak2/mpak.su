@@ -50,8 +50,9 @@ if(!$alias = "{$arg['modpath']}:{$arg['fn']}". (($keys = array_keys(array_diff_k
 //			}elseif(!$src = preg_replace('|\s+|', '', $src)){ mpre("Ошибка замены пробельных символов в адресе");
 			}elseif(preg_match_all("#{(.*):?(.*?)}#", $src. implode("", $meta), $match) && (substr($src, -1) != "/")){ mpre("В адресе категории <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a> и метаинформации заменены не все теги", $src, $meta, "доступные для замены элементы", $mpzam+$settings);
 			}elseif(!$location = meta(array(urldecode($uri), $src = preg_replace('|\s+|', '', strtr($src, $characters))), $meta += array("cat_id"=>$seo_cat['id']))){ mpre("Мета информация обновлена", $meta);
+			}elseif(!array_search("Администратор", $conf['user']['gid'])){
+					exit(header("Location: {$location[0]}"));
 			}else{// mpevent("Мета элемент", $seo_cat, $src, $meta);
-				exit(header("Location: {$location[0]}"));
 			}
 		}else{ mpre("Таблица языка перекодировки не найдена <a href='/seo:admin/r:mp_seo_characters_lang'>{$w}</a>"); }
 	}elseif(!$src = implode("/", array_slice(explode("/", $seo_cat['href']), 0, 2))){ mpre("Ошибка получения первых элементов");

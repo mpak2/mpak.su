@@ -247,7 +247,7 @@
 					<? if(!get($tpl, 'edit')): ?>
 						<span style="width:430px;"><?=$tpl['pager']?></span>
 					<? endif; ?>
-					<span style="padding-right:20px; text-align:right;">
+					<span style="padding-right:20px; text-align:right; overflow:visible;">
 						<script sync>
 							(function($, script){
 								$(script).parent().on("mouseenter mouseleave", "li.settings", function(e){ // Загрузка родительского элемента
@@ -332,7 +332,7 @@
 									<input type="file" name="<?=$name?>[]" multiple="true">
 									<span class="info_comm">										
 										<?$linesda = get($tpl,'lines');?>
-										<a href="/<?=$arg['modpath']?>:img/<?=get($linesda,key($linesda))['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$name?>/w:65/h:65/null/img.png" target="_blank"><?=get($tpl,'edit',$name);?></a>
+										<a href="/<?=$arg['modpath']?>:img/<?=get($linesda,key($linesda))['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$name?>/w:109/h:109/null/img.png" target="_blank"><?=get($tpl,'edit',$name);?></a>
 									</span>
 								<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#^file(\d*|_.+)?#iu",$name)): ?>
 									<input type="file" name="<?=$name?>[]" multiple="true">
@@ -444,9 +444,17 @@
 												<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&where[id]=<?=$v?>"><?=$v?></a>
 											</span>
 										<? elseif(!preg_match("#_id$#ui",$k) AND preg_match("#^img(\d*|_.+)?#iu",$k)): ?>
-											<div class="imgs" fn="<?=$k?>" style="position:relative; height:14px;">													
+											<div class="imgs" fn="<?=$k?>" style="position:relative; height:14px;">
 												<a class="del <?=($lines[$k]?"":"disabled")?>" href="javascript:void(0)" title="Удалить изображение"><img src="/img/del.png"></a>
-												<img class="minPreview" src="/<?=$arg['modpath']?>:img/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$k?><?=($lines[$k] ? "" : "/rand:". time())?>/w:65/h:65/null/img.png"  title="<?=$v?>">
+												<? if(!$small = "/{$arg['modpath']}:img/{$lines['id']}/tn:". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "/fn:{$k}". ($lines[$k] ? "" : "/rand:". time()). "/w:109/h:109/null/img.png"): mpre("Ошибка формирования маленького изображения") ?>
+												<? elseif(!$lines[$k]):// mpre("Нет изображения") ?>
+														<img class="minPreview" src="<?=$small?>"  title="<?=$v?>">
+												<? elseif(!$big = "/{$arg['modpath']}:img/{$lines['id']}/tn:". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "/fn:{$k}". ($lines[$k] ? "" : "/rand:". time()). "/w:600/h:800/null/img.png"): mpre("Ошибка формирования большого изображения") ?>
+												<? else: ?>
+													<a target="blank" href="<?=$big?>">
+														<img class="minPreview" src="<?=$small?>"  title="<?=$v?>">
+													</a>
+												<? endif; ?>
 											</div>
 										<? elseif(!preg_match("#_id$#ui",$k) AND preg_match("#^file(\d*|_.+)?#iu",$k)): ?>
 											<a target="blank" href="/<?=$arg['modpath']?>:file/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:file/null/<?=basename($lines[$k])?>" title="<?=$v?>">

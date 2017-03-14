@@ -79,7 +79,7 @@
 <? endif; ?>
 
 <? if(get($conf, 'settings', 'themes_yandex_metrika')): ?>
-<? elseif(!$themes_index = get($conf, 'themes', 'index')): mpre("Информация о хосте не найдена") ?>
+<? elseif(!$themes_index = get($conf, 'themes', 'index')):// mpre("Информация о хосте не найдена") ?>
 <? elseif(get($conf, 'settings', 'themes_yandex_metrika_index') && (!$THEMES_YANDEX_METRIKA_INDEX = rb("themes-yandex_metrika_index", "index_id", "id", $themes_index['id']))): mpre("У сайта не найдено устанволенных метрик") ?>
 <? elseif(get($conf, 'settings', 'themes_yandex_metrika') && (!$THEMES_YANDEX_METRIKA = rb("themes-yandex_metrika", "id", "id", rb($THEMES_YANDEX_METRIKA_INDEX, "yandex_metrika_id")))): mpre("Счетчики установленные на сайте не найдены") ?>
 <? elseif(get($conf, 'settings', 'themes_yandex_metrika') && (!$THEMES_YANDEX_METRIKA_GOAL = rb("themes-yandex_metrika_goal", "yandex_metrika_id", "id", $THEMES_YANDEX_METRIKA_INDEX))): mpre("Событий Яндекс.Метрики не найдено"); ?>
@@ -148,7 +148,7 @@
 <? endif; ?>
 
 <? if(!array_search("Администратор", $conf['user']['gid'])):// mpre("Раздел предназначен только администраторам") ?>
-<? elseif(!$themes_index = get($conf, 'themes', 'index')): mpre("Хост сайта не найден") ?>
+<? elseif(!$themes_index = get($conf, 'themes', 'index')):// mpre("Хост сайта не найден") ?>
 <? elseif(($canonical = get($conf, 'settings', 'canonical')) &0): mpre("Канонический адрес не задан") ?>
 <? elseif(($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? $canonical['name'] : $_SERVER['REQUEST_URI']) && (!$get = mpgt($uri)) &0): mpre("Параметры адреса не определены <b>{$uri}</b>") ?>
 <? elseif(!$alias = first(array_keys((array)get($get, 'm'))). ":". first(get($get, 'm')). (($keys = array_keys(array_diff_key($get, array_flip(["m", "id"])))) ? "/". implode("/", $keys) : "")): mpre("Алиас сфоримрован ошибочно") ?>

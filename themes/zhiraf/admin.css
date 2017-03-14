@@ -99,6 +99,9 @@ div.table > div > span {display:table-cell; vertical-align:top; min-width: 50px;
 div.table > div:not(.th) > span {line-height: 18px;}
 div.table > div.th >span {background-color:#aaa; color:#008ee9; font-weight:bold; border:1px solid #ddd;}
 
+#header div.table > div > span {max-width:none;}
+.admin span {overflow:visible;}
+
 img.minPreview{border:1px solid #aaa; padding:2px;height:16px;}
 div.bigPreview{
     position: absolute;
