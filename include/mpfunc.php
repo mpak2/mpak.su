@@ -52,7 +52,7 @@ function cache($content = false){
 
 	if(array_search("pdo_sqlite", get_loaded_extensions())){ # PDO подерживает sqlite используем его для сохранения кеша
 		if(!$content){ # Отдаем кеш из sqlite
-			if(is_numeric($content)){ # mpre("База данных не подключилась");
+			if(is_numeric($content)){ # mpre("Ошибка подключения баз данных");
 				if(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ pre("Ошибка установки временной директории кеша");
 				}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ pre("Ошибка составления имени файла");
 				}elseif(!$conn = conn("sqlite:{$conn_file}")){ pre("Ошибка сохдания подключения sqlite");
@@ -74,7 +74,6 @@ function cache($content = false){
 					} header('Content-Encoding: gzip');
 					exit($row['content']);
 				}
-				
 			}elseif(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
 			}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
 			}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])*/){ // mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
@@ -83,7 +82,7 @@ function cache($content = false){
 				header('HTTP/1.1 503 Service Temporarily Unavailable');
 				header('Status: 503 Service Temporarily Unavailable');
 				exit(header('Retry-After: '. array_rand(60, 600)));//random() Почторить через небольшой период времени
-			}elseif(($sys_getloadavg[0] < 3) && (rand(0, $sys_getloadavg[0]) <= 1)){// mpre("Обновление страницы при небольшой загрузке процессора");
+			}elseif(($sys_getloadavg[0] < 3) && (rand(0, $sys_getloadavg[0]) <= 1)){// mpre("Чем меньше нагрузка, тем более вероятно обновление");
 //			}elseif(pre("cache", microtime(true))){
 			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Ошибка определения адреса");
 //			}elseif(array_key_exists('HTTP_CACHE_CONTROL', $_SERVER)){// pre("Обновление");
@@ -103,13 +102,8 @@ function cache($content = false){
 			}elseif(!($TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name"))){ mpre("Параметры таблицы не определены");
 			}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ mpre("Ошибка создания запроса");
 			}elseif(!$row = mpql($RES, 0)){ mpre("Ошибка извлечения строк");
-			}else{
-				foreach(explode("\n", $row['headers']) as $header){
-					header($header);
-				}
-//				header('Last-Modified: '. date("r", filectime($file_name)));
-//				header("Expires: ".gmdate("r", time() + 86400*10));
-			}
+			}else{ foreach(explode("\n", $row['headers']) as $header){ header($header); } }
+
 			if($sys_getloadavg[0] >= 20){
 				error_log(implode("/", $sys_getloadavg). " >-< 503 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 				header('HTTP/1.1 503 Service Temporarily Unavailable');
@@ -557,7 +551,8 @@ if(!function_exists('blocks')){
 		}))) &0){ mpre("Разрешения для группы");
 		}else{
 			foreach($BLOCKS as $k=>$block){
-				if(!$theme = (substr($block['theme'], 0, 1) == "!" && ($conf['settings']['theme'] != substr($block['theme'], 1)) ? $conf['settings']['theme'] : $block['theme'])){ mpre("Ошибка расчета темы с учетом отрицания");
+				if(!$theme = ((substr($block['theme'], 0, 1) == "!") && ($conf['settings']['theme'] != substr($block['theme'], 1)) ? $conf['settings']['theme'] : $block['theme'])){ mpre("Ошибка расчета темы с учетом отрицания {$block['theme']}");
+//				if(!$theme = ()){ mpre("Ошибка расчета темы с учетом отрицания {$block['theme']}");
 				}elseif(($conf['settings']['theme'] != $block['theme']) && ($conf['settings']['theme'] != $theme)){// mpre("У блока отмечен другой шаблон", $theme);
 				}elseif(!$conf['db']['info'] = "Блок '{$block['name']}'"){ pre("Описание к запросам блока");
 				}elseif(!$mod = get($conf, 'modules', basename(dirname(dirname($block['src'])))) ?: array("folder"=>'')){ mpre("Ошибка определения модуля");
@@ -724,7 +719,7 @@ function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $hea
 		curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
 		curl_setopt($ch, CURLOPT_PROXY, $proxy); //если нужен прокси
 	}
-	curl_setopt ($ch , CURLOPT_FOLLOWLOCATION , 1);
+//	curl_setopt ($ch , CURLOPT_FOLLOWLOCATION , true);
 	curl_setopt($ch, CURLOPT_COOKIEFILE, $temp);//tempnam(ini_get('upload_tmp_dir'), "curl_cookie_")
 	curl_setopt($ch, CURLOPT_COOKIEJAR, $temp); //В какой файл записывать
 	curl_setopt($ch, CURLOPT_URL, $href); //куда шлем

@@ -238,7 +238,7 @@
 			<div class="table">
 				<div>
 					<? if(get($tpl, 'title') && !get($_GET, "edit")): ?>
-						<span style="width:60px; padding-left:20px;">
+						<span style="width:60px; padding-left:20px;vertical-align:middle;">
 							<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/edit?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : "")?>">
 								<button type="button">Добавить</button>
 							</a>
@@ -247,7 +247,7 @@
 					<? if(!get($tpl, 'edit')): ?>
 						<span style="width:430px;"><?=$tpl['pager']?></span>
 					<? endif; ?>
-					<span style="padding-right:20px; text-align:right; overflow:visible;">
+					<span style="padding-right:20px; text-align:right; overflow:visible; white-space:normal;">
 						<script sync>
 							(function($, script){
 								$(script).parent().on("mouseenter mouseleave", "li.settings", function(e){ // Загрузка родительского элемента
@@ -495,8 +495,8 @@
 												<? endif; ?>
 											</span>
 										<? elseif(array_search($k, array(1=>"time", "last_time", "reg_time", "up", 'down'))): # Поле времени ?>
-											<span style="white-space:nowrap;" title="<?=$v?>">
-												<?=($v ? date("Y-m-d H:i:s", $v) : "")?>
+											<span style="white-space:nowrap;" title="<?=($v > 86400 ? $v : date("Y-m-d H:i:s", $v))?>">
+												<?=($v > 86400 ? date("Y-m-d H:i:s", $v) : $v)?>
 											</span>
 										<? elseif(substr($k, -3) == "_id"): ?>
 											<? if($el = rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($k, 0, -3), "id", $v)): ?>
@@ -589,7 +589,7 @@
 												<option selected style="color:red;"><?=htmlspecialchars($tpl['edit'][$name])?></option>
 											<? endif; ?>
 											<? foreach(rb("{$arg['modpath']}-". substr($name, 0, -3)) as $ln): ?>
-												<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $name) == $ln['id']) || (!get($tpl, 'edit') && (($ln['id'] == (get($_GET, 'where', $name)) ?: get($field, 'Default')))) ? "selected" : "")?>>
+												<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $name) == $ln['id']) || (!get($tpl, 'edit') && (($ln['id'] == ((get($_GET, 'where', $name)) ?: get($field, 'Default'))))) ? "selected" : "")?>>
 													<?=$ln['id']?>&nbsp;<?=htmlspecialchars(get($ln, 'name'))?>
 												</option>
 											<? endforeach; ?>

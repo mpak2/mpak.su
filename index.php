@@ -200,14 +200,14 @@ array_key_exists("m", $_GET) ? (list($f) = array_values($_GET['m'])) : "index";
 $conf['settings']['modpath'] = !empty($m) && array_key_exists($m, $conf['modules']) ? $conf['modules'][ $m ]['folder'] : "";
 $conf['settings']['fn'] = (!empty($f) && ($f != "index")) ? $f : "index";
 
-if(empty($f)){
-	$f = 'index';
-} if(!empty($conf['settings']["theme/*:{$conf['settings']['fn']}"])){
-	$conf['settings']['theme'] = $conf['settings']["theme/*:{$conf['settings']['fn']}"];
-} if(!empty($conf['settings']["theme/{$conf['settings']['modpath']}:*"])){
-	$conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:*"];
-} if(!empty($conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"])){
-	$conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"];
+if(!$modpath = $conf['settings']['modpath']){ mpre("Модуль не определен");
+}elseif(!$fn = $conf['settings']['fn']){ mpre("Имя файла не определенено");
+}elseif($theme = get($conf, 'settings', $w = "theme/{$modpath}:{$fn}")){// mpre("Тема {$w} {$theme}");
+	$conf['settings']['theme'] = $theme;
+}elseif($theme = get($conf, 'settings', $w = "theme/*:{$fn}")){// mpre("Тема {$w} {$theme}");
+	$conf['settings']['theme'] = $theme;
+}elseif($theme = get($conf, 'settings', $w = "theme/{$modpath}:*")){// mpre("Тема {$w} {$theme}");
+	$conf['settings']['theme'] = $theme;
 } inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($content = "")));
 
 if(array_key_exists('theme', $_GET)){
@@ -240,10 +240,6 @@ foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_uac
 	if ($conf['user']['uid'] == $v['uid'] && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false)
 		$conf['modules'][ $v['mid'] ]['admin_access'] = $v['admin_access'];
 }
-
-if(!empty($conf['settings']["theme/*:{$conf['settings']['fn']}"])) $conf['settings']['theme'] = $conf['settings']["theme/*:{$conf['settings']['fn']}"];
-if(!empty($conf['settings']["theme/{$conf['settings']['modpath']}:*"])) $conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:*"];
-if(!empty($conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"])) $conf['settings']['theme'] = $conf['settings']["theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}"];
 
 if((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]){ # Изменяем тему админ страницы
 	$conf['settings']['theme'] = $conf['settings']["theme/*:admin"];

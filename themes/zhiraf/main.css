@@ -93,7 +93,7 @@ body
 	height:auto!important;
 	height:100%;
 	position:relative;
-	background:url("i/border.gif") repeat-y 222px 0;
+/*	background:url("i/border.gif") repeat-y 222px 0;*/
 }
 /* *** Блок авторизации *** */
 
@@ -238,7 +238,7 @@ input[type="submit"]
 			}
 			#content
 			{
-				margin:0 0 0 222px;
+/*				margin:0 0 0 222px;*/
 				padding:0 1px;
 			}
 				#content:after {content:"\00a0";}
@@ -290,15 +290,13 @@ input[type="submit"]
 			}
 #right
 {
-	float:left;
-	width:222px;
-	margin:0 0 0 -222px;
+	/*width:222px;
+	margin:0 0 0 -222px;*/
 }
 #left
 {
-	float:left;
-	width:222px;
-	margin:0 0 0 -100%;
+/*	width:222px;
+	margin:0 0 0 -100%;*/
 }
 #footer
 {

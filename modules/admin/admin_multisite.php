@@ -123,18 +123,18 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 					if(array_search("Администратор", $conf['user']['gid'])){
 						mpre("Перенаправление на внешний адрес <a href='{$seo_index['name']}'>{$seo_index['name']}</a>");
 					}else{ header("HTTP/1.1 302 Moved Permanently"); exit(header("Location: {$seo_location['name']}")); }
-				}elseif(!$seo_location = rb("seo-location", "name", "[{$parse_url['path']}]")){ mpre("Внутренний адрес сайта перенаправления не определен");
+				}elseif(!$_seo_location = rb("seo-location", "name", "[{$parse_url['path']}]")){ mpre("Внутренний адрес сайта перенаправления не определен", $parse_url);
 					if(array_search("Администратор", $conf['user']['gid'])){
 						mpre("Перенаправление на внешний адрес <a href='{$seo_index['name']}'>{$seo_index['name']}</a>");
 					}else{ header("HTTP/1.1 302 Moved Permanently"); exit(header("Location: {$seo_location['name']}")); }
-				}elseif(!$seo_index_themes = rb("seo-index_themes", "themes_index", "location_id", $index['id'], $seo_location['id'])){ mpre("Не найдена запись страницы хоста");
+				}elseif(!$seo_index_themes = rb("seo-index_themes", "themes_index", "location_id", $index['id'], $_seo_location['id'])){ mpre("Не найдена запись страницы хоста");
 					if(array_search("Администратор", $conf['user']['gid'])){
 						mpre("Перенаправление на внешний адрес <a href='{$seo_index['name']}'>{$seo_index['name']}</a>");
-					}else{ header("HTTP/1.1 302 Moved Permanently"); exit(header("Location: {$seo_location['name']}")); }
+					}else{ header("HTTP/1.1 302 Moved Permanently"); exit(header("Location: {$_seo_location['name']}")); }
 				}elseif(!$seo_index = rb("seo-index", "id", $seo_index_themes['index_id'])){ mpre("Не найден внешний адрес перенаправляемого хоста");
 					if(array_search("Администратор", $conf['user']['gid'])){
 						mpre("Перенаправление на внешний адрес <a href='{$seo_index['name']}'>{$seo_index['name']}</a>");
-					}else{ header("HTTP/1.1 302 Moved Permanently"); exit(header("Location: {$seo_location['name']}")); }
+					}else{ header("HTTP/1.1 302 Moved Permanently"); exit(header("Location: {$_seo_location['name']}")); }
 				}else{
 					header("HTTP/1.1 302 Moved Permanently");
 					if(array_search("Администратор", $conf['user']['gid'])){

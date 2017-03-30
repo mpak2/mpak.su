@@ -49,7 +49,7 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 		foreach($_POST as $field=>$post){
 			if(array_search($field, array(1=>"time", "last_time", "reg_time", "up", "down"))){
 				$_POST[$field] = strtotime($post);
-			} if(($_GET['r'] == "{$conf['db']['prefix']}users") && ($field == "pass") && (strlen($_POST['pass']) != 32)){
+			} if(($_GET['r'] == "{$conf['db']['prefix']}users") && ($field == "pass") && (strlen($_POST['pass']) != 32) && (substr($_POST['pass'], 0, 1) != "!")){
 				$_POST[$field] = mphash($_POST['name'], $_POST['pass']);
 			}
 		} if(get($_GET, 'id')){

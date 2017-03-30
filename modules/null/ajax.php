@@ -4,14 +4,14 @@ if(get($_REQUEST, 'class') && $class = "{$conf['db']['prefix']}{$arg['modpath']}
 	if($arg['admin_access'] > 1){
 		mpevent("ajax://{$arg['modpath']}:ajax/class:{$t}", $conf['user']['uid'], $_REQUEST);
 		$where = array_diff_key($_GET, array_flip(array("class", "m", "null")));
-		$w = array("time"=>time()) + array_diff_key($_REQUEST, array("id"=>false));
+		$w = /*array("time"=>time()) +*/ array_diff_key($_REQUEST, array("id"=>false));
 		if($arg['admin_access'] >= 2){
 			if(get($_POST, 'id') < 0){
 				qw("DELETE FROM {$class} WHERE ". implode(" AND ", array_map(function($k, $v){
 					return "`$k`=". (is_numeric($v) ? (int)$v : "\"". mpquot($v). "\"");
 				}, array_keys($where), array_values($where))));
 				exit("{}");
-			}elseif(!$fdk = fdk($class, $where, $w = ($where + ($_POST ? $w : [])), $w)){ exit(mpre("Ошибка запроса к БД", $class, $where, $w));
+			}elseif(!$fdk = fdk($class, $where, ['time'=>time()] + ($w = ($where + ($_POST ? $w : []))), $w)){ exit(mpre("Ошибка запроса к БД", $class, $where, $w));
 			}elseif(!mail("info@galerea-hotel.ru", "Сообщение на сайте", implode("\n", $fdk))){ mpre("ОШибка отправки email сообщения");
 			}else{
 				if(array_key_exists("sort", $fdk) && ($fdk['sort'] == 0)){
