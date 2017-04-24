@@ -358,7 +358,15 @@ function get($ar){
 			$ar = $ar[ $key ];
 		}else{ return false; }
 	} return $ar;
-} function first($ar){
+} 
+function &get_link(&$ar){
+	foreach(array_slice(func_get_args(), 1) as $key){
+		if(!empty($ar) && is_array($ar) && (is_string($key) || is_numeric($key)) && array_key_exists($key, $ar)){
+			$ar = &$ar[ $key ];
+		}else{ return false; }
+	} return $ar;
+}
+function first($ar){
 	if(!empty($ar) && is_array($ar) && ($keys = array_keys($ar))){
 		return get($ar, array_shift($keys));
 	}else{ return false; }
