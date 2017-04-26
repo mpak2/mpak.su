@@ -8,13 +8,16 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 }elseif(!$http_host = preg_replace("/[.]+$/", "", $http_host)){ mpre("Ошибка выризания точек в конце хоста. По стандартам можно ставить точку в конце адреса и это будет работать");
 }else{ global $conf; # Пользовательская страница
 	if($themes_index = rb("themes-index", "name", "[$http_host]")){// mpre("Хост найден в списке хостов");
-	}else if(get($conf, "settings", "themes_index_ignore") && ($themes_index_ignore = rb("themes-index_ignore", "name", "[{$http_host}]"))){ mpre("Хост в списке игнорированных");
+		if(!$_themes_index = (get($themes_index, 'index_id') ? rb("themes-index", "id", $themes_index['index_id']) : [])){// mpre("Зеркало сайта не найдено");
+		}elseif($_SERVER['REQUEST_URI'] == "/robots.txt"){// mpre("Обработка страницы робота");
+		}else{ $themes_index = $_themes_index; }
+	}elseif(get($conf, "settings", "themes_index_ignore") && ($themes_index_ignore = rb("themes-index_ignore", "name", "[{$http_host}]"))){ mpre("Хост в списке игнорированных");
 		if(array_key_exists("count", $themes_index_ignore)){
 			$themes_index_ignore = fk("themes-index_ignore", array("id"=>$themes_index_ignore['id']), null, array("count"=>$themes_index_ignore['count']+1));
 		} exit("Сайт {$http_host} в списке игнорированных");
-	}else if(get($conf, 'settings', 'themes_index_ignore_host') && ($_hosts = explode(".", $_SERVER['HTTP_HOST'])) && ($themes_index_ignore_host = rb("themes-index_ignore_host", "name", "[". implode(",", $_hosts). "]"))){
+	}elseif(get($conf, 'settings', 'themes_index_ignore_host') && ($_hosts = explode(".", $_SERVER['HTTP_HOST'])) && ($themes_index_ignore_host = rb("themes-index_ignore_host", "name", "[". implode(",", $_hosts). "]"))){
 		$themes_index_ignore = fk("themes-index_ignore", $w = ['name'=>$http_host], $w += ['index_ignore_host_id'=>$themes_index_ignore_host['id']], $w);
-	}else if((gethostbyname($_SERVER['HTTP_HOST']) == $_SERVER['SERVER_ADDR']) || (get($conf, "settings", 'admin_gethostbyname') == gethostbyname($_SERVER['HTTP_HOST']))){ # Хост настроен на сервер или совпадает с указанным в админке ip
+	}elseif((gethostbyname($_SERVER['HTTP_HOST']) == $_SERVER['SERVER_ADDR']) || (get($conf, "settings", 'admin_gethostbyname') == gethostbyname($_SERVER['HTTP_HOST']))){ # Хост настроен на сервер или совпадает с указанным в админке ip
 		if(!trim($http_host)){ mpre("Хост пустышка");
 			$http_host = $_SERVER['SERVER_ADDR'];
 		}else if(!$themes_index = fk("themes-index", $w = array("name"=>$http_host), $w, $w)){ mpre("Ошибка добавления нового хоста");
@@ -23,18 +26,13 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 		}
 	}else{ $http_host = $_SERVER['SERVER_ADDR']; }
 
-
-	if($conf['user']['sess']['themes_index'] = $conf['themes']['index'] = $themes_index){
-
+	if($conf['user']['sess']['themes_index'] = $conf['themes']['index'] = (get($conf, 'themes', 'index') ? $conf['themes']['index'] + $themes_index : $themes_index)){
 		if(!get($conf, 'user', 'sess', 'id')){// mpre("Сессия не задана, возможно выключена в настройках сайта");
 		}elseif(!array_key_exists("themes-index", $_sess = get($conf, 'user', 'sess'))){// mpre("Поле для записи хоста в таблице сессии не задано");
 		}elseif($_sess["themes-index"] == $themes_index['id']){// mpre("Информация о хосте уже обновлена");
 		}elseif(!$_sess = fk("{$conf['db']['prefix']}sess", ['id'=>$_sess['id']], null, ["themes-index"=>$themes_index['id']])){ mpre("Ошибка обновления хоста в сессиях");
 		}else{ /*mpre("Обновление хоста", $themes_index, $_sess);*/ }
 
-		if(get($themes_index, 'index_id') && ($_SERVER['REQUEST_URI'] != "/robots.txt")){
-			$conf['user']['sess']['themes_index'] = $conf['themes']['index'] = $themes_index = rb("themes-index", "id", $themes_index['index_id']);
-		}
 		if(get($_GET, "theme")){ # Шаблон задан в адресной строке
 			$conf['settings']['theme'] = $_GET['theme'];
 		}elseif(get($conf, 'user', 'theme')){ # Изменяем тему, если для пользователя установлен другой шаблон

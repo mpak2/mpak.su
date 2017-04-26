@@ -1,21 +1,18 @@
 <?
 
-if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управляющие данные
-	if(!$order = (get($conf, "settings", substr($_GET['r'], strlen($conf['db']['prefix'])). "=>order") ?: "sort")){ mpre("Ошибка формирования сортировки таблицы");
+if(array_key_exists("null", $_GET)){// exit(mpre("Таблица для записи не указана"));
+	if(!$_POST){ exit(mpre("", "Данных для сохарения не задано"));
+	}elseif(!get($_GET, 'r')){ mpre("Таблица сохранения не указана");
+	}elseif(!$order = (get($conf, "settings", substr($_GET['r'], strlen($conf['db']['prefix'])). "=>order") ?: "sort")){ mpre("Ошибка формирования сортировки таблицы");
 	}elseif(get($_GET, "id") && array_key_exists("id", $_POST) && !$_POST['id']){ # Удаление элемента
-
-		if(get($conf, 'settings', 'admin_history_log')){
-//			if($admin_history_type = rb("{$conf['db']['prefix']}admin_history_type", "name", $w = "[Удаление]")){
-			if($admin_history_type = fk("{$conf['db']['prefix']}admin_history_type", $w = array("name"=>"Удаление"), $w)){
-				if($data = rb($_GET['r'], "id", $_GET['id'])){
-					if($admin_history_tables = fk("{$conf['db']['prefix']}admin_history_tables", $w = array("name"=>$_GET['r']), $w += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn'], "description"=>get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])))), $w)){
-						$admin_history = fk("{$conf['db']['prefix']}admin_history", null, array("history_type_id"=>$admin_history_type['id'], "name"=>$_GET['id'], "history_tables_id"=>$admin_history_tables['id'], "data"=>json_encode($data)));
-					}else{ mpre("Информация об изменяемой таблице не найдена"); }
-				}else{ mpre("Данные для сохранения не определены"); }
-			}else{ mpre("Тип записи не найден {$w}"); }
+		if(!get($conf, 'settings', 'admin_history_log')){// mpre("Лог файл отключен");
+		}elseif(!$admin_history_type = fk("{$conf['db']['prefix']}admin_history_type", $w = array("name"=>"Удаление"), $w)){ mpre("Тип записи не найден {$w}");
+		}elseif(!$data = rb($_GET['r'], "id", $_GET['id'])){ mpre("Данные для сохранения не определены");
+		}elseif(!$admin_history_tables = fk("{$conf['db']['prefix']}admin_history_tables", $w = array("name"=>$_GET['r']), $w += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn'], "description"=>get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])))), $w)){ mpre("Информация об изменяемой таблице не найдена");
+		}else{
+			$admin_history = fk("{$conf['db']['prefix']}admin_history", null, array("history_type_id"=>$admin_history_type['id'], "name"=>$_GET['id'], "history_tables_id"=>$admin_history_tables['id'], "data"=>json_encode($data)));
 		} exit(qw("DELETE FROM {$_GET['r']} WHERE id=". (int)$_GET['id']));
-
-	}elseif(get($_POST, "inc") && ($inc = rb($_GET['r'], "id", $_POST['inc']))){ # Правка записи и добавление новой
+	}elseif(get($_POST, "inc") && ($inc = rb($_GET['r'], "id", $_POST['inc']))){ # Изменение сортировки вверх
 		if(!$list = qn($sql = "SELECT * FROM {$_GET['r']} WHERE ". (mpdbf($_GET['r'], get($_GET, 'where'), true) ?: 1). " ORDER BY ". (get($_GET, 'order') ?: $order). "")){ mpre("Элементы в списке не найдены");
 		}elseif(!$keys = array_keys($list)){ mpre("Ошибка формирования ключей массива");
 		}elseif(($nn = array_search($_POST['inc'], $keys)) === false){ mpre("Элемент в списке не найден");
@@ -25,7 +22,7 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
 			exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
 		} die();
-	}elseif(get($_POST, "dec") && ($dec = rb($_GET['r'], "id", $_POST['dec']))){ # Правка записи и добавление новой
+	}elseif(get($_POST, "dec") && ($dec = rb($_GET['r'], "id", $_POST['dec']))){ # Изменение сортировки вниз
 		if(!$list = qn($sql = "SELECT * FROM {$_GET['r']} WHERE ". (($where = get($_GET, 'where')) ? mpdbf($_GET['r'], $where, true) : 1). " ORDER BY ". (get($_GET, 'order') ?: $order). "")){ mpre("Элементы в списке не найдены");
 		}elseif(!$keys = array_keys($list)){ mpre("Ошибка формирования ключей массива");
 		}elseif(($nn = array_search($_POST['dec'], $keys)) === false){ mpre("Элемент в списке не найден", $_POST['dec'], $keys);
@@ -35,12 +32,12 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
 			exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
 		} die;
-	}elseif(get($_POST, "first") && ($inc = rb($_GET['r'], "id", $_POST["first"]))){ # Правка записи и добавление новой
+	}elseif(get($_POST, "first") && ($inc = rb($_GET['r'], "id", $_POST["first"]))){ # Сортировка списка элементов
 		if($dec = ql($sql = "SELECT * FROM {$_GET['r']} WHERE ". (mpdbf($_GET['r'], get($_GET, 'where'), true) ?: 1). " ORDER BY ". (get($_GET, 'order') ?: $order). " LIMIT 1", 0)){
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
 		}else{ mpre($sql); }/* mpre($_inc, $_dec);*/ exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
-	}elseif(get($_POST, "last") && ($inc = rb($_GET['r'], "id", $_POST["last"]))){ # Правка записи и добавление новой
+	}elseif(get($_POST, "last") && ($inc = rb($_GET['r'], "id", $_POST["last"]))){ # Сортировка списка элементов
 		if($dec = ql($sql = "SELECT * FROM {$_GET['r']} WHERE ". (mpdbf($_GET['r'], get($_GET, 'where'), true) ?: 1). " ORDER BY ". (get($_GET, 'order') ?: $order). " DESC LIMIT 1", 0)){
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
@@ -54,21 +51,20 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 			}
 		} if(get($_GET, 'id')){
 
-			if(get($conf, 'settings', 'admin_history_log')){
-//				if($admin_history_type = rb("{$conf['db']['prefix']}admin_history_type", "name", $w = "[Редактирование]")){
-				if($admin_history_type = fk("{$conf['db']['prefix']}admin_history_type", $w = array("name"=>"Редактирование"), $w)){
-					if($admin_history_tables = fk("{$conf['db']['prefix']}admin_history_tables", $w = array("name"=>$_GET['r']), $w += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn'], "description"=>get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])))), $w)){
-						if($data = rb($_GET['r'], "id", $_GET['id'])){
-							$admin_history = fk("{$conf['db']['prefix']}admin_history", null, array("history_type_id"=>$admin_history_type['id'], "name"=>$_GET['id'], "history_tables_id"=>$admin_history_tables['id'], "diff"=>json_encode(array_diff_key(array_diff_assoc($_POST, $data), array_flip(["id"]))), "data"=>json_encode($data)));
-						}else{ mpre("Ошибка выборки изменяемой записи"); }
-					}else{ mpre("Ошибка сохранения названия таблицы"); }
-				}else{ mpre("Тип записи не найден {$w}"); }
-			}else{ /*mpre("Логирование запросов выключено");*/ }
+			if(!get($conf, 'settings', 'admin_history_log')){// mpre("История не включена");
+			}elseif(!$admin_history_type = fk("admin-history_type", $w = array("name"=>"Редактирование"), $w)){ mpre("Тип записи не найден {$w}");
+			}elseif(!$admin_history_tables = fk("admin-history_tables", $w = array("name"=>$_GET['r']), $w += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn'], "description"=>get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])))), $w)){ mpre("Ошибка сохранения названия таблицы");
+			}elseif(!$data = rb($_GET['r'], "id", $_GET['id'])){ mpre("Ошибка выборки изменяемой записи");
+			}elseif(!$admin_history = fk("admin-history", null, array("history_type_id"=>$admin_history_type['id'], "name"=>$_GET['id'], "history_tables_id"=>$admin_history_tables['id'], "diff"=>json_encode(array_diff_key(array_diff_assoc($_POST, $data), array_flip(["id"]))), "data"=>json_encode($data)))){ mpre("Ошибка сохранения истории");
+			}else{ //mpre("История сохранена", $admin_history);
+			}
 
 			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=". ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\""); });
 			qw($sql = "UPDATE `{$_GET['r']}` SET ". implode(", ", array_values($_POST)). " WHERE id=". (int)$_GET['id']);
 			$el = rb($_GET['r'], "id", $_GET['id']);
 		}else{
+
+		
 			if($ar = array_filter($_POST, function($e){ return is_array($e); })){
 				array_walk($_POST, function($val, $key){
 					if(is_array($val)){
@@ -93,38 +89,30 @@ if(array_key_exists("null", $_GET) && get($_GET, 'r') && $_POST){ # Управл
 				array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\""); });
 				mpqw($sql = "INSERT INTO `{$_GET['r']}` (`". implode("`, `", array_keys($_POST)). "`) VALUES (". implode(", ", array_values($_POST)). ")", "Добавление записи в таблицу из админстраницы", function($error) use($conf){
 					if(($fields = fields($_GET['r'])) && preg_match("#Column '([\w-_]+)' cannot be null#", $error, $match)){
-						if($type = $fields[$match[1]]['Type']){
+					}elseif($type = $fields[$match[1]]['Type']){ mpre("Тип данных для правки структуры БД не определен", $_GET['r'], $match);
+					}else{
 							mpre("Правка структуры таблицы", $sql = "ALTER TABLE {$_GET['r']} CHANGE `{$match[1]}` `{$match[1]}` {$type} DEFAULT NULL COMMENT '". mpquot(get($fields, $match[1], 'Comment')). "'", $error, $match, get($fields, $match[1]));
 							qw($sql);
-						}else{ mpre("Тип данных для правки структуры БД не определен", $_GET['r'], $match); }
-					}else{ /*mpre("Ошибка определения структуры запроса");*/ }
+					}
 				});
 				$_GET['id'] = $conf['db']['conn']->lastInsertId();
 				$el = rb($_GET['r'], "id", $_GET['id']);
 			}
-			if(get($conf, 'settings', 'admin_history_log')){
-//				if($admin_history_type = rb("{$conf['db']['prefix']}admin_history_type", "name", $w = "[Добавление]")){
-				if($admin_history_type = fk("{$conf['db']['prefix']}admin_history_type", $w = array("name"=>"Добавление"), $w)){
-					if($admin_history_tables = fk("{$conf['db']['prefix']}admin_history_tables", $w = array("name"=>$_GET['r']), $w += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn'], "description"=>get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])))), $w)){
-//						if($data = rb($_GET['r'], "id", $_POST['id'])){
-							$admin_history = fk("{$conf['db']['prefix']}admin_history", null, array("history_type_id"=>$admin_history_type['id'], "name"=>$el['id'], "history_tables_id"=>$admin_history_tables['id'], "data"=>json_encode($_POST)));
-//						}else{ mpre("Ошибка выборки изменяемой записи"); }
-					}else{ mpre("Ошибка сохранения названия таблицы"); }
-				}else{ mpre("Тип записи не найден {$w}"); }
-			}else{ /*mpre("Логирование запросов выключено");*/ }
+			if(!get($conf, 'settings', 'admin_history_log')){// mpre("Логирование записи выключено");
+			}elseif(!$admin_history_type = fk("admin-history_type", $w = array("name"=>"Добавление"), $w)){ mpre("Тип записи не найден {$w}");
+			}elseif(!$admin_history_tables = fk("admin-history_tables", $w = array("name"=>$_GET['r']), $w += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn'], "description"=>get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])))), $w)){ mpre("Ошибка сохранения названия таблицы");
+			}elseif(!$admin_history = fk("admin-history", null, array("history_type_id"=>$admin_history_type['id'], "name"=>$el['id'], "history_tables_id"=>$admin_history_tables['id'], "data"=>json_encode($_POST)))){ mpre("Ошибка добавления записи лога");
+			}else{ /*mpre("Логирование отработало корректно");*/ }
 		}
-		
-		
-		
+
 		//поиск изображений и файлов
-		preg_match_all("#(img|file)(\d+|_[^,]+)?#iu",implode(",",array_keys($_FILES)),$matchFiles);
-		//маска
+		preg_match_all("#(img|file)(\d+|_[^,]+)?#iu", implode(",", array_keys($_FILES)), $matchFiles); //маска
 		$exts = array(
 			"img"=>array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp'),
 			"file"=>array("*"=>"*")
 		);
 		
-		
+
 		foreach($matchFiles[0] as $mKey=>$param_name){
 			$f = $matchFiles[1][$mKey];
 			$ext = $exts[$f];

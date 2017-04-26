@@ -78,23 +78,30 @@
 	<!-- google-analytics end -->
 <? endif; ?>
 
-<? if(get($conf, 'settings', 'themes_yandex_metrika')): ?>
-<? elseif(!$themes_index = get($conf, 'themes', 'index')):// mpre("Информация о хосте не найдена") ?>
-<? elseif(get($conf, 'settings', 'themes_yandex_metrika_index') && (!$THEMES_YANDEX_METRIKA_INDEX = rb("themes-yandex_metrika_index", "index_id", "id", $themes_index['id']))): mpre("У сайта не найдено устанволенных метрик") ?>
-<? elseif(get($conf, 'settings', 'themes_yandex_metrika') && (!$THEMES_YANDEX_METRIKA = rb("themes-yandex_metrika", "id", "id", rb($THEMES_YANDEX_METRIKA_INDEX, "yandex_metrika_id")))): mpre("Счетчики установленные на сайте не найдены") ?>
-<? elseif(get($conf, 'settings', 'themes_yandex_metrika') && (!$THEMES_YANDEX_METRIKA_GOAL = rb("themes-yandex_metrika_goal", "yandex_metrika_id", "id", $THEMES_YANDEX_METRIKA_INDEX))): mpre("Событий Яндекс.Метрики не найдено"); ?>
-<? else: ?>
+<? if(!get($conf, 'settings', 'themes_yandex_metrika')):// mpre("Раздел яндекс метрики не создан") ?>
+<? elseif(!$themes_index = get($conf, 'themes', 'index')): mpre("Информация о хосте не найдена") ?>
+<? elseif(get($conf, 'settings', 'themes_yandex_metrika_index') && (!$THEMES_YANDEX_METRIKA_INDEX = rb("themes-yandex_metrika_index", "index_id", "id", $themes_index['id']))): mpre("У сайта не найдено <a href='/themes:admin/r:themes-yandex_metrika_index?&where[index_id]={$themes_index['id']}'>устанволенных метрик</a>") ?>
+<? elseif(get($conf, 'settings', 'themes_yandex_metrika') && (!$THEMES_YANDEX_METRIKA = rb("themes-yandex_metrika", "id", "id", rb($THEMES_YANDEX_METRIKA_INDEX, "yandex_metrika_id"))) &0): mpre("Счетчики установленные на сайте не найдены") ?>
+<? elseif((!$THEMES_YANDEX_METRIKA_GOAL_METRIKA = (get($conf, 'settings', 'themes_yandex_metrika_goal_metrika') ? rb("themes-yandex_metrika_goal_metrika", "yandex_metrika_id", "id", $THEMES_YANDEX_METRIKA) : [])) &0): mpre("Исследования для сайта не установлены") ?>
+<? elseif((!$THEMES_YANDEX_METRIKA_GOAL_ANALYSIS = (get($conf, 'settings', 'themes_yandex_metrika_goal_analysis') ? rb("themes-yandex_metrika_goal_analysis", "id", "id", rb($THEMES_YANDEX_METRIKA_GOAL_METRIKA, "yandex_metrika_goal_analysis_id")) : [])) &0): mpre("Ошибка составления списка исследований для сайта") ?>
+<? elseif((!$THEMES_YANDEX_METRIKA_GOAL = (get($conf, 'settings', 'themes_yandex_metrika_goal') ? rb("themes-yandex_metrika_goal", "yandex_metrika_goal_analysis_id", "id", $THEMES_YANDEX_METRIKA_GOAL_ANALYSIS) : [])) &0): mpre("Цели яндекс метрики не найдены"); ?>
+<? elseif((!$THEMES_YANDEX_METRIKA_GOAL_ELEMENT = (get($conf, 'settings', 'themes_yandex_metrika_goal_element') ? rb("themes-yandex_metrika_goal_element", "yandex_metrika_goal_id", "id", $THEMES_YANDEX_METRIKA_GOAL) : [])) &0): mpre("Элементы событий не найдены") ?>
+<? else:// mpre($THEMES_YANDEX_METRIKA_GOAL_ANALYSIS, $THEMES_YANDEX_METRIKA_GOAL) ?>
 	<!-- Yandex.Metrika counter -->
 		<? foreach($THEMES_YANDEX_METRIKA_INDEX as $themes_yandex_metrika_index): ?> 
 			<? if(!$themes_yandex_metrika = rb($THEMES_YANDEX_METRIKA, "id", $themes_yandex_metrika_index['yandex_metrika_id'])): mpre("Метрика связанная с хостом не найдена") ?>
-			<?// elseif(): ?>
+			<?// elseif((!$_THEMES_YANDEX_METRIKA_GOAL = rb($THEMES_YANDEX_METRIKA_GOAL, "yandex_metrika_id", "id", "[{$themes_yandex_metrika['id']},0,NULL]")) &0): mpre("Цели для метрики не найдены") ?>
+			<?// elseif((!$_THEMES_YANDEX_METRIKA_GOAL_ELEMENT = rb($THEMES_YANDEX_METRIKA_GOAL_ELEMENT, "yandex_metrika_goal_id", "id", $_THEMES_YANDEX_METRIKA_GOAL)) &0): mpre("Элементы для метрики не найдены") ?>
+			<? elseif(!$mtid = (get($themes_yandex_metrika, 'mtid') ?: $themes_yandex_metrika['id'])): mpre("Ошибка нахождения номера счетчика") ?>
+			<? /*elseif(!array_map(function($_themes_yandex_metrika_goal) use($mtid, $_THEMES_YANDEX_METRIKA_GOAL_ELEMENT){ ?>
+				<? }, $_THEMES_YANDEX_METRIKA_GOAL)): mpre("Ошибка установки событий")*/ ?>
 			<? else: ?>
-				<script sync type="text/javascript">
+				<script type="text/javascript">
 					/*<![CDATA[*/
 					(function (d, w, c) {
 						(w[c] = w[c] || []).push(function() {
 							try {
-								eval("w.yaCounter<?=get($themes_yandex_metrika, 'id')?> = new Ya.Metrika({id:<?=get($themes_yandex_metrika, 'id')?>, webvisor:true, clickmap:true, trackLinks:true, accurateTrackBounce:true});");
+								eval("w.yaCounter<?=$mtid?> = new Ya.Metrika({id:<?=$mtid?>, webvisor:true, clickmap:true, trackLinks:true, accurateTrackBounce:true});");
 							} catch(e) { }
 						});
 					
@@ -109,19 +116,37 @@
 							d.addEventListener("DOMContentLoaded", f, false);
 						} else { f(); }
 					})(document, window, "yandex_metrika_callbacks");
-
-					if("undefined" == typeof(Ya)){ console.error("Счетчик не найден для передачи цели");
-//					}else if("<?=json_encode($THEMES_YANDEX_METRIKA_GOAL)?>"){
-					}else{// console.info("reachGoal:", "GET_FORM");
-						$.each(Ya._metrika.counters, function(nn, counter){
-							counter.reachGoal(goal = "GET_FORM");
-							console.info("Событие в Яндекс.метрике:", goal);
-						})
-					}
-
 					/*]]>*/
 				</script>
 			<? endif; ?> 
+
+			
+			<? foreach($THEMES_YANDEX_METRIKA_GOAL as $themes_yandex_metrika_goal): ?>
+				<? if(!$_THEMES_YANDEX_METRIKA_GOAL_ELEMENT = rb($THEMES_YANDEX_METRIKA_GOAL_ELEMENT, "yandex_metrika_goal_id", "id", $themes_yandex_metrika_goal['id'])):// mpre("Элементы для целей не надены"); ?>
+				<? elseif(!$themes_yandex_metrika_goal_analysis = rb($THEMES_YANDEX_METRIKA_GOAL_ANALYSIS, "id", $themes_yandex_metrika_goal['yandex_metrika_goal_analysis_id'])): mpre("Ошибка получения анализа цели") ?>
+				<? elseif(!$themes_yandex_metrika_goal_metrika = rb($THEMES_YANDEX_METRIKA_GOAL_METRIKA, "yandex_metrika_goal_analysis_id", $themes_yandex_metrika_goal_analysis['id'])): mpre("Ошибка получения связи анализа с метрикой") ?>
+				<? elseif(!$themes_yandex_metrika = rb($THEMES_YANDEX_METRIKA, "id", $themes_yandex_metrika_goal_metrika['yandex_metrika_id'])): mpre("Счетчик не найден") ?>
+				<? elseif(!$mtid = (get($themes_yandex_metrika, 'mtid') ?: $themes_yandex_metrika['id'])): mpre("Ошибка нахождения номера счетчика") ?>
+				<? else:// mpre($themes_yandex_metrika_goal, $_THEMES_YANDEX_METRIKA_GOAL_ELEMENT) ?>
+					<? foreach($_THEMES_YANDEX_METRIKA_GOAL_ELEMENT as $themes_yandex_metrika_goal_element): ?>
+						<script sync>
+							(function($, script){
+								$(document).on("<?=$themes_yandex_metrika_goal_element['event']?>", "<?=$themes_yandex_metrika_goal_element['selector']?>", function(e){
+									console.log("Событие яндекс");
+									if(!(counter = eval("window.yaCounter<?=$mtid?>"))){ console.error("Ошибка установки счетчика");
+									}else{// console.info("Событие "+goal.alias, counter.reachGoal(goal = "GET_FORM"));
+										counter.reachGoal(alias = "<?=$themes_yandex_metrika_goal['alias']?>");
+										console.info("Yandex.Metrika.<?=$mtid?> ", alias, "Селектор:", "«<?=$themes_yandex_metrika_goal_element['selector']?>»", " событие:", "«<?=$themes_yandex_metrika_goal_element['event']?>»");
+									}
+								}).on("init", function(){
+									console.info("Исследования:", "«<?=$themes_yandex_metrika_goal_analysis['name']?>»", "Счетчик:", "«<?=$mtid?>»", "Яндекс событие:", "«<?=$themes_yandex_metrika_goal['alias']?>»", "Селектор:", "«<?=$themes_yandex_metrika_goal_element['selector']?>»", "JS событие:", "«<?=$themes_yandex_metrika_goal_element['event']?>»", "Количество:", $("<?=$themes_yandex_metrika_goal_element['selector']?>").length);
+								}).ready( function(e){ $(script).parent().trigger("init"); } )
+							})(jQuery, document.currentScript)
+						</script>
+					<? endforeach; ?>
+				<? endif; ?>
+			<? endforeach; ?>
+
 			<? if(($tracking = get($themes_yandex_metrika_index, "tracking")) > 0): # Не выводим если стоит отрицательное число ?>
 				<!-- PrimeGate CallTracking-->
 					<script>
@@ -147,13 +172,12 @@
 	<!-- /Yandex.Metrika counter -->
 <? endif; ?>
 
-<? if(!array_search("Администратор", $conf['user']['gid'])):// mpre("Раздел предназначен только администраторам") ?>
+<? if(!array_search("Администратор", $conf['user']['gid'])): mpre("Раздел предназначен только администраторам") ?>
 <? elseif(!$themes_index = get($conf, 'themes', 'index')):// mpre("Хост сайта не найден") ?>
 <? elseif(($canonical = get($conf, 'settings', 'canonical')) &0): mpre("Канонический адрес не задан") ?>
 <? elseif(($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? $canonical['name'] : $_SERVER['REQUEST_URI']) && (!$get = mpgt($uri)) &0): mpre("Параметры адреса не определены <b>{$uri}</b>") ?>
 <? elseif(!$alias = first(array_keys((array)get($get, 'm'))). ":". first(get($get, 'm')). (($keys = array_keys(array_diff_key($get, array_flip(["m", "id"])))) ? "/". implode("/", $keys) : "")): mpre("Алиас сфоримрован ошибочно") ?>
-<?// elseif(mpre($uri, $get, $alias)): ?>
-<? elseif((!$seo_cat = rb("seo-cat", "id", get($canonical, 'cat_id'))) && (!$seo_cat = rb("seo-cat", "alias", (empty($alias) ? false : "[{$alias}]"))) &0):// mpre("Категория не найдена") ?>
+<? elseif((!$seo_cat = rb("seo-cat", "id", get($canonical, 'cat_id'))) && (!$seo_cat = rb("seo-cat", "alias", (empty($alias) ? false : "[{$alias}]"))) &0): mpre("Категория не найдена") ?>
 <? else:// mpre($seo_cat) ?>
 		<div class="themes_header_seo_blocks" style="z-index:9999; border:1px solid #eee; border-radius:7px; position:fixed; background-color:rgba(255,255,255,0.7); color:black; padding:0 5px; left:10px; top:10px; width:auto;">
 			<div class="table">
@@ -256,7 +280,7 @@
 
 <? if(!get($conf, 'settings', 'themes_params')):// mpre("Таблица параметров не найдена") ?>
 <? elseif(!$themes_params = rb("themes-params", "name", $p = "[Код роистата]")):// mpre("Код риостата не найден") ?>
-<? elseif(!$themes_params_index = rb("themes-params_index", "params_id", "index_id", $themes_params['id'], $w = "[". get($conf, 'themes', 'index', 'id'). ",0,NULL]")): mpre("Значение параметра для сайта не найдено {$p}", $w) ?>
+<? elseif(!$themes_params_index = rb("themes-params_index", "params_id", "index_id", $themes_params['id'], $w = "[". get($conf, 'themes', 'index', 'id'). ",0,NULL]")):// mpre("Значение параметра для сайта не найдено {$p}", $w) ?>
 <? else: ?>
 	<script>
 		(function(w, d, s, h, id) {
@@ -265,5 +289,27 @@
 				var u = /^.*roistat_visit=[^;]+(.*)?$/.test(d.cookie) ? "/dist/module.js" : "/api/site/1.0/"+id+"/init";
 				var js = d.createElement(s); js.async = 1; js.src = p+h+u; var js2 = d.getElementsByTagName(s)[0]; js2.parentNode.insertBefore(js, js2);
 		})(window, document, 'script', 'cloud.roistat.com', '<?=$themes_params_index["name"]?>');
+	</script>
+<? endif; ?>
+
+<? if(!get($conf, 'settings', 'themes_params')):// mpre("Таблица параметров не найдена") ?>
+<? elseif(!$themes_params = rb("themes-params", "name", $p = "[Изменение стилей для шаблона]")):// mpre("Параметр не найден {$p}") ?>
+<? elseif(!$THEMES_PARAMS_INDEX = rb("themes-params_index", "params_id", "index_id", "id", $themes_params['id'], $conf['themes']['index']['id'])):// mpre("Изменений стилей для данного сайта не требуется") ?>
+<? else:// mpre($THEMES_PARAMS_INDEX) ?>
+	<style>
+		<? foreach(rb($THEMES_PARAMS_INDEX, "hide", "id", 0) as $themes_params_index): ?>
+			<?=$themes_params_index['selector']?> {<?=$themes_params_index['name']?>:<?=$themes_params_index['value']?>;/* content:"Код в заголовоке" */}
+		<? endforeach; ?>
+	</style>
+	<script>
+/*		(function($, script){
+			$(script).parent().one("init", function(e){
+				var THEMES_PARAMS_INDEX = $.parseJSON('<?=json_encode($THEMES_PARAMS_INDEX)?>');
+				$.each(THEMES_PARAMS_INDEX, function(n, themes_params_index){
+					console.info("Изменение стилей для шаблона Селектор:", themes_params_index.selector, "Значение:", "{"+ themes_params_index.name+ ":"+ themes_params_index.value+ "}");
+					$(document).find(themes_params_index.selector).css(themes_params_index.name, themes_params_index.value);
+				});
+			}).ready(function(e){ $(script).parent().trigger("init"); })
+		})(jQuery, document.currentScript)*/
 	</script>
 <? endif; ?>

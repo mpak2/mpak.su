@@ -201,39 +201,16 @@
 					$(script).parent().one("init", function(e){
 						var forms = $(e.delegateTarget).attr("target", "response_"+(timeStamp = e.timeStamp));
 						$("<"+"iframe>").attr("name", "response_"+timeStamp).appendTo(forms).load(function(){
-							var response = $(this).contents().find("body").html();
-							if(json = $.parseJSON(response)){
+							var data = $(this).contents().find("body").html();
+							try{if(json = JSON.parse(data)){
 								console.log("json:", json);
-//								document.location.reload(true);
 								document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""). (get($_GET, "where") ? "?&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?>';
-							}else{ alert(response); }
+							}}catch(e){if(isNaN(data)){ alert(data) }else{
+								alert(data);
+							}}
 						}).hide();
 					}).ready(function(e){ $(script).parent().trigger("init"); })
 				})(jQuery, document.currentScript)
-
-				/*(function($, script){
-					$(script).parent().one("init", function(e){
-						setTimeout(function(){
-							$(e.delegateTarget).iframePostForm({
-								complete:function(data){
-									try{
-										if(json = jQuery.parseJSON(data)){
-											console.log("json:", json);
-											document.location.href = "/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'order') ? "&order={$_GET['order']}" : "")?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : '')?>";
-										}
-									}catch(e){
-										if(isNaN(data)){
-											console.log("isNaN:", data)
-											alert(data);
-										}else{
-											console.log("date:", data)
-										}
-									}
-								}
-							});
-						}, 200)
-					}).trigger("init")
-				})(jQuery, document.scripts[document.scripts.length-1])*/
 			</script>
 			<div class="table">
 				<div>
@@ -346,7 +323,7 @@
 								<? elseif($name == "uid"): ?>
 									<select name="<?=$name?>">
 										<option value="NULL"></option>
-										<? foreach(rb("{$conf['db']['prefix']}users", 1000) as $uid): ?>
+										<? foreach(rb("{$conf['db']['prefix']}users") as $uid): ?>
 											<option value="<?=$uid['id']?>" <?=((get($tpl, 'edit', $name) == $uid['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $uid['id'])) ? "selected" : "")?>><?=$uid['name']?></option>
 										<? endforeach; ?>
 									</select>
@@ -495,7 +472,7 @@
 												<? endif; ?>
 											</span>
 										<? elseif(array_search($k, array(1=>"time", "last_time", "reg_time", "up", 'down'))): # Поле времени ?>
-											<span style="white-space:nowrap;" title="<?=($v > 86400 ? $v : date("Y-m-d H:i:s", $v))?>">
+											<span style="white-space:nowrap;" title="<?=$v?>">
 												<?=($v > 86400 ? date("Y-m-d H:i:s", $v) : $v)?>
 											</span>
 										<? elseif(substr($k, -3) == "_id"): ?>

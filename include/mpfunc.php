@@ -58,7 +58,7 @@ function cache($content = false){
 				}elseif(!$conn = conn("sqlite:{$conn_file}")){ pre("Ошибка сохдания подключения sqlite");
 				}elseif(!$HTTP_HOST = idn_to_utf8($_SERVER['HTTP_HOST'])){ pre("Ошибка определения русскоязычного имени домена");
 				}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Ошибка определения адреса");
-				}elseif(!($TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name"))){ pre("Параметры таблицы не определены");
+//				}elseif(!($TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name"))){ pre("Параметры таблицы не определены");
 				}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ pre("Ошибка создания запроса");
 				}elseif(!$row = mpql($RES, 0)){ pre("Кеш страницы не найден");
 					error_log(implode("/", $sys_getloadavg). " --! 503 http://{$HTTP_HOST}{$REQUEST_URI}\n", 3, $cache_log);
@@ -67,7 +67,7 @@ function cache($content = false){
 					exit(header('Retry-After: '. array_rand(60, 600)));//random() Почторить через небольшой период времени
 				}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])*/){ // mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
 				}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
-				}else{// exit("Проверка");
+				}else{
 					error_log(implode("/", $sys_getloadavg). " <<! http://{$HTTP_HOST}{$REQUEST_URI}\n", 3, $cache_log);
 					foreach(explode("\n", $row['headers']) as $header){
 						header($header);
@@ -83,7 +83,6 @@ function cache($content = false){
 				header('Status: 503 Service Temporarily Unavailable');
 				exit(header('Retry-After: '. array_rand(60, 600)));//random() Почторить через небольшой период времени
 			}elseif(($sys_getloadavg[0] < 3) && (rand(0, $sys_getloadavg[0]) <= 1)){// mpre("Чем меньше нагрузка, тем более вероятно обновление");
-//			}elseif(pre("cache", microtime(true))){
 			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Ошибка определения адреса");
 //			}elseif(array_key_exists('HTTP_CACHE_CONTROL', $_SERVER)){// pre("Обновление");
 			}elseif(get($_SERVER, 'HTTP_CACHE_CONTROL')){
@@ -94,12 +93,12 @@ function cache($content = false){
 			}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg"/*, "/sitemap.xml", "/robots.txt", "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
 			}elseif($_POST || array_key_exists("sess", $_COOKIE)){// print_r("Создание сессии");
 			}elseif(get($_SERVER, 'HTTP_IF_MODIFIED_SINCE') || (http_response_code() == 304)){ mpre("Кешированная страница. Отдаем только статус");
+				error_log(implode("/", $sys_getloadavg). " <== 301 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 				exit(header('HTTP/1.0 304 Not Modified'));
 //			}elseif(header("Cache-control: max-age=864000") || header("Expires: ".gmdate("r", time() + 86400*10))){ mpre("Установка времени кеширования в браузере");
 			}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ mpre("Ошибка составления имени файла");
 			}elseif(!file_exists($conn_file) && !touch($conn_file) /*&& !chmod($conn_file, 0777)*/){ mpre("Файл бд кеша не найден {$conn_file}");
 			}elseif(!$conn = conn("sqlite:{$conn_file}")){ mpre("Ошибка сохдания подключения sqlite");
-			}elseif(!($TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name"))){ mpre("Параметры таблицы не определены");
 			}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ mpre("Ошибка создания запроса");
 			}elseif(!$row = mpql($RES, 0)){ mpre("Ошибка извлечения строк");
 			}else{ foreach(explode("\n", $row['headers']) as $header){ header($header); } }
@@ -160,7 +159,7 @@ function cache($content = false){
 								$result->bindValue($name, $value, $TYPES[$name]);
 							} $result->execute();
 							return $cache['id'];
-						}else{// mpre($cache);
+						}else{ # Добавление новой записи
 							$result = $conn->prepare("INSERT INTO cache (uri, headers, content) VALUES (:uri, :headers, :content)");
 							foreach($PARAMS as $params){
 								$result->bindValue($params['name'], $params['value'], $params['type']);
@@ -168,11 +167,7 @@ function cache($content = false){
 							return -$conn->lastInsertId();
 						}
 					}catch(Exception $e){ mpre($e); return false; }
-				}, [
-						['name'=>'uri', 'value'=>$REQUEST_URI, 'type'=>PDO::PARAM_STR],
-						['name'=>'headers', 'value'=>implode("\n", headers_list()), 'type'=>PDO::PARAM_STR],
-						['name'=>'content', 'value'=>gzencode($content), 'type'=>PDO::PARAM_LOB],
-				])){ mpre("Ошибка установки запроса");
+				},[['name'=>'uri', 'value'=>$REQUEST_URI, 'type'=>PDO::PARAM_STR], ['name'=>'headers', 'value'=>implode("\n", headers_list()), 'type'=>PDO::PARAM_STR], ['name'=>'content', 'value'=>gzencode($content), 'type'=>PDO::PARAM_LOB],])){ mpre("Ошибка установки запроса");
 			}else{
 				return error_log(implode("/", $sys_getloadavg). " ". ($cache_exists > 0 ? "<=>" : ">>>"). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 			}
@@ -508,7 +503,7 @@ if (!function_exists('modules')){
 			}else{
 				ob_start();
 					if(!get($conf, 'settings', 'seo_meta')){// pre("Обработкич мета информации страницы выключен");
-					}elseif(($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? get($canonical, 'name') : $_SERVER['REQUEST_URI']) && (!$get = mpgt($uri))){
+					}elseif((!$get = []) && ($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? get($canonical, 'name') : $_SERVER['REQUEST_URI']) && (!$get = mpgt($uri))){
 					}else{
 						if(!array_key_exists("null", $get) && !array_key_exists("p", $get) && ($conf['settings']['theme/*:admin'] != $conf['settings']['theme']) && !array_search($arg['fn'], ['', 'ajax', 'json', '404'])){ # Нет перезагрузки страницы адреса
 							inc("modules/seo/admin_meta.php", array('arg'=>$arg, "uri"=>$uri, "get"=>$get, "canonical"=>$canonical));
@@ -1356,6 +1351,7 @@ function mpager($count, $null=null, $cur=null, $url=null){
 	global $conf, $arg;
 	$p = (strpos(get($_SERVER, 'HTTP_HOST'), "xn--") === 0) && ($arg['fn'] != "admin") ? "стр" : "p";
 	if ($cur === null) $cur = (array_key_exists($p, $_GET) ? $_GET[$p] : 0);
+	
 	if ($url === null){
 		if(array_key_exists($p, $_GET)){
 			$url = strtr($u = urldecode($_SERVER['REQUEST_URI']), array("/{$p}:{$_GET[$p]}"=>'', "&{$p}={$_GET[$p]}"=>''));
@@ -1367,11 +1363,14 @@ function mpager($count, $null=null, $cur=null, $url=null){
 		$url = str_replace($u, $u. (strpos($url, '&') || strpos($url, '?') ? "&null" : "/null"), $url);
 	}else if($null === false){
 		$url = strtr($url, array("/null"=>"", "&null"=>"", "?null"=>""));
+	} if(is_array($url)){
+		$url = get($url, 'name');
 	}
 	if(2 > $count = ceil($count)) return;
 	$return = "<script>$(function(){ $(\".pager\").find(\"a[href='". urldecode(get($_SERVER, 'REQUEST_URI')). "']\").addClass(\"active\").css(\"font-weight\", \"bold\"); })</script>";
 	$return .=  "<div class=\"pager\">";
 	$mpager['first'] = $url;
+
 	$return .= "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>";
 	$mpager['prev'] = $url. ($cur > 1 ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur-1) : "/{$p}:".($cur-1)) : '');
 	for($i = max(0, min($cur-5, $count-10)); $i < ($max = min($count, max($cur+5, 10))); $i++){

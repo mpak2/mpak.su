@@ -47,7 +47,7 @@
 					}				
 					var href = document.location.href;// console.info("href1:", href);
 					if(get_params_from_href(href).hasOwnProperty("hash")){
-						VK.api("setCounter", {/*counters:"168543860:1,252892988:1",*/ counter:0, version:5.34}, function(data) {
+						VK.api("setCounter", {counter:0, version:5.34}, function(data) {
 							console.log("data:", data);
 						});
 					}else{

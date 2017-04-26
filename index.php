@@ -18,7 +18,7 @@ setlocale (LC_ALL, "Russian"); putenv("LANG=ru_RU");
 
 if(strpos(__DIR__, "phar://") === 0){ # Файл index.php внутри phar архива
 	if(!isset($index) && ($index = './index.php') && file_exists($index)){
-		include $index; if($content) die;
+		include $index; if($conf) die;
 	} $conf["db"]["open_basedir"] = implode("/", array_slice(explode("/", dirname(__DIR__)), 2)). "::". __DIR__;
 }else{ # Не в phar
 	if(file_exists($phar = __DIR__. DIRECTORY_SEPARATOR. "index.phar")){
@@ -194,21 +194,6 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 	}
 }
 
-array_key_exists("m", $_GET) ? (list($m) = array_keys($_GET['m'])) : "pages";
-array_key_exists("m", $_GET) ? (list($f) = array_values($_GET['m'])) : "index";
-
-$conf['settings']['modpath'] = !empty($m) && array_key_exists($m, $conf['modules']) ? $conf['modules'][ $m ]['folder'] : "";
-$conf['settings']['fn'] = (!empty($f) && ($f != "index")) ? $f : "index";
-
-if(!$modpath = $conf['settings']['modpath']){ mpre("Модуль не определен");
-}elseif(!$fn = $conf['settings']['fn']){ mpre("Имя файла не определенено");
-}elseif($theme = get($conf, 'settings', $w = "theme/{$modpath}:{$fn}")){// mpre("Тема {$w} {$theme}");
-	$conf['settings']['theme'] = $theme;
-}elseif($theme = get($conf, 'settings', $w = "theme/*:{$fn}")){// mpre("Тема {$w} {$theme}");
-	$conf['settings']['theme'] = $theme;
-}elseif($theme = get($conf, 'settings', $w = "theme/{$modpath}:*")){// mpre("Тема {$w} {$theme}");
-	$conf['settings']['theme'] = $theme;
-} inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($content = "")));
 
 if(array_key_exists('theme', $_GET)){
 	$conf['user']['sess']['theme'] = $conf['settings']['theme'] = basename($_GET['theme']);
@@ -216,9 +201,23 @@ if(array_key_exists('theme', $_GET)){
 	$conf['user']['sess']['theme'] = $conf['settings']['theme'] = $conf['user']['theme'];
 }
 
-if(get($conf, "settings", "admin_multisite")){ # Включение режима мультисайт
-	inc("modules/admin/admin_multisite.php", array("content"=>($content = "")));
+if(get($conf, "settings", "themes_index")){ # Включение режима мультисайт
+	inc("modules/admin/admin_multisite.php", array("content"=>($conf["content"] = "")));
 }
+
+if(!(array_key_exists("m", $_GET) ? (list($m) = array_keys($_GET['m'])) : "pages")){ mpre("Модуль не установлен");
+}elseif((!$conf['settings']['modpath'] = $modpath = ((!empty($m) && array_key_exists($m, $conf['modules'])) ? $conf['modules'][ $m ]['folder'] : "")) &0){ mpre("Модуль не определен");
+}elseif((array_key_exists("m", $_GET) ? (list($f) = array_values($_GET['m'])) : ($f = "index")) &0){ mpre("Страница не установлена");
+}elseif(!$conf['settings']['fn'] = $fn = ((!empty($f) && ($f != "index")) ? $f : "index")){ mpre("Страница не определена");
+}elseif(!$fn = $conf['settings']['fn']){ mpre("Имя файла не определенено");
+}elseif($theme = get($conf, 'settings', $w = "theme/{$modpath}:{$fn}")){// mpre("Тема {$w} {$theme}");
+	$conf['settings']['theme'] = $theme;
+}elseif($theme = get($conf, 'settings', $w = "theme/*:{$fn}")){// mpre("Тема {$w} {$theme}");
+	$conf['settings']['theme'] = $theme;
+//}elseif(mpre("theme/{$modpath}:*")){
+}elseif($theme = get($conf, 'settings', $w = "theme/{$modpath}:*")){// mpre("Тема {$w} {$theme}");
+	$conf['settings']['theme'] = $theme;
+} inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($conf["content"] = "")));
 
 foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_gaccess ORDER BY sort", 'Права доступа группы к модулю', function($error) use($conf){
 	if(strpos($error, "Unknown column 'sort'")){
@@ -240,14 +239,13 @@ foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_uac
 	if ($conf['user']['uid'] == $v['uid'] && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false)
 		$conf['modules'][ $v['mid'] ]['admin_access'] = $v['admin_access'];
 }
-
 if((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]){ # Изменяем тему админ страницы
 	$conf['settings']['theme'] = $conf['settings']["theme/*:admin"];
 } if(isset($_GET['m']['sqlanaliz'])){
 	$zblocks = blocks();
-	$content = modules($content);
+	$conf["content"] = modules($conf["content"]);
 }else{
-	$content = modules($content);
+	$conf["content"] = modules($conf["content"]);
 	$zblocks = blocks();
 }
 
@@ -260,12 +258,12 @@ if(($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". (get($_GET, 'ind
 }else{ die(pre(__LINE__, "Шаблон {$f} не найден")); }
 
 if(!array_key_exists('null', $_GET)){
-	$content = str_replace('<!-- [modules] -->', $content, $tc);
-} $content = strtr($content, (array)$zblocks);
+	$conf["content"] = str_replace('<!-- [modules] -->', $conf["content"], $tc);
+} $conf["content"] = strtr($conf["content"], (array)$zblocks);
 
 $conf['settings']['microtime'] = substr(microtime(true)-$conf['settings']['microtime'], 0, 8);
 
-$content = array_key_exists("null", $_GET) ? $content : strtr($content, mpzam($conf['settings'], "settings", "<!-- [", "] -->"));
+$conf["content"] = array_key_exists("null", $_GET) ? $conf["content"] : strtr($conf["content"], mpzam($conf['settings'], "settings", "<!-- [", "] -->"));
 
-cache($content);
-echo $content;
+cache($conf["content"]);
+echo $conf["content"];
