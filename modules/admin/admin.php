@@ -49,7 +49,11 @@ if(array_key_exists("null", $_GET)){// exit(mpre("Таблица для запи
 			} if(($_GET['r'] == "{$conf['db']['prefix']}users") && ($field == "pass") && (strlen($_POST['pass']) != 32) && (substr($_POST['pass'], 0, 1) != "!")){
 				$_POST[$field] = mphash($_POST['name'], $_POST['pass']);
 			}
-		} if(get($_GET, 'id')){
+		} if(is_numeric(get($_POST, '_id'))){
+			$_GET['id'] = get($_POST, '_id');
+			unset($_POST['_id']);
+		}
+		if(get($_GET, 'id')){// mpre("Редактирование", $_POST);
 
 			if(!get($conf, 'settings', 'admin_history_log')){// mpre("История не включена");
 			}elseif(!$admin_history_type = fk("admin-history_type", $w = array("name"=>"Редактирование"), $w)){ mpre("Тип записи не найден {$w}");
@@ -62,7 +66,7 @@ if(array_key_exists("null", $_GET)){// exit(mpre("Таблица для запи
 			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=". ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\""); });
 			qw($sql = "UPDATE `{$_GET['r']}` SET ". implode(", ", array_values($_POST)). " WHERE id=". (int)$_GET['id']);
 			$el = rb($_GET['r'], "id", $_GET['id']);
-		}else{
+		}else{// mpre("Добавление", $_POST);
 
 		
 			if($ar = array_filter($_POST, function($e){ return is_array($e); })){

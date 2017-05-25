@@ -195,8 +195,8 @@
 			</div>
 			<script>
 				$(function(){// Ссылка на редактирование заголовка страницы
-					if("object" == typeof(index = $.parseJSON(canonical = '<?=json_encode($canonical)?>'))){// console.log("index", index);
-						var themes_index = $.parseJSON('<?=json_encode($themes_index)?>');
+					if("object" == typeof(index = $.parseJSON(canonical = '<?=strtr(json_encode($canonical, JSON_UNESCAPED_UNICODE), ["\\\""=>""])?>'))){// console.log("index", index);
+						var themes_index = $.parseJSON('<?=strtr(json_encode($themes_index, JSON_UNESCAPED_UNICODE), ["\\\""=>""])?>');
 						$(".themes_header_seo_blocks").on("click", ".admin_content", function(e){
 							window.open("/seo:admin/r:seo-index_themes?&where[location_id]="+index.id+"&where[themes_index]="+themes_index.id);
 						}).find(".admin_content").css("cursor", "pointer");
@@ -301,15 +301,20 @@
 			<?=$themes_params_index['selector']?> {<?=$themes_params_index['name']?>:<?=$themes_params_index['value']?>;/* content:"Код в заголовоке" */}
 		<? endforeach; ?>
 	</style>
-	<script>
-/*		(function($, script){
+<? endif; ?>
+
+<? if(!$themes_getScript = get($conf, 'settings', 'themes_getScript')):// mpre("Яваскрипт для загрузки не указан") ?>
+<? else:// mpre("Работа калтрекинга", $themes_getScript) ?>
+	<script sync>
+		(function($, script){
 			$(script).parent().one("init", function(e){
-				var THEMES_PARAMS_INDEX = $.parseJSON('<?=json_encode($THEMES_PARAMS_INDEX)?>');
-				$.each(THEMES_PARAMS_INDEX, function(n, themes_params_index){
-					console.info("Изменение стилей для шаблона Селектор:", themes_params_index.selector, "Значение:", "{"+ themes_params_index.name+ ":"+ themes_params_index.value+ "}");
-					$(document).find(themes_params_index.selector).css(themes_params_index.name, themes_params_index.value);
-				});
+				$.getScript("<?=$themes_getScript?>", function( data, textStatus, jqxhr ) {
+//					console.log(data); // Data returned
+//					console.log(textStatus); // Success
+//					console.log(jqxhr.status); // 200
+//					console.log("tracking:", data);
+				})
 			}).ready(function(e){ $(script).parent().trigger("init"); })
-		})(jQuery, document.currentScript)*/
+		})(jQuery, document.currentScript)
 	</script>
 <? endif; ?>

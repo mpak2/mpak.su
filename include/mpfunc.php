@@ -2,7 +2,8 @@
 
 if(!function_exists('__autoload')){ # автозагрузка классов из одноименной директории
 	function __autoload($class_name){#Автоподгрузка классов
-		include_once mpopendir("/include/class/$class_name.php");	
+		if(!$file_name = mpopendir($f = "/include/class/$class_name.php")){ mpre("Файл класса не найден {$f}");
+		}else{ include_once $file_name; }
 	}
 }
 
@@ -351,7 +352,7 @@ function get($ar){
 	foreach(array_slice(func_get_args(), 1) as $key){
 		if(!empty($ar) && is_array($ar) && (is_string($key) || is_numeric($key)) && array_key_exists($key, $ar)){
 			$ar = $ar[ $key ];
-		}else{ return false; }
+		}else{ return null; }
 	} return $ar;
 } 
 function &get_link(&$ar){
@@ -1035,10 +1036,10 @@ function mpdbf($tn, $post = null, $and = false){
 			if($update && ($upd = mpdbf($tn, $update))){
 				qw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE `id`=". (int)$s['id']);
 			} return $s['id'];
-		}else{ # Множественное обновление. Если в качестве условия используется несколько элементов
-			if($update && ($upd = mpdbf($tn, $update))){
+		}else{ mpre("Множественные изменения запрещены", $find); # Множественное обновление. Если в качестве условия используется несколько элементов
+/*			if($update && ($upd = mpdbf($tn, $update))){
 				qw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE `id` IN (". in($sel). ")");
-			} return $sel;
+			} return $sel;*/
 		}
 	}elseif($insert){
 		if($fields = fields($tn)){
@@ -1662,8 +1663,7 @@ EOF;
 function pre(){
 	global $conf;
 	if(!$debug_backtrace = debug_backtrace()){ mpre("Ошибка получения списка функций");
-	}elseif(!is_numeric($num = (get($debug_backtrace, 2, 'function') == 'mpre' ? 2 : 0))){ print_r("Ошибка определения функции");
-	}elseif(!$list[] = get($debug_backtrace, $num)){ print_r("Ошибка получения фукнции инициатора pre[{$num}]");
+	}elseif(!$list[] = get($debug_backtrace, 0)){ print_r("Ошибка получения фукнции инициатора pre[{$num}]");
 	}else{// echo "<pre><b>"; print_r($func); echo "</b></pre><pre>"; /*print_r($pre);*/ print_r($debug_backtrace); echo "</pre>";
 		foreach($list as $pre){
 			echo "<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend> {$pre['file']}:{$pre['line']} <b>{$pre['function']}</b> ()</legend>";
@@ -1674,10 +1674,17 @@ function pre(){
 	} return get(func_get_args(), 0);
 } function mpre(){
 	global $conf, $arg, $argv;
-	if(($gid = get($conf, 'user', 'gid')) && (array_search("Администратор", $gid))){
-		return call_user_func_array('pre', func_get_args());  # Выводим для возможности использования внутри условных операторов if(true && mpre("То, что смотрим") && true){ echo "Условие сработает"; }
-	}
-//	if(empty($argv) && ($arg['admin_access'] < $admin_access)) return;
+	if(!$debug_backtrace = debug_backtrace()){ mpre("Ошибка получения списка функций");
+	}elseif((!$gid = get($conf, 'user', 'gid')) || (!array_search("Администратор", $gid))){// print_r("Отображение доступно только администраторам");
+	}elseif(!$list[] = get($debug_backtrace, 0)){ print_r("Ошибка получения фукнции инициатора pre[{$num}]");
+	}else{// echo "<pre><b>"; print_r($func); echo "</b></pre><pre>"; /*print_r($pre);*/ print_r($debug_backtrace); echo "</pre>";
+		foreach($list as $pre){
+			echo "<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend> {$pre['file']}:{$pre['line']} <b>{$pre['function']}</b> ()</legend>";
+			foreach(get($pre, 'args') as $n=>$z){
+				echo "<pre>\n\t"; print_r($z); echo "\n</pre>";
+			} if(true) echo "</fieldset>\n";
+		}
+	} return get(func_get_args(), 0);
 }
 function mpqwt($result){
 	echo "<table style='background-color:#888;' cellspacing=0 cellpadding=3 border=1><tr>";
@@ -1739,7 +1746,7 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 	$prx = basename(dirname($file_name));
 	if(!array_key_exists('nologo', $_GET) && (strtotime(get($_SERVER, 'HTTP_IF_MODIFIED_SINCE')) >= filectime($file_name))){
 		exit(header('HTTP/1.0 304 Not Modified'));
-	}else if(file_exists("$cache_name/$host_name/$prx/$fl_name") && (($filectime = filectime("$cache_name/$host_name/$prx/$fl_name")) > ($sfilectime = filectime($file_name)))){
+	}else if((get($_SERVER, 'HTTP_PRAGMA') != "no-cache") && file_exists("$cache_name/$host_name/$prx/$fl_name") && (($filectime = filectime("$cache_name/$host_name/$prx/$fl_name")) > ($sfilectime = filectime($file_name)))){
 //		header('Last-Modified: '. date("r", $filectime));
 //		header("Expires: ".gmdate("r", time() + 86400*10));
 		return file_get_contents("$cache_name/$host_name/$prx/$fl_name");
@@ -1789,12 +1796,16 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 				$w = array_shift($lg); $h = array_shift($lg);
 				imagecopyresampled($dst, $logo, ($w < 0 ? imagesx($dst)-imagesx($logo)+$w : $w), ($h < 0 ? imagesy($dst)-imagesy($logo)+$h : $h), 0, 0, imagesx($logo), imagesy($logo), imagesx($logo), imagesy($logo));
 			}
-			ob_start();
-				$keys = array_keys($ar = explode('.', $file_name));
-				$func[ strtolower($ar[max($keys)]) ]($dst, null, -1);
-				$content = ob_get_contents();
-			ob_end_clean();
-			ImageDestroy($src); ImageDestroy($dst);
+			if(!$f = $func[ strtolower($ar[max($keys)]) ]){ mpre("Ошибка получения функции сжатия изображения");
+			}elseif(!$q = (get($_GET, 'q') ?: 80)){ mpre("Ошибка получения качества изображения");
+			}elseif(($f == "imagepng") && (!$q = (int)$q/10)){ mpre("Ошибка изменения параметра качетсва для функции png");
+			}else{
+				ob_start();
+					$keys = array_keys($ar = explode('.', $file_name));
+					$f($dst, null, $q);
+					$content = ob_get_contents();
+				ob_end_clean();
+			} ImageDestroy($src); ImageDestroy($dst);
 		}
 		if(!file_exists("$cache_name/$host_name/$prx")){
 			if($idna = mpopendir('include/idna_convert.class.inc')){

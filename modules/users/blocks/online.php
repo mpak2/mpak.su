@@ -1,133 +1,66 @@
 <?
 
-$online = qn($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE last_time > ". (time()-abs($conf['settings']['sess_time'])). " AND LENGTH(sess)=32 ORDER BY last_time DESC");
-$users = rb("{$conf['db']['prefix']}users", "id", "id", rb($online, "uid"));
-//$count = ql("SELECT COUNT(*) AS count FROM {$conf['db']['prefix']}sess WHERE last_time > ". (time()-$conf['settings']['sess_time']). " AND CHAR_LENGTH(sess)=32 ORDER BY last_time DESC", 0, 'count');
-$logo = array(
-	"Mediapartners-Google.png"=>"Mediapartners-Google",
-	"naver.com.png"=>"naver",
-	"C-T bot"=>"c-t_bot.png",
-	"statdom.png"=>"statdom",
-	"ezooms.png"=>"ezooms",
-	"ahrefs.png"=>"ahrefs",
-	"yahoo.png"=>"Yahoo",
-	"rambler.png"=>"StackRambler",
-	"msnbot.png"=>"msnbot",
-	"bing.png"=>"bing",
-	"cctld.ru.png"=>"cctld.ru/bot",
-	"adsbot.png"=>"adsbot",
-	"archive.org.png"=>"archive.org_bot",
-	"begun.png"=>"Begun",
-	"majestic12.png"=>"majestic12",
-	"mail.ru.png"=>"Mail.RU",
-	"picsearch.png"=>"picsearch",
-	"semrush.png"=>"semrush",
-	"opensiteexplorer.png"=>"opensiteexplorer",
-	"exabot.png"=>"exabot",
-	"openlinkprofiler.png"=>"OpenLinkProfiler",
-	"surly.png"=>"SurdotlyBot",
-	"queryseekerspider.png"=>"queryseeker",
-	"cliqzbot.png"=>"cliqzbot",
-	"twitterbot.png"=>"Twitterbot",
-	"miralinks.png"=>"Miralinks",
-	"wotbox.png"=>"wotbox",
-	"digincore.png"=>"digincore",
-	"ct.png"=>"C-T bot",
-	"linkdex.png"=>"linkdexbot",
-	"yesup.png"=>"yesup.net",
-	"meanpath.png"=>"meanpathbot",
-	"robot.png"=>"robot",
-	"semanticbot.png"=>"semanticbot",
-	"tobbot.png"=>"tobbot.com",
-	"studydoc.png"=>"studydoc.ru",
-	"applebot.png"=>"applebot",
-	"mfisoft.png"=>"mfisoft.ru",
-	"plukkie.png"=>"Plukkie",
-	"yacybot.png"=>"yacybot",
-	"safedns.png"=>"SafeDNS",
-	"irlbot.png"=>"IRLbot",
-	"focusbot.png"=>"focusbot",
-	"gbot.png"=>"gbot",
-	"google-image.png"=>"Googlebot-Image",
- 	"google.png"=>"Googlebot",
-	"yandeximages.png"=>"YandexImages",
-	"yandexmetrika.png"=>"YandexMetrika",
-	"yadirectfetcher.png"=>"YaDirectFetcher",
-	"yandexmobile.png"=>"YandexMobileBot",
-	"yandexfavicon.png"=>"YandexFavicons",
-	"yandex.png"=>"Yandex",
-	"bot.png"=>"bot",
-);
-$os = array(
-	"mobi.png"=>"Mobi",
-	"win.png"=>"Windows",
-	"linux.png"=>"Linux",
-);
-if(!function_exists("strpos_array")){
-	function strpos_array($haystack, $needles) {
-		if(is_array($needles)){
-			foreach ($needles as $img=>$str) {
-				if(is_array($str)){
-					$pos = strpos_array($haystack, $str);
-				}else{
-					$pos = strpos($haystack, $str);
-				}
-				if($pos !== FALSE){
-					return $img;
-				}
-			}
-		}else{
-			return strpos($haystack, $needles);
-		}
-	}
-}
-foreach($online as $k=>$v){
-	$user = rb($users, "id", $v['uid']);
-	if($img = strpos_array($v['agent'], $logo)){
-		$online[$k]['image'] = "/{$arg['modpath']}:img/w:40/h:40/null/{$img}";
-		$online[$k]['bot'] = 1;
-		$on[ $img ][ 1 ][] = $online[$k];
-	}else{
-		$online[$k]['os'] = strpos_array($v['agent'], $os);
-		$uid = get($user, 'name') == $conf['settings']['default_usr'] ? "-1" : $v['id'];
-		$online[$k]['image'] = "/{$arg['modpath']}:img/". (int)$uid. "/tn:index/w:40/h:40/c:1/null/img.jpg";
-		$on[ $uid ][ $online[$k]['os'] ][] = $online[$k];
-	}
-}// mpre($on);
-$guest = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE name=\"". mpquot($conf['settings']['default_usr']). "\""), 0);
-?>
-<div class="online" style="overflow:hidden;">
-	<style>
-		.online a {padding:0 !important;}
-	</style>
-	<div style="clear:both;">на сайте <b><?=($count = count($online))?></b> <?=mpfm($count, 'посетитель', 'посетителя', 'посетителей')?></div>
-	<? if(!empty($on)) foreach($on as $os): ?>
-		<? foreach($os as $s=>$o): ?>
-			<? $keys = array_keys($ar = array_slice($o, 0, 1)) ?>
-			<? $v = $ar[min($keys)]; ?>
-			<? $user = rb($users, "id", $v['uid']); ?>
-			<div style="float:left; margin:1px; border:1px solid #ddd; position:relative;" title="<?=(array_key_exists('bot', $v) ? get($user, 'agent') : get($user, 'name'). (get($v, 'name') != $conf['settings']['default_usr'] ? "" : "-{$v['id']}"). (!empty($v['ref']) && ($arg['admin_access'] > 3) ? " ". get($user, 'count'). "/". get($user, 'cnull'). " (". get($user, 'ref'). ")" : ""))?>">
-				<? if($v['id'] != get($guest,'id')): ?>
-					<a href="/<?=$arg['modpath']?>/<?=$v['id']?>">
-				<? elseif($arg['admin_access'] > 3): ?>
-					<a href="/?m[sess]=admin&where[id]=<?=$v['id']?>">
-				<? else: ?>
-					<a href="/<?=$arg['modpath']?>/<?=get($guest,'id')?>">
-				<? endif; ?>
-					<? if(array_key_exists('bot', $v)): ?>
-						<div style="position:absolute; top:1px; left:1px; opacity:0.8;"><?=count($o)?></div>
-						<div style="position:absolute; top:1px; right:1px; opacity:0.8;"><img src="/<?=$arg['modpath']?>:img/w:15/h:15/null/bot.png"></div>
-					<? elseif($v['os']): ?>
-						<?// if(($cnt = count($o)) > 1): ?>
-							<div style="position:absolute; top:1px; left:1px; opacity:0.8; background-color:white; width:15px; height:15px;"><?=count($o)?></div>
-						<?// endif; ?>
-						<div style="position:absolute; top:1px; right:1px; opacity:0.8;"><img src="/<?=$arg['modpath']?>:img/w:15/h:15/null/<?=$v['os']?>"></div>
-					<? endif; ?>
-					<img src="<?=$v['image']?>" style="z-index:-1; padding:1px;">
+if(!$SESS = qn($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE last_time > ". (time()-abs($conf['settings']['sess_time'])). " AND LENGTH(sess)=32 ORDER BY last_time DESC")){
+}elseif(!$USERS = rb("{$conf['db']['prefix']}users", "id", "id", rb($SESS, "uid"))){
+}elseif(!$BOTS = $logo = array("Mediapartners-Google.png"=>"Mediapartners-Google", "naver.com.png"=>"naver", "C-T bot"=>"c-t_bot.png", "statdom.png"=>"statdom", "ezooms.png"=>"ezooms", "ahrefs.png"=>"ahrefs", "yahoo.png"=>"Yahoo", "rambler.png"=>"StackRambler", "msnbot.png"=>"msnbot", "bing.png"=>"bing", "cctld.ru.png"=>"cctld.ru/bot", "adsbot.png"=>"adsbot", "archive.org.png"=>"archive.org_bot", "begun.png"=>"Begun", "majestic12.png"=>"majestic12", "mail.ru.png"=>"Mail.RU", "picsearch.png"=>"picsearch", "semrush.png"=>"semrush", "opensiteexplorer.png"=>"opensiteexplorer", "exabot.png"=>"exabot", "openlinkprofiler.png"=>"OpenLinkProfiler", "surly.png"=>"SurdotlyBot", "queryseekerspider.png"=>"queryseeker", "cliqzbot.png"=>"cliqzbot", "twitterbot.png"=>"Twitterbot", "miralinks.png"=>"Miralinks", "wotbox.png"=>"wotbox", "digincore.png"=>"digincore", "ct.png"=>"C-T bot", "linkdex.png"=>"linkdexbot", "yesup.png"=>"yesup.net", "meanpath.png"=>"meanpathbot", "robot.png"=>"robot", "semanticbot.png"=>"semanticbot", "tobbot.png"=>"tobbot.com", "studydoc.png"=>"studydoc.ru", "applebot.png"=>"applebot", "mfisoft.png"=>"mfisoft.ru", "plukkie.png"=>"Plukkie", "yacybot.png"=>"yacybot", "safedns.png"=>"SafeDNS", "irlbot.png"=>"IRLbot", "focusbot.png"=>"focusbot", "gbot.png"=>"gbot", "google-image.png"=>"Googlebot-Image", "google.png"=>"Googlebot", "yandeximages.png"=>"YandexImages", "yandexmetrika.png"=>"YandexMetrika", "yadirectfetcher.png"=>"YaDirectFetcher", "yandexmobile.png"=>"YandexMobileBot", "yandexfavicon.png"=>"YandexFavicons", "yandex.png"=>"Yandex", "bot.png"=>"bot")){ mpre("Ошибка задания списка ботов");
+}elseif(!$OS = array("mobi.png"=>" Mobile ", "win.png"=>"Windows", "macintosh.png"=>'Macintosh', "linux.png"=>"Linux", "android.png"=>"Android")){ mpre("Ошибка задания списка операционных систем");
+}elseif(!$guest = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users WHERE name=\"". mpquot($conf['settings']['default_usr']). "\""), 0)){ mpre("Гость не найден");
+}elseif(!$SESS = array_map(function($sess) use($BOTS, $OS, $arg){
+		if((!$sess += (($ar = array_filter(array_map(function($bot, $img) use($sess, $arg){
+				return (strpos($sess['agent'], $bot) ? ["bot"=>$bot, "bot_img"=>"/{$arg['modpath']}:img/w:40/h:40/null/{$img}"] : []);
+			}, $BOTS, array_keys($BOTS)))) ? first($ar) : ['bot'=>'', "bot_img"=>""])) &0){ mpre("Ошибка определения в боте агента");
+		}elseif((!$sess += (($ar = array_filter(array_map(function($os, $img) use($sess, $arg){
+				return (strpos($sess['agent'], $os) ? ["os"=>$os, "os_img"=>$img] : []);
+			}, $OS, array_keys($OS)))) ? first($ar) : ['os'=>'', 'os_img'=>''])) &0){ mpre("Ошибка определения операционной системы по агенту");
+		}else{ return $sess; }
+	}, $SESS)){ mpre("Ошибка определения свойств посетителей");
+}elseif(!$OSS = rb($SESS, "os", "id")){ mpre("ОШибка распредления пользователей по операционным системам");
+}elseif(!$BOTSS = rb($SESS, "bot", "id")){ mpre("ОШибка распредления пользователей по ботам");
+}elseif(!$USERS = rb($SESS, "uid", "id")){ mpre("ОШибка распредления пользователей по ботам");
+}else{ ?>
+	<h3>Пользователи</h3>
+	<? foreach($USERS as $uid=>$users): ?>
+		<? if(!$uid):// mpre("Гость") ?>
+		<? elseif(!$user = rb("{$conf['db']['prefix']}users", "id", $uid)): mpre("Ошибка определения пользователя") ?>
+		<? else:// mpre("users", $users) ?>
+			<div style="display:inline-block; margin:1px; border:1px solid #ddd; position:relative;" title="<?=$user['name']?>">
+				<a href="/users/412707">
+					<div style="position:absolute; top:1px; left:1px; opacity:0.8; background-color:white; width:15px; height:15px;"><?=count($users)?></div>
+					<div style="position:absolute; top:1px; right:1px; opacity:0.8;"><img src="/users:img/w:15/h:15/null/<?=last(array_column($users, 'os_img', 'id'))?>"></div>
+					<img src="/users:img/<?=$uid?>/tn:index/w:40/h:40/c:1/null/img.jpg" style="z-index:-1; padding:1px;">
 				</a>
 			</div>
-		<? endforeach; ?>
+		<? endif; ?>
 	<? endforeach; ?>
-	<? if($count > count($online)): ?>
-	<? endif; ?>
-</div>
+
+	<h3>Операционные системы</h3>
+	<? foreach($OSS as $os=>$oss): ?>
+		<? if(!$os):// mpre("Ось не определена") ?>
+		<? elseif(!$img = array_search($os, $OS)): mpre("Изображение ОС не найдено {$os}"); ?>
+		<? else: ?>
+			<div style="display:inline-block; margin:1px; border:1px solid #ddd; position:relative;" title="<?=$os?>">
+				<a href="/users/412707">
+					<div style="position:absolute; top:1px; left:1px; opacity:0.8; background-color:white; width:15px; height:15px;"><?=count($oss)?></div>
+					<div style="position:absolute; top:1px; right:1px; opacity:0.8;"><img src="/users:img/w:15/h:15/null/<?=$img?>"></div>
+					<img src="/users:img/412707/tn:index/w:40/h:40/c:1/null/img.jpg" style="z-index:-1; padding:1px;">
+				</a>
+			</div>
+		<? endif; ?>
+	<? endforeach; ?>
+
+	<h3>Боты</h3>
+	<? foreach($BOTSS as $bot=>$bots): ?>
+		<? if(!$bot):// mpre("Не бот") ?>
+		<? elseif(!$img = array_search($bot, $BOTS)): mpre("Изображение ОС не найдено {$os}"); ?>
+		<? else: ?>
+			<div style="display:inline-block; margin:1px; border:1px solid #ddd; position:relative;" title="<?=$bot?>">
+				<a href="/users/412707">
+					<div style="position:absolute; top:1px; left:1px; opacity:0.8; background-color:white; width:15px; height:15px;"><?=count($bots)?></div>
+					<div style="position:absolute; top:1px; right:1px; opacity:0.8;"><img src="/users:img/w:15/h:15/null/<?=$img?>"></div>
+					<img src="/users:img/412707/tn:index/w:40/h:40/c:1/null/img.jpg" style="z-index:-1; padding:1px;">
+				</a>
+			</div>
+		<? endif; ?>
+	<? endforeach; ?>
+<? /*mpre($SESS);*/ }
+

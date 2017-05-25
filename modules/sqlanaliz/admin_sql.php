@@ -55,9 +55,9 @@ if($dump = get($_REQUEST, 'dump')){
 			}else{
 				qw("CREATE TABLE `$table` (
 					id INT(11) AUTO_INCREMENT PRIMARY KEY,
-					time INT(11) NOT NULL,
-					uid INT(11) NOT NULL,
-					name VARCHAR(255) NOT NULL
+					time INT(11),
+					uid INT(11),
+					name VARCHAR(255)
 				) DEFAULT CHARSET=utf8");
 			} exit(json_encode(array("table"=>$table)));
 		} exit(mpre("Ошибочный запрос", $_POST));
@@ -134,7 +134,7 @@ if($dump = get($_REQUEST, 'dump')){
 		}else{ // $conf['db']['type'] == 'mysql'
 			
 			if($fld['after'] || ($fields[$f]['Type'] != $fld['type']) || ($fields[$f]['Comment'] != $fld['comment']) || ($fields[$f]['Default'] != $fld['default']) || ($fld['name'] && ($fld['name'] != $f))){
-				qw(mpre($sql = ("ALTER TABLE `". mpquot($table). "` CHANGE `". mpquot($f). "` `". mpquot($fld['name'] ?: $f). "` ". mpquot($fld['type'] ?: $fields[$f]['Type']). ($fields[$f]['Null'] == "NO" ? " NOT NULL" : " NULL"). (($fld['default'] !== "") ? " DEFAULT ". ($fld['default'] == "NULL" ? mpquot($fld['default']) : "'". mpquot($fld['default']). "'") : ""). " COMMENT '". mpquot($fld['comment']). "'") . ($fld['after'] ? " AFTER `". mpquot($fld['after'])."`": "") ));                           
+				qw(mpre($sql = ("ALTER TABLE `". mpquot($table). "` CHANGE `". mpquot($f). "` `". mpquot($fld['name'] ?: $f). "` ". mpquot($fld['type'] ?: $fields[$f]['Type'])/*. ($fields[$f]['Null'] == "NO" ? " NOT NULL" : " NULL")*/. (($fld['default'] !== "") ? " DEFAULT ". ($fld['default'] == "NULL" ? mpquot($fld['default']) : "'". mpquot($fld['default']). "'") : ""). " COMMENT '". mpquot($fld['comment']). "'") . ($fld['after'] ? " AFTER `". mpquot($fld['after'])."`": "") ));                           
 			}
 
 			if(!get($fld, 'index')){// mpre("Ключ не отмечен для создания");
@@ -186,10 +186,14 @@ if($dump = get($_REQUEST, 'dump')){
 					}
 				}
 			}else{
-				qw($sql = "ALTER TABLE `". mpquot($table). "` ADD `". mpquot($f). "` ". mpquot($new['type']). " NOT NULL ". ($new['default'] ? " DEFAULT '". mpquot($new['default']). "'" : ""). " COMMENT '". mpquot($new['comment']). "' AFTER `". mpquot($new['after']). "`"); mpre($sql);
+				qw($sql = "ALTER TABLE `". mpquot($table). "` ADD `". mpquot($f). "` ". mpquot($new['type']). " ". ($new['default'] ? " DEFAULT '". mpquot($new['default']). "'" : ""). " COMMENT '". mpquot($new['comment']). "' AFTER `". mpquot($new['after']). "`"); mpre($sql);
 				$tpl['fields'] = fields($table);
 				if(array_key_exists("index", $new) && $new['index']){
 					qw($sql = "ALTER TABLE `". mpquot($table). "` ADD INDEX (`". mpquot($f). "`)"); mpre($sql);
+				}
+				if($f == "sort"){
+					qw("UPDATE `". mpquot($table). "` SET `{$f}`=`id`");
+					qw("ALTER TABLE `". mpquot($table). "` ADD INDEX (`{$f}`)");
 				}
 			} $tpl['indexes'] = indexes($table);
 		}

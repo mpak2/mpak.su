@@ -202,9 +202,16 @@
 						var forms = $(e.delegateTarget).attr("target", "response_"+(timeStamp = e.timeStamp));
 						$("<"+"iframe>").attr("name", "response_"+timeStamp).appendTo(forms).load(function(){
 							var data = $(this).contents().find("body").html();
+
 							try{if(json = JSON.parse(data)){
 								console.log("json:", json);
-								document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""). (get($_GET, "where") ? "?&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?>';
+								var button = $(e.delegateTarget).find("button[type=submit]:focus");
+//								console.log("button:", button, "content:", $(button).text());
+								if("Добавить еще" == $(button).text()){
+									document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""). "?&edit="?>'+ json.id+ '<?=(get($_GET, "where") ? "&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?><?=(($limit = get($_GET, "limit")) ? "/limit:{$limit}" : "")?>';
+								}else{
+									document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""). (get($_GET, "where") ? "?&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?><?=(($limit = get($_GET, "limit")) ? "/limit:{$limit}" : "")?>';
+								}
 							}}catch(e){if(isNaN(data)){ alert(data) }else{
 								alert(data);
 							}}
@@ -307,7 +314,7 @@
 									<?=(get($tpl, 'edit', "id") ?: "Номер записи назначаеся ситемой")?>
 								<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#^img(\d*|_.+)?#iu",$name)): ?>
 									<input type="file" name="<?=$name?>[]" multiple="true">
-									<span class="info_comm">										
+									<span class="info_comm">
 										<?$linesda = get($tpl,'lines');?>
 										<a href="/<?=$arg['modpath']?>:img/<?=get($linesda,key($linesda))['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$name?>/w:109/h:109/null/img.png" target="_blank"><?=get($tpl,'edit',$name);?></a>
 									</span>
@@ -372,7 +379,10 @@
 					<? endforeach; ?>
 					<div>
 						<span></span>
-						<span><button type="submit">Сохранить</button></span>
+						<span>
+							<button type="submit">Сохранить</button>
+							<button type="submit" name="_id" value="0">Добавить еще</button>
+						</span>
 					</div>
 				<? else: # Горизонтальный вариант таблицы ?>
 					<div class="th">

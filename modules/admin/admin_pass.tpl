@@ -35,6 +35,7 @@
 							<? endif; ?>
 						</span>
 						<span>
+							<?=aedit("/admin:admin/r:admin-pass_accounts?&where[id]={$pass_accounts['id']}")?>
 							<ul>
 								<? foreach(rb("{$conf['db']['prefix']}admin_pass", "pass_accounts_id", "id", $pass_accounts['id']) as $admin_pass): ?>
 									<? if($uid = rb("{$conf['db']['prefix']}users", "id", $admin_pass['uid'])): ?>
