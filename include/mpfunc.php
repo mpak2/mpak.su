@@ -617,7 +617,12 @@ function mp_is_assoc($array){
 }
 //проверка на одномерность массива
 function mp_array_is_simple($array){
-	return count($array, COUNT_NORMAL)===count($array, COUNT_RECURSIVE);
+	foreach ($array as $item) {
+		if (is_array($item)) {
+			return false;
+		}
+	}
+	return true;
 }
 //форматирование массива - приведение двухмерного массива к нужному формату
 function mp_array_format($array,$array_format){
