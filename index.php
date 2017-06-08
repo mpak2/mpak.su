@@ -106,7 +106,7 @@ if(isset($_GET['logoff'])){ # Если пользователь покидает
 }
 
 if($sess['uid'] <= 0){ mpre("Посетитель является гостем");
-	$conf['user'] = $guest;
+	$conf['user'] = $guest + ['sess'=>['id'=>0, 'uid'=>0]];
 }elseif(!$conf['user'] = ql($sql = "SELECT *, id AS uid, name AS uname FROM {$conf['db']['prefix']}users WHERE id=". (int)$sess['uid'], 0)){ mpre("Информация о пользователе не найдена");
 }else{// mpre("Информация о пользователе", $conf['user']);
 	if(($conf['settings']['users_uname'] = $conf['user']['uname']) == $conf['settings']['default_usr']){

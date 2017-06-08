@@ -533,11 +533,11 @@
 										</select>
 									<? elseif($name == "uid"): ?>
 										<select name="<?=$name?>">
-											<? if(($f = get($tpl, 'edit', $name)) && !rb("{$conf['db']['prefix']}users", 1000, "id", $f)): ?>
+											<? if(($f = get($tpl, 'edit', $name)) && !rb("{$conf['db']['prefix']}users", "id", $f)): ?>
 												<option value="<?=$tpl['edit'][$name]?>" selected><?=$tpl['edit'][$name]?></option>
 											<? endif; ?>
 											<option value="NULL"></option>
-											<? foreach(rb("{$conf['db']['prefix']}users", 1000) as $uid): ?>
+											<? foreach(rb("{$conf['db']['prefix']}users") as $uid): ?>
 												<option value="<?=$uid['id']?>" <?=((get($tpl, 'edit', $name) == $uid['id']) || (!get($tpl, 'edit') && ($uid['id'] == $conf['user']['uid'])) ? "selected" : "")?>>
 													<?=$uid['id']?> <?=$uid['name']?>
 												</option>

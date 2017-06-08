@@ -26,8 +26,7 @@
 					$(document).scrollTop(top-height/2);
 				}else{ console.log("res:", res); }
 				
-				$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/null", {yandex_metrika_id:yandex_metrika_id, yandex_metrika_period_id:yandex_metrika_period_id}, function(data){
-					if(json = $.parseJSON(data)){
+					$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/null", {yandex_metrika_id:yandex_metrika_id, yandex_metrika_period_id:yandex_metrika_period_id}, function(data){
 						var users = $(e.currentTarget).parents("[yandex_metrika_id]").find(".active .users span.count").text()|0;
 						$(e.currentTarget).parents("[yandex_metrika_id]").find(".active .users span.count").text(users);
 						var changes = (users == json['totals'][0]) ? "" : "+"+(parseInt(json['totals'][0]) - parseInt(users));
@@ -44,8 +43,9 @@
 						$(e.currentTarget).parents("[yandex_metrika_id]").find(".active .pageviews span.changes").text(changes);
 
 						$(e.currentTarget).parents("[yandex_metrika_id]").removeClass("active");
-					}else{ alert(data); }
-				})
+					}, "json").fail(function(error){
+						alert(error.responseText);
+					})
 			}).on("click", "a.upgrade", function(){
 				(function(a){
 					$(a).trigger("click");
@@ -88,7 +88,10 @@
 									<? endforeach; ?>
 								</div>
 								<? foreach(rb("themes-index") as $index): ?>
-									<? if($yandex_metrika = rb("themes-yandex_metrika", "index_id", $index['id'])): ?>
+									<? if($index['index_id']):// mpre("Сайт является зеркалом", $index) ?>
+									<? elseif(preg_match("#\d+\.\d+\.\d+\.\d+#", $index['name'])):// mpre("Хост с адресом в имени", $index) ?>
+									<? elseif("deny" == $index['theme']):// mpre("На сайте устанволена тема заглушка", $index) ?>
+									<? elseif($yandex_metrika = rb("themes-yandex_metrika", "index_id", $index['id'])): ?>
 										<? ($yandex_metrika_metrics = rb("themes-yandex_metrika_metrics", "yandex_metrika_period_id", "yandex_metrika_id", "yandex_metrika_dimensions_id", $tpl['yandex_metrika_period']['id'], $yandex_metrika['id'], 0)) ?>
 										<div yandex_metrika_id="<?=$yandex_metrika['id']?>">
 											<span>

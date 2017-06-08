@@ -124,7 +124,7 @@
 			<? foreach($THEMES_YANDEX_METRIKA_GOAL as $themes_yandex_metrika_goal): ?>
 				<? if(!$_THEMES_YANDEX_METRIKA_GOAL_ELEMENT = rb($THEMES_YANDEX_METRIKA_GOAL_ELEMENT, "yandex_metrika_goal_id", "id", $themes_yandex_metrika_goal['id'])):// mpre("Элементы для целей не надены"); ?>
 				<? elseif(!$themes_yandex_metrika_goal_analysis = rb($THEMES_YANDEX_METRIKA_GOAL_ANALYSIS, "id", $themes_yandex_metrika_goal['yandex_metrika_goal_analysis_id'])): mpre("Ошибка получения анализа цели") ?>
-				<? elseif(!$themes_yandex_metrika_goal_metrika = rb($THEMES_YANDEX_METRIKA_GOAL_METRIKA, "yandex_metrika_goal_analysis_id", $themes_yandex_metrika_goal_analysis['id'])): mpre("Ошибка получения связи анализа с метрикой") ?>
+				<? elseif(!$themes_yandex_metrika_goal_metrika = rb($THEMES_YANDEX_METRIKA_GOAL_METRIKA, "yandex_metrika_goal_analysis_id", $themes_yandex_metrika_goal_analysis['id'])):// mpre("Ошибка получения связи анализа с метрикой") ?>
 				<? elseif(!$themes_yandex_metrika = rb($THEMES_YANDEX_METRIKA, "id", $themes_yandex_metrika_goal_metrika['yandex_metrika_id'])): mpre("Счетчик не найден") ?>
 				<? elseif(!$mtid = (get($themes_yandex_metrika, 'mtid') ?: $themes_yandex_metrika['id'])): mpre("Ошибка нахождения номера счетчика") ?>
 				<? else:// mpre($themes_yandex_metrika_goal, $_THEMES_YANDEX_METRIKA_GOAL_ELEMENT) ?>
@@ -132,14 +132,15 @@
 						<script sync>
 							(function($, script){
 								$(document).on("<?=$themes_yandex_metrika_goal_element['event']?>", "<?=$themes_yandex_metrika_goal_element['selector']?>", function(e){
-									console.log("Событие яндекс");
 									if(!(counter = eval("window.yaCounter<?=$mtid?>"))){ console.error("Ошибка установки счетчика");
 									}else{// console.info("Событие "+goal.alias, counter.reachGoal(goal = "GET_FORM"));
 										counter.reachGoal(alias = "<?=$themes_yandex_metrika_goal['alias']?>");
-										console.info("Yandex.Metrika.<?=$mtid?> ", alias, "Селектор:", "«<?=$themes_yandex_metrika_goal_element['selector']?>»", " событие:", "«<?=$themes_yandex_metrika_goal_element['event']?>»");
+										console.info("Yandex.События.<?=$mtid?> ", alias, "Селектор:", "«<?=$themes_yandex_metrika_goal_element['selector']?>»", " событие:", "«<?=$themes_yandex_metrika_goal_element['event']?>»");
 									}
-								}).on("init", function(){
-									console.info("Исследования:", "«<?=$themes_yandex_metrika_goal_analysis['name']?>»", "Счетчик:", "«<?=$mtid?>»", "Яндекс событие:", "«<?=$themes_yandex_metrika_goal['alias']?>»", "Селектор:", "«<?=$themes_yandex_metrika_goal_element['selector']?>»", "JS событие:", "«<?=$themes_yandex_metrika_goal_element['event']?>»", "Количество:", $("<?=$themes_yandex_metrika_goal_element['selector']?>").length);
+								}).on("init", function(e){
+									if((hide = "<?=get($themes_yandex_metrika_goal, 'hide')?>") != "1"){
+										console.info("Исследования:", "«<?=$themes_yandex_metrika_goal_analysis['name']?>»", "Счетчик:", "«<?=$mtid?>»", "Яндекс событие:", "«<?=$themes_yandex_metrika_goal['alias']?>»", "Селектор:", "«<?=$themes_yandex_metrika_goal_element['selector']?>»", "JS событие:", "«<?=$themes_yandex_metrika_goal_element['event']?>»", "Количество:", $("<?=$themes_yandex_metrika_goal_element['selector']?>").length);
+									}
 								}).ready( function(e){ $(script).parent().trigger("init"); } )
 							})(jQuery, document.currentScript)
 						</script>

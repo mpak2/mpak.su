@@ -29,7 +29,7 @@ function apr($folder, $phar){
 	}
 }
 
-foreach($dolders = array(
+$dolders = array(
 	'index.php',
 	'include/config.php',
 	'include/mpfunc.php',
@@ -51,7 +51,13 @@ foreach($dolders = array(
 	'include/jquery/inputmask', # <!-- [settings:inputmask] --> Скрипты для маск ввода в формы, в разделе тема создана переменная для ввода всех скриптов
 	'include/dhonishow',
 	'include/jquery-lightbox-0.5',
-) as $k=>$v){
+);
+
+if(array_key_exists(1, $argv)){
+	$dolders = [$argv[1]];
+}// print_r($argv); die;
+
+foreach($dolders as $k=>$v){
 	echo "\nadded: $v\n\n";
 	apr("../$v", $phar);
 } if(file_exists($f = "./index.php")){

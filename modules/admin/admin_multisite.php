@@ -72,7 +72,7 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 			$_REQUEST += $_GET = mpgt($conf['settings']['canonical'] = $themes_index['href']);
 		}elseif($_seo_index = rb("seo-index", "id", get($_seo_index_themes = rb("seo-index_themes", "index_id", "themes_index", get($seo_index = rb("seo-index", "name", "[{$url}]"), "id"), $themes_index['id']), 'seo-index'))){
 			if($_seo_location = rb("seo-location", "id", $_seo_index_themes['location_id'])){
-				$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = $_seo_location + $_seo_index_themes + (array_key_exists('up', $_seo_index_themes) ? array("up"=>get($_seo_index_themes, 'up')) : []), 'name'), $_GET);
+				$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = $_seo_location + $_seo_index_themes + (array_key_exists('up', $_seo_index_themes) ? array("index_themes_id"=>$seo_index_themes['id'], "up"=>get($_seo_index_themes, 'up')) : ["index_themes_id"=>$seo_index_themes['id']]), 'name'), $_GET);
 				if(!$modpath = get($conf, 'modules', first(array_keys($_GET['m'])))){ mpre("Модуль не определен");
 				}else{
 					$conf['settings']['modpath'] = $modpath['folder'];
@@ -142,7 +142,7 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 			}elseif(get($seo_index, 'seo-index') && ($_seo_index = rb("seo-index", "id", $seo_index['seo-index']))){
 //				mpre($_seo_index);
 			}else{
-				$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = $seo_location + $seo_index_themes + (array_key_exists('up', $seo_index_themes) ? array("up"=>get($seo_index_themes, 'up')) : []), 'name'), $_GET);
+				$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = $seo_location + $seo_index_themes + (array_key_exists('up', $seo_index_themes) ? array("index_themes_id"=>$seo_index_themes['id'], "up"=>get($seo_index_themes, 'up')) : ["index_themes_id"=>$seo_index_themes['id']]), 'name'), $_GET);
 				if(!$modpath = get($conf, 'modules', first(array_keys($_GET['m'])))){ mpre("Модуль не определен");
 				}else{// mpre($modpath);
 					$conf['settings']['modpath'] = $modpath['folder'];

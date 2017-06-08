@@ -22,7 +22,7 @@ function conn($init = null){
 		}elseif($type == "sqlite"){
 			$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:". mpopendir($conf['db']['name']));
 			$conf['db']['conn']->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			$conf['db']['conn']->exec('PRAGMA foreign_keys=ON');
+			$conf['db']['conn']->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY');
 		}else{
 			$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>1));
 			$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
@@ -151,7 +151,7 @@ function cache($content = false){
 				error_log(implode("/", $sys_getloadavg). " xxx ". ($conf['user']['sess']['uid'] <= 0 ? "{$guest['uname']}{$conf['user']['sess']['id']}" : $conf['user']['uname']). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 			}elseif(!$cache_exists = call_user_func(function($PARAMS) use($conf, $conn){
 					try{
-						if(!$uri = rb($PARAMS, 'name', '[uri]', 'value')){ mpre("Ошибка получения адреса страницы");
+						if(!$uri = rb($PARAMS, 'name', '[uri]', 'value')){ mpre("Ошибка получения адреса страницы", rb($PARAMS, "name", "[uri]"));
 						}elseif(!$result = $conn->query("SELECT * FROM `cache` WHERE `uri`='{$uri}' ORDER BY `id` DESC LIMIT 1")){ mpre("Ошибка создания запроса");
 						}elseif($result && ($cache = $result->fetch(PDO::FETCH_ASSOC))){// mpre("Обновление страницы");
 							$TYPES = ['id'=>PDO::PARAM_INT, 'headers'=>PDO::PARAM_STR, 'content'=>PDO::PARAM_LOB];
@@ -392,7 +392,7 @@ function tables($table = null){
 			$tpl['fields'] = array_column($tpl['fields'], "type", "name");
 		}
 	}else{
-		$tpl['fields'] = qn("SHOW FULL COLUMNS FROM ". $table, "Field");
+		$tpl['fields'] = qn("SHOW FULL COLUMNS FROM `". $table. "`", "Field");
 	} return $tpl['fields'];
 }
 
@@ -420,11 +420,8 @@ function inc($file_name, $variables = [], $req = false){
 				}
 			} if(array_search("Администратор", get($conf, 'user', 'gid'))){
 				ob_start();
-					if($req){
-						call_user_func_array(function($f, $variables) use(&$conf, &$arg, &$tpl){ extract($variables); require $f; }, [$f, $variables]);
-					}else{
-						call_user_func_array(function($f, $variables) use(&$conf, &$arg, &$tpl){ extract($variables); include $f; }, [$f, $variables]);
-					} $content = ob_get_contents();
+					call_user_func_array(function($f, $variables, $req) use(&$conf, &$arg, &$tpl){ extract($variables); ($req ? require($f) : include($f)); }, [$f, $variables, $req]);
+					$content = ob_get_contents();
 				ob_end_clean();
 				if((".tpl" == get($match, 2))){
 					echo strtr(get($conf, 'settings', 'modules_start'), array('{path}'=>$f));
@@ -545,7 +542,7 @@ if(!function_exists('blocks')){
 					qw(pre("ALTER TABLE {$conf['db']['prefix']}blocks_reg CHANGE `description` `name` varchar(255)", $error));
 				}else{ mpre("Ошибка не определена", $error); }
 			}))){ pre("Список регионов блоков не задан");
-		}elseif((!$BLOCKS_INDEX_UACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM `{$conf['db']['prefix']}blocks_index_uaccess` WHERE `uid`=". (int)$conf['user']['uid'], "Запрос прав доступа пользователя к разделу", function($error) use($conf){
+		}elseif((!$BLOCKS_INDEX_UACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM `{$conf['db']['prefix']}blocks_index_uaccess` WHERE `uid`=". (int)get($conf, 'user', 'uid'), "Запрос прав доступа пользователя к разделу", function($error) use($conf){
 				if(!strpos($error, "Unknown column 'admin_access'")){ pre("Неопределенная ошибка", $error);
 				}else{ qw(mpre("ALTER TABLE `{$conf['db']['prefix']}blocks_index_uaccess` CHANGE `access` `admin_access` int(11) NOT NULL")); }
 			}))) &0){ mpre("Разрешения для пользователя");
@@ -887,95 +884,110 @@ function rb($src, $key = 'id'){
 #	erb('table',10,........ПАРАМЕТРЫ ВЫБОКИ..........);
 #	erb('table',........ПАРАМЕТРЫ ВЫБОКИ..........);
 #####################################################################################
+
 function erb($src, $key = 'id'){
 	global $arg, $conf, $tpl;
-	$purpose = $keys = $return = array();
-	$ArrayPositions = array(array(1,2),array(2,3));
-	$func_get_args = func_get_args();
-/*	$FixID = is_string($func_get_args[$ArrayPositions[is_numeric($key)][0]])?intval(preg_match("#^id\|.*$#",$func_get_args[$ArrayPositions[is_numeric($key)][0]])):0;
-	$StartForeach = $ArrayPositions[intval(is_numeric($key))][$FixID];
-	$IdName = $FixID?preg_replace("#^id\|(.*)$#","$1",$func_get_args[$StartForeach-1]):'id';*/
-	$IdName = "id"; ($StartForeach = (is_numeric(get($func_get_args, 1)) ? 2 : 1));
-
-	foreach(array_slice($func_get_args, $StartForeach) as $a){
-		if(is_string($a)){
-			if(preg_match('#^\[.*\]$#',trim($a))){
-				$a = array_flip(preg_split('#\s*,\s*#', preg_replace('#^\[|\]$#','',trim($a))));
-			}
-		} if(is_numeric($a) || is_array($a) || is_bool($a) || empty($a)){
-			if($a === true){ # Удаляем условие на выборку (любые условия)
-				array_splice($keys, count($purpose), 1);
-			}else if(is_array($a)){
-//				$purpose[] = (!mp_is_assoc($a) && mp_array_is_simple($a)) ? array_flip($a) : $a; # Перестает работать при значении [0,0]
-				$purpose[] = $a;
-			}else if(is_null($a)){
-				$purpose[] = null;
-			}else{
-				$purpose[] = $a;
-			}// echo "<pre>"; print_r($purpose); echo "</pre>";
-		}else{
-			if(!empty($purpose)){
-				$field = $a;
-			}else{
-				$keys[] = $a;
-			}
-		}
-	} if(is_numeric($key)){ # Второй параметр число строим пагинатор
-		if(is_array($tab = $src)){
-			$tpl['pager'] = $conf['pager'] = mpager($cnt = count($src)/$key);
-			$src = array_slice($src, get($_GET, 'p')*$key, $key);
-		}else{
-			$where = array_map(function($key, $val){
-				return "`{$key}`". (is_array($val) ? " IN (". in($val). ")" : "=". (int)$val);
-			}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
-			$src = qn($sql = "SELECT * FROM `{$tab}`". ($where ? " WHERE ". implode(" AND ", $where) : ""). (($order = get($conf, 'settings', substr($src, strlen($conf['db']['prefix'])). "=>order") ?: "") ? " ORDER BY ". mpquot($order) : ""). " LIMIT ". (int)(array_key_exists('p', $_GET) ? $_GET['p']*$key : 0). ",". (int)$key,$IdName);
-			$tpl['pager'] = $conf['pager'] = mpager($cnt = ql($sql = "SELECT COUNT(*) AS cnt FROM `{$tab}`". ($where ? " WHERE ". implode(" AND ", $where) : ""), 0, "cnt")/$key);
-		}
-	}else if(is_string($src)){
-		$where = array_map(function($key, $val){
-			if(is_null($val)){
-				return "`{$key}` IS NULL";
-			}elseif(is_array($val)){
-				return "(`{$key}` IN (". in(array_diff_key($val, array_flip(['NULL']))). ")". (array_key_exists('NULL', $val) ? " OR (`{$key}` IS NULL)" : ""). ")";
-			}else{
-				return "`{$key}`=". intval($val);
-			}
-		}, array_intersect_key($keys, $purpose), array_intersect_key($purpose, $keys));
-		$src = qn($sql = "SELECT * FROM {$src}". ($where ? " WHERE ". implode(" AND ", $where) : ""). (get($conf, 'settings') && array_key_exists($n = substr($src, strlen($conf['db']['prefix'])). "=>order", $conf['settings']) && ($order = get($conf, 'settings', $n)) ? " ORDER BY ". mpquot($order) : ""),$IdName); // mpre($sql, $src);
-	} if($keys){
-		if(!empty($src)){
-			foreach($src as $v){
-				$n = &$return;
-				foreach($keys as $s){
-					if(empty($n[ $v[$s] ])){
-						$n[ $v[$s] ] = array();
-					} $n = &$n[ $v[$s] ];
-				} $n = $v;
-			}
-		}else{ $n = array(); }
-	}else{ $return = $src; }
-	foreach($purpose as $v){
-		$r = array();
-		if(is_null($v)){ # Сортировка по NULL
-			$return = get($return, "") ? $return[""] : array();
-		}else if(is_numeric($v) || empty($v)){ # Выборка по целочисленному ключу
-			$return = get($return, $v) ? $return[ $v ] : array();
-		}else if(is_array($v)){ # Сортировка по ключям массива
-			if(array_key_exists("NULL", $v)){
-				$v[null] = true; # Ноль интерпритируется как пустая строка
-			} foreach($return as $key=>$val){
-				if(array_key_exists($key, $v)){
-					$r = array_replace_recursive($r, $val);
+	if((!$func_get_args = array_slice(func_get_args(), 1)) &0){ mpre("Ошибка получения списка параметров функции");
+	}elseif(is_numeric(!$limit = (is_numeric($key) ? array_shift($func_get_args) : null))){ mpre("Определяем лимит сообщений");
+	}elseif(empty($func_get_args) && (!$func_get_args = ["id"])){ mpre("Задание дефолтного значения");
+	}elseif(!is_numeric($line = call_user_func(function() use($func_get_args){
+			foreach($func_get_args as $key=>$val){
+				if(is_numeric($val)){ return $key; mpre("Числовое значение");
+				}elseif(is_array($val)){ return $key; mpre("Массив значений");
+				}elseif(is_null($val)){ return $key; mpre("Нуль");
+				}elseif(is_bool($val)){ return $key; mpre("Логические типы");
+				}elseif(!is_string($val)){ mpre("Неустановленное значение поля", gettype($val), $val);
+				}elseif((substr($val, 0, 1) == "[") && (substr($val, -1, 1) == "]")){ return $key;
+				}elseif($val == ""){ return $key;
+				}else{ // mpre("Параметр определен как имя поле");
 				}
-			} $return = $r;
-		}else if($v === true){ # Выстраивание ключей по порядку
-			$inc = 0;
-			foreach($return as $k){
-				$r[ $inc++ ] = $k;
-			} $return = $r;
+			} return count($func_get_args);
+		}))){ mpre("Ошибка определения границы значений", $func_get_args);
+	}elseif(!$FIELDS = array_slice($func_get_args, 0, $line)){ mpre("Ошибка определения массива полей");
+	}elseif((!$VALUE = array_slice($func_get_args, $line)) &0){ mpre("Ошибка определения массива значений");
+	}elseif((!$VALUES = array_map(function($val){
+			if(!is_string($val)){ return $val;
+			}elseif((substr($val, 0, 1) == "[") && (substr($val, -1, 1) == "]")){// mpre("Парсинг значений со специальными ограничителями");
+				return array_flip(explode(",", substr($val, 1, -1)));
+			}else{ return $val; }
+		}, $VALUE)) &0){ mpre("Ошибка определения списка значений");
+	}elseif(!is_numeric($min = min(count($FIELDS), count($VALUES)))){ mpre("Ошибка получения минимального значения");
+	}elseif(!is_array($_FIELDS = array_slice($FIELDS, 0, $min))){ mpre("Ошибка урезание полей до количетсва значений");
+	}elseif(!is_array($_VALUES = array_slice($VALUES, 0, $min))){ mpre("Ошибка выборки значений");
+	}elseif(!is_array($SRC = (is_array($src) ? array_filter(array_map(function($src) use($min, $conf, $_FIELDS, $_VALUES){
+			if(!$_VALUES){ return $src;
+			}else{// mpre($_VALUES);
+				foreach($_VALUES as $key=>$value){ # Фильтрация массива по условиям
+					if(!$field = get($_FIELDS, $key)){ return null;
+					}elseif(is_numeric($value) && ((int)get($src, $field) === (int)$value)){ return $src;
+					}elseif(is_array($value) && array_key_exists(get($src, $field), $value)){ return $src;
+					}elseif(is_string($value) && (get($src, $field) == $value)){ return $src;
+					}elseif(is_bool($value) && $value){ return $src;
+					}elseif(is_null($value) && (get($src, $field) == $value)){ return $src;
+					}else{ return null; }
+				}// return null;
+			}
+		}, $src)) : call_user_func(function($src) use(&$tpl, $min, $conf, $_FIELDS, $_VALUES, $limit, $arg, $func_get_args){ # Выборка данных из БД по условиям
+			if(!is_array($WHERE = array_filter(array_map(function($field, $value) use($_FIELDS, $_VALUES, $func_get_args){
+					if(is_numeric($value)){ return "`{$field}`=". (int)$value;
+					}elseif(is_string($value)){ return "`{$field}`=\"{$value}\"";
+					}elseif($value === true){ return null;
+					}elseif(is_null($value)){ return "`{$field}` IS NULL";
+					}elseif(is_bool($value)){ return ($value ? "TRUE" : "FALSE");
+					}elseif(!is_array($value)){ mpre("Ошибочный тип данных в значении", gettype($value));
+					}elseif(empty($value)){ return "FALSE"; // mpre("Пустой массив");
+					}elseif(!is_array($IN = array_map(function($val) use($field, $func_get_args){
+							if(is_numeric($val)){ return "`{$field}`={$val}";
+							}elseif("NULL" === $val){ return "`{$field}` IS {$val}";
+							}else{ return "`{$field}` = \"{$val}\""; }
+						}, array_keys($value)))){ mpre("Ошибка обработки значений массива", $_FIELDS, $_VALUES, $func_get_args);
+					}elseif(!$IN){ return null;
+					}else{ return "(". implode(" OR ", $IN). ")"; }
+				}, $_FIELDS, $_VALUES)))){ mpre("Получения условий WHERE");
+			}elseif(!is_string($where = implode(" AND ", $WHERE))){ mpre("Ошибка составления всех условий в строку");
+			}elseif(!$tab = call_user_func(function($src) use($conf, $arg){
+					if($conf['db']['prefix'] == substr($src, 0, strlen($conf['db']['prefix']))){// mpre("Полное имя таблицы вместе с префиксом");
+						return $src;
+					}elseif(!strpos($src, "-")){// mpre("Короткое имя таблицы без модуля", $src);
+						return "{$conf['db']['prefix']}{$arg['modpath']}{$src}";
+					}elseif(!$MOD = explode("-", $src, 2)){ mpre("Ошибка парсинга модуля имени таблицы");
+					}elseif(!$tab = "{$conf['db']['prefix']}{$MOD[0]}_{$MOD[1]}"){
+					}else{ return $tab; }
+				}, $src)){ mpre("Ошибка получения имени таблицы запроса");
+			}elseif((!$LIMIT = ($limit ? " LIMIT ". ((get($_GET, 'p') ?: get($_GET, 'стр'))*$limit). ",". abs($limit) : "")) &0){ mpre("Условия лимита");
+			}elseif(($order = get($conf, 'settings', substr($tab, strlen($conf['db']['prefix'])). "=>order") ?: "") &0){ mpre("Сортировка");
+			}elseif(!$sql = "SELECT * FROM `{$tab}`". ($where ? " WHERE {$where}" : ""). ($order ? " ORDER BY {$order}" : ""). $LIMIT){ mpre("Ошибка составления запроса к базе");
+			}elseif(is_numeric($limit) && ($limit <= 0) && !mpre($sql)){ mpre("Отображение запроса");
+			}elseif(!is_array($SRC = qn($sql))){ mpre("Ошибка выполнения запроса", $sql);
+			}elseif($limit && ($tpl['pager'] = mpager($cnt = ql($sql = "SELECT COUNT(*) AS cnt FROM `{$tab}`". ($where ? " WHERE {$where}" : ""). ($order ? " ORDER BY {$order}" : ""), 0, "cnt")/$limit)) &0){ mpre("Ошибка подсчета пагинатора");
+			}elseif(is_numeric($limit) && ($limit<0) && mpre($sql)){ mpre("Отображение запроса к базе данных");
+			}else{ return $SRC; }
+		}, $src)))){ mpre("Нулевой результат выборки данных", $src);
+	}elseif(empty($SRC)){ return [];
+	}elseif(!$_FIELDS = array_slice($FIELDS, $min)){ # Если значений больше чем полей
+		if(!$_VALUES = array_slice($VALUES, $min)){ return last($SRC); # Возвращаем последний массив
+		}else{ array_unshift($_VALUES, last($SRC));
+			return call_user_func_array("get", $_VALUES); # Поле по последнему ключу
 		}
-	} return !empty($field) ? (array_key_exists($field, $return) ? $return[ $field ] : null) : $return;
-} function arb($index,$params,$return=null){
+	}elseif(!$SRC = call_user_func(function($SRC, $_FIELDS, $_SRC = []) use($func_get_args){
+			if((1 == count($_FIELDS)) && ("id" == get($_FIELDS, 0))){ return $SRC;
+			}elseif(array_search("", $_FIELDS)){ exit(mpre("Пустое значение в списке полей", $_FIELDS/*, debug_backtrace()*/));
+			}else{
+				foreach($SRC as $src){
+					$TMP = &$_SRC;
+					foreach($_FIELDS as $_fields){
+						if(!array_key_exists($src[$_fields], $TMP)){
+							$TMP[ $src[$_fields] ] = [];
+						} $TMP = &$TMP[ $src[$_fields] ];
+					} $TMP = $src;
+				} return $_SRC;
+			}
+		}, ($limit ? array_slice($SRC, 0, $limit, true) : $SRC), $_FIELDS)){// mpre("Ошибка формирования ключей по дополнительным полям");
+		return [];
+	}else{ return $SRC; }
+}
+
+function arb($index,$params,$return=null){
 	$buff = array($index);
 	foreach($params as $key => $param){
 		if(!is_int($key)){array_push($buff,$key);}
@@ -987,6 +999,7 @@ function erb($src, $key = 'id'){
 	if(is_string($return)){array_push($buff,$return);}
 	return call_user_func_array('rb',$buff);
 }
+
 # Автоматическое определение кодировки строки и приведение ее в нужную форму.
 function mpde($string) { 
 	ini_set('mbstring.substitute_character', "none");
@@ -1452,7 +1465,7 @@ function mpreaddir($file_name, $merge=0){
 }
 function mpopendir($file_name, $merge=1){
 	global $conf;
-	$prefix = $merge ? explode('::', $conf["db"]["open_basedir"]) : array('./');
+	$prefix = $merge ? explode('::', get($conf, "db", "open_basedir")) : array('./');
 	if($merge < 0) krsort($prefix);
 	foreach($prefix as $k=>$v){
 		$file = strtr(/*mpre*/("$v/$file_name"), array('/modules/..'=>''));
@@ -1540,8 +1553,7 @@ function mpqw($sql, $info = null, $callback = null, $params = null, $conn = null
 		mpre(ob_get_clean());
 		if(is_callable($callback)){
 			$callback($error, $conf);
-		}
-		$result = [];
+		} $result = [];
 	} 
 	if(!empty($conf['settings']['analizsql_log'])){
 		$conf['db']['sql'][] = $q = array(
