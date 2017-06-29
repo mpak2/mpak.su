@@ -1,7 +1,8 @@
-<? if(!$menu_region = rb("menu-region", "name", $w = "[Админменю]")): mpre("Меню не найдено {$w}") ?>
+<? if(!$menu_region = rb("menu-region", "id", $param['menu'])): mpre("Меню не найдено {$w}") ?>
 <? elseif(!$MENU_INDEX = rb("index", "region_id", "id", $menu_region['id'])): mpre("Пункты меню <a href='/menu:admin/r:menu-region?&where[id]={$menu_region['id']}'>не найдены</a>"); ?>
-<? else:// mpre($menu_region) ?>
+<? else:// mpre(/*$menu,*/ $param) ?>
 	<ul class="menu">
+		<?=aedit("/menu:admin/r:mp_menu_index?&where[region_id]={$menu_region['id']}")?>
 		<style>
 			ul.menu > li ul {display:none;}
 			ul.menu > li:hover ul {display:block;}

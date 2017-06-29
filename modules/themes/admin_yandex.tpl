@@ -138,7 +138,7 @@
 					<? endforeach; ?>
 				</span>
 				<a class="upgrade" href="javascript:void(0)">Обновить</a>
-				<a target="blank" href="https://oauth.yandex.ru/authorize?response_type=token&client_id=<?=$yandex['code']?>">Получить токен</a>
+				<a target="blank" href="https://oauth.yandex.ru/authorize?response_type=token&force_confirm=yes&client_id=<?=$yandex['code']?>">Получить токен</a>
 			</div>
 		</span>
 		<h1><?=$yandex['name']?></h1>

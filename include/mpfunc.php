@@ -22,7 +22,7 @@ function conn($init = null){
 		}elseif($type == "sqlite"){
 			$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:". mpopendir($conf['db']['name']));
 			$conf['db']['conn']->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			$conf['db']['conn']->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY');
+			$conf['db']['conn']->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
 		}else{
 			$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>1));
 			$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
@@ -50,7 +50,6 @@ function MpGenUniquePath($dir="/tmp"){
 
 function cache($content = false){
 	global $conf;
-
 	if(array_search("pdo_sqlite", get_loaded_extensions())){ # PDO подерживает sqlite используем его для сохранения кеша
 		if(!$content){ # Отдаем кеш из sqlite
 			if(is_numeric($content)){ # mpre("Ошибка подключения баз данных");
@@ -83,7 +82,14 @@ function cache($content = false){
 				header('HTTP/1.1 503 Service Temporarily Unavailable');
 				header('Status: 503 Service Temporarily Unavailable');
 				exit(header('Retry-After: '. array_rand(60, 600)));//random() Почторить через небольшой период времени
-			}elseif(($sys_getloadavg[0] < 3) && (rand(0, $sys_getloadavg[0]) <= 1)){// mpre("Чем меньше нагрузка, тем более вероятно обновление");
+//			}elseif(pre($sys_getloadavg, time())){
+			}elseif(($sys_getloadavg[0] < 1) && (rand(0, $sys_getloadavg[0]) <= 1)){// mpre("Чем меньше нагрузка, тем более вероятно обновление");
+			}elseif($_COOKIE['sess']){// pre("Зарегистрированный пользователь");
+			}elseif(!call_user_func(function($age){
+					header("Cache-Control: max-age={$age}");
+					header("Expires: ". gmdate('D, d M Y H:i:s T'));
+					return true;
+				}, 86400*10)){ mpre("Ошибка установки заговлоков");
 			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Ошибка определения адреса");
 //			}elseif(array_key_exists('HTTP_CACHE_CONTROL', $_SERVER)){// pre("Обновление");
 			}elseif(get($_SERVER, 'HTTP_CACHE_CONTROL')){
@@ -91,7 +97,7 @@ function cache($content = false){
 //			}elseif(get($_SERVER, 'HTTP_IF_MODIFIED_SINCE')){// pre("Кешируем только корректно отдаваемые страницы");
 //				error_log(implode("/", $sys_getloadavg). " !!! ". ($conf['user']['sess']['uid'] <= 0 ? "{$guest['uname']}{$conf['user']['sess']['id']}" : $conf['user']['uname']). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 //				exit(header('HTTP/1.0 304 Not Modified'));
-			}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg"/*, "/sitemap.xml", "/robots.txt", "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
+			}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg", "/sitemap.xml", "/robots.txt"/*, "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
 			}elseif($_POST || array_key_exists("sess", $_COOKIE)){// print_r("Создание сессии");
 			}elseif(get($_SERVER, 'HTTP_IF_MODIFIED_SINCE') || (http_response_code() == 304)){ mpre("Кешированная страница. Отдаем только статус");
 				error_log(implode("/", $sys_getloadavg). " <== 301 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
@@ -726,7 +732,7 @@ function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $hea
 	curl_setopt($ch, CURLOPT_URL, $href); //куда шлем
 	if($post){
 		curl_setopt($ch, CURLOPT_POST, 1);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, iconv('utf-8', 'cp1251', $post));
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $post /*, iconv('utf-8', 'cp1251', $post)*/);
 	}
 	if ($referer) curl_setopt($ch, CURLOPT_REFERER, $referer);
 	curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0; MyIE2; .NET CLR 1.1.4322)");
@@ -916,16 +922,24 @@ function erb($src, $key = 'id'){
 	}elseif(!is_array($_VALUES = array_slice($VALUES, 0, $min))){ mpre("Ошибка выборки значений");
 	}elseif(!is_array($SRC = (is_array($src) ? array_filter(array_map(function($src) use($min, $conf, $_FIELDS, $_VALUES){
 			if(!$_VALUES){ return $src;
-			}else{// mpre($_VALUES);
+//			}elseif(!$_VALUES_ = array_combine($_FIELDS, $_VALUES)){ mpre("Ошибка сбора массива по ключам и значениям");
+//			}elseif(!array_diff_assoc($_VALUES_, $src)){ return $src;
+			}else{// mpre($_VALUES, $src, array_diff_assoc($_VALUES_, $src));
 				foreach($_VALUES as $key=>$value){ # Фильтрация массива по условиям
 					if(!$field = get($_FIELDS, $key)){ return null;
-					}elseif(is_numeric($value) && ((int)get($src, $field) === (int)$value)){ return $src;
-					}elseif(is_array($value) && array_key_exists(get($src, $field), $value)){ return $src;
-					}elseif(is_string($value) && (get($src, $field) == $value)){ return $src;
-					}elseif(is_bool($value) && $value){ return $src;
-					}elseif(is_null($value) && (get($src, $field) == $value)){ return $src;
-					}else{ return null; }
-				}// return null;
+					}elseif(is_numeric($value) && ((int)get($src, $field) !== (int)$value)){ return null;
+					}elseif(is_array($value) && !call_user_func(function($src) use($field, $value){
+							if(($val = get($src, $field)) &0){ mpre("Значение массива");
+							}elseif(is_null($val) && array_key_exists("NULL", $value)){ return $src;
+							}elseif(!array_key_exists($val, $value)){ return null;
+							}else{ return $src; }
+						}, $src)){ return null;
+					}elseif(is_string($value) && (get($src, $field) != $value)){ return null;
+					}elseif(is_bool($value) && !$value){ return null;
+					}elseif(is_null($value) && (get($src, $field) != $value)){ return null;
+					}else{// mpre($src);
+					}
+				} return $src;
 			}
 		}, $src)) : call_user_func(function($src) use(&$tpl, $min, $conf, $_FIELDS, $_VALUES, $limit, $arg, $func_get_args){ # Выборка данных из БД по условиям
 			if(!is_array($WHERE = array_filter(array_map(function($field, $value) use($_FIELDS, $_VALUES, $func_get_args){
@@ -962,7 +976,7 @@ function erb($src, $key = 'id'){
 			}elseif($limit && ($tpl['pager'] = mpager($cnt = ql($sql = "SELECT COUNT(*) AS cnt FROM `{$tab}`". ($where ? " WHERE {$where}" : ""). ($order ? " ORDER BY {$order}" : ""), 0, "cnt")/$limit)) &0){ mpre("Ошибка подсчета пагинатора");
 			}elseif(is_numeric($limit) && ($limit<0) && mpre($sql)){ mpre("Отображение запроса к базе данных");
 			}else{ return $SRC; }
-		}, $src)))){ mpre("Нулевой результат выборки данных", $src);
+		}, $src)))){ mpre("Нулевой результат выборки данных `{$src}`", $sql);
 	}elseif(empty($SRC)){ return [];
 	}elseif(!$_FIELDS = array_slice($FIELDS, $min)){ # Если значений больше чем полей
 		if(!$_VALUES = array_slice($VALUES, $min)){ return last($SRC); # Возвращаем последний массив
@@ -1323,13 +1337,14 @@ function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'ima
 		mpevent("Ошибка загрузки внешнего файла", $href, get($conf, 'user', 'uid'), func_get_args());
 		pre("Ошибка загрузки файла", $href);
 	} return null;
-} function hid($tn, $href, $id = false, $fn = "img", $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpeg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
+}
+function hid($tn, $href, $id = false, $fn = "img", $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpeg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf, $arg;
 	if(!$data = file_get_contents($href)){ pre("Ошибка загрузки файла", $href);
 	}elseif(!($ext = '.'. preg_replace("/[\W]+.*/", '', preg_replace("/.*?\./", '', $href))) && (array_search(strtolower($ext), $exts) || isset($exts['*']))){ pre("Запрещенное к загрузке расширение", $ext);
 	}elseif(!$el = fk($tn, $w = ($id ? ["id"=>$id] : null), $w = ['id'=>NULL])){ mpre("Ошибка получения идентификатора элемента {$tn}");
 	}elseif(!$f = "{$tn}_{$fn}_". (int)$el['id']. $ext){ mpre("Ошибка формирования имени файла");
-	}elseif(!$ufn = mpopendir('include/images')){ mpre("Директория с изображениями не определена");
+	}elseif((!$ufn = mpopendir('include/images')) && (!$ufn = realpath('include/images'))){ mpre("Директория с изображениями не определена");
 	}elseif(!file_put_contents("$ufn/$f", $data)){ mpre("Ошибка сохранения файла");
 	}elseif(!$el = fk($tn, array("id"=>$el['id']), null, array($fn=>"images/$f"))){ mpre("Ошибка занесения имени файла в таблицу");
 	}else{ return $el; }
@@ -1374,11 +1389,12 @@ function mpager($count, $null=null, $cur=null, $url=null){
 	$p = (strpos(get($_SERVER, 'HTTP_HOST'), "xn--") === 0) && ($arg['fn'] != "admin") ? "стр" : "p";
 	if ($cur === null) $cur = (array_key_exists($p, $_GET) ? $_GET[$p] : 0);
 	
-	if ($url === null){
+	if(!$REQUEST_URI = get($_SERVER, 'REQUEST_URI')){// mpre("Не найден адрес");
+	}elseif($url === null){
 		if(array_key_exists($p, $_GET)){
-			$url = strtr($u = urldecode($_SERVER['REQUEST_URI']), array("/{$p}:{$_GET[$p]}"=>'', "&{$p}={$_GET[$p]}"=>''));
+			$url = strtr($u = urldecode($REQUEST_URI), array("/{$p}:{$_GET[$p]}"=>'', "&{$p}={$_GET[$p]}"=>''));
 		}else if(!($url = get($conf, 'settings', 'canonical'))){ # Если адрес не установлен в сео, берем из свойств апача
-			$url = $u = urldecode(get($_SERVER, 'REQUEST_URI'));
+			$url = $u = urldecode($REQUEST_URI);
 		}else{
 		} $url = seo($url);
 	} if($null){
@@ -1389,7 +1405,7 @@ function mpager($count, $null=null, $cur=null, $url=null){
 		$url = get($url, 'name');
 	}
 	if(2 > $count = ceil($count)) return;
-	$return = "<script>$(function(){ $(\".pager\").find(\"a[href='". urldecode(get($_SERVER, 'REQUEST_URI')). "']\").addClass(\"active\").css(\"font-weight\", \"bold\"); })</script>";
+	$return = "<script>$(function(){ $(\".pager\").find(\"a[href='". urldecode($REQUEST_URI). "']\").addClass(\"active\").css(\"font-weight\", \"bold\"); })</script>";
 	$return .=  "<div class=\"pager\">";
 	$mpager['first'] = $url;
 

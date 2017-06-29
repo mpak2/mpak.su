@@ -116,7 +116,75 @@
 						</form>
 					<? endif; ?>
 					<? if(($conf['db']['type'] == 'sqlite')): ?>
-						<? mpre("Для БД sqlite не реализованы вторичные ключи"); ?>
+						<? if(!$sql = "PRAGMA foreign_key_list('{$_GET['r']}')"): mpre("Ошибка составления запроса списка вторичных ключей") ?>
+						<? elseif(!is_array($data = mpql(mpqw($sql)))): mpre("Ошибка запроса к БД") ?>
+						<? elseif(!$FIELDS = fields($_GET['r'])): mpre("Поля таблицы не найдены `{$_GET['r']}`") ?>
+						<? elseif(!$sql = "PRAGMA foreign_key_list({$_GET['r']});"): mpre("Ошибка получения информации о вторичных ключах") ?>
+						<? elseif(!is_array($FOREIGN_KEYS = mpqn(mpqw($sql), "from"))): mpre("Ошибка выполнения выборки вторичных ключей") ?>
+						<? else:// mpre($sql, $FOREIGN_KEYS) ?>
+							<div class="table">
+								<script sync>
+									(function($, script){
+										$(script).parent().on("click", "button", function(e){
+											var field = $(e.currentTarget).parents("[field]").attr("field");
+											var on_update = $(e.currentTarget).parents("[field]").find("select[name=on_update] option:selected").attr("value");
+											var on_delete = $(e.currentTarget).parents("[field]").find("select[name=on_delete] option:selected").attr("value");
+											console.log("field:", field, "on_update:", on_update, "on_delete:", on_delete);
+											$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null", {foreign:field, on_update:on_update, on_delete:on_delete}, function(data){
+												console.log("data:", data);
+												document.location.reload(true);
+											}, "json").fail(function(error){ alert(error.responseText); })
+										})
+									})(jQuery, document.scripts[document.scripts.length-1])
+								</script>
+								<div class="th">
+									<span>Поле</span>
+									<span>Таблица</span>
+									<span>Обновление</span>
+									<span>Удаление</span>
+									<span>Действие</span>
+								</div>
+								<? foreach($FIELDS as $field=>$fld): ?>
+									<? if(substr($field, -3) != "_id"):// mpre("Поле не вторичное `{$field}`"); ?>
+									<? elseif((!$foreign_keys = get($FOREIGN_KEYS, $field)) &0): mpre("Вторичный ключ поля") ?>
+									<? else:// mpre($sql, $foreign_keys) ?>
+										<div field="<?=$field?>">
+											<span><?=$field?></span>
+											<span><?=$_GET['r']?></span>
+											<span>
+												<? if($on_update = get($foreign_keys, 'on_update')): ?>
+													<?=$on_update?>
+												<? else: ?>
+													<select name="on_update">
+														<option value="UPDATE NO ACTION" selected></option>
+														<option value="UPDATE SET NULL">Нуль</option>
+														<option value="UPDATE SET DEFAULT">Умолчание</option>
+														<option value="UPDATE RESTRICT">Блок</option>
+														<option value="UPDATE CASCADE">Обновить</option>
+													</select>
+												<? endif; ?>
+											</span>
+											<span>
+												<? if($on_delete = get($foreign_keys, 'on_delete')): ?>
+													<?=$on_delete?>
+												<? else: ?>
+													<select name="on_delete">
+														<option value="DELETE NO ACTION"></option>
+														<option value="DELETE SET NULL">Нуль</option>
+														<option value="DELETE SET DEFAULT">Умолчание</option>
+														<option value="DELETE RESTRICT" selected>Блок</option>
+														<option value="DELETE CASCADE">Удалить</option>
+													</select>
+												<? endif; ?>
+											</span>
+											<span style="text-align:center;">
+												<button><?=($foreign_keys ? "Удалить" : "Создать")?></button>
+											</span>
+										</div>
+									<? endif; ?>
+								<? endforeach; ?>
+							</div>
+						<? endif; ?>
 					<? else: ?>
 						<? if($tpl['key_column_usage'] = ql(($sql = "SELECT * FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE (TABLE_NAME='{$_GET['r']}' AND REFERENCED_TABLE_NAME != '') OR REFERENCED_TABLE_NAME = '{$_GET['r']}'"))): ?>
 							<?// mpre("Список вторичных и первичных ключей для вторичных таблиц", $tpl['key_column_usage']); ?>
@@ -257,7 +325,7 @@
 									<? endforeach; ?>
 								</select>
 							</p>
-							<p><textarea name="sql" style="width:100%; height:100px;" placeholder="Текст запроса"><? if(get($conf, 'db', 'type') == 'sqlite'): ?><?="PRAGMA table_info(`{$_GET['r']}`)"?><? else: ?><?=($_GET['r'] ? "SHOW CREATE TABLE `{$_GET['r']}`" : "")?><? endif; ?></textarea></p>
+							<p><textarea name="sql" style="width:100%; height:100px;" placeholder="Текст запроса"><? if(get($conf, 'db', 'type') == 'sqlite'): ?><?="SELECT * FROM sqlite_master WHERE tbl_name='{$_GET['r']}'"?><? else: ?><?=($_GET['r'] ? "SHOW CREATE TABLE `{$_GET['r']}`" : "")?><? endif; ?></textarea></p>
 							<p><button>Выполнить</button></p>
 						</form>
 						<div class="info"></div>

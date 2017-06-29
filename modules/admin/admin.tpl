@@ -265,14 +265,14 @@
 									<div class="settings" style="display:none; position:absolute; width:300px; background-color:white; right:0px; top:20; text-align:left; min-height:50px;">
 										<h2>Свойства</h2>
 										<div style="padding:10px; border:1px solid #eee; border-top:0;">
-											<h4>Таблица</h4>
+											<h4>Свойства таблицы</h4>
 											<div class="table" style="width:100%;">
-												<? foreach(["{$t}"=>["Название"=>"", "Заголовки"=>"=>title", "Сортировка"=>"=>order", "Счетчик"=>"=>ecounter"], "{$arg['modpath']}"=>["Список"=>"=>espisok"]] as $prx=>$params): ?>
+												<? foreach(["{$arg['modpath']}"=>["Список"=>"=>espisok", "Исключения"=>"_tpl_exceptions"], "{$t}"=>["Название"=>"", "Заголовки"=>"=>title", "Сортировка"=>"=>order", "Счетчик"=>"=>ecounter"]] as $prx=>$params): ?>
 													<? foreach($params as $name=>$uri): ?>
 														<div>
-															<span><?=$name?></span>
+															<span style="font-weight:<?=($prx == $arg['modpath'] ? "bold" : "inherit")?>;"><?=$name?></span>
 															<span>
-																<a href="/settings:admin/r:mp_settings/?&where[modpath]=<?=$arg['modpath']?>&where[name]=<?=($st = $prx. $uri)?>">
+																<a target="blank" href="/settings:admin/r:mp_settings/?&where[modpath]=<?=$arg['modpath']?>&where[name]=<?=($st = $prx. $uri)?>">
 																	<?=(get($conf, 'settings', $st) ?: "Нет")?>
 																</a>
 															</span>
@@ -570,17 +570,21 @@
 									<? elseif(array_search($name, array(1=>"time", "last_time", "reg_time", "up", 'down'))): # Поле времени ?>
 										<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", (get($_GET, 'edit') ? rb($_GET['r'], "id", $_GET['edit'], $name) : time()))?>" placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
 									<? elseif((substr($name, -3) == "_id") && (false === array_search(substr($name, 0, strlen($name)-3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
-										<select name="<?=$name?>" style="width:100%;">
-											<option value="NULL"></option>
-											<? if(get($tpl, "edit", $name) && !rb("{$arg['modpath']}-". substr($name, 0, -3), "id", $tpl['edit'][$name])): ?>
-												<option selected style="color:red;"><?=htmlspecialchars($tpl['edit'][$name])?></option>
-											<? endif; ?>
-											<? foreach(rb("{$arg['modpath']}-". substr($name, 0, -3)) as $ln): ?>
-												<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $name) == $ln['id']) || (!get($tpl, 'edit') && (($ln['id'] == ((get($_GET, 'where', $name)) ?: get($field, 'Default'))))) ? "selected" : "")?>>
-													<?=$ln['id']?>&nbsp;<?=htmlspecialchars(get($ln, 'name'))?>
-												</option>
-											<? endforeach; ?>
-										</select>
+										<? if(!is_array($SELECT = rb("{$arg['modpath']}-". substr($name, 0, -3)))): mpre("Ошибка выборки списка для отображения") ?>
+										<? else:// mpre(count($SELECT)) ?>
+											<select name="<?=$name?>" style="width:100%;">
+												<option value="NULL"></option>
+												<? if(get($tpl, "edit", $name) && !rb("{$arg['modpath']}-". substr($name, 0, -3), "id", $tpl['edit'][$name])): ?>
+													<option selected style="color:red;"><?=htmlspecialchars($tpl['edit'][$name])?></option>
+												<? endif; ?>
+												<? foreach($SELECT as $ln): ?>
+													<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $name) == $ln['id']) || (!get($tpl, 'edit') && (($ln['id'] == ((get($_GET, 'where', $name)) ?: get($field, 'Default'))))) ? "selected" : "")?>>
+														<?=$ln['id']?>&nbsp;<?=htmlspecialchars(get($ln, 'name'))?>
+													</option>
+												<? endforeach; ?>
+											</select>
+											<? if((count($SELECT) > 1000) && !mpre("Огромный список ". count($SELECT). " эл. <b>". substr($name, 0, -3). "</b> <a target='blank' href='/settings:admin/r:mp_settings/?&where[modpath]={$arg['modpath']}&where[name]={$arg['modpath']}_tpl_exceptions'>исключить</a>")); ?>
+										<? endif; ?>
 									<? elseif(get($tpl, 'espisok', $name)): ?>
 										<select name="<?=$name?>">
 											<option value="NULL"></option>

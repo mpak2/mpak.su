@@ -13,7 +13,7 @@
 		(function($, script){
 			$(script).parent().one("DOMNodeInserted", function(e){ // Загрузка родительского элемента
 				
-			}).on("click", "a,update", function(e){
+			}).on("click", "a.update", function(e){
 				var yandex_metrika_id = $(e.currentTarget).parents("[yandex_metrika_id]").attr("yandex_metrika_id");
 				var yandex_metrika_period_id = $(e.currentTarget).parents("[yandex_metrika_period_id]").attr("yandex_metrika_period_id");
 				$(e.currentTarget).parents("[yandex_metrika_id]").addClass("active");
@@ -27,19 +27,20 @@
 				}else{ console.log("res:", res); }
 				
 					$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/null", {yandex_metrika_id:yandex_metrika_id, yandex_metrika_period_id:yandex_metrika_period_id}, function(data){
+						console.log("data:",data)
 						var users = $(e.currentTarget).parents("[yandex_metrika_id]").find(".active .users span.count").text()|0;
 						$(e.currentTarget).parents("[yandex_metrika_id]").find(".active .users span.count").text(users);
-						var changes = (users == json['totals'][0]) ? "" : "+"+(parseInt(json['totals'][0]) - parseInt(users));
+						var changes = (users == data['totals'][0]) ? "" : "+"+(parseInt(data['totals'][0]) - parseInt(users));
 						$(e.currentTarget).parents("[yandex_metrika_id]").find(".active .users span.changes").text(changes);
 
 						var visits = $(e.currentTarget).parents("[yandex_metrika_id]").find(".active .visits span.count").text()|0;
 						$(e.currentTarget).parents("[yandex_metrika_id]").find(".active .visits span.count").text(visits);
-						var changes = (visits == json['totals'][1]) ? "" : "+"+(parseInt(json['totals'][1]) - parseInt(visits));
+						var changes = (visits == data['totals'][1]) ? "" : "+"+(parseInt(data['totals'][1]) - parseInt(visits));
 						$(e.currentTarget).parents("[yandex_metrika_id]").find(".active .visits span.changes").text(changes);
 
 						var pageviews = $(e.currentTarget).parents("[yandex_metrika_id]").find(".active .pageviews span.count").text()|0;
 						$(e.currentTarget).parents("[yandex_metrika_id]").find(".active .pageviews span.count").text(pageviews);
-						var changes = (pageviews == json['totals'][2]) ? "" : "+"+(parseInt(json['totals'][2]) - parseInt(pageviews));
+						var changes = (pageviews == data['totals'][2]) ? "" : "+"+(parseInt(data['totals'][2]) - parseInt(pageviews));
 						$(e.currentTarget).parents("[yandex_metrika_id]").find(".active .pageviews span.changes").text(changes);
 
 						$(e.currentTarget).parents("[yandex_metrika_id]").removeClass("active");
@@ -84,7 +85,7 @@
 									<span>Счетчик</span>
 									<span>Сайт</span>
 									<? foreach($tpl['yandex_metrika_period:all'] as $yandex_metrika_period): ?>
-										<span><?=$yandex_metrika_period['date1']?></span>
+										<span><?=$yandex_metrika_period['date1']?>/<?=$yandex_metrika_period['date2']?></span>
 									<? endforeach; ?>
 								</div>
 								<? foreach(rb("themes-index") as $index): ?>

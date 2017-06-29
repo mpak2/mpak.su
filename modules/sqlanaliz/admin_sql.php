@@ -24,26 +24,70 @@ if($dump = get($_REQUEST, 'dump')){
 }else if(array_key_exists("null", $_GET)){
 	if($_POST){
 		if($foreign = get($_POST, 'foreign')){
-			$tpl['key_column_usage'] = ql($sql = "SELECT * FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE (TABLE_NAME='{$_GET['r']}' AND REFERENCED_TABLE_NAME != '') OR REFERENCED_TABLE_NAME = '{$_GET['r']}'");
-			if($key_column_usage = rb($tpl['key_column_usage'], "REFERENCED_TABLE_NAME", "REFERENCED_COLUMN_NAME", "[{$_GET['r']}]", $foreign)){ mpre("Внешний ключ", $key_column_usage);
-				exit(mpre("ALTER TABLE {$key_column_usage['REFERENCED_TABLE_NAME']} DROP KEY "));
-			}elseif($key_column_usage = rb($tpl['key_column_usage'], "TABLE_NAME", "COLUMN_NAME", "[{$_GET['r']}]", $foreign)){// mpre("Внутренний ключ", $key_column_usage);
-				qw("ALTER TABLE `{$key_column_usage['TABLE_NAME']}` DROP FOREIGN KEY `{$key_column_usage['CONSTRAINT_NAME']}`");
-				exit(json_encode($key_column_usage));
-			}elseif("_id" == substr($foreign, -3)){// mpre("Создание ключа", $foreign);
-				if($fields = fields($_GET['r'])){
-					if(get($fields, $foreign, "Null") == "NO"){
-						qw("ALTER TABLE `". mpquot($_GET['r']). "` CHANGE `{$foreign}` `{$foreign}` {$fields[$foreign]['Type']} NULL COMMENT '{$fields[$foreign]['Comment']}'");
-						qw("UPDATE `". mpquot($_GET['r']). "` SET `{$foreign}`=NULL WHERE `{$foreign}`=0");
-					} qw("ALTER TABLE `{$_GET['r']}` ADD FOREIGN KEY (`". mpquot($foreign). "`) REFERENCES `{$conf['db']['prefix']}". first(explode("_", substr($_GET['r'], strlen($conf['db']['prefix'])))). "_". substr($foreign, 0, -3). "` (`id`) ON DELETE ". mpquot($_POST['reference']));
-				}else{ exit(mpre("Ошибка определения структуры таблицы", $_GET['r'])); }
-				exit(json_encode($tpl['key_column_usage']));
-			}else{ exit(mpre("Ошибка подключения вторичного ключа", $_GET['r'], $_POST)); }
-
-			exit(mpre(false, $_GET['r'], $tpl['key_column_usage']));
+			if($conf['db']['type'] == "sqlite"){// die(!mpre($_GET, $_POST));
+				if(!$table = $_GET['r']){ die(!mpre("Имя таблицы не установлено"));
+				}elseif(!$FIELDS = fields($table)){ die(!mpre("Ошибка установки свойств таблицы"));
+				}elseif(!$field = $_POST['foreign']){ die(!mpre("Ошибка установки поля вторичного ключа"));
+				}elseif(!$sql = "PRAGMA foreign_key_list({$_GET['r']});"){ mpre("Ошибка получения информации о вторичных ключах");
+				}elseif(!is_array($FOREIGN_KEYS = mpqn(mpqw($sql), "from"))){ mpre("Ошибка выполнения выборки вторичных ключей");
+				}elseif(!$tab = explode("_", substr($table, strlen($conf['db']['prefix'])))){ die(!mpre("Ошибка парса таблицы"));
+				}elseif(!$fntab = "{$conf['db']['prefix']}{$tab[0]}_". substr($field, 0, -3)){ die(!mpre("Ошибка установки связанной таблицы"));
+				}elseif($foreign_keys = get($FOREIGN_KEYS, $field)){// mpre("Удаление ключа");
+//					"База данных sqlite не поддерживает изменение полей, поэтому делаем через промежуточную таблицу",
+					$transaction = array(
+						"BEGIN TRANSACTION;",
+						"DROP TABLE IF EXISTS `backup`;",
+						"CREATE TEMPORARY TABLE backup(". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "{$f['name']} INTEGER PRIMARY KEY" : "{$f['name']} {$f['type']}"); }, $FIELDS))). ");",
+	//					"INSERT INTO backup SELECT ". implode(", ", array_keys(array_diff_key($tpl['fields'], array_flip(array($f))))). ", {$f} FROM ". mpquot($table). ";",
+						"INSERT INTO backup SELECT * FROM ". mpquot($table). ";",
+						"DROP TABLE ". mpquot($table). ";",
+						"CREATE TABLE ". mpquot($table). "(". implode(",", (array_map(function($f) use($fntab, $field){ return ($f['name'] == "id" ? " {$f['name']} INTEGER PRIMARY KEY" : "{$f['name']} {$f['type']}". ($f['dflt_value'] ? " DEFAULT {$f['dflt_value']}" : "")); }, $FIELDS))). ");",
+						"INSERT INTO ". mpquot($table). " (". implode(",", array_keys($FIELDS)). ") SELECT ". implode(",", array_keys($FIELDS)). " FROM backup;",
+						"DROP TABLE backup;",
+						"COMMIT;",
+					);// die(!mpre(get($transaction, 5))); // foreach($transaction as $sql){ qw($sql); }
+					while(list($key, $sql) = each($transaction)){ qw($sql); }
+					exit(json_encode($FIELDS));
+				}elseif(!$on_update = $_POST[$w = 'on_update']){ die(!mpre("Не задан `{$w}` контроля вторичного ключа"));
+				}elseif(!$on_delete = $_POST[$w = 'on_delete']){ die(!mpre("Не задан `{$w}` контроля вторичного ключа"));
+				}else{// die(!mpre($fntab, $field));
+//					"База данных sqlite не поддерживает изменение полей, поэтому делаем через промежуточную таблицу",
+					$transaction = array(
+						"BEGIN TRANSACTION;",
+						"DROP TABLE IF EXISTS `backup`;",
+						"CREATE TEMPORARY TABLE backup(". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "{$f['name']} INTEGER PRIMARY KEY" : "{$f['name']} {$f['type']}"); }, $FIELDS))). ");",
+	//					"INSERT INTO backup SELECT ". implode(", ", array_keys(array_diff_key($tpl['fields'], array_flip(array($f))))). ", {$f} FROM ". mpquot($table). ";",
+						"INSERT INTO backup SELECT * FROM ". mpquot($table). ";",
+						"DROP TABLE ". mpquot($table). ";",
+						"CREATE TABLE ". mpquot($table). "(". implode(",", (array_map(function($f) use($fntab, $field, $on_update, $on_delete){ return ($f['name'] == "id" ? " {$f['name']} INTEGER PRIMARY KEY" : "{$f['name']} {$f['type']}". ($f['dflt_value'] ? " DEFAULT {$f['dflt_value']}" : ""). (($field == $f['name']) ? " REFERENCES {$fntab}(id) ON {$on_update} ON {$on_delete}" : "")); }, $FIELDS))). ");",
+						"INSERT INTO ". mpquot($table). " (". implode(",", array_keys($FIELDS)). ") SELECT ". implode(",", array_keys($FIELDS)). " FROM backup;",
+						"DROP TABLE backup;",
+						"COMMIT;",
+					);// die(!mpre(get($transaction, 5))); // foreach($transaction as $sql){ qw($sql); }
+					while(list($key, $sql) = each($transaction)){ qw($sql); }
+					exit(json_encode($FIELDS));
+				} die(!mpre("Неустановленная ошибка"));
+			}else{// die(!mpre("mysql"));
+				$tpl['key_column_usage'] = ql($sql = "SELECT * FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE (TABLE_NAME='{$_GET['r']}' AND REFERENCED_TABLE_NAME != '') OR REFERENCED_TABLE_NAME = '{$_GET['r']}'");
+				if($key_column_usage = rb($tpl['key_column_usage'], "REFERENCED_TABLE_NAME", "REFERENCED_COLUMN_NAME", "[{$_GET['r']}]", $foreign)){ mpre("Внешний ключ", $key_column_usage);
+					exit(mpre("ALTER TABLE {$key_column_usage['REFERENCED_TABLE_NAME']} DROP KEY "));
+				}elseif($key_column_usage = rb($tpl['key_column_usage'], "TABLE_NAME", "COLUMN_NAME", "[{$_GET['r']}]", $foreign)){// mpre("Внутренний ключ", $key_column_usage);
+					qw("ALTER TABLE `{$key_column_usage['TABLE_NAME']}` DROP FOREIGN KEY `{$key_column_usage['CONSTRAINT_NAME']}`");
+					exit(json_encode($key_column_usage));
+				}elseif("_id" == substr($foreign, -3)){// mpre("Создание ключа", $foreign);
+					if($fields = fields($_GET['r'])){
+						if(get($fields, $foreign, "Null") == "NO"){
+							qw("ALTER TABLE `". mpquot($_GET['r']). "` CHANGE `{$foreign}` `{$foreign}` {$fields[$foreign]['Type']} NULL COMMENT '{$fields[$foreign]['Comment']}'");
+							qw("UPDATE `". mpquot($_GET['r']). "` SET `{$foreign}`=NULL WHERE `{$foreign}`=0");
+						} qw("ALTER TABLE `{$_GET['r']}` ADD FOREIGN KEY (`". mpquot($foreign). "`) REFERENCES `{$conf['db']['prefix']}". first(explode("_", substr($_GET['r'], strlen($conf['db']['prefix'])))). "_". substr($foreign, 0, -3). "` (`id`) ON DELETE ". mpquot($_POST['reference']));
+					}else{ exit(mpre("Ошибка определения структуры таблицы", $_GET['r'])); }
+					exit(json_encode($tpl['key_column_usage']));
+				}else{ exit(mpre("Ошибка подключения вторичного ключа", $_GET['r'], $_POST)); }
+				exit(mpre(false, $_GET['r'], $tpl['key_column_usage']));
+			}
 		}else if($sql = get($_POST, 'sql')){
 			if($query = fk("query", null, array("query"=>$sql))){
-				if(($mpqw = mpqw($sql)) && ($data = mpql($mpqw))){
+				if($data = mpqn(mpqw($sql), "name")){
 					exit(mpre("Результат вывода запроса", ((count($data) == 1) ? first($data) : $data)));
 				}else{ exit(mpre("Запрос не предполагает вывода", $query['query'])); }
 			}

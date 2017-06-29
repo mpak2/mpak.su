@@ -1,5 +1,8 @@
 <div class="admin_diff">
 	<style>
+		.admin_diff .diff {
+			width:100%;
+		}
 		.admin_diff .diff td{
 			vertical-align : top;
 			white-space    : pre;
@@ -31,7 +34,7 @@
 		</style>
 		<p>
 			<form>
-				<input type="text" name="search" value="<?=get($_GET, 'search')?>" placeholder="Путь к файлу" style="width:60%;">
+				<input type="text" name="search" value="<?=(get($_GET, 'search') ?: "modules/themes/404.tpl")?>" placeholder="Путь к файлу" style="width:60%;">
 				<button type="submit">Найти</button>
 			</form>
 		</p>
