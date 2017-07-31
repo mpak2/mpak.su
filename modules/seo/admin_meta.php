@@ -10,7 +10,7 @@ if(!$alias = "{$arg['modpath']}:{$arg['fn']}". (($keys = array_keys(array_diff_k
 }elseif(!$CHARACTERS = array_column(rb("seo-characters", "characters_lang_id", "id", "[{$characters_lang['id']},0,NULL]"), "to", "from")){ mpre("Не установлена таблица перекодировки <a href='/seo:admin/r:mp_seo_characters'>seo_characters</a>");
 }elseif(!$seo_cat['href']){ mpre("Не задан адрес ссылки <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>");
 }elseif("/" != substr($seo_cat['href'], 0, 1)){ mpre("Не верный формат seo адреса <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>");
-}elseif(!$M = array_diff_key($get, array_flip(['m']))){ mpre("Данные для формирования мета информации не установлены");
+}elseif(!is_array($M = array_diff_key($get, array_flip(['m'])))){ mpre("Данные для формирования мета информации не установлены", $M);
 }elseif(!is_array($e = array_filter(array_map(function($k, $v){
 		if($k == "id"){// mpre("Основной элемент не загружаем");
 		}elseif((!$T = explode("-", $k)) || (2 != count($T))){// mpre("Количество элементов в массиве должно быть двум", $T);

@@ -1,32 +1,29 @@
 <?
 
 /*// Подключаем консоль
-if(empty($conf) && !($include = call_user_func(function(){
-		if(file_exists($INCLUDE[] = "modules/sqlanaliz/sh/cli.php") && !print_r("Подключаем", include ($include = array_pop($INCLUDE)))){ print_r("Ошибка подключения {$include}");
-		}elseif(file_exists($INCLUDE[] = "modules/null/sh/cli.php") && !print_r("Подключаем", include ($include = array_pop($INCLUDE)))){ print_r("Ошибка подключения {$include}");
-		}elseif(file_exists($INCLUDE[] = "../../../modules/null/sh/cli.php") && !print_r("Подключаем", include ($include = array_pop($INCLUDE)))){ print_r("Ошибка подключения {$include}");
-		}elseif(file_exists($INCLUDE[] = "phar://../../../index.phar/modules/null/sh/cli.php") && !print_r("Подключаем", include ($include = array_pop($INCLUDE)))){ print_r("Ошибка подключения {$include}");
-		}elseif(file_exists($INCLUDE[] = "phar://../../../mpak.cms/phar/index.phar/modules/null/sh/cli.php") && !print_r("Подключаем", include ($include = array_pop($INCLUDE)))){ print_r("Ошибка подключения {$include}");
-		}elseif(empty($include) && !call_user_func(function(){
-				if(!$dir = opendir($folder = ".")){ print_r("Ошибка открытия текущей директории");
-				}elseif(!$DIR = call_user_func(function($DIR = []) use($dir){ while($file = readdir($dir)){ $DIR[] = $file; } return $DIR; })){ print_r("Ошибка чтения текущей директории");
-				}else{ print_r("Ошибка подключения файлов\n"); echo "<pre>"; print_r($INCLUDE); echo "</pre>"; print_r("Библиотека консоли не найдена `{$folder}`\n"); echo "<pre>"; print_r($DIR); echo "</pre>"; }
-			})){ print_r("\n\tОшибка отображения списка файлов текущей директории");
-		}else{ return $include; }
-	}))){ print_r("\n\tОшибка подключения консоли");
+if(!$DIR = explode("/", __DIR__)){ print_r("Ошибка определения текущей директории");
+}elseif(!$offset = array_search($d = "xn--90aomikyxn--p1ai", $DIR)){ print_r("Директория с проектом не найдена `{$d}`"); print_r($DIR);
+}elseif(!$folder = implode("/", array_slice($DIR, 0, $offset+1))){ print_r("Ошибка выборка директории");
+}elseif(!$dir = implode("/", array_slice($DIR, $offset+1))){ print_r("Ошибка выборка директории");
+}elseif(!chdir($folder)){ print_r("Ошибка установки директории `{$dir}`");
+}elseif(!$inc = function($file) use(&$conf, $dir){
+	if(($f = realpath($file)) && include($f)){ return $f;
+	}elseif(($f = "phar://index.phar/{$file}") && file_exists($f) && include($f)){ return $f;
+	}else{ return pre(null, "Директория не найдена `{$file}`"); }
+}){ print_r("Функция подключения файлов");
 }elseif(!$conf['user']['gid'] = array(1=>"Администратор")){ mpre("Устанавливаем администратора");
+}elseif(!$inc($f = "include/mpfunc.php")){ print_r("Ошибка подключения `{$f}`");
+}elseif(!$inc($f = "include/config.php")){ pre("Ошибка подключения `{$f}`");
 }elseif(!$modpath = (isset($argv) ? basename(dirname(dirname(__FILE__))) : basename(dirname(__FILE__)))){ mpre("Ошибка вычисления имени модуля");
 }elseif(!$arg = ['modpath'=>$modpath, "fn"=>implode(".", array_slice(explode(".", basename(__FILE__)), 0, -1))]){ mpre("Установка аргументов");
 }elseif(!isset($argv)){ pre("Запуск из веб интерфейса");
-}elseif(!chdir(dirname(dirname(__DIR__)))){
-}elseif(file_exists($config = "../include/config.php") && !include($config)){ mpre("Ошибка подключения параметров БД");
-}elseif(!chdir(__DIR__)){ mpre("Ошибка установки текущей директории");
-}elseif(!$conf['db']['conn'] = new PDO("{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC))){ mpre("Ошибка подключения БД");
-}elseif(!$conf['user']['gid'] = array(1=>"Администратор")){ mpre("Устанавливаем администратора");
-}elseif(array_search($cmd["deed"] = "Отобразить список сигналов", $cmd) == get($argv, 1)){// pre("Метод", get($argv, 1));
-	if(!$html->load($data = mpde(mpcurl($w = "http://ru.aliexpress.com/")))){ pre("Ошибка открытия страницы ", $w);
-	}else{ mpre($data); }
-}else{ mpre($cmd);} */
+}elseif(!$conf['db']['conn'] = conn()){ mpre("Ошибка подключения БД");
+}elseif(array_search($cmd["webhook"] = "Подключить вебхук", $cmd) == get($argv, 1)){// pre("Метод", get($argv, 1));
+	if(!$telegram_bot = rb("bim-telegram_bot", "name", $w = "bimorphbot")){ mpre("Бот не найден `{$w}`");
+	}else{ mpre($telegram_bot);
+	}
+}else{ mpre($cmd);}
+*/
 
 if(!empty($conf)){ mpre("Жираф уже подключен");
 }elseif(isset($argv)){ print_r("Запускаем не из консоли", $argv);

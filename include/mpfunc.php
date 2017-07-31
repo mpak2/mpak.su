@@ -17,12 +17,16 @@ function base64($img, $w, $h, $c = 0){
 
 function conn($init = null){
 	global $conf;
-	try{
+	try{// die(!pre($conf['db']));
 		if(!$type = ($init ? first(explode(":", $init)) : $conf['db']['type'])){ pre("Тип подключения не определен");
-		}elseif($type == "sqlite"){
-			$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:". mpopendir($conf['db']['name']));
-			$conf['db']['conn']->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			$conf['db']['conn']->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
+		}elseif(!$name = ($init ? last(explode(":", $init)) : $conf['db']['name'])){ pre("Файл не установлен");
+		}elseif("sqlite" == $type){
+			if(!$realpath = realpath($name)){ mpre("Файл с БД не найден `{$name}`");
+			}else{// mpre("Реальный путь до файла бд", $name);
+				$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:{$realpath}");
+				$conf['db']['conn']->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+				$conf['db']['conn']->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
+			}
 		}else{
 			$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>1));
 			$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
@@ -52,9 +56,10 @@ function cache($content = false){
 	global $conf;
 	if(array_search("pdo_sqlite", get_loaded_extensions())){ # PDO подерживает sqlite используем его для сохранения кеша
 		if(!$content){ # Отдаем кеш из sqlite
-			if(is_numeric($content)){ # mpre("Ошибка подключения баз данных");
-				if(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ pre("Ошибка установки временной директории кеша");
-				}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ pre("Ошибка составления имени файла");
+			if(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
+			}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
+			}elseif(is_numeric($content)){ # mpre("Ошибка подключения баз данных");
+				if(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ pre("Ошибка составления имени файла");
 				}elseif(!$conn = conn("sqlite:{$conn_file}")){ pre("Ошибка сохдания подключения sqlite");
 				}elseif(!$HTTP_HOST = idn_to_utf8($_SERVER['HTTP_HOST'])){ pre("Ошибка определения русскоязычного имени домена");
 				}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Ошибка определения адреса");
@@ -66,7 +71,6 @@ function cache($content = false){
 					header('Status: 503 Service Temporarily Unavailable');
 					exit(header('Retry-After: '. array_rand(60, 600)));//random() Почторить через небольшой период времени
 				}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])*/){ // mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
-				}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
 				}else{
 					error_log(implode("/", $sys_getloadavg). " <<! http://{$HTTP_HOST}{$REQUEST_URI}\n", 3, $cache_log);
 					foreach(explode("\n", $row['headers']) as $header){
@@ -74,8 +78,8 @@ function cache($content = false){
 					} header('Content-Encoding: gzip');
 					exit($row['content']);
 				}
-			}elseif(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
-			}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
+			}elseif(array_key_exists("null", $_GET)){ pre("null");
+			}elseif($_COOKIE['sess']){// pre("Зарегистрированный пользователь");
 			}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])*/){ // mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
 			}elseif($sys_getloadavg[0] >= 50){ # Очередь процессов на выполнение больше критического предела - отдаем ошибку
 				error_log(implode("/", $sys_getloadavg). " --- 503 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
@@ -83,8 +87,7 @@ function cache($content = false){
 				header('Status: 503 Service Temporarily Unavailable');
 				exit(header('Retry-After: '. array_rand(60, 600)));//random() Почторить через небольшой период времени
 //			}elseif(pre($sys_getloadavg, time())){
-			}elseif(($sys_getloadavg[0] < 1) && (rand(0, $sys_getloadavg[0]) <= 1)){// mpre("Чем меньше нагрузка, тем более вероятно обновление");
-			}elseif($_COOKIE['sess']){// pre("Зарегистрированный пользователь");
+			}elseif(($sys_getloadavg[0] < 1) && (1 <= rand(0, $sys_getloadavg[0]))){// mpre("Чем меньше нагрузка, тем более вероятно обновление");
 			}elseif(!call_user_func(function($age){
 					header("Cache-Control: max-age={$age}");
 					header("Expires: ". gmdate('D, d M Y H:i:s T'));
@@ -103,13 +106,24 @@ function cache($content = false){
 				error_log(implode("/", $sys_getloadavg). " <== 301 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 				exit(header('HTTP/1.0 304 Not Modified'));
 //			}elseif(header("Cache-control: max-age=864000") || header("Expires: ".gmdate("r", time() + 86400*10))){ mpre("Установка времени кеширования в браузере");
+//			}elseif(exit(print_r(rand(0, $sys_getloadavg[0])))){
+			}elseif(!call_user_func(function() use($conf, $REQUEST_URI, $sys_getloadavg, $cache_log){ # Отображение ранее сохраненной в мемкаше страницы
+					if(!$Memcached = new Memcached()){ exit(!!pre("Ошибка создания обьекта мемкаш"));
+					}elseif(!$Memcached->addServer('localhost', 11211)){ exit(!!pre("Ошибка подключения к сервису мемкаш"));
+					}elseif(!$key = "{$conf['settings']['http_host']}{$REQUEST_URI}"){ mpre("Ошибка составления ключа кеша");
+					}elseif(!$cache = $Memcached->get($key)){ // pre("Сохраненная страница в мемкаше не найден");
+					}else{ header('Content-Encoding: gzip');
+						error_log(implode("/", $sys_getloadavg). " <~~ ". http_response_code(). " http://{$key}\n", 3, $cache_log);
+						exit($cache);
+					}
+				})){ mpre("Ошибка выборки данных из мемкаша");
+//			}elseif(($Memcached = new Memcached()) && ($Memcached->addServer('localhost', 11211)) && ($cache = $Memcached->get($REQUEST_URI))){
 			}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ mpre("Ошибка составления имени файла");
 			}elseif(!file_exists($conn_file) && !touch($conn_file) /*&& !chmod($conn_file, 0777)*/){ mpre("Файл бд кеша не найден {$conn_file}");
 			}elseif(!$conn = conn("sqlite:{$conn_file}")){ mpre("Ошибка сохдания подключения sqlite");
 			}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ mpre("Ошибка создания запроса");
 			}elseif(!$row = mpql($RES, 0)){ mpre("Ошибка извлечения строк");
 			}else{ foreach(explode("\n", $row['headers']) as $header){ header($header); } }
-
 			if($sys_getloadavg[0] >= 20){
 				error_log(implode("/", $sys_getloadavg). " >-< 503 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 				header('HTTP/1.1 503 Service Temporarily Unavailable');
@@ -141,6 +155,17 @@ function cache($content = false){
 			}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ mpre("Ошибка составления имени файла");
 			}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2]) && (rand(0, $sys_getloadavg[0]) <= 1)*/){// mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
 			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){// mpre("Ошибка определения адреса {$_SERVER['REQUEST_URI']}");
+			}elseif(!$gzen = gzencode($content)){ mpre("Ошибка архивирования кода страницы");
+			}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg", "/sitemap.xml", "/robots.txt"/*, "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
+			}elseif(get($_COOKIE, 'sess')){// pre("Зарегистрированный пользователь");
+				if(!class_exists("Memcached")){ // mpre("Класс Мемкаш не доступен");
+				}elseif(!$Memcached = new Memcached()){ mpre("Ошибка создания обьекта мемкаш");
+				}elseif(!$Memcached->addServer('localhost', 11211)){ mpre("Ошибка подключения к серверу мемкаш");
+				}else{ $Memcached->delete("{$_SERVER['HTTP_HOST']}{$REQUEST_URI}"); }
+			}elseif((class_exists("Memcached")) && ($Memcached = new Memcached()) && ($Memcached->addServer('localhost', 11211)) && ($cache = $Memcached->set("{$_SERVER['HTTP_HOST']}{$REQUEST_URI}", $gzen))){
+				header('Content-Encoding: gzip');
+				error_log(implode("/", $sys_getloadavg). " ~~> ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+				exit($gzen);
 			}elseif(!file_exists($conn_file) && !touch($conn_file) && !mkdir(dirname($conn_file))){ mpre("Файл бд кеша не найден {$conn_file}");
 			}elseif(!$conn = conn("sqlite:{$conn_file}")){
 			}elseif(!($TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name")) && !($TABLES = call_user_func(function() use($conf, $conn){
@@ -174,7 +199,7 @@ function cache($content = false){
 							return -$conn->lastInsertId();
 						}
 					}catch(Exception $e){ mpre($e); return false; }
-				},[['name'=>'uri', 'value'=>$REQUEST_URI, 'type'=>PDO::PARAM_STR], ['name'=>'headers', 'value'=>implode("\n", headers_list()), 'type'=>PDO::PARAM_STR], ['name'=>'content', 'value'=>gzencode($content), 'type'=>PDO::PARAM_LOB],])){ mpre("Ошибка установки запроса");
+				},[['name'=>'uri', 'value'=>$REQUEST_URI, 'type'=>PDO::PARAM_STR], ['name'=>'headers', 'value'=>implode("\n", headers_list()), 'type'=>PDO::PARAM_STR], ['name'=>'content', 'value'=>$gzen, 'type'=>PDO::PARAM_LOB],])){ mpre("Ошибка установки запроса");
 			}else{
 				return error_log(implode("/", $sys_getloadavg). " ". ($cache_exists > 0 ? "<=>" : ">>>"). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 			}
@@ -949,7 +974,7 @@ function erb($src, $key = 'id'){
 					}elseif(is_null($value)){ return "`{$field}` IS NULL";
 					}elseif(is_bool($value)){ return ($value ? "TRUE" : "FALSE");
 					}elseif(!is_array($value)){ mpre("Ошибочный тип данных в значении", gettype($value));
-					}elseif(empty($value)){ return "FALSE"; // mpre("Пустой массив");
+					}elseif(empty($value)){ return "NULL"; // mpre("Пустой массив");
 					}elseif(!is_array($IN = array_map(function($val) use($field, $func_get_args){
 							if(is_numeric($val)){ return "`{$field}`={$val}";
 							}elseif("NULL" === $val){ return "`{$field}` IS {$val}";
@@ -1696,7 +1721,7 @@ function pre(){
 		foreach($list as $pre){
 			echo "<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend> {$pre['file']}:{$pre['line']} <b>{$pre['function']}</b> ()</legend>";
 			foreach(get($pre, 'args') as $n=>$z){
-				echo "<pre>\n\t"; print_r($z); echo "\n</pre>";
+				echo "<pre>\t\n\t"; print_r($z); echo "\n</pre>";
 			} if(true) echo "</fieldset>\n";
 		}
 	} return get(func_get_args(), 0);
@@ -1709,7 +1734,7 @@ function pre(){
 		foreach($list as $pre){
 			echo "<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend> {$pre['file']}:{$pre['line']} <b>{$pre['function']}</b> ()</legend>";
 			foreach(get($pre, 'args') as $n=>$z){
-				echo "<pre>\n\t"; print_r($z); echo "\n</pre>";
+				echo "<pre>\t\n\t"; print_r($z); echo "\n</pre>";
 			} if(true) echo "</fieldset>\n";
 		}
 	} return get(func_get_args(), 0);

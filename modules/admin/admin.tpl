@@ -364,10 +364,12 @@
 									</select>
 								<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#^text(\d*|_.+)?#iu",$name)): ?>
 									<?=mpwysiwyg($name, get($tpl, 'edit', $name) ?: "")?>
-								<? elseif($tpl_espisok = get($tpl, 'espisok', $name)): ?>
+								<?// elseif($tpl_espisok = get($tpl, 'espisok', $name)): ?>
+								<?// elseif(array_key_exists($name, $tpl['espisok'])): ?>
+								<? elseif(get($tpl, 'espisok') && array_key_exists($name, $tpl['espisok'])): ?>
 									<select name="<?=$name?>">
 										<option value="NULL"></option>
-										<? foreach($tpl_espisok as $espisok): ?>
+										<? foreach($tpl['espisok'][$name] as $espisok): ?>
 											<option value="<?=$espisok['id']?>" <?=(((!get($tpl, 'edit') && ($field['Default'] == $espisok['id'])) || ($espisok['id'] == get($tpl, 'edit', $name)) || (array_key_exists('edit', $_GET) && (get($_GET, 'where', $name) == $espisok['id']))) ? "selected" : "")?>><?=$espisok['id']?> <?=$espisok['name']?></option>
 										<? endforeach; ?>
 									</select>
@@ -415,8 +417,11 @@
 								<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($lines, array_flip($tpl['title'])) : $lines), get($tpl, 'counter') ?: array(), get($tpl, 'ecounter') ?: array()) as $k=>$v): ?>
 									<span>
 										<? if(substr($k, 0, 2) == "__"): // $tpl['ecounter'] ?>
-											<? if(($f = substr($k, 2)) && ($keys = array_keys($ar = explode("_", $f))) && ($m = $ar[min($keys)])): ?>
-												<a href="/<?=$m?>:admin/r:<?=$conf['db']['prefix']?><?=$f?>?&where[<?=($_GET['r'] == "{$conf['db']['prefix']}users" ? "uid" : substr($_GET['r'], strlen($conf['db']['prefix'])))?>]=<?=$lines['id']?>">
+											<? if(!$f = substr($k, 2)): mpre("Ошибка поиска названия таблицы в адресе") ?>
+											<? elseif(!$m = first(explode("-", $f))): mpre("Ошибка определения модуля таблицы для подсчета") ?>
+											<? elseif(!$field = "{$arg['modpath']}-". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))): mpre("Ошибка определения поля с вторичным ключем") ?>
+											<? else:// mpre() ?>
+												<a href="/<?=$m?>:admin/r:<?=$f?>?&where[<?=$field?>]=<?=$lines['id']?>">
 													<?=(($cnt = get($v, $lines['id'], 'cnt')) ? "{$cnt}&nbspшт" : "Нет")?>
 												</a>
 											<? endif; ?>
@@ -497,9 +502,14 @@
 												<span style="color:red;"><?=$v?></span>
 											<? endif; ?>
 										<? elseif(get($tpl, 'espisok', $k)): ?>
-											<? if($e = get($tpl, 'espisok', $k, $v)): ?>
-												<a class="ekey" href="/<?=first(explode("_", $k))?>:admin/r:<?=$conf['db']['prefix']?><?=$k?>?&where[id]=<?=$v?>" title="<?=$v?>"></a>
-												<?=(strlen($name = get($e, "name")) > 16 ? mb_substr($name, 0, 16, "UTF-8"). "..." : $name)?>
+											<? if(empty($v)):// mpre("Значение ключа списка не указано") ?>
+											<? elseif(!$href = "/". first(explode("-", first(explode("_", $k)))). ":admin/r:{$k}?&where[id]={$v}"): mpre("Ошибка расчета адреса ссылки") ?>
+											<? elseif(!$e = get($tpl, 'espisok', $k, $v)):// mpre("Значение расширенного списка не найдено") ?>
+												<span style="color:red;"><?=$v?></span>
+											<? elseif(!$name = $name = get($e, "name")):// mpre("Ошибка получения имени внешнего списка") ?>
+												<a class="ekey" href="<?=$href?>" title="<?=$v?>"></a>&nbsp;<span style="color:#777;">[ <?=$v?> ]</span>
+											<? else: ?>
+												<a class="ekey" href="<?=$href?>" title="<?=$v?>"></a>&nbsp;<?=$name?>
 											<? endif; ?>
 										<? elseif($k == "name"): ?>
 											<a href="/<?=$arg['modpath']?>
@@ -585,7 +595,8 @@
 											</select>
 											<? if((count($SELECT) > 1000) && !mpre("Огромный список ". count($SELECT). " эл. <b>". substr($name, 0, -3). "</b> <a target='blank' href='/settings:admin/r:mp_settings/?&where[modpath]={$arg['modpath']}&where[name]={$arg['modpath']}_tpl_exceptions'>исключить</a>")); ?>
 										<? endif; ?>
-									<? elseif(get($tpl, 'espisok', $name)): ?>
+									<?// elseif(get($tpl, 'espisok', $name)): ?>
+									<? elseif(get($tpl, 'espisok') && array_key_exists($name, $tpl['espisok'])): ?>
 										<select name="<?=$name?>">
 											<option value="NULL"></option>
 											<? foreach($tpl['espisok'][$name] as $espisok): ?>

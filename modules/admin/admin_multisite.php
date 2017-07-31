@@ -58,7 +58,7 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 			exit(header('HTTP/1.0 304 Not Modified'));
 		}else if(($seo_location = rb("seo-location", "name", "[{$url}]")) && ($seo_location_themes = rb("seo-location_themes", "location_id", "themes_index", $seo_location['id'], $themes_index['id'])) && ($seo_index = rb("seo-index", "id", $seo_location_themes['index_id'])) && ($SEO_INDEX_THEMES = rb("seo-index_themes", "index_id", "themes_index", "id", $seo_index['id'], $themes_index['id']))){
 			if(!$seo_location = rb("seo-location", "id", rb($SEO_INDEX_THEMES, "location_id"))){ mpre("Не найдены адреса для переходной ссылки <a href='/seo:admin/r:mp_seo_location?&where[id]={$seo_location['id']}'>{$seo_location['name']}</a>", $seo_location);
-			}elseif(!$seo_location_status = rb("seo-location_status", "id", $seo_location['location_status_id'])){ mpre("Не найдена внутренняя страница на переходной ссылке");
+			}elseif(!$seo_location_status = rb("seo-location_status", "id", $seo_location['location_status_id'])){ mpre("Не найдена внутренняя страница на <a href='/seo:admin/r:seo-location?&where[id]={$seo_location['id']}'>переходной ссылке</a>");
 			}else{// exit(mpre("301 Перенарпавление", $seo_index));
 				header("HTTP/1.1 {$seo_location_status['id']} {$seo_location_status['name']}");
 				if(array_search("Администратор", $conf['user']['gid'])){
@@ -115,7 +115,7 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 					$conf['settings']['keywords'] = htmlspecialchars($seo_index_themes['keywords']);
 				}elseif(!get($parse_url, 'path')){// mpre("Заголовок на сайте не задан");
 					if(array_search("Администратор", $conf['user']['gid'])){
-						mpre("Перенаправление на внешний адрес <a href='{$seo_location['name']}'>{$seo_location['name']}</a>");
+						mpre("Перенаправление на внешний адрес <a href='{$seo_location['name']}'>{$seo_location['name']}</a> правило <a href='/seo:admin/r:seo-index_themes?&where[id]={$seo_index_themes['id']}'>{$seo_index_themes['id']}</a>");
 					}else{ header("HTTP/1.1 302 Moved Permanently"); exit(header("Location: {$seo_location['name']}")); }
 				}elseif(!$index = rb("themes-index", "name", "[{$parse_url['host']}]")){ mpre("Сайт перенаправления не найден");
 					if(array_search("Администратор", $conf['user']['gid'])){

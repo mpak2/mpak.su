@@ -1,12 +1,14 @@
 <? if(!$INDEX = rb("index")): mpre("Хосты не найдены"); ?>
 <? elseif(!$YANDEX_METRIKA = rb("yandex_metrika")): mpre("Метрики хостов не найдены") ?>
 <? elseif(!$YANDEX_METRIKA_DIMENSIONS = rb("yandex_metrika_dimensions")): mpre("Измерения не найдены") ?>
-<? elseif(!$YANDEX_METRIKA_PERIOD = rb("yandex_metrika_period",5)): mpre("Периоды не найдены")?>
-<? elseif(!get($_GET,"now") && (!$YANDEX_METRIKA_PERIOD = rb(array_slice($YANDEX_METRIKA_PERIOD,1),"id"))): mpre("Ошибка исключения первого элемента") ?>
+<? elseif(!$YANDEX_METRIKA_PERIOD = rb("yandex_metrika_period", 5)): mpre("Периоды не найдены")?>
+<? elseif(!get($_GET,"now") && (!$YANDEX_METRIKA_PERIOD = array_slice($YANDEX_METRIKA_PERIOD, 1, null, true))): mpre("Ошибка исключения первого элемента") ?>
+<?// elseif(mpre($YANDEX_METRIKA_PERIOD)): ?>
 <? elseif(!$yandex_metrika_period = first($YANDEX_METRIKA_PERIOD)): mpre("Ошибка получения периода сортировки") ?>
-<? elseif(!$YANDEX_METRIKA_METRICS = rb("yandex_metrika_metrics","yandex_metrika_period_id","yandex_metrika_dimensions_id","id",$YANDEX_METRIKA_PERIOD,"[NULL,0]")): mpre("Значений метрик не найдено") ?>
+<? elseif(!$YANDEX_METRIKA_METRICS = rb("yandex_metrika_metrics","yandex_metrika_period_id", "yandex_metrika_dimensions_id","id", $YANDEX_METRIKA_PERIOD, "[0,NULL]")): mpre($YANDEX_METRIKA_PERIOD,$YANDEX_METRIKA_METRICS,"Значений метрик не найдено") ?>
 <? elseif(!$SORT = rb($YANDEX_METRIKA_METRICS,"yandex_metrika_period_id","id",$yandex_metrika_period["id"])): mpre("Ошибка получения метрик периода сортировки") ?>
 <? elseif(($SORT2 = array_column($SORT,"users","yandex_metrika_id")) && !arsort($SORT2)): mpre("Ошибка форматирования метрик периода сортировки") ?>
+<?// elseif(mpre($SORT2)): ?>
 <? elseif($VISIBLE = []): mpre("Массив видимых сайтов") ?>
 <? else:// mpre($YANDEX_METRIKA_PERIOD) ?>
 	<? if(!array_key_exists("null",$_GET)): ?>
@@ -42,13 +44,13 @@
 				<div>
 					<span><?=(empty($n) ? $n=1 : ++$n)?></span>
 					<span><?=$index["name"]?></span>
-					<? foreach($YANDEX_METRIKA_PERIOD as $yandex_metrika_period): ?>
+					<? foreach($YANDEX_METRIKA_PERIOD as $yandex_metrika_period):// mpre($yandex_metrika_period) ?>
 						<span>
-							<? if(!$yandex_metrika = rb($YANDEX_METRIKA,"index_id",$index["id"])): //mpre("Метрика сайта не найдена {$index["name"]}")?>
+							<? if(!$yandex_metrika = rb($YANDEX_METRIKA, "index_id", $index["id"])): //mpre("Метрика сайта не найдена {$index["name"]}")?>
 								Нет метрики
-							<? elseif(!$yandex_metrika_metrics = rb($YANDEX_METRIKA_METRICS,"yandex_metrika_id","yandex_metrika_period_id",$yandex_metrika["id"],$yandex_metrika_period["id"])): // mpre("Метрика сайта не найдена {$index["name"]}") ?>
+							<? elseif(!$yandex_metrika_metrics = rb($YANDEX_METRIKA_METRICS,"yandex_metrika_id","yandex_metrika_period_id", $yandex_metrika["id"],$yandex_metrika_period["id"])): // mpre("Метрика сайта не найдена {$index["name"]}") ?>
 								Нет данных
-							<? else: ?>
+							<? else:// mpre($yandex_metrika_metrics) ?>
 								<?=$yandex_metrika_metrics["users"] ?>
 							<? endif; ?>
 						</span>

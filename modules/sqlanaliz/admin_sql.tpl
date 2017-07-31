@@ -23,7 +23,7 @@
 												complete:function(data){
 													try{if(json = JSON.parse(data)){
 														if(json.table){
-															document.location.href = "/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:"+json.table;
+//															document.location.href = "/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:"+json.table;
 														} console.log("json:", json);
 													}}catch(e){if(isNaN(data)){ alert(data) }else{
 														console.log("date:", data)
@@ -36,7 +36,7 @@
 										if(confirm("Подтвердите удаление таблицы `"+ table+ "`")){
 											$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/null", {del:table}, function(data){
 												if(isNaN(data)){ alert(data) }else{
-													document.location.href = "/<?=$arg['modpath']?>:<?=$arg['fn']?>";
+//													document.location.href = "/<?=$arg['modpath']?>:<?=$arg['fn']?>";
 													console.log("data:", data);
 												}
 											});
@@ -135,7 +135,7 @@
 												document.location.reload(true);
 											}, "json").fail(function(error){ alert(error.responseText); })
 										})
-									})(jQuery, document.scripts[document.scripts.length-1])
+									})(jQuery, document.currentScript)
 								</script>
 								<div class="th">
 									<span>Поле</span>
@@ -160,7 +160,6 @@
 														<option value="UPDATE SET NULL">Нуль</option>
 														<option value="UPDATE SET DEFAULT">Умолчание</option>
 														<option value="UPDATE RESTRICT">Блок</option>
-														<option value="UPDATE CASCADE">Обновить</option>
 													</select>
 												<? endif; ?>
 											</span>
@@ -198,7 +197,7 @@
 										console.log("field:", field, "reference:", reference);
 										$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null", {foreign:field, reference:reference}, function(data){
 											console.log("data:", data);
-											document.location.reload(true);
+//											document.location.reload(true);
 										}, "json").fail(function(error){ alert(error.responseText); })
 									})
 								})(jQuery, document.scripts[document.scripts.length-1])
@@ -285,9 +284,9 @@
 							</div>
 						</div>
 					<? endif; ?>
-					<div>
+					<!--<div>
 						<h1>Запрос</h1>
-						<form action="/<?=$arg['modpath']?>:<?=$arg['fn']?>/null" method="post">
+						 <form action="/<?=$arg['modpath']?>:<?=$arg['fn']?>/null" method="post">
 							<script src="/include/jquery/jquery.iframe-post-form.js"></script>
 							<script sync>
 								(function($, script){
@@ -325,11 +324,11 @@
 									<? endforeach; ?>
 								</select>
 							</p>
-							<p><textarea name="sql" style="width:100%; height:100px;" placeholder="Текст запроса"><? if(get($conf, 'db', 'type') == 'sqlite'): ?><?="SELECT * FROM sqlite_master WHERE tbl_name='{$_GET['r']}'"?><? else: ?><?=($_GET['r'] ? "SHOW CREATE TABLE `{$_GET['r']}`" : "")?><? endif; ?></textarea></p>
+							<p><textarea disabled name="sql" style="width:100%; height:100px;" placeholder="Текст запроса"><? if(get($conf, 'db', 'type') == 'sqlite'): ?><?="SELECT * FROM sqlite_master WHERE tbl_name='{$_GET['r']}'"?><? else: ?><?=($_GET['r'] ? "SHOW CREATE TABLE `{$_GET['r']}`" : "")?><? endif; ?></textarea></p>
 							<p><button>Выполнить</button></p>
 						</form>
 						<div class="info"></div>
-					</div>
+					</div>-->
 				</span>
 			</div>
 		</div>
