@@ -503,7 +503,7 @@
 											<? endif; ?>
 										<? elseif(get($tpl, 'espisok', $k)): ?>
 											<? if(empty($v)):// mpre("Значение ключа списка не указано") ?>
-											<? elseif(!$href = "/". first(explode("-", first(explode("_", $k)))). ":admin/r:{$k}?&where[id]={$v}"): mpre("Ошибка расчета адреса ссылки") ?>
+											<? elseif(!$href = "/". first(explode("-", first(explode("_", $k)))). ":admin/r:". (strpos("-", $k) ? $k : implode('-', explode("_", $k, 2))). "?&where[id]={$v}"): mpre("Ошибка расчета адреса ссылки") ?>
 											<? elseif(!$e = get($tpl, 'espisok', $k, $v)):// mpre("Значение расширенного списка не найдено") ?>
 												<span style="color:red;"><?=$v?></span>
 											<? elseif(!$name = $name = get($e, "name")):// mpre("Ошибка получения имени внешнего списка") ?>

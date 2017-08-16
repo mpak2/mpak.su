@@ -188,13 +188,17 @@ if(array_key_exists("null", $_GET)){// exit(mpre("Таблица для запи
 		if(get($_GET, 'edit')){
 			$tpl['edit'] = rb($_GET['r'], "id", $_GET['edit']);
 //		}elseif(mpre(substr($_GET['r'], strlen($conf['db']['prefix'])). "=>ecounter")){
-		}elseif($settings = (get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])). "=>ecounter") ?: get($conf, 'settings', "{$arg['modpath']}=>ecounter"))){
+		}elseif($settings = (get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])). "=>ecounter") /*?: get($conf, 'settings', "{$arg['modpath']}=>ecounter")*/)){
 			foreach(explode(",", $settings) as $ecounter){
-				if(!$TN = explode("-", $ecounter)){ mpre("Ошибка парсинга имени таблицы");
+				if(!$TN = call_user_func(function($ecounter){ # Получение массива раздела и имени таблицы
+						if(!$TN = explode("-", $ecounter)){ mpre("Ошибка парсинга имени таблицы");
+						}elseif((count($TN) == 1) && (!$TN = explode("_", $ecounter, 2))){ mpre("Ошибка парсинга имени таблицы без разделителя");
+						}else{ return $TN; }
+					}, $ecounter)){ mpre("Ошибка разбора имени таблицы");
 				}elseif(count($TN) > 3){ mpre("Некорректный формат таблицы внешнего счетчика");
 				}elseif(!$table = ((count($TN) > 1) ? "{$conf['db']['prefix']}{$TN[0]}_{$TN[1]}" : "{$conf['db']['prefix']}{$ecounter}")){ mpre("Ошибка состалвения имени таблицы внешнего счетчика");
 				}elseif(!$FIELDS = fields($table)){ mpre("Ошибка получения полей таблицы внешнего счетчика `{$table}`");
-				}elseif(!$fl = ((count($TN) > 1) ? "{$arg['modpath']}-". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}-")) : "{$conf['db']['prefix']}{$arg['modpath']}")){ mpre("Ошибка формировани поля таблицы");
+				}elseif(!$fl = (strpos("-", $ecounter) ? "{$arg['modpath']}-". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}-")) : substr($_GET['r'], strlen("{$conf['db']['prefix']}")) /*"{$arg['modpath']}_". implode("_", array_slice($TN, 1))*/)){ mpre("Ошибка формировани поля таблицы");
 				}elseif(!$sql = $sql = "SELECT `id`, `{$fl}`, COUNT(id) AS cnt FROM `{$conf['db']['prefix']}{$TN[0]}_{$TN[1]}` WHERE `{$fl}` IN (". in($tpl['lines']). ") GROUP BY `{$fl}`"){ mpre("Ошибка составления запроса расчета счетчика");
 				}elseif(!$tpl['ecounter']["__". $ecounter] = qn($sql, $fl)){// mpre("Ошибка выполнения запроса");
 				}else{// mpre("Запрос счетчика", $sql, $tpl['ecounter']["__". $ecounter]);

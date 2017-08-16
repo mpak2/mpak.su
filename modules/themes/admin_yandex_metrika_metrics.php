@@ -16,8 +16,7 @@ if(!is_numeric($n = date("N", ($offset = mpsettings("{$arg['modpath']}_admin_yan
 }elseif(!$href = "https://api-metrika.yandex.ru/stat/v1/data?preset=sources_summary&metrics=". implode(",", array("ym:s:users", "ym:s:visits", "ym:s:pageviews")). "&date1={$yandex_metrika_period['date1']}&date2={$yandex_metrika_period['date2']}&id={$mtid}&oauth_token={$yandex_token['name']}"){ mpre("Ошибка формирования ссылки");
 }elseif(!$data = mpde(mpcurl($href))){ exit(mpre("Ошибка при загрузки данных метрики"));
 }elseif(!$json = json_decode($data, true)){ mpre("Ошибка получения json данных");
-}elseif(!array_key_exists("data",$json)){ mpre($yandex_metrika,$href,$json);
-	exit("[]");
+}elseif(!array_key_exists("data",$json)){ exit("[]"); mpre($yandex_metrika,$href,$json); 
 }else{
 	foreach($json['data'] as $d){// (mpre($d['metrics']));
 		if($yandex_metrika_dimensions = fk("themes-yandex_metrika_dimensions", $w = array("name"=>$d['dimensions'][0]['name'], "alias"=>$d['dimensions'][0]['id']), $w)){

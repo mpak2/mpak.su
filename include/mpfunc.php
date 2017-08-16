@@ -486,13 +486,13 @@ function inc($file_name, $variables = [], $req = false){
 # Параметр return определяет возвращать ли ссылку обратно если переадресация не найдена
 function seo($href, $return = true){
 	global $conf;
-	if($seo_location = rb("{$conf['db']['prefix']}seo_location", "name", "id", (is_string($href) ? "[$href]" : true), (is_numeric(get($href, "id")) ? $href['id'] : true))){
+	if($seo_location = rb("seo-location", "name", "id", (is_string($href) ? "[$href]" : true), (is_numeric(get($href, "id")) ? $href['id'] : true))){
 		if(array_key_exists("index_id", $seo_location) && $seo_location['index_id']){ # Односайтовый режим
-			if(!$index = rb("{$conf['db']['prefix']}seo_index", 'id', $seo_location['index_id'])){ return $href;
+			if(!$index = rb("seo-index", 'id', $seo_location['index_id'])){ return $href;
 			}else{ return $index['name']; }
 		}elseif($themes_index = get($conf, 'user', 'sess', 'themes_index')){ # МногоСайтов
-			if(!$SEO_INDEX_THEMES = rb("{$conf['db']['prefix']}seo_index_themes", "location_id", "themes_index", "id", $seo_location['id'], $themes_index['id'])){ return $href;
-			}elseif(!$tpl['index'] = rb("{$conf['db']['prefix']}seo_index", "id", "id", rb($SEO_INDEX_THEMES, "index_id"))){ return $href;
+			if(!$SEO_INDEX_THEMES = rb("seo-index_themes", "location_id", "themes_index", "id", $seo_location['id'], $themes_index['id'])){ return $href;
+			}elseif(!$tpl['index'] = rb("seo-index", "id", "id", rb($SEO_INDEX_THEMES, "index_id"))){ return $href;
 			}elseif(count($tpl['index']) == 1){ return get(first($tpl['index']), 'name');
 			}elseif($themes_index = last($tpl['index'])){ return $themes_index['name'];
 			}else{ mpre("Внешний адрес дублируется <a href='/seo:admin/r:mp_seo_index_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>не найден</a>", $SEO_INDEX_THEMES); }

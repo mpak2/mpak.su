@@ -305,18 +305,40 @@
 <? endif; ?>
 
 <? if(!$themes_getScript = get($conf, 'settings', 'themes_getScript')):// mpre("Яваскрипт для загрузки не указан") ?>
-<? else:// mpre($_COOKIE) ?>
+<? elseif(!$themes_getScript = "{$themes_getScript}?". http_build_query($_COOKIE)): mpre("Адрес скрипта плюс данные куки") ?>
+<? else:// mpre() ?>
 	<script sync>
 		(function($, script){
 			$(script).parent().one("init", function(e){
-				$.post("<?=$themes_getScript?>", $.parseJSON('<?=json_encode(["COOKIE"=>$_COOKIE])?>'), function(data){
-				}, "script").done(function(data){// console.log("tracking:", data);
-				}).fail(function(error){
-					console.error("tracking:", error);
-				});
+				setTimeout(function(){
+					$.post("<?=$themes_getScript?>", $.parseJSON('<?=json_encode(["COOKIE"=>$_COOKIE])?>'), function(data){
+					}, "script").done(function(data){// console.log("tracking:", data);
+					}).fail(function(error){
+						console.error("tracking:", error);
+					});
+				}, 1000)
 			}).ready(function(e){ $(script).parent().trigger("init"); })
 		})(jQuery, document.currentScript)
 	</script>
 <? endif; ?>
 
+<? if(!get($conf, 'settings', 'themes_params')):// mpre("Таблица параметров не найдена") ?>
+<? elseif(!$themes_params = rb("themes-params", "name", $p = "[Hotjar Tracking Code]")):// mpre("Параметр не найден {$p}") ?>
+<? elseif(!$themes_index = $conf['themes']['index']): mpre("Ошибка установки хоста сайта") ?>
+<? elseif(!$THEMES_PARAMS_INDEX = rb("themes-params_index", "params_id", "index_id", "id", $themes_params['id'], "[{$themes_index['id']},0,NULL]")):// mpre("Изменений стилей для данного сайта не требуется") ?>
+<? else:// mpre($themes_params) ?>
+	<? foreach($THEMES_PARAMS_INDEX as $themes_params_index): ?>
+		<!-- Hotjar Tracking Code for http://<?=$themes_index['name']?> -->
+		<script>
+			(function(h,o,t,j,a,r){
+				h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+				h._hjSettings={hjid:"<?=$themes_params_index['name']?>",hjsv:5};
+				a=o.getElementsByTagName('head')[0];
+				r=o.createElement('script');r.async=1;
+				r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+				a.appendChild(r);
+			})(window,document,'//static.hotjar.com/c/hotjar-','.js?sv=');
+		</script>
+	<? endforeach; ?>
+<? endif; ?>
 

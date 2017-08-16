@@ -1,42 +1,26 @@
 <?
 
-//if($viewer = rb("viewer", "id", $conf['user']['sess']['vk_viewer'])){
-	if(get($_REQUEST, 'class') && $class = "{$conf['db']['prefix']}{$arg['modpath']}_". ($t = first(explode(" ", $_REQUEST['class'])))){
-		if($arg['admin_access'] > 1){
-			mpevent("ajax://{$arg['modpath']}:ajax/class:{$t}", $conf['user']['uid'], $_REQUEST);
-			$where = array_diff_key($_GET, array_flip(array("class", "m")));
-			$w = array("time"=>time()) + array_diff_key($_REQUEST, array("id"=>false));
-			if($arg['admin_access'] >= 2){
-				if(get($_POST, 'id') < 0){
-					qw("DELETE FROM {$class} WHERE ". implode(" AND ", array_map(function($k, $v){
-						return "`$k`=". (is_numeric($v) ? (int)$v : "\"". mpquot($v). "\"");
-					}, array_keys($where), array_values($where))));
-					exit("{}");
-				}else{
-					if($fdk = fdk($class, $where, $w = ($_POST ? $w : null), $w)){
-						if(array_key_exists("sort", $fdk) && ($fdk['sort'] == 0)){
-							$fdk = fdk($class, array("id"=>$fdk['id']), null, array("sort"=>$fdk['id']));
-						}
-					}
-					if($_FILES) foreach($_FILES as $f=>$v){
-						$file_id = mpfid($class, $f, $fdk['id']);
-					}elseif($img = get($_POST, $f = 'img')){
-						$file_id = mphid($class, $f, $fdk['id'], $img);
-					} exit(json_encode($fdk));
-				}
-			}else{
-				$error = "Прав доступа {$arg['admin_access']} недостаточно для изменения данных";
-				mpevent("Аякс запрос /{$arg['modpath']}:{$class[0]}", $conf['user']['uid'], $error, $_REQUEST);
-				exit($error);
+if(!get($_REQUEST, 'class')){ exit(mpre("Класс не задан"));
+}elseif(!$class = "{$conf['db']['prefix']}{$arg['modpath']}_". ($t = first(explode(" ", $_REQUEST['class'])))){ exit(mpre("Таблица не указана"));
+}elseif($arg['admin_access'] <= 1){ exit(mpre("Недостаточно прав доступа к разделу"));
+}elseif((!$where = array_diff_key($_GET, array_flip(array("class", "m", "null")))) &0){ exit(mpre("Ошибка установки условий"));
+}elseif((!$w = array_diff_key($_REQUEST, array("id"=>false))) &0){ mpre("Ошибка определения массива изменений");
+}elseif(get($_POST, 'id') < 0){// die(mpre("Удаление"));
+	if($arg['admin_access'] < 2){ die("Прав недостаточно для изменений");
+	}elseif(!$sql = "DELETE FROM {$class} WHERE ". implode(" AND ", array_map(function($k, $v){
+			return "`$k`=". (is_numeric($v) ? (int)$v : "\"". mpquot($v). "\"");
+		}, array_keys($where), array_values($where)))){ die("Ошибка составления запроса к БД");
+	}elseif(!$response = rb($class, "id", $_GET['id'])){ die("Ошибка выборки удаляемого элемента");
+	}elseif(qw($sql)){ die("Запрос к БД вернул ошибку");
+	}else{ exit(json_encode($response)); }
+}elseif(!$fdk = fdk($class, $where, ['time'=>time()] + ($w = ($where + ($_POST ? $w : []))), $w)){ exit(mpre("Ошибка запроса к БД", $class, $where, $w));
+}elseif(array_key_exists("sort", $fdk) && ($fdk['sort'] == 0) && (!$fdk = fdk($class, array("id"=>$fdk['id']), null, array("sort"=>$fdk['id'])))){ mpre("Ошибка установки значения сортировки");
+}elseif($_FILES && !call_user_func(function($FILES){
+		foreach($FILES as $f=>$v){
+			if(!$file_id = mpfid($class, $f, $fdk['id'])){ mpre("Ошибка загрузки изображения");
+				return false;
 			}
-		}else{
-			$error = "Недостаточно прав доступа";
-			mpevent("Аякс запрос /{$arg['modpath']}:{$class[0]}", $conf['user']['uid'], $error, $_REQUEST);
-			exit($error);
-		}
-	}else{
-		$error = "Не указана таблица";
-		mpevent("Аякс запрос /{$arg['modpath']}:{$class[0]}", $conf['user']['uid'], $error, $_REQUEST);
-		exit($error);
-	}
-//}else{ exit(pre("Посетитель не найден")); }
+		} return true;
+	}, $_FILES)){ mpre("Ошибка загрузки изображений");
+}elseif(($src = get($_POST, 'img')) && !$file_id = mphid($class, $f, $fdk['id'], $img)){ mpre("Ошибка загрузки внешнего изображений");
+}else{ exit(json_encode($fdk)); }
