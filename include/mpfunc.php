@@ -515,10 +515,16 @@ if (!function_exists('modules')){
 					if(!strpos($error, "Unknown column 'admin_access'")){ pre("Неопределенная ошибка", $error);
 					}else{ qw(mpre("ALTER TABLE `{$conf['db']['prefix']}modules_index_gaccess` CHANGE `access` `admin_access` int(11) NOT NULL")); }
 				}))) &0){ mpre("Разрешения для группы");
-			}elseif(!is_numeric($access = (("admin" == $mod['folder'] || (strpos($v, "admin") === 0)) ? 4 : 1))){ mpre("Ошибка подсчета дефолтного доступа к разделам");
+//		}elseif(!is_numeric($access = (("admin" == $mod['folder'] || (strpos($v, "admin") === 0)) ? 4 : 1))){ mpre("Ошибка подсчета дефолтного доступа к разделам");
+			}elseif(!is_numeric($access = call_user_func(function($v) use($mod){
+					if("admin" === $v){ return 5;
+					}elseif("admin" == $mod['folder']){ return 4;
+					}elseif(strpos($v, "admin") === 0){ return 4;
+					}else{ return 1; }
+				}, $v))){
 			}elseif(!$gmax = ($MODULES_INDEX_GACCESS ? max(array_column($MODULES_INDEX_GACCESS, 'admin_access')) : 1)){ mpre("Ошибка максимального разрешения для группы");
 			}elseif(!$umax = ($MODULES_INDEX_UACCESS ? max(array_column($MODULES_INDEX_UACCESS, 'admin_access')) : 1)){ mpre("Ошибка максимального разрешения для пользователя");
-			}elseif(!is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < $access)){ mpre("Недостаточно прав доступа к разделу");
+			}elseif(!is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < $access)){ mpre("Недостаточно прав доступа к разделу", $umax, $gmax, $access);
 				if(/*!mpopendir($f = "modules/{$mod['link']}/deny.php") &&*/ !mpopendir($f = "modules/admin/deny.php")){ pre("Не найдена страница запрета доступа");
 					header("HTTP/1.0 403 admin_access Denied");
 					exit(header("Location: /users:login"));

@@ -14,39 +14,27 @@ if(!is_numeric($n = date("N", ($offset = mpsettings("{$arg['modpath']}_admin_yan
 }elseif(!$yandex_token && (!$yandex_token = rb("themes-yandex_token", "id", $themes_yandex["yandex_token_id"]))){ exit(mpre("Токен приложений не найден"));
 }elseif(!$mtid = ($yandex_metrika["mtid"] ?: $yandex_metrika["id"])){ mpre("Номер счетчика");
 }elseif(!$href = "https://api-metrika.yandex.ru/stat/v1/data?preset=sources_summary&metrics=". implode(",", array("ym:s:users", "ym:s:visits", "ym:s:pageviews")). "&date1={$yandex_metrika_period['date1']}&date2={$yandex_metrika_period['date2']}&id={$mtid}&oauth_token={$yandex_token['name']}"){ mpre("Ошибка формирования ссылки");
+//}elseif(!mpre($href)){
 }elseif(!$data = mpde(mpcurl($href))){ exit(mpre("Ошибка при загрузки данных метрики"));
 }elseif(!$json = json_decode($data, true)){ mpre("Ошибка получения json данных");
 }elseif(!array_key_exists("data",$json)){ exit("[]"); mpre($yandex_metrika,$href,$json); 
 }else{
 	foreach($json['data'] as $d){// (mpre($d['metrics']));
-		if($yandex_metrika_dimensions = fk("themes-yandex_metrika_dimensions", $w = array("name"=>$d['dimensions'][0]['name'], "alias"=>$d['dimensions'][0]['id']), $w)){
-			$yandex_metrika_metrics = fk("themes-yandex_metrika_metrics",
+		if(!$yandex_metrika_dimensions = call_user_func(function($d){
+				if(!$yandex_metrika_dimensions = fk("themes-yandex_metrika_dimensions", $w = ["name"=>get($d, 'dimensions', 0, 'name'), "alias"=>get($d, 'dimensions', 0, 'id')], $w)){ mpre("Ошибка добавления измерения");
+				}elseif(!get($d, 'dimensions', 1, 'id')){ return $yandex_metrika_dimensions; mpre("Нижестоящий элемент не указан");
+				}elseif(!$_yandex_metrika_dimensions = fk("themes-yandex_metrika_dimensions", $w = ["yandex_metrika_dimensions_id"=>$yandex_metrika_dimensions['id'], "alias"=>get($d, 'dimensions', 1, 'id')], $w += ["name"=>get($d, 'dimensions', 1, 'name')])){ mpre("Ошибка добавления нижестоящего изменения");
+				}else{ return $_yandex_metrika_dimensions; }
+			}, $d)){ mpre("Ошибка нахождения текущего элемента");
+		}elseif(!$yandex_metrika_metrics = fk("themes-yandex_metrika_metrics",
 				$w = array("yandex_metrika_id"=>$yandex_metrika['id'], "yandex_metrika_dimensions_id"=>$yandex_metrika_dimensions['id'], "yandex_metrika_period_id"=>$yandex_metrika_period['id']),
 				$w += array("users"=>$d['metrics'][0], "visits"=>$d['metrics'][1], "pageviews"=>$d['metrics'][2]), $w
-			);
-		}else{ mpre("Ошибка добавления измерения"); }
+			)){ mpre("Ошибка добавления метрики");
+		}else{// mpre($yandex_metrika_dimensions, $d);
+			$YANDEX_METRIKA_METRICS[$yandex_metrika_metrics['id']] = $yandex_metrika_metrics;
+		}
 	} $yandex_metrika_metrics = fk("themes-yandex_metrika_metrics",
 		$w = array("yandex_metrika_id"=>$yandex_metrika['id'], "yandex_metrika_dimensions_id"=>0, "yandex_metrika_period_id"=>$yandex_metrika_period['id']),
 		$w += array("users"=>$json['totals'][0], "visits"=>$json['totals'][1], "pageviews"=>$json['totals'][2]), $w
 	); exit(json_encode($json));
-		
-			
-				
-					
-
-//						if(!$data = file_get_contents("https://api-metrika.yandex.ru/management/v1/counter/{$yandex_metrika['id']}/goals?oauth_token={$yandex_token['name']}")){ exit(mpre("Ошибка запроса списка целей"));
-/*						if(!$data = mpde(mpcurl("https://api-metrika.yandex.ru/management/v1/counter/{$yandex_metrika['id']}/goals?oauth_token={$yandex_token['name']}"))){ exit(mpre("Ошибка запроса списка целей"));
-						}elseif(!$json = json_decode($data, true)){ exit(mpre("JSON формат не сфоримрован"));
-						}else{
-							foreach($json['goals'] as $goals){// mpre($goals);
-								if($yandex_metrika_goals = fk("yandex_metrika_goals", $w = array("yandex_metrika_id"=>$yandex_metrika['id'], "name"=>$goals['name'], "type"=>$goals['type']), $w += array("is_retargeting"=>$goals['is_retargeting']), $w)){
-									foreach($goals['conditions'] as $conditions){
-										$yandex_metrika_conditions = fk("yandex_metrika_conditions", $w = array("yandex_metrika_goals_id"=>$yandex_metrika_goals['id']), $w += array("type"=>$conditions['type'], "name"=>$conditions['url']), $w);
-									}
-								}else{ exit(mpre("Ошибка добавления цели")); }
-							}
-						}*/
-
-//						if($data = file_get_contents("https://api-metrika.yandex.ru/stat/v1/data?preset=sources_summary&metrics=". implode(",", array("ym:s:users", "ym:s:visits", "ym:s:pageviews")). "&date1={$yandex_metrika_period['date1']}&date2={$yandex_metrika_period['date2']}&id={$yandex_metrika['id']}&oauth_token={$yandex_token['name']}")){ exit("Ошибка при загрузки данных метрики");
-						
 }

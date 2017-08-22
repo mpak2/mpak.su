@@ -73,8 +73,13 @@
 			<?=$tpl['yandex_metrika_period']['date1']?> - <?=$tpl['yandex_metrika_period']['date2']?>
 			<a onClick="javascript:return false;" class="upgrade">Обновить все</a>
 		</span>
-		<?// if($tpl['yandex_metrika_index']) ?>
-		<? if($tpl['yandex_metrika'] = rb("themes-yandex_metrika")): ?>
+		<? if(!$THEMES_YANDEX_METRIKA = rb("themes-yandex_metrika")): mpre("Ошибка выборки метрих хостов") ?>
+		<? elseif(!$THEMES_YANDEX_METRIKA = array_filter(array_map(function($themes_yandex_metrika){
+				if($themes_yandex_metrika['index_id'] <= 0){// mpre("Отрицательный хост");
+				}else{ return $themes_yandex_metrika; }
+			}, $THEMES_YANDEX_METRIKA))): mpre("Ошибка удаления отрицательных значений") ?>
+		<? elseif(!$THEMES_INDEX = rb("themes-index")): mpre("ОШибка выборки хостов") ?>
+		<? else:// mpre($THEMES_YANDEX_METRIKA) ?>
 			<h1 style="margin-right:100px;">Метрики</h1>
 			<? if($tpl['yandex_metrika_period:all'] = rb("themes-yandex_metrika_period", 6)): ?>
 				<div class="table">
@@ -88,19 +93,21 @@
 										<span><?=$yandex_metrika_period['date1']?>/<?=$yandex_metrika_period['date2']?></span>
 									<? endforeach; ?>
 								</div>
-								<? foreach(rb("themes-index") as $index): ?>
-									<? if($index['index_id']):// mpre("Сайт является зеркалом", $index) ?>
-									<? elseif(preg_match("#\d+\.\d+\.\d+\.\d+#", $index['name'])):// mpre("Хост с адресом в имени", $index) ?>
-									<? elseif("deny" == $index['theme']):// mpre("На сайте устанволена тема заглушка", $index) ?>
-									<? elseif($yandex_metrika = rb("themes-yandex_metrika", "index_id", $index['id'])): ?>
+								<? foreach($THEMES_INDEX as $themes_index): ?>
+									<? if($themes_index['index_id']):// mpre("Сайт является зеркалом", $themes_index) ?>
+									<? elseif(preg_match("#\d+\.\d+\.\d+\.\d+#", $themes_index['name'])):// mpre("Хост с адресом в имени", $themes_index) ?>
+									<? elseif("deny" == $themes_index['theme']):// mpre("На сайте устанволена тема заглушка", $themes_index) ?>
+									<? elseif(!$yandex_metrika = rb("themes-yandex_metrika", "index_id", $themes_index['id'])):// mpre("Ошибка поиска метрики сайта") ?>
+									<? elseif(!$YANDEX_METRIKA[$yandex_metrika['id']] = $yandex_metrika): mpre("Ошибка формирования списка сайтов") ?>
+									<? else: ?>
 										<? ($yandex_metrika_metrics = rb("themes-yandex_metrika_metrics", "yandex_metrika_period_id", "yandex_metrika_id", "yandex_metrika_dimensions_id", $tpl['yandex_metrika_period']['id'], $yandex_metrika['id'], 0)) ?>
 										<div yandex_metrika_id="<?=$yandex_metrika['id']?>">
 											<span>
 												<a class="update" onClick="javascript:return false;" href="/themes:admin/r:mp_themes_yandex_metrika?&where[id]=<?=$yandex_metrika['id']?>"><?=$yandex_metrika['id']?></a>
 											</span>
 											<span>
-												<? if($index = rb("themes-index", "id", $yandex_metrika['index_id'])): ?>
-													<?=$index['name']?>
+												<? if($themes_index = rb("themes-index", "id", $yandex_metrika['index_id'])): ?>
+													<?=$themes_index['name']?>
 												<? endif; ?>
 											</span>
 											<? foreach($tpl['yandex_metrika_period:all'] as $yandex_metrika_period): ?>
@@ -127,10 +134,10 @@
 								<? endforeach; ?>
 								<div class="th">
 									<span></span>
-									<span>По всем хостам:</span>
+									<span>Посещения всего:</span>
 									<? foreach($tpl['yandex_metrika_period:all'] as $yandex_metrika_period): ?>
 										<span>
-											<? if($tpl['yandex_metrika_metrics'] = rb("themes-yandex_metrika_metrics", "yandex_metrika_period_id", "yandex_metrika_dimensions_id", "id", $yandex_metrika_period['id'], 0)): ?>
+											<? if($tpl['yandex_metrika_metrics'] = rb("themes-yandex_metrika_metrics", "yandex_metrika_period_id", 'yandex_metrika_id', "yandex_metrika_dimensions_id", "id", $yandex_metrika_period['id'], $THEMES_YANDEX_METRIKA, 0)): ?>
 												<span title="Посетители"><?=array_sum(array_column($tpl['yandex_metrika_metrics'], "users"))?></span> /
 												<span title="Визиты"><?=array_sum(array_column($tpl['yandex_metrika_metrics'], "visits"))?></span> /
 												<span title="Просмотры"><?=array_sum(array_column($tpl['yandex_metrika_metrics'], "pageviews"))?></span>
@@ -138,6 +145,31 @@
 										</span>
 									<? endforeach; ?>
 								</div>
+
+								<? if(!$THEMES_YANDEX_METRIKA_DIMENSIONS = rb("themes-yandex_metrika_dimensions")): mpre("Ошибка выборки списка источников") ?>
+								<? elseif(!$_THEMES_YANDEX_METRIKA_DIMENSIONS = rb($THEMES_YANDEX_METRIKA_DIMENSIONS, "yandex_metrika_dimensions_id", "id", '[0,NULL]')): mpre("Ошибка выборки списка измерений") ?>
+								<? else:// mpre($YANDEX_METRIKA) ?>
+									<? foreach($_THEMES_YANDEX_METRIKA_DIMENSIONS as $themes_yandex_metrika_dimensions): ?>
+										<div>
+											<span><a href="/themes:admin/r:mp_themes_yandex_metrika_dimensions?&where[id]=<?=$themes_yandex_metrika_dimensions['id']?>"><?=$themes_yandex_metrika_dimensions['id']?></a></span>
+											<span><?=$themes_yandex_metrika_dimensions['name']?>:</span>
+											<? foreach($tpl['yandex_metrika_period:all'] as $yandex_metrika_period): ?>
+												<span>
+													<? if(!is_array($THEMES_YANDEX_METRIKA_DIMENSIONS_['Нижестоящие'] = rb($THEMES_YANDEX_METRIKA_DIMENSIONS, "yandex_metrika_dimensions_id", "id", $themes_yandex_metrika_dimensions['id']))): mpre("Ошибка выборки нижестоящих элементов") ?>
+													<? elseif(!$THEMES_YANDEX_METRIKA_DIMENSIONS_['Нижестоящие'][$themes_yandex_metrika_dimensions['id']] = $themes_yandex_metrika_dimensions): mpre("Ошибка добавления текущей") ?>
+													<? elseif(!$YANDEX_METRIKA_METRICS = rb("themes-yandex_metrika_metrics", "yandex_metrika_period_id", 'yandex_metrika_id', "yandex_metrika_dimensions_id", "id", $yandex_metrika_period['id'], $THEMES_YANDEX_METRIKA, $THEMES_YANDEX_METRIKA_DIMENSIONS_['Нижестоящие'])):// mpre("Ошибка выборки данных метрики") ?>
+													<? else:// mpre($YANDEX_METRIKA_METRICS) ?>
+														<a href="/themes:admin/r:mp_themes_yandex_metrika_metrics?&where[yandex_metrika_dimensions_id]=<?=$themes_yandex_metrika_dimensions['id']?>&where[yandex_metrika_period_id]=<?=$yandex_metrika_period['id']?>">
+															<span title="Посетители"><?=array_sum(array_column($YANDEX_METRIKA_METRICS, "users"))?></span> /
+															<span title="Визиты"><?=array_sum(array_column($YANDEX_METRIKA_METRICS, "visits"))?></span> /
+															<span title="Просмотры"><?=array_sum(array_column($YANDEX_METRIKA_METRICS, "pageviews"))?></span>
+														</a>
+													<? endif; ?>
+												</span>
+											<? endforeach; ?>
+										</div>
+									<? endforeach; ?>
+								<? endif; ?>
 							</div>
 						</span>
 					</div>

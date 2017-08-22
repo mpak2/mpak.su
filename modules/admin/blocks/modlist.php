@@ -10,7 +10,7 @@
 				<? elseif((!$MODULES_INDEX_GACCESS = rb("modules-index_gaccess", "mid", "gid", "id", $modules_index['id'], $conf['user']['gid'])) &0): mpre("Ошибка выборки прав пользователей") ?>
 				<? elseif(!$gmax = ($MODULES_INDEX_GACCESS ? max(array_column($MODULES_INDEX_GACCESS, 'admin_access')) : 1)): mpre("Ошибка максимального разрешения для группы"); ?>
 				<? elseif(!$umax = ($MODULES_INDEX_UACCESS ? max(array_column($MODULES_INDEX_UACCESS, 'admin_access')) : 1)): mpre("Ошибка максимального разрешения для пользователя"); ?>
-				<? elseif(!is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < 4)):// mpre("Недостаточно прав доступа к разделу"); ?>
+				<? elseif(!is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < 5)):// mpre("Недостаточно прав доступа к разделу"); ?>
 				<? else: ?>
 					<li modpath="<?=$modules_index['folder']?>" class="<?=($modpath == $modules_index['folder'] ? "act" : "")?>">
 						<a href="/<?=$modules_index['folder']?>:admin"><?=$modules_index['name']?></a>

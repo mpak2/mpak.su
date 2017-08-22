@@ -14,35 +14,23 @@
 					</style>
 					<p>
 						<form table="<?=$_GET['r']?>" action="/<?=$arg['modpath']?>:<?=$arg['fn']?>/null" method="post">
-							<script src="/include/jquery/jquery.iframe-post-form.js"></script>
 							<script sync>
 								(function($, script){
 									$(script).parent().one("init", function(e){
-										setTimeout(function(){
-											$(e.delegateTarget).iframePostForm({
-												complete:function(data){
-													try{if(json = JSON.parse(data)){
-														if(json.table){
-//															document.location.href = "/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:"+json.table;
-														} console.log("json:", json);
-													}}catch(e){if(isNaN(data)){ alert(data) }else{
-														console.log("date:", data)
-													}}
-												}
-											});
-										}, 100)
 									}).on("click", "a.del", function(e){
 										var table = $(e.delegateTarget).attr("table");
 										if(confirm("Подтвердите удаление таблицы `"+ table+ "`")){
 											$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/null", {del:table}, function(data){
-												if(isNaN(data)){ alert(data) }else{
+												if(isNaN(data)){// alert(37);
+													alert(data)
+												}else{
 //													document.location.href = "/<?=$arg['modpath']?>:<?=$arg['fn']?>";
 													console.log("data:", data);
 												}
 											});
 										}
-									}).trigger("init")
-								})(jQuery, document.scripts[document.scripts.length-1])
+									})
+								})(jQuery, document.scripts[document.scripts.length-1]);
 							</script>
 							<span style="float:right;">
 								<a class="del" href="javascript:void(0)">Удалить</a>
@@ -130,9 +118,9 @@
 											var on_update = $(e.currentTarget).parents("[field]").find("select[name=on_update] option:selected").attr("value");
 											var on_delete = $(e.currentTarget).parents("[field]").find("select[name=on_delete] option:selected").attr("value");
 											console.log("field:", field, "on_update:", on_update, "on_delete:", on_delete);
-											$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null", {foreign:field, on_update:on_update, on_delete:on_delete}, function(data){
+											$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null", {foreign:field, on_update:on_update, on_delete:on_delete}, function(data){ alert(133);
 												console.log("data:", data);
-												document.location.reload(true);
+//												document.location.reload(true);
 											}, "json").fail(function(error){ alert(error.responseText); })
 										})
 									})(jQuery, document.currentScript)
@@ -191,14 +179,12 @@
 						<div class="table" style="width:100%;">
 							<script sync>
 								(function($, script){
-									$(script).parent().on("click", "button", function(e){
+									$(script).parent().on("click", "button.foreign", function(e){
 										var field = $(e.currentTarget).parents("[field]").attr("field");
 										var reference = $(e.currentTarget).parents("[field]").find("select[name=reference] option:selected").attr("value");
-										console.log("field:", field, "reference:", reference);
 										$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null", {foreign:field, reference:reference}, function(data){
 											console.log("data:", data);
-//											document.location.reload(true);
-										}, "json").fail(function(error){ alert(error.responseText); })
+										}, "json").fail(function(error){ alert(error.responseText) })
 									})
 								})(jQuery, document.scripts[document.scripts.length-1])
 							</script>
@@ -240,7 +226,7 @@
 											<? endif; ?>
 										</span>
 										<span style="text-align:center;">
-											<button><?=(($in_column_usage || $out_column_usage) ? "Удалить ключ" : "Создать ключ")?></button>
+											<button class="foreign"><?=(($in_column_usage || $out_column_usage) ? "Удалить ключ" : "Создать ключ")?></button>
 										</span>
 									</div>
 								<? endif; ?>
@@ -284,37 +270,24 @@
 							</div>
 						</div>
 					<? endif; ?>
-					<!--<div>
+					<div>
 						<h1>Запрос</h1>
-						 <form action="/<?=$arg['modpath']?>:<?=$arg['fn']?>/null" method="post">
-							<script src="/include/jquery/jquery.iframe-post-form.js"></script>
+						<form action="/<?=$arg['modpath']?>:<?=$arg['fn']?>/null" method="post">
 							<script sync>
 								(function($, script){
 									$(script).parent().on("change", "select[name=query]", function(e){
 										var query = $(e.currentTarget).find("option:selected").val();
 										$(e.delegateTarget).find("textarea").val(query);
 									}).one("init", function(e){
-										setTimeout(function(){
-											$(e.delegateTarget).iframePostForm({
-												complete:function(data){
-													try{if(json = JSON.parse(data)){
-														console.log("json:", json);
-		//												document.location.reload(true);
-													}}catch(e){if(isNaN(data)){
-		//												alert(data);
-														$(this).next().html(data);
-														console.log("next:", $(this).next());
-													}else{
-														console.log("date:", data)
-													}}
+										$.getScript("/include/jquery/jquery.iframe-post-form.js", function(){// console.log("e:", e);
+											$(e.target).iframePostForm({
+												complete:function(data){// alert(data);
+													$(e.target).next(".info").html(data);
 												}
-											});
-											setTimeout(function(){
-												$(e.delegateTarget).find("button").trigger("click");
-											}, 100);
-										}, 300);
-									}).trigger("init")
-								})(jQuery, document.scripts[document.scripts.length-1])
+											})
+										})
+									}).ready(function(){ $(script).parent().trigger("init"); })
+								})(jQuery, document.currentScript);
 							</script>
 							<p>
 								<select name="query" style="width:100%;">
@@ -324,11 +297,11 @@
 									<? endforeach; ?>
 								</select>
 							</p>
-							<p><textarea disabled name="sql" style="width:100%; height:100px;" placeholder="Текст запроса"><? if(get($conf, 'db', 'type') == 'sqlite'): ?><?="SELECT * FROM sqlite_master WHERE tbl_name='{$_GET['r']}'"?><? else: ?><?=($_GET['r'] ? "SHOW CREATE TABLE `{$_GET['r']}`" : "")?><? endif; ?></textarea></p>
+							<p><textarea name="sql" style="width:100%; height:100px;" placeholder="Текст запроса"><? if(get($conf, 'db', 'type') == 'sqlite'): ?><?="SELECT * FROM sqlite_master WHERE tbl_name='{$_GET['r']}'"?><? else: ?><?=($_GET['r'] ? "SHOW CREATE TABLE `{$_GET['r']}`" : "")?><? endif; ?></textarea></p>
 							<p><button>Выполнить</button></p>
 						</form>
 						<div class="info"></div>
-					</div>-->
+					</div>
 				</span>
 			</div>
 		</div>

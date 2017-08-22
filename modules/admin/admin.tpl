@@ -418,10 +418,10 @@
 									<span>
 										<? if(substr($k, 0, 2) == "__"): // $tpl['ecounter'] ?>
 											<? if(!$f = substr($k, 2)): mpre("Ошибка поиска названия таблицы в адресе") ?>
-											<? elseif(!$m = first(explode("-", $f))): mpre("Ошибка определения модуля таблицы для подсчета") ?>
-											<? elseif(!$field = "{$arg['modpath']}-". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))): mpre("Ошибка определения поля с вторичным ключем") ?>
+											<? elseif(!$m = first(explode('_', first(explode("-", $f))))): mpre("Ошибка определения модуля таблицы для подсчета") ?>
+											<? elseif(!$field = (strpos($f, '-') ? "{$arg['modpath']}-". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) : substr($_GET['r'], strlen($conf['db']['prefix'])))): mpre("Ошибка определения поля с вторичным ключем") ?>
 											<? else:// mpre() ?>
-												<a href="/<?=$m?>:admin/r:<?=$f?>?&where[<?=$field?>]=<?=$lines['id']?>">
+												<a href="/<?=$m?>:admin/r:<?=$conf['db']['prefix']?><?=$f?>?&where[<?=$field?>]=<?=$lines['id']?>">
 													<?=(($cnt = get($v, $lines['id'], 'cnt')) ? "{$cnt}&nbspшт" : "Нет")?>
 												</a>
 											<? endif; ?>
