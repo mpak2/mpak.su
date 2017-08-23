@@ -26,7 +26,6 @@
 													}).trigger("init")
 												})(jQuery, document.scripts[document.scripts.length-1])
 											</script>
-											<input type="hidden" value="Аутентификация" name="reg">
 											<p><input type="text" name="name" required placeholder="логин"></p>
 											<p><input type="text" name="email" required placeholder="e-mail"></p>
 											<p><input type="password" name="pass" required placeholder="пароль"></p>

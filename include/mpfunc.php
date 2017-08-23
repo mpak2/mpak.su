@@ -524,8 +524,8 @@ if (!function_exists('modules')){
 				}, $v))){
 			}elseif(!$gmax = ($MODULES_INDEX_GACCESS ? max(array_column($MODULES_INDEX_GACCESS, 'admin_access')) : 1)){ mpre("Ошибка максимального разрешения для группы");
 			}elseif(!$umax = ($MODULES_INDEX_UACCESS ? max(array_column($MODULES_INDEX_UACCESS, 'admin_access')) : 1)){ mpre("Ошибка максимального разрешения для пользователя");
-			}elseif(!is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < $access)){ mpre("Недостаточно прав доступа к разделу", $umax, $gmax, $access);
-				if(/*!mpopendir($f = "modules/{$mod['link']}/deny.php") &&*/ !mpopendir($f = "modules/admin/deny.php")){ pre("Не найдена страница запрета доступа");
+			}elseif(!is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < $access)){// mpre("Недостаточно прав доступа к разделу", $umax, $gmax, $access);
+				if(!mpopendir($f = "modules/admin/deny.php")){ pre("Не найдена страница запрета доступа");
 					header("HTTP/1.0 403 admin_access Denied");
 					exit(header("Location: /users:login"));
 				}else{ inc("modules/admin/deny.php"); }

@@ -95,8 +95,8 @@ if(isset($_GET['logoff'])){ # Если пользователь покидает
 }elseif(!$_POST || (get($_POST, 'reg') != 'Аутентификация')){// pre("Нет запроса на аутентификацию");
 }elseif(!strlen($_POST['name'])){ pre("Имя не задано");
 }elseif(!strlen($_POST['pass'])){ pre("Пароль не задан");
-//}elseif(!$sql = "SELECT id FROM {$conf['db']['prefix']}users WHERE type_id=1 AND name = \"".mpquot($_POST['name'])."\" AND pass='".mphash($_POST['name'], $_POST['pass'])."'"){ mpre("Ошибка составления запроса");
-}elseif(!$user = rb("{$conf['db']['prefix']}users", "type_id", "name", "pass", 1, "[". mpquot($_POST['name']). "]", "[". mphash($_POST['name'], $_POST['pass']). "]")){ pre("Не верный пароль");
+}elseif(!$mphash = mphash($_POST['name'], $_POST['pass'])){pre("Ошибка получения хэша пароля");
+}elseif(!$user = rb("{$conf['db']['prefix']}users", "type_id", "name", "pass", 1, "[". mpquot($_POST['name']). "]", "[{$mphash}]")){ pre("Не верный пароль");
 	sleep(1);
 }elseif(!$sess = fk("{$conf['db']['prefix']}sess", ['id'=>$sess['id']], null, ['uid'=>$user['id']])){ mpre("Ошибка редактирования сессии");
 }elseif(!$user = fk("{$conf['db']['prefix']}users", ['id'=>$user['id']], null, ['last_time'=>time()])){ mpre("Ошибка установки времени входа пользователю");
