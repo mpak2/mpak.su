@@ -56,28 +56,33 @@
 						<form action="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>" method="post">
 							<div class="table">
 								<? foreach($fields as $field=>$row): ?>
-									<div>
-										<span><input type="text" name="f[<?=$field?>][name]" value="<?=$field?>" style="width:100px;" placeholder="Название"></span>
-										<span>
-											<select name="f[<?=$field?>][after]">
-												<option></option>
-												<? foreach($fields as $f=>$r): ?>
-													<option><?=$f?></option>
-												<? endforeach; ?>
-											</select>
-										</span>
-										<span>
-											<select name="f[<?=$field?>][type]">
-												<option></option>
-												<? foreach($tpl['types'] as $fd): ?>
-													<option <?=((get($tpl, 'fields', $field, 'Type') == $fd) || (get($tpl, 'fields', $field, 'type') == $fd) ? "selected" : "")?>><?=$fd?></option>
-												<? endforeach; ?>
-											</select>
-										</span>
-										<span><input type="text" value="<?=(get($fields, $field, 'Default') ?: get($fields, $field, 'dflt_value'))?>" name="f[<?=$field?>][default]" style="width:60px;" placeholder="Значение"></span>
-										<span><input type="text" value="<?=get($fields, $field, 'Comment')?>" name="f[<?=$field?>][comment]" placeholder="Коментарий" <?=(get($conf, 'db', 'type') == 'mysql' ? "" : "disabled")?>></span>
-										<span><input type="checkbox" name="f[<?=$field?>][index]" <?=((get($tpl, 'indexes', $field) || get($tpl, 'indexes', substr($_GET['r'], strlen($conf['db']['prefix'])). "-{$field}")) ? "checked" : "")?>></span>
-									</div>
+									<? if(($default = (gettype($d = get($fields, $field, 'Default')) !== null ? $d : get($fields, $field, 'dflt_value'))) &&0): mpre("Значение по умолчанию для поля") ?>
+									<? else:// mpre($default) ?>
+										<div>
+											<span><input type="text" name="f[<?=$field?>][name]" value="<?=$field?>" style="width:100px;" placeholder="Название"></span>
+											<span>
+												<select name="f[<?=$field?>][after]">
+													<option></option>
+													<? foreach($fields as $f=>$r): ?>
+														<option><?=$f?></option>
+													<? endforeach; ?>
+												</select>
+											</span>
+											<span>
+												<select name="f[<?=$field?>][type]">
+													<option></option>
+													<? foreach($tpl['types'] as $fd): ?>
+														<option <?=((get($tpl, 'fields', $field, 'Type') == $fd) || (get($tpl, 'fields', $field, 'type') == $fd) ? "selected" : "")?>><?=$fd?></option>
+													<? endforeach; ?>
+												</select>
+											</span>
+											<span>
+												<input type="text" value="<?=$default?>" name="f[<?=$field?>][default]" style="width:60px;" placeholder="Значение">
+											</span>
+											<span><input type="text" value="<?=get($fields, $field, 'Comment')?>" name="f[<?=$field?>][comment]" placeholder="Коментарий" <?=(get($conf, 'db', 'type') == 'mysql' ? "" : "disabled")?>></span>
+											<span><input type="checkbox" name="f[<?=$field?>][index]" <?=((get($tpl, 'indexes', $field) || get($tpl, 'indexes', substr($_GET['r'], strlen($conf['db']['prefix'])). "-{$field}")) ? "checked" : "")?>></span>
+										</div>
+									<? endif; ?>
 								<? endforeach; ?>
 								<div>
 									<span><input type="text" name="$[name]" style="width:100px;" placeholder="Название"></span>

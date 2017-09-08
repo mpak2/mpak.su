@@ -19,7 +19,7 @@ if(!$DIR = explode("/", __DIR__)){ print_r("Ошибка определения 
 }elseif(!isset($argv)){ pre("Запуск из веб интерфейса");
 }elseif(!$conf['db']['conn'] = conn()){ mpre("Ошибка подключения БД");
 }elseif(array_search($cmd["webhook"] = "Подключить вебхук", $cmd) == get($argv, 1)){// pre("Метод", get($argv, 1));
-	if(!$telegram_bot = rb("bim-telegram_bot", "name", $w = "bimorphbot")){ mpre("Бот не найден `{$w}`");
+	if(!$telegram_bot = rb("bim-telegram_bot", "name", $w = "[bimorphbot]")){ mpre("Значение по имени не найдено `{$w}`");
 	}else{ mpre($telegram_bot);
 	}
 }else{ mpre($cmd);}

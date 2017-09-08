@@ -1,96 +1,78 @@
 <?
 
-if(!$alias = "{$arg['modpath']}:{$arg['fn']}". (($keys = array_keys(array_diff_key($get, array_flip(["m", "id"])))) ? "/". implode("/", $keys) : "")){ mpre("Алиас сфоримрован ошибочно");
-}elseif($canonical /*|| (array_key_exists("up", $seo_cat) && array_key_exists("up", $canonical) && ($seo_cat['up'] > $canonical['up']))*/){ # Нет мета или обновление категории больше чем у записи
+if($canonical){ # Нет мета или обновление категории больше чем у записи
+}elseif(!$alias = "{$arg['modpath']}:{$arg['fn']}". (($keys = array_keys(array_diff_key($get, array_flip(["m", "id"])))) ? "/". implode("/", $keys) : "")){ mpre("Алиас сфоримрован ошибочно");
 }elseif(array_search('', $_GET)){// mpre("Пустые значения в адресе");
-}elseif(!$seo_cat = fk("{$conf['db']['prefix']}seo_cat", $w = ["alias"=>$alias], $w += ["name"=>$conf['modules'][$arg['modpath']]['name']. " » ". (get($conf, 'settings', "{$arg['modpath']}_{$arg['fn']}") ?: $arg['fn'])], $w)){ mpre("Ошибка добавления категория переадресации", $w);
-}elseif(!empty($seo_cat['hide'])){// mpre("Категория скрыта");
+}elseif(!$cat_name = $conf['modules'][$arg['modpath']]['name']. " » ". (get($conf, 'settings', "{$arg['modpath']}_{$arg['fn']}") ?: $arg['fn'])){ mpre("Ошибка формирования имени категории");
+}elseif(!$seo_cat = fk("{$conf['db']['prefix']}seo_cat", $w = ["alias"=>$alias], $w += ["name"=>$cat_name], $w)){ mpre("Ошибка добавления категория переадресации", $w);
+}elseif($seo_cat['hide'] !== "0"){// mpre("Категория скрыта");
 }elseif(!$settings = mpzam($conf['settings'], "settings")){ mpre("Ошибка формирования системных переменных");
-}elseif(!$characters_lang = rb("seo-characters_lang", "name", $w = "[". ((strpos($_SERVER['HTTP_HOST'], "xn--") === 0) ? "Русские" : "Английские"). "]")){ mpre("Не найдены данные перекодировки");
+}elseif(!$lang = ((strpos($_SERVER['HTTP_HOST'], "xn--") === 0) ? "Русские" : "Английские")){ mpre("Определение языка сайта");
+}elseif(!$characters_lang = rb("seo-characters_lang", "name", $w = "[{$lang}]")){ mpre("Не найдены данные перекодировки {$w}");
 }elseif(!$CHARACTERS = array_column(rb("seo-characters", "characters_lang_id", "id", "[{$characters_lang['id']},0,NULL]"), "to", "from")){ mpre("Не установлена таблица перекодировки <a href='/seo:admin/r:mp_seo_characters'>seo_characters</a>");
-}elseif(!$seo_cat['href']){ mpre("Не задан адрес ссылки <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>");
-}elseif("/" != substr($seo_cat['href'], 0, 1)){ mpre("Не верный формат seo адреса <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>");
-}elseif(!is_array($M = array_diff_key($get, array_flip(['m'])))){ mpre("Данные для формирования мета информации не установлены", $M);
-}elseif(!is_array($e = array_filter(array_map(function($k, $v){
-		if($k == "id"){// mpre("Основной элемент не загружаем");
-		}elseif((!$T = explode("-", $k)) || (2 != count($T))){// mpre("Количество элементов в массиве должно быть двум", $T);
-		}else{ return ["table"=>$k]; }
-	}, array_keys($M), $M)))){ mpre("Ошибка фильтра имент таблиц для загрузки данных");
-}elseif($meta = []){ mpre("Массив с мета информацией");
-}elseif(!$mpzam = mpzam($_GET, 'get')){ mpre("Ошибка формирования массива замены");
-}else{
-	if(($arg['fn'] == "img") && ($tn = get($get, 'tn'))){
-		$default = rb($tn, "id", get($get, 'id'));
-	}elseif($name = get($conf, 'settings', "{$arg['modpath']}_{$arg['fn']}")){
-		$default = rb($tn = "{$arg['modpath']}-{$arg['fn']}", "id", get($get, 'id'));
-//			mpre($tn);
-		$mpzam += mpzam([$tn=>$default]);
-		if($default){
-			$get[$tn] = $default['id'];
-		}
-	}else{ $default = []; }
-
-	foreach(array_intersect_key($seo_cat, array_flip(array('title', 'description', 'keywords', "href"))) as $n){// mpre($n); # Добавление сущьностей теги которых есть в описании
-		if(preg_match_all("#{([\w-_]+):(\w+)}#", $n, $match)){// mpre($n, $match);
-			foreach($match[0] as $n=>$m){
-				if(empty($e) || !rb($e, "table", "field", "[{$match[1][$n]}]", "[{$match[2][$n]}]")){
-					$e[] = array("id"=>(empty($e) ? 0 : count($e)), "table"=>$match[1][$n], "field"=>$match[2][$n]);
+}elseif(!$href = $seo_cat['href']){ mpre("Не задан адрес ссылки <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>");
+}elseif("/" != substr($seo_cat['href'], 0, 1)){ mpre("Формат устанавливаемого адреса должен начинаться со слеша <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>");
+}elseif(!list($modpath, $fn) = each($get['m'])){ mpre("Ошибка получения модуля и имени файла");
+}elseif(!$self = rb("{$modpath}-{$fn}", "id", (get($get, 'id') ?: false))){ mpre("Ошибка выборки данных страницы");
+}elseif(!$INDEX = ["{$modpath}-{$fn}"=>$self]){ mpre("Ошибка добавления значений самой таблицы к общему списку значений");
+}elseif(!is_array($links = call_user_func(function($self) use($arg){// mpre($self);
+		if(!is_array($fields = array_filter(array_map(function($key, $val){
+				if(substr($key, -3) == "_id"){ return $key; mpre("Связанная таблица внутри раздела");
+				}elseif(strpos($key, "-")){ return $key; mpre("Ссылка на внешний элемент");
+				}else{// mpre("Поле не распознано `{$key}`");
 				}
+			}, array_keys($self), $self)))){ mpre("Список полей с ключами не найден");
+		}elseif(!is_array($values = array_intersect_key($self, array_flip($fields)))){ mpre("Ошибка получения массив ключ=>значение связанных элементов");
+		}elseif(!is_array($values = array_filter($values))){ mpre("Ошибка удаление пустых значений в ключах");
+		}elseif(!is_array($keys = array_map(function($field) use($arg){
+				if(substr($field, -3) != "_id"){ return $field;
+				}elseif(!$fd = "{$arg['modpath']}-". substr($field, 0, -3)){
+				}else{ return $fd; }
+			}, array_keys($values)))){ mpre("Ошибка конвертации полей из _id в полный формат");
+		}elseif(!is_array($links = array_combine($keys, $values))){ mpre("Ошибка конвертированных ключей");
+		}else{ return $links; }
+	}, $self))){ mpre("Ошибка выборки списка вторичных ключей");
+//}elseif(mpre($links)){ # Список связанных таблиц с их значениями
+}elseif(!is_array($gets = call_user_func(function(){
+		if(!is_array($fields = array_filter(array_map(function($key, $val){
+				if(strpos($key, "-")){ return $key; mpre("Ссылка на внешний элемент");
+				}else{// mpre("Поле не распознано `{$key}`");
+				}
+			}, array_keys($_GET), $_GET)))){ mpre("Список полей с ключами указанными в заголовке не найден");
+		}elseif(!is_array($values = array_intersect_key($_GET, array_flip($fields)))){ mpre("Ошибка получения массив ключ=>значение связанных элементов");
+		}else{ return $values; }
+	}))){ mpre("Ошибка добавления занчений списка тегов из адреса");
+//}elseif(mpre($gets)){ # Список таблиц указанных в адресе для установки в теги
+}elseif(!is_array($tables = $links + $gets)){ mpre("Ошибка создания массива для выборки данных из таблиц");
+//}elseif(mpre($links)){
+}elseif(!$INDEX += call_user_func(function($links, $INDEX = []){// mpre($links);
+		if(!is_array($_INDEX = ($links ? (array)array_map(function($tab, $id){
+				if(!$index = rb($tab, 'id', $id)){ mpre("Ошибка выборки элемента связанной таблицы `{$tab}` {$id}");
+				}else{ return $index; }
+			}, array_keys($links), $links) : []))){ mpre("Ошибка получения значений ссылок");
+		}elseif(!is_array($INDEX += ($_INDEX ? array_combine(array_keys($links), $_INDEX) : []))){ mpre("Ошибка установки ключей значений");
+		}else{ return $INDEX; }
+	}, $tables)){ mpre("Ошибка получения значений ссылок");
+//}elseif(mpre($INDEX)){ # Список Значений связанных таблиц с ключами - адресами
+}elseif(!$ZAM = mpzam($INDEX)){ mpre("Ошибка формирования массива замены"); //}elseif(mpre($ZAM)){ # Список заменяемых элементов в адреса
+}elseif(!$href = strtr($href, $ZAM)){ mpre("Ошибка замены тегов в адресе");
+//}elseif(!$href = strtr($href, $CHARACTERS)){ mpre("Ошибка замены адреса посимвольно");
+}elseif(!$href = htmlspecialchars_decode(mb_strtolower($href, 'UTF-8'))){ mpre("Строчные символы и мнемоники");
+}elseif(!$meta = array_intersect_key($seo_cat, array_flip(['title', 'description', 'keywords']))){ mpre("Мета информация в категории не найдена", $seo_cat);
+}elseif(!$meta = call_user_func(function($meta, $temp = "") use($ZAM){
+		do{ # Выполняем замену до тех пор, пока измененое значение не будет равно значению до изменения
+			if(!$meta = array_map(function($text) use($ZAM){// mpre($text);
+					if(!is_string($text = strtr($text, $ZAM))){ mpre("Ошибка замены тегов в мета информации `{$text}`");
+					}else{ return $text; }
+				}, $meta)){
+			}else{// mpre($meta);
 			}
-		}
-	}
-	if(!empty($e)){
-		foreach(rb($e, "table") as $t){// mpre($e, $t);
-			if(!strpos($t['table'], "-")){ mpre("Раздел переменной не обозначен", $t);
-			}elseif((!$id = get($get, $t['table']))){ mpre("Ключ не найден <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>");
-			}else{// mpre($t['table'], $id);
-				$data[$t['table']] = rb($t['table'], "id", (int)$id);
-			}
-		}// mpre($get, $e, $data);
-		while(($tabs = array_intersect_key((empty($d) ? ($d = $default) : $d), array_flip(array_map(function($v){ return "{$v}_id"; }, array_column($e, "table"))))) && (($loop = /*mpre*/(empty($loop) ? 1 : $loop+1)) < 10 /* Максимальное количество итераций */)){ # Если есть ключи от требующихся тегов
-			foreach($tabs as $k=>$id){
-				$data[$t = substr($k, 0, -3)] = rb($t, "id", $id);
-				$d += $data[$t = substr($k, 0, -3)];
-				$e = array_diff_key($e, rb($e, "table", "id", "[{$t}]"));
-			}
-		}
-	}
-	if($mpzam += mpzam(empty($data) ? $default : array(""=>$default)+$data)){// exit(mpre($mpzam));
-//		mpre($default, $data, $mpzam);
-		foreach(array_intersect_key($seo_cat, array_flip(array('title', 'description', 'keywords'))) as $k=>$m){
-			if($new = $tmp = $meta[$k] = $m){// mpre($new);
-				do{ $tmp = strtr(strtr($meta[$k], $settings), $mpzam);
-				}while(($tmp != $meta[$k]) && ($meta[$k] = $tmp));
-			} $meta[$k] = $tmp;
-		}// mpre($new, $tmp);
-		if(!$src = get($seo_cat, 'href')){ mpre("Адрес страницы не задан");
-//			}elseif(mpre($mpzam)){
-//		}elseif(mpre($src, $mpzam+$settings)){
-		}elseif(!$src = strtr($src, $mpzam+$settings)){ mpre("Замена переменных в адресе");
-//		}elseif(mpre($src, $data)){
-//		}elseif(!$src = strtr($src, mpzam($data))){ mpre("Ошибка замены из входящих данных");
-		}elseif(!$src = htmlspecialchars_decode(mb_strtolower($src, 'UTF-8'))){ mpre("Строчные символы и мнемоники");
-		}elseif(preg_match_all("#{(.*):?(.*?)}#", $src. implode("", $meta), $match) && (substr($src, -1) != "/")){ mpre("В адресе категории <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a> и метаинформации заменены не все теги", $src, $meta, "доступные для замены элементы", $mpzam+$settings);
-		}elseif(!$location = meta(array(urldecode($uri), $src = preg_replace('|\s+|', '', strtr($src, $CHARACTERS))), $meta += array("cat_id"=>$seo_cat['id']))){
-			mpre("Мета информация обновлена", $meta);
-		}elseif(!array_search("Администратор", $conf['user']['gid'])){
-			exit(header("Location: {$location[0]}"));
-		}else{// mpevent("Мета элемент", $seo_cat, $src, $meta);
-		}
-	}else{ mpre("Таблица языка перекодировки не найдена <a href='/seo:admin/r:mp_seo_characters_lang'>{$w}</a>"); }
-/*elseif(!$src = implode("/", array_slice(explode("/", $seo_cat['href']), 0, 2))){ mpre("Ошибка получения первых элементов");
-}elseif(!$src = mb_strtolower(strtr($src, $settings), 'UTF-8')){ mpre("Элемент не найден и адрес списка не верный");
-}elseif(!$src = trim(htmlspecialchars_decode($src))){ mpre("Ошибка замены спец символов");
-}else{
-	foreach(array_intersect_key($seo_cat, array_flip(array('title', 'description', 'keywords'))) as $k=>$m){
-		if($m){
-			$meta[$k] = strtr($m, $settings);
-		} $meta[$k] = preg_replace("#{(.*?)}#", "", $meta[$k]);
-	} if(!preg_match_all("#{(.*):?(.*?)}#", $src. implode("", $meta), $match) && (substr($src, -1) != "/")){// exit(mpre($src, $meta));
-		if($meta = meta(array(urldecode($uri), $src = strtr($src, $CHARACTERS)), $meta + array("cat_id"=>$seo_cat['id']))){
-			mpevent("Мета список", $src);
-			exit(header("Location: {$meta[0]}"));
-		}else{ mpre("Мета информация не установлена"); }
-	}else{ mpre("В адресе и метаинформации заменены не все теги <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>", $src, $meta); }
-}*/
+		}while(($meta != $temp) && ($temp = $meta));
+		return $meta;
+	}, $meta)){ mpre("Ошибка замены тегов в мета информации", $meta);
+}elseif("/" != substr($href, 0, 1)){ mpre("Первым символом в адресе должен быть правый слеш `{$href}`");
+}elseif(preg_match_all("#{(.*):?(.*?)}#", $href. implode("", $meta), $match)){ mpre("В адресе категории <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a> и метаинформации заменены не все теги", $href, $meta, "доступные для замены элементы", $ZAM);
+}elseif(!$location = meta(array(urldecode($_SERVER['REQUEST_URI']), $href = preg_replace('|\s+|', '', strtr($href, $CHARACTERS))), $meta += array("cat_id"=>$seo_cat['id']))){ mpre("Ошибка установки мета информации");
+}else{// mpre($seo_cat, $href, $meta, $INDEX);
+	exit(header("Location: {$location[0]}"));
 }

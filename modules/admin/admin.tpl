@@ -420,8 +420,9 @@
 											<? if(!$f = substr($k, 2)): mpre("Ошибка поиска названия таблицы в адресе") ?>
 											<? elseif(!$m = first(explode('_', first(explode("-", $f))))): mpre("Ошибка определения модуля таблицы для подсчета") ?>
 											<? elseif(!$field = (strpos($f, '-') ? "{$arg['modpath']}-". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) : substr($_GET['r'], strlen($conf['db']['prefix'])))): mpre("Ошибка определения поля с вторичным ключем") ?>
-											<? else:// mpre() ?>
-												<a href="/<?=$m?>:admin/r:<?=$conf['db']['prefix']?><?=$f?>?&where[<?=$field?>]=<?=$lines['id']?>">
+											<? elseif(!$href = "/{$m}:admin/r:". (strpos($f, '-') ? "" : $conf['db']['prefix']). "{$f}?&where[{$field}]={$lines['id']}"): mpre("Ошибка генерации ссылки на связанную таблицу") ?>
+											<? else:// mpre($href) ?>
+												<a href="<?=$href?>">
 													<?=(($cnt = get($v, $lines['id'], 'cnt')) ? "{$cnt}&nbspшт" : "Нет")?>
 												</a>
 											<? endif; ?>

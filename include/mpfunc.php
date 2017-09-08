@@ -1,12 +1,14 @@
 <?
 
-if(!function_exists('__autoload')){ # автозагрузка классов из одноименной директории
+# автозагрузка классов из одноименной директории
+if(!function_exists('__autoload')){
 	function __autoload($class_name){#Автоподгрузка классов
 		if(!$file_name = mpopendir($f = "/include/class/$class_name.php")){ mpre("Файл класса не найден {$f}");
 		}else{ include_once $file_name; }
 	}
 }
 
+# Генерация base64 последовательности изображения из картинги
 function base64($img, $w, $h, $c = 0){
 	if(!$img){ mpre("Изображение не задано");
 	}elseif(!$file_name = mpopendir("include/{$img}")){ mpre("ОШибка получения пути к файлу");
@@ -15,6 +17,7 @@ function base64($img, $w, $h, $c = 0){
 	}else{ return "data:image/{$ext};base64,". base64_encode($data); }
 }
 
+# Подключение хранилища по параметрам указанным в конфигурационном файле
 function conn($init = null){
 	global $conf;
 	try{// die(!pre($conf['db']));
@@ -36,15 +39,17 @@ function conn($init = null){
 	} return $conf['db']['conn'];
 }
 
-function MpGenPassword($max=10){
+# Генерирование паролей из 
+function MpGenPassword($max=24){
 	$chars="qazxswedcvfrtgbnhyujmkiolp1234567890QAZXSWEDCVFRTGBNHYUJMKIOLP";
-	$size=StrLen($chars)-1; 
+	$size=StrLen($chars)-1;
 	$password=''; 
     while($max--)
 		$password.=$chars[rand(0,$size)];
 	return $password;
 }
 
+# Получение уникальной директории
 function MpGenUniquePath($dir="/tmp"){
 	$path = $dir ."/" . MpGenPassword();	
 	if(file_exists($path))
@@ -52,6 +57,9 @@ function MpGenUniquePath($dir="/tmp"){
 	return $path;
 }
 
+# Кеширование данных. Функция подключается в index.php два раза.
+# Первый раз с пустым параметром cache() второй с содержимым страницы в конце. Содержимое страницы кешируется
+# Есть еще один режим cache(0) который вызывает если возник таймаут при подключении базы данных
 function cache($content = false){
 	global $conf;
 	if(array_search("pdo_sqlite", get_loaded_extensions())){ # PDO подерживает sqlite используем его для сохранения кеша
@@ -78,9 +86,11 @@ function cache($content = false){
 					} header('Content-Encoding: gzip');
 					exit($row['content']);
 				}
-			}elseif(array_key_exists("null", $_GET)){ pre("null");
+			}elseif(array_key_exists("null", $_GET)){// pre("null");
 			}elseif($_COOKIE['sess']){// pre("Зарегистрированный пользователь");
-			}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])*/){ // mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
+			}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])*/){
+ // mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
+//			}elseif(pre($sys_getloadavg)){
 			}elseif($sys_getloadavg[0] >= 50){ # Очередь процессов на выполнение больше критического предела - отдаем ошибку
 				error_log(implode("/", $sys_getloadavg). " --- 503 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 				header('HTTP/1.1 503 Service Temporarily Unavailable');
@@ -108,7 +118,8 @@ function cache($content = false){
 //			}elseif(header("Cache-control: max-age=864000") || header("Expires: ".gmdate("r", time() + 86400*10))){ mpre("Установка времени кеширования в браузере");
 //			}elseif(exit(print_r(rand(0, $sys_getloadavg[0])))){
 			}elseif(!call_user_func(function() use($conf, $REQUEST_URI, $sys_getloadavg, $cache_log){ # Отображение ранее сохраненной в мемкаше страницы
-					if(!$Memcached = new Memcached()){ exit(!!pre("Ошибка создания обьекта мемкаш"));
+					if(!class_exists(Memcached)){ mpre("Класс не найден");
+					}elseif(!$Memcached = new Memcached()){ exit(!!pre("Ошибка создания обьекта мемкаш"));
 					}elseif(!$Memcached->addServer('localhost', 11211)){ exit(!!pre("Ошибка подключения к сервису мемкаш"));
 					}elseif(!$key = "{$conf['settings']['http_host']}{$REQUEST_URI}"){ mpre("Ошибка составления ключа кеша");
 					}elseif(!$cache = $Memcached->get($key)){ // pre("Сохраненная страница в мемкаше не найден");
@@ -124,7 +135,9 @@ function cache($content = false){
 			}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ mpre("Ошибка создания запроса");
 			}elseif(!$row = mpql($RES, 0)){ mpre("Ошибка извлечения строк");
 			}else{ foreach(explode("\n", $row['headers']) as $header){ header($header); } }
-			if($sys_getloadavg[0] >= 20){
+			
+			if(empty($sys_getloadavg)){// mpre("Нагрузка процессора не известна");
+			}elseif($sys_getloadavg[0] >= 20){
 				error_log(implode("/", $sys_getloadavg). " >-< 503 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 				header('HTTP/1.1 503 Service Temporarily Unavailable');
 				header('Status: 503 Service Temporarily Unavailable');
@@ -341,8 +354,7 @@ function file_download ($file,$filename,$mimetype='application/octet-stream',$en
      header ('Content-Disposition: attachment; filename="'.$filename.'";');
  // Открываем искомый файл
      $f=fopen ($file, 'r');
-     while (!feof ($f)) {
- // Читаем килобайтный блок, отдаем его в вывод и сбрасываем в буфер
+     while (!feof ($f)) { // Читаем килобайтный блок, отдаем его в вывод и сбрасываем в буфер
        echo fread ($f, 5120);
        flush ();
      }
@@ -1000,11 +1012,12 @@ function erb($src, $key = 'id'){
 					}else{ return $tab; }
 				}, $src)){ mpre("Ошибка получения имени таблицы запроса");
 			}elseif((!$LIMIT = ($limit ? " LIMIT ". ((get($_GET, 'p') ?: get($_GET, 'стр'))*$limit). ",". abs($limit) : "")) &0){ mpre("Условия лимита");
-			}elseif(($order = get($conf, 'settings', substr($tab, strlen($conf['db']['prefix'])). "=>order") ?: "") &0){ mpre("Сортировка");
+			}elseif(!$modp = substr($tab, strlen($conf['db']['prefix']))){ mpre("Ошибка вычисления строки модуля");
+			}elseif(!is_string($order = get($conf, 'settings', "{$modp}=>order") ?: "")){ mpre("Расчет поля сортировки");
 			}elseif(!$sql = "SELECT * FROM `{$tab}`". ($where ? " WHERE {$where}" : ""). ($order ? " ORDER BY {$order}" : ""). $LIMIT){ mpre("Ошибка составления запроса к базе");
 			}elseif(is_numeric($limit) && ($limit <= 0) && !mpre($sql)){ mpre("Отображение запроса");
 			}elseif(!is_array($SRC = qn($sql))){ mpre("Ошибка выполнения запроса", $sql);
-			}elseif($limit && ($tpl['pager'] = mpager($cnt = ql($sql = "SELECT COUNT(*) AS cnt FROM `{$tab}`". ($where ? " WHERE {$where}" : ""). ($order ? " ORDER BY {$order}" : ""), 0, "cnt")/$limit)) &0){ mpre("Ошибка подсчета пагинатора");
+			}elseif($limit && ($tpl['pager'] = mpager($cnt = ql($sql = "SELECT COUNT(*) AS cnt FROM `{$tab}`". ($where ? " WHERE {$where}" : ""). ($order ? " ORDER BY {$order}" : ""), 0, "cnt")/$limit)) &&0){ mpre("Ошибка подсчета пагинатора");
 			}elseif(is_numeric($limit) && ($limit<0) && mpre($sql)){ mpre("Отображение запроса к базе данных");
 			}else{ return $SRC; }
 		}, $src)))){ mpre("Нулевой результат выборки данных `{$src}`", $sql);
@@ -1094,7 +1107,7 @@ function mpdbf($tn, $post = null, $and = false){
 			if($update && ($upd = mpdbf($tn, $update))){
 				qw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE `id`=". (int)$s['id']);
 			} return $s['id'];
-		}else{ mpre("Множественные изменения запрещены", $find); # Множественное обновление. Если в качестве условия используется несколько элементов
+		}else{ mpre("Множественные изменения запрещены `{$tn}`", $find); # Множественное обновление. Если в качестве условия используется несколько элементов
 /*			if($update && ($upd = mpdbf($tn, $update))){
 				qw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE `id` IN (". in($sel). ")");
 			} return $sel;*/
