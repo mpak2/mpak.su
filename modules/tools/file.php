@@ -60,19 +60,20 @@ if(!(strpos($doc = get($_GET, 'path'), 'http') === 0) && !($doc = $_SERVER['argv
 					if((!$link = $realurl($doc, $url))){// mpre("Ошибка расчета внешней ссылки");
 					}elseif(!$base = basename(get(explode("?", $url), 0))){ mpre("Ошибка получения основного имени файла");
 					}elseif(!$data = file_get_contents($link)){ mpre("Ошибка получения содержимого файла `{$link}`");
-					}elseif((!$IMG = (preg_match_all("!url\(\"?'?([^ \"'\)]+)\"?'?\)!is", $data, $img) ? array_filter(call_user_func(function($img, $url, $IMG = []) use($realurl, $bn, $doc, $data){
+					}elseif((!is_array($IMG = (preg_match_all("!url\(\"?'?([^ \"'\)]+)\"?'?\)!is", $data, $img) ? array_filter(call_user_func(function($img, $url, $IMG = []) use($realurl, $bn, $doc, $data){
 							foreach($img as $im){
 								if(!$link = $realurl($url, $im)){// mpre("Ошибка расчета адреса изображения `{$im}` файла стилей `{$url}`");
 								}elseif(!$base = basename(get(explode("?", $im), 0))){ mpre("Ошибка расчета имени файла изображения `{$im}`");
-								}elseif(!$loc = "img/{$base}"){ mpre("Ошибка установки локального файла");
-								}elseif(!copy($link, $f = "{$bn}/{$loc}")){ mpre("Ошибка копирования файлов `{$link}`, `{$f}`");
+								}elseif(!$loc = "../img/{$base}"){ mpre("Ошибка установки локального файла");
+								}elseif(!copy($link, $f = "{$bn}/css/{$loc}")){ mpre("Ошибка копирования файлов `{$link}`, `{$f}`");
 								}else{// die(!mpre($im, $base));
 									$IMG[$im] = $loc;
 								}
 							} return $IMG;
-						}, get($img, 1), $link)) : []))){ mpre("Изображений в файле стилей не найдено `{$link}`");
+						}, get($img, 1), $link)) : [])))){ mpre("Изображений в файле стилей не найдено `{$link}`");
 					}elseif(mpre("Дизайн", $IMG) && (!$data = strtr($data, $IMG))){ mpre("Ошибка замены изображений стилей реальными путями", $IMG);
-					}elseif(!file_put_contents($f = "{$bn}/css/{$base}", $data)){ mpre("Ошибка загрузки данных в файл `{$f}`");
+					}elseif(!$link = "css/{$base}"){ mpre("Ошибка установки короткого имени до файла");
+					}elseif(!file_put_contents("{$bn}/{$link}", $data)){ die(!mpre("Ошибка загрузки файла стиля `{$f}`"));
 					}else{ $CSS[$url] = $link; }
 				} return $CSS;
 			}, $css)){ mpre("Ошибка загрузки файлов стилей");
@@ -126,12 +127,16 @@ if(!(strpos($doc = get($_GET, 'path'), 'http') === 0) && !($doc = $_SERVER['argv
 }elseif(mpre("Скрипты", $SRC) && (!$html = strtr($html, $SRC))){ mpre("Ошибка замены стилей в документе");
 
 }elseif(!file_put_contents("{$bn}/index.html", $html)){ mpre("Ошибка записи данных в index.html");
-}elseif(!file_put_contents("$bn/block.html", "<h3 title='<!-- [block:modpath] -->:<!-- [block:fn] -->:<!-- [block:id] -->'><!-- [block:title] --></h3>\n<div><!-- [block:content] --></div>\n")){ mpre("Ошибка загрузки блока");
-}else{ # Упаковка шаблона в архив
+}elseif(mpre("Тег для установки локальных путей", '<base href="/themes/theme:<!-- [settings:theme] -->/null/">')){ mpre("Код для установки в шаблон");
+}else{
+
+//	file_put_contents("$bn/block.html", "<h3 title='<!-- [block:modpath] -->:<!-- [block:fn] -->:<!-- [block:id] -->'><!-- [block:title] --></h3>\n<div><!-- [block:content] --></div>\n");
+//	file_put_contents("$bn/index.html", $html);
+
 	if(empty($_SERVER['argv']['1'])){
 		$zip = new ZipArchive();
 		if ($zip->open($filename = "$bn.zip", ZIPARCHIVE::CREATE)!==TRUE) {
-			exit("Невозможно открыть `$bn.zip`\n");
+			exit("Невозможно открыть <$bn.zip>\n");
 		}else{
 			$tree = function($dir) use(&$tree, &$zip){
 				$d = opendir($dir);

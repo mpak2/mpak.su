@@ -198,7 +198,18 @@ if(array_key_exists("null", $_GET)){// exit(mpre("Таблица для запи
 				}elseif(count($TN) > 3){ mpre("Некорректный формат таблицы внешнего счетчика");
 				}elseif(!$table = ((count($TN) > 1) ? "{$conf['db']['prefix']}{$TN[0]}_{$TN[1]}" : "{$conf['db']['prefix']}{$ecounter}")){ mpre("Ошибка состалвения имени таблицы внешнего счетчика");
 				}elseif(!$FIELDS = fields($table)){ mpre("Ошибка получения полей таблицы внешнего счетчика `{$table}`");
-				}elseif(!$fl = (strpos($ecounter, "-") ? "{$arg['modpath']}-". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}-")) : substr($_GET['r'], strlen("{$conf['db']['prefix']}")) /*"{$arg['modpath']}_". implode("_", array_slice($TN, 1))*/)){ mpre("Ошибка формировани поля таблицы");
+				//}elseif(!$fl = (strpos($ecounter, "-") ? "{$arg['modpath']}-". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}-")) : substr($_GET['r'], strlen("{$conf['db']['prefix']}")) /*"{$arg['modpath']}_". implode("_", array_slice($TN, 1))*/)){ mpre("Ошибка формировани поля таблицы");
+				}elseif(!$fl = call_user_func(function($FIELDS) {
+						if(!$current_table = $_GET["r"]){ mpre("Ошибка разбиения теккущей таблицы");
+						}elseif(!$sp = explode('_', $current_table, 3)){ mpre ("Ошибка получения слов");
+						}elseif(!$fl1 = ($sp[1] . "-" . $sp[2])){ mpre("Ошибка формирования стандартного поля связи");
+						}elseif(array_key_exists($fl1, $FIELDS)){ return $fl1; mpre("Поле найдено");
+						}elseif(!$fl2 = ($sp[1] . "_" . $sp[2])){ mpre("Ошибка формирования стандартного поля связи");
+						}elseif(!array_key_exists($fl2, $FIELDS)){ mpre("Поле для связи в таблице `{$fl1}`, `{$fl2}` не найдено");
+						}else{// mpre($sp, $current_table); mpre($_GET, $FIELDS);
+							return $fl2;
+						}
+					}, $FIELDS )){ mpre("");
 				}elseif(!$sql = "SELECT `id`, `{$fl}`, COUNT(id) AS cnt FROM `{$table}` WHERE `{$fl}` IN (". in($tpl['lines']). ") GROUP BY `{$fl}`"){ mpre("Ошибка составления запроса расчета счетчика");
 				}elseif(!$tpl['ecounter']["__". $ecounter] = qn($sql, $fl)){// mpre("Ошибка выполнения запроса");
 				}else{// mpre("Запрос счетчика", $sql, $tpl['ecounter']["__". $ecounter]);
