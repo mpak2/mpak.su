@@ -7,7 +7,7 @@
 	<? else: ?>
 		<div class="table" style="width:100%;">
 			<div>
-				<span style="width:40%;">
+				<span style="min-width:40%;">
 					<style>
 						.sql.analiz .table {width:30%;}
 						.sql.analiz .table>div>span {padding:2px;}

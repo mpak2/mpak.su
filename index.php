@@ -201,10 +201,6 @@ if(array_key_exists('theme', $_GET)){
 	$conf['user']['sess']['theme'] = $conf['settings']['theme'] = $conf['user']['theme'];
 }
 
-if(get($conf, "settings", "themes_index")){ # Включение режима мультисайт
-	inc("modules/admin/admin_multisite.php", array("content"=>($conf["content"] = "")));
-}
-
 if(!(array_key_exists("m", $_GET) ? (list($m) = array_keys($_GET['m'])) : "pages")){ mpre("Модуль не установлен");
 }elseif((!$conf['settings']['modpath'] = $modpath = ((!empty($m) && array_key_exists($m, $conf['modules'])) ? $conf['modules'][ $m ]['folder'] : "")) &0){ mpre("Модуль не определен");
 }elseif((array_key_exists("m", $_GET) ? (list($f) = array_values($_GET['m'])) : ($f = "index")) &0){ mpre("Страница не установлена");
@@ -218,6 +214,10 @@ if(!(array_key_exists("m", $_GET) ? (list($m) = array_keys($_GET['m'])) : "pages
 }elseif($theme = get($conf, 'settings', $w = "theme/{$modpath}:*")){// mpre("Тема {$w} {$theme}");
 	$conf['settings']['theme'] = $theme;
 } inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($conf["content"] = "")));
+
+if(get($conf, "settings", "themes_index")){ # Включение режима мультисайт
+	inc("modules/admin/admin_multisite.php", array("content"=>($conf["content"] = "")));
+}
 
 foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_gaccess ORDER BY sort", 'Права доступа группы к модулю', function($error) use($conf){
 	if(strpos($error, "Unknown column 'sort'")){

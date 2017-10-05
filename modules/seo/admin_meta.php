@@ -13,7 +13,7 @@ if($canonical){ # Нет мета или обновление категории
 }elseif(!$href = $seo_cat['href']){ mpre("Не задан адрес ссылки <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>");
 }elseif("/" != substr($seo_cat['href'], 0, 1)){ mpre("Формат устанавливаемого адреса должен начинаться со слеша <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>");
 }elseif(!list($modpath, $fn) = each($get['m'])){ mpre("Ошибка получения модуля и имени файла");
-}elseif(!$self = rb("{$modpath}-{$fn}", "id", (get($get, 'id') ?: false))){ mpre("Ошибка выборки данных страницы");
+}elseif(!is_array($self = (get($get, 'id') ? rb("{$modpath}-{$fn}", "id", $get['id']) : []))){ mpre("Ошибка выборки данных страницы");
 }elseif(!$INDEX = ["{$modpath}-{$fn}"=>$self]){ mpre("Ошибка добавления значений самой таблицы к общему списку значений");
 }elseif(!is_array($links = call_user_func(function($self) use($arg){// mpre($self);
 		if(!is_array($fields = array_filter(array_map(function($key, $val){
@@ -54,7 +54,7 @@ if($canonical){ # Нет мета или обновление категории
 		}else{ return $INDEX; }
 	}, $tables)){ mpre("Ошибка получения значений ссылок");
 //}elseif(mpre($INDEX)){ # Список Значений связанных таблиц с ключами - адресами
-}elseif(!$ZAM = mpzam($INDEX)){ mpre("Ошибка формирования массива замены"); //}elseif(mpre($ZAM)){ # Список заменяемых элементов в адреса
+}elseif(!$ZAM = mpzam($INDEX)){// mpre("Ошибка формирования массива замены"); //}elseif(mpre($ZAM)){ # Список заменяемых элементов в адреса
 }elseif(!$href = strtr($href, $ZAM)){ mpre("Ошибка замены тегов в адресе");
 //}elseif(!$href = strtr($href, $CHARACTERS)){ mpre("Ошибка замены адреса посимвольно");
 }elseif(!$href = htmlspecialchars_decode(mb_strtolower($href, 'UTF-8'))){ mpre("Строчные символы и мнемоники");
@@ -72,7 +72,6 @@ if($canonical){ # Нет мета или обновление категории
 	}, $meta)){ mpre("Ошибка замены тегов в мета информации", $meta);
 }elseif("/" != substr($href, 0, 1)){ mpre("Первым символом в адресе должен быть правый слеш `{$href}`");
 }elseif(preg_match_all("#{(.*):?(.*?)}#", $href. implode("", $meta), $match)){ mpre("В адресе категории <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a> и метаинформации заменены не все теги", $href, $meta, "доступные для замены элементы", $ZAM);
-}elseif(!$location = meta(array(urldecode($_SERVER['REQUEST_URI']), $href = preg_replace('|\s+|', '', strtr($href, $CHARACTERS))), $meta += array("cat_id"=>$seo_cat['id']))){ mpre("Ошибка установки мета информации");
-}else{// mpre($seo_cat, $href, $meta, $INDEX);
-	exit(header("Location: {$location[0]}"));
+}elseif(!$location = meta(array(urldecode($_SERVER['REQUEST_URI']), $href = preg_replace('|\s+|', '', strtr($href, $CHARACTERS))), $meta += array("cat_id"=>$seo_cat['id']))){ mpre("Ошибка установки мета информации", $seo_cat);
+}else{ mpre("Установлен новый адрес <a href='{$location[1]}'>{$location[1]}</a>", $meta);
 }

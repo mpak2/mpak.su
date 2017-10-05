@@ -124,6 +124,8 @@ function cache($content = false){
 					}elseif(!$key = "{$conf['settings']['http_host']}{$REQUEST_URI}"){ mpre("Ошибка составления ключа кеша");
 					}elseif(!$cache = $Memcached->get($key)){ // pre("Сохраненная страница в мемкаше не найден");
 					}else{ header('Content-Encoding: gzip');
+						header('Last-Modified: '. gmdate("r"));
+						header('Expires: '.gmdate('r', time() + 86400*10));
 						error_log(implode("/", $sys_getloadavg). " <~~ ". http_response_code(). " http://{$key}\n", 3, $cache_log);
 						exit($cache);
 					}
@@ -306,7 +308,21 @@ function cache($content = false){
 //}else{ /*mpre(get($conf, "settings", "canonical"));*/ }
 function meta($where, $meta = null){
 	global $conf;
-	if(is_string($where)){ $where = array($where); };
+	if(!$where = (is_array($where) ? $where : [$where])){ mpre("Ошибка установки адреса страницы. Если строкой один адрес то он внутренний");
+	}elseif(!$index = get($where, 1)){ mpre("Ошибка внешний адрес не задан");
+	}elseif("/" != substr($index, 0, 1)){ mpre("Ошибка. Формат внешнего адреса `{$index}` задан не верно ожидается первый слеш");
+	}elseif(!$seo_index = fk('seo-index', $w = ['name'=>$index], $w)){ mpre("Ошибка установки внешнего адреса `{$name}`");
+	}elseif(!$location = get($where, 0)){ mpre("Ошибка не задан внутренний адрес");
+	}elseif("/" != substr($location, 0, 1)){ mpre("Ошибка. Формат внутреннего адреса `{$location}` задан не верно ожидается первый слеш");
+	}elseif(!$seo_location = fk("seo-location", $w = ['name'=>$location], $w)){ mpre("Ошибка установки внутреннего адреса `{$location}`");
+	}elseif(!$themes_index = get($conf, 'themes', 'index')){ mpre("Многосайтовый режим не установлен");
+
+	}elseif(!$seo_index_themes = fk('seo-index_themes', $w= ['index_id'=>$seo_index['id'], 'themes_index'=>$themes_index['id']], $w+= ['location_id'=>$seo_location['id']]+$meta, $w)){ mpre("Ошибка добавления адресации");
+	}elseif(!$seo_location_themes = fk('seo-location_themes', $w= ['index_id'=>$seo_index['id'], 'location_id'=>$seo_location['id']], $w+= ['themes_index'=>$themes_index['id']], $w)){ mpre("Ошибка установки переадресации");
+	}else{// mpre($seo_index, $seo_location, $where, $meta);
+		return $where+$seo_index_themes;
+	}
+/*	if(is_string($where)){ $where = array($where); };
 	if("/" != substr($location = get($where, 0), 0, 1)){
 		mpre("Ошибочный формат внутреннего адреса location &laquo;". get($where, 'location'). "&raquo;");
 	}else if(get($where, 1) && ("/" != substr($index = get($where, 1), 0, 1))){
@@ -315,8 +331,8 @@ function meta($where, $meta = null){
 		if("/" == substr($index = get($where, 1), 0, 1)){
 			$seo_index = fk("seo-index", $w = array("name"=>$index), $w += array("index_type_id"=>(get($meta, 'index_type_id') ?: 1), "cat_id"=>get($meta, 'cat_id')), $w);
 		}else{ $seo_index = array('id'=>0); }
+
 		if($seo_location = fk("seo-location", $w = array("name"=>$location), $w += array("location_status_id"=>(get($meta, "location_status_id") ?: 301), "index_id"=>$seo_index['id'], "cat_id"=>get($meta, 'cat_id')), $w)){
-//			exit(mpre($seo_index, $seo_location));
 			if(empty($seo_index)){
 				return $where + $seo_location;
 			}else if(array_key_exists('location_id', $seo_index)){ # Односайтовый режим работы
@@ -338,7 +354,7 @@ function meta($where, $meta = null){
 				}else{ mpre("Ошибка добавления внутреннего адреса"); }
 			}else{ return null; }
 		}else{ mpre("Ошибка добавления метаинвормауции", $w + $meta + $update); }
-	}
+	}*/
 }
 
 //функция скачки файла (чтение файла идет по 5метров)
@@ -427,9 +443,17 @@ function tables($table = null){
 		ksort($tpl['tables']);// pre(array_keys($tpl['tables']));
 		return $tpl['tables'];
 	}
-} function fields($table, $type = false){
+} function fields($tab, $type = false){
 	global $conf;
-	if($conf['db']['type'] == "sqlite"){
+	if(!$table = call_user_func(function($tab) use($conf){ # Формирование полного имени таблицы
+			if(!strpos($tab, '-')){ return $tab; mpre("Адрес таблицы указан полностью");
+			}elseif(!$ex = explode('-', $tab)){ mpre("Ошибка разбивки таблицы на составные части");
+			}elseif(!$tab = "{$conf['db']['prefix']}{$ex[0]}_{$ex[1]}"){ mpre("Ошибка составления полного имени таблицы");
+			}else{// mpre($tab);
+				return $tab;
+			}
+		}, $tab)){ mpre("Ошибка формирования полного имени таблицы");
+	}elseif($conf['db']['type'] == "sqlite"){
 		$tpl['fields'] = qn("pragma table_info ('". $table. "')", "name");
 		if($type){
 			$tpl['fields'] = array_column($tpl['fields'], "type", "name");
@@ -934,11 +958,11 @@ function rb($src, $key = 'id'){
 #	erb('table',........ПАРАМЕТРЫ ВЫБОКИ..........);
 #####################################################################################
 
-function erb($src, $key = 'id'){
+function erb($src, $key = null){
 	global $arg, $conf, $tpl;
-	if((!$func_get_args = array_slice(func_get_args(), 1)) &0){ mpre("Ошибка получения списка параметров функции");
+	if((!$func_get_args = array_slice(func_get_args(), 1)) &&0){ mpre("Ошибка получения списка параметров функции");
 	}elseif(is_numeric(!$limit = (is_numeric($key) ? array_shift($func_get_args) : null))){ mpre("Определяем лимит сообщений");
-	}elseif(empty($func_get_args) && (!$func_get_args = ["id"])){ mpre("Задание дефолтного значения");
+	}elseif(empty($func_get_args) && (!$func_get_args = ['id'])){ mpre("Задание дефолтного значения");
 	}elseif(!is_numeric($line = call_user_func(function() use($func_get_args){
 			foreach($func_get_args as $key=>$val){
 				if(is_numeric($val)){ return $key; mpre("Числовое значение");
@@ -953,7 +977,7 @@ function erb($src, $key = 'id'){
 			} return count($func_get_args);
 		}))){ mpre("Ошибка определения границы значений", $func_get_args);
 	}elseif(!$FIELDS = array_slice($func_get_args, 0, $line)){ mpre("Ошибка определения массива полей");
-	}elseif((!$VALUE = array_slice($func_get_args, $line)) &0){ mpre("Ошибка определения массива значений");
+	}elseif((!$VALUE = array_slice($func_get_args, $line)) &&0){ mpre("Ошибка определения массива значений");
 	}elseif((!$VALUES = array_map(function($val){
 			if(!is_string($val)){ return $val;
 			}elseif((substr($val, 0, 1) == "[") && (substr($val, -1, 1) == "]")){// mpre("Парсинг значений со специальными ограничителями");
@@ -1174,45 +1198,34 @@ function mpdk($tn, $insert, $update = array()){
 }
 function mpevent($name, $description = null, $own = null){
 	global $conf, $argv;
-	$debug_backtrace = debug_backtrace();
-	if($name){
-		if($users_event = fk("{$conf['db']['prefix']}users_event", $w = array("name"=>$name), $w += array("hide"=>1, "up"=>time()))){
+	if(!$name){ mpre("Имя события не указано");
+	}elseif(!$debug_backtrace = debug_backtrace()){ mpre("Ошибка создания списка вызовов функций");
+	}elseif(!$users_event = fk("{$conf['db']['prefix']}users_event", $w = array("name"=>$name), $w += array("hide"=>1, "up"=>time()))){ mpre("Ошибка добавления события в базу событий");
+	}elseif(!call_user_func(function($users_event) use($conf){ # Исправление структуры сайта в старых версиях
 			mpqw("UPDATE {$conf['db']['prefix']}users_event SET count=count+1 WHERE hide=0 AND id=". (int)$users_event, "Увеличиваем счетчик на один", function($error) use($users_event, $conf){
 				if(strpos($error, "Unknown column 'hide'")){
 					qw("ALTER TABLE `{$conf['db']['prefix']}users_event` CHANGE `log` `hide` smallint(6) NOT NULL COMMENT 'Сохранение информации о событиях'");
 					qw("UPDATE `{$conf['db']['prefix']}users_event` SET hide=1 WHERE id=". (int)$users_event['id']);
 					qw("ALTER TABLE `{$conf['db']['prefix']}users_event` ADD INDEX (`hide`)");
 				}
-			}); if(!$users_event['hide']){
+			});
+			if(!$users_event['hide']){
 				mpqw("UPDATE {$conf['db']['prefix']}users_event SET up=". time(). ", count=count+1, uid=". (int)get($conf, 'user', 'uid'). " WHERE id=". (int)$users_event['id'], "Обновляем время ", function($error){
 					qw("ALTER TABLE `mp_users_event` ADD `up` int(11) NOT NULL  COMMENT 'Последнее обновление события' AFTER `time`");
 				});
-				
-				
-				$users_event_logs = fk("{$conf['db']['prefix']}users_event_logs", null, $w = array("event_id"=>$users_event['id'], "themes_index"=>get($conf, "user", "sess", "themes_index", "id"), "description"=>$description), $w);
-				if($users_event['name'] != ($ref = "Источник ошибки")){
-					if(get($_SERVER, 'HTTP_REFERER') && ($parse_url = parse_url($_SERVER['HTTP_REFERER']))){
-						if(array_key_exists("event_logs_id", $referer = mpevent($ref, (function_exists("idn_to_utf8") ? idn_to_utf8($parse_url['host']) : $parse_url['host']). urldecode($parse_url['path'])))){
-							if($referer = fk("{$conf['db']['prefix']}users_event_logs", array("id"=>$referer['id']), null, array("event_logs_id"=>$users_event_logs['id']))){
-								$users_event_logs = fk("{$conf['db']['prefix']}users_event_logs", array("id"=>$users_event_logs['id']), null, array("event_logs_id"=>$referer['id']));
-							}else{ mpre("Ошибка сохранения события Источник ошибки"); }
-						}else{ /*mpre("Нет поля для сохранения источника");*/ }
-					}else{ /*mpre("Источник перехода не указан");*/ }
-				}else{ /*mpre("Повторное событие");*/ }
-				return $users_event_logs;
-			}else{ /*mpre("Логинование события выключено");*/ return array(); }
-		}else{ mpre("Ошибка создания события"); }
-	}else{ mpre("Не задано название события"); }
+			}; return $users_event;
+		}, $users_event)){ mpre("Ошибка корректировки таблицы");
+	}elseif(!is_string($referer = (get($_SERVER, 'HTTP_REFERER') ?: ""))){ mpre("Реферер не установлен");
+	}elseif(!$users_event_logs = fk("{$conf['db']['prefix']}users_event_logs", null, $w = array("event_id"=>$users_event['id'], 'refer'=>$referer, "themes-index"=>get($conf, "themes", "index", "id"), "description"=>$description), $w)){ mpre("Добавление события");
+	}else{// mpre($users_event_logs);
+		return $users_event_logs;
+	}
 }
 function mpidn($value, $enc = 0){
-	if(!class_exists('idna_convert')){
-		require_once(mpopendir('include/idna_convert.class.inc'));
-	} $IDN = new idna_convert();
-	if($enc){
-		return $IDN->encode($value);
-	}else{
-		return $IDN->decode($value);
-	}
+	if(!class_exists('idna_convert') && require_once(mpopendir('include/idna_convert.class.inc'))){ mpre("Ошибка подключения класса");
+	}elseif(!$IDN = new idna_convert()){ mpre("Ошибка создания экземпляра класса");
+	}elseif($enc){ return $IDN->encode($value);
+	}else{ return $IDN->decode($value); }
 }
 function mpsettings($name, $value = null, $aid = 4, $description = ""){
 	global $conf, $arg;
@@ -1307,7 +1320,7 @@ function mpmail(){
 		return true;
 	}
 }
-function spisok($sql, $str_len = null, $left_pos = 0){
+/*function spisok($sql, $str_len = null, $left_pos = 0){
 	global $conf;
 	$spisok = array();
 	if($result = mpqw($sql)){
@@ -1320,7 +1333,7 @@ function spisok($sql, $str_len = null, $left_pos = 0){
 			$spisok[$id] = $name;
 		}
 	} return (array)$spisok;
-}
+}*/
 function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf;
 	if($prefix === null){
@@ -1735,8 +1748,9 @@ EOF;
 function pre(){
 	global $conf;
 	if(!$debug_backtrace = debug_backtrace()){ mpre("Ошибка получения списка функций");
-	}elseif(!$list[] = get($debug_backtrace, 0)){ print_r("Ошибка получения фукнции инициатора pre[{$num}]");
-	}else{// echo "<pre><b>"; print_r($func); echo "</b></pre><pre>"; /*print_r($pre);*/ print_r($debug_backtrace); echo "</pre>";
+	}elseif(!is_numeric($func = ('mpre' == get($debug_backtrace, 0, 'function') ? 0 : 1))){ mpre("Ошибка получения аргументов функции");
+	}elseif(!$list[] = get($debug_backtrace, $func)){ print_r("Ошибка получения фукнции инициатора pre[{$num}]");
+	}else{
 		foreach($list as $pre){
 			echo "<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend> {$pre['file']}:{$pre['line']} <b>{$pre['function']}</b> ()</legend>";
 			foreach(get($pre, 'args') as $n=>$z){
@@ -1745,18 +1759,12 @@ function pre(){
 		}
 	} return get(func_get_args(), 0);
 } function mpre(){
-	global $conf, $arg, $argv;
-	if(!$debug_backtrace = debug_backtrace()){ mpre("Ошибка получения списка функций");
-	}elseif((!$gid = get($conf, 'user', 'gid')) || (!array_search("Администратор", $gid))){// print_r("Отображение доступно только администраторам");
-	}elseif(!$list[] = get($debug_backtrace, 0)){ print_r("Ошибка получения фукнции инициатора pre[{$num}]");
-	}else{// echo "<pre><b>"; print_r($func); echo "</b></pre><pre>"; /*print_r($pre);*/ print_r($debug_backtrace); echo "</pre>";
-		foreach($list as $pre){
-			echo "<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend> {$pre['file']}:{$pre['line']} <b>{$pre['function']}</b> ()</legend>";
-			foreach(get($pre, 'args') as $n=>$z){
-				echo "<pre>\t\n\t"; print_r($z); echo "\n</pre>";
-			} if(true) echo "</fieldset>\n";
-		}
-	} return get(func_get_args(), 0);
+	global $conf, $arg;
+	if((!$gid = get($conf, 'user', 'gid')) || (!array_search("Администратор", $gid))){// print_r("Отображение доступно только администраторам");
+	}else{// mpre(debug_backtrace());
+		return call_user_func_array("pre", func_get_args());
+//		return get(func_get_args(), 0);
+	}
 }
 function mpqwt($result){
 	echo "<table style='background-color:#888;' cellspacing=0 cellpadding=3 border=1><tr>";
@@ -1789,13 +1797,13 @@ function mpquot($data){
 		$data = stripslashes($data); //; Волшебные кавычки для входных данных GET/POST/Cookie. magic_quotes_gpc = On
 	}
 	$data = str_replace("\\", "\\\\", $data); 
-	$data = str_replace("'", "\'", $data); 
-	$data = str_replace('"', '\"', $data); 
 	$data = str_replace("\x00", "\\x00", $data); 
 	$data = str_replace("\x1a", "\\x1a", $data); 
 	if($conf['db']['type'] == 'sqlite'){
 		$data = strtr($data, ["'"=>"''", '"'=>'""']);
 	}else{
+		$data = str_replace("'", "\'", $data); 
+		$data = str_replace('"', '\"', $data); 
 		$data = str_replace("\r", "\\r", $data); 
 		$data = str_replace("\n", "\\n", $data); 
 	} return $data;
@@ -1884,11 +1892,16 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 				require_once($idna);
 			}
 			$IDN = new idna_convert();
-			mkdir("$cache_name/$host_name/$prx", 0755, 1);
-			if($host_name != $IDN->decode($host_name) && !file_exists("$cache_name/". $IDN->decode($host_name))){
-				symlink("$cache_name/$host_name", "$cache_name/". $IDN->decode($host_name));
+			if(is_writeable("$cache_name/$host_name")){
+				mkdir("$cache_name/$host_name/$prx", 0755, 1);
+				if($host_name != $IDN->decode($host_name) && !file_exists("$cache_name/". $IDN->decode($host_name))){
+					symlink("$cache_name/$host_name", "$cache_name/". $IDN->decode($host_name));
+				}
 			}
-		}/* mpre("$cache_name/$host_name/$prx/$fl_name");*/ file_put_contents("$cache_name/$host_name/$prx/$fl_name", $content);
+		}
+		if(is_writeable("$cache_name/$host_name/$prx")){
+			file_put_contents("$cache_name/$host_name/$prx/$fl_name", $content);
+		}
 		if(function_exists("mpevent")){
 			mpevent("Формирование изображения", $fl_name, $conf['user']['uid']);
 		} return $content;

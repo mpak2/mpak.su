@@ -4,14 +4,16 @@ if(array_key_exists("null", $_GET)){// exit(mpre("Таблица для запи
 	if(!$_POST){ exit(mpre("", "Данных для сохарения не задано"));
 	}elseif(!get($_GET, 'r')){ mpre("Таблица сохранения не указана");
 	}elseif(!$order = (get($conf, "settings", substr($_GET['r'], strlen($conf['db']['prefix'])). "=>order") ?: "sort")){ mpre("Ошибка формирования сортировки таблицы");
-	}elseif(get($_GET, "id") && array_key_exists("id", $_POST) && !$_POST['id']){ # Удаление элемента
-		if(!get($conf, 'settings', 'admin_history_log')){// mpre("Лог файл отключен");
-		}elseif(!$admin_history_type = fk("{$conf['db']['prefix']}admin_history_type", $w = array("name"=>"Удаление"), $w)){ mpre("Тип записи не найден {$w}");
-		}elseif(!$data = rb($_GET['r'], "id", $_GET['id'])){ mpre("Данные для сохранения не определены");
-		}elseif(!$admin_history_tables = fk("{$conf['db']['prefix']}admin_history_tables", $w = array("name"=>$_GET['r']), $w += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn'], "description"=>get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])))), $w)){ mpre("Информация об изменяемой таблице не найдена");
-		}else{
-			$admin_history = fk("{$conf['db']['prefix']}admin_history", null, array("history_type_id"=>$admin_history_type['id'], "name"=>$_GET['id'], "history_tables_id"=>$admin_history_tables['id'], "data"=>json_encode($data)));
-		} exit(qw("DELETE FROM {$_GET['r']} WHERE id=". (int)$_GET['id']));
+	}elseif(get($_GET, "id") && array_key_exists("id", $_POST) && ($_POST['id'] < 0)){// mpre($_POST); # Удаление элемента
+		if(get($conf, 'settings', 'admin_history_log') && !call_user_func(function() use($conf, $arg){
+				if(!$admin_history_type = fk("admin-history_type", $w = array("name"=>"Удаление"), $w)){ mpre("Тип записи не найден {$w}");
+				}elseif(!$data = rb($_GET['r'], "id", $_GET['id'])){ mpre("Данные для сохранения не определены");
+				}elseif(!$admin_history_tables = fk("admin-history_tables", $w = array("name"=>$_GET['r']), $w += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn'], "description"=>get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])))), $w)){ mpre("Информация об изменяемой таблице не найдена");
+				}elseif(!$admin_history = fk("admin-history", null, array("history_type_id"=>$admin_history_type['id'], "name"=>$_GET['id'], "history_tables_id"=>$admin_history_tables['id'], "data"=>json_encode($data)))){ die(mpre("Ошибка сохранения истории действий в админстранице"));
+				}else{ return $data; }
+			})){ mpre("Лог файл отключен");
+		}elseif(qw($sql = "DELETE FROM {$_GET['r']} WHERE id=". (int)abs($_GET['id']))){ exit(mpre("Ошибка удаления записи `{$sql}`"));
+		}else{ exit(json_encode([])); }
 	}elseif(get($_POST, "inc") && ($inc = rb($_GET['r'], "id", $_POST['inc']))){ # Изменение сортировки вверх
 		if(!$list = qn($sql = "SELECT * FROM {$_GET['r']} WHERE ". (mpdbf($_GET['r'], get($_GET, 'where'), true) ?: 1). " ORDER BY ". (get($_GET, 'order') ?: $order). "")){ mpre("Элементы в списке не найдены");
 		}elseif(!$keys = array_keys($list)){ mpre("Ошибка формирования ключей массива");

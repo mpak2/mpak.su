@@ -51,6 +51,7 @@
 			.table > div > span {border-collapse:collapse; padding:5px; vertical-align:middle;}
 			.table > div > span:first-child {width:70px;}
 			.table > div:hover {background-color:#f4f4f4;}
+			.table > div.active {background-color:#d4d4d4;}
 			.table > div >span:hover {background-color:#eee;}
 			.lines .pager {margin:10px;}
 			.table .th > span {font-weight:bold; background:url(i/gradients.gif) repeat-x 0 -57px; border-top: 1px solid #dbdbdd; border-bottom: 1px solid #dbdbdd; line-height: 27px; white-space:nowrap;}
@@ -72,41 +73,65 @@
 		</style>
 		<script>
 			(function($, script){
-				$(script).parent().on("click", ".control a.del", function(e){
-					if(e.ctrlKey || confirm("Удалить элемент?")){
-						var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
-						$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/"+line_id+"/null", {id:0}, function(data){
-							if(isNaN(data)){ alert(data) }else{
-								$(e.currentTarget).parents("[line_id]").remove();
-							}
-						})
+				$(script).parent().on("click", ".control a.del", function(del){
+//					var all = $(del.currentTarget).parents(".th").length;
+					var checkbox = $(del.currentTarget).parents("[line_id]").find("input[type=checkbox]");
+					var checked = $(checkbox).is(":checked");
+					console.log("checkbox:", checkbox, "checked:", checked);
+					if(del.ctrlKey || checked || confirm("Удалить элемент?")){
+						if(th = $(del.currentTarget).parents('.th').length){// alert("Масс удаление");
+							var CHECKBOX = $(del.delegateTarget).find("[line_id] input[type=checkbox]:checked");
+							$(del.currentTarget).parents(".th").find("input[type=checkbox]").prop("checked", false);
+							$(CHECKBOX).each(function(n, checkbox){
+								$(checkbox).parents("[line_id]").find("a.del").trigger("click", true);
+							})
+							console.log("CHECKBOX:", CHECKBOX);
+						}else{
+							var line_id = $(del.currentTarget).parents("[line_id]").attr("line_id");
+							$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/"+line_id+"/null", {id:-line_id}, function(json){
+								if(!$(del.currentTarget).is("[line_id]")){ alert('Запись с идентификатором не найдена');
+								}else{// console.log("line_id", $(del.currentTarget));
+									$(del.currentTarget).remove();
+								}
+							}, 'json').fail(function(error){
+								alert(error.responseText);
+							})
+						}
 					}
+				}).on("change", ".th input[type=checkbox]", function(e){
+					var checked = $(e.currentTarget).is(":checked");
+					console.log("lines:", $(e.currentTarget).parents(".lines").find("[line_id]"));
+					$(e.currentTarget).next().show();
+
+					$(e.currentTarget).parents(".lines").find("[line_id]").each(function(n, line){
+						$(line).find("input[type=checkbox]").prop('checked', checked).show();
+					})
 				}).on("invert", function(e, request, one, two){
-							if($(two).length == 0){
-								document.location.reload(true);
-							}else{
-								var one_id = $(one).attr("line_id");
-								var two_id = $(two).attr("line_id");
-								$(one).find(".sort span").text(request[one_id].sort);
-								$(two).find(".sort span").text(request[two_id].sort);
+					if($(two).length == 0){
+						document.location.reload(true);
+					}else{
+						var one_id = $(one).attr("line_id");
+						var two_id = $(two).attr("line_id");
+						$(one).find(".sort span").text(request[one_id].sort);
+						$(two).find(".sort span").text(request[two_id].sort);
 
-								$(one).after(after = $("<div>after</div>"));
+						$(one).after(after = $("<div>after</div>"));
 
-								$(one).insertBefore(two).promise().done(function(){
-									$(one).css("background-color", "#f4f4f4").promise().done(function(){
-										setTimeout(function(){
-											$(one).css("background-color", "inherit");
-										}, 500);
-									});
-									$(two).insertBefore(after).promise().done(function(){
-										$(two).css("background-color", "#f4f4f4").promise().done(function(){
-											setTimeout(function(){
-												$(two).css("background-color", "inherit");
-											}, 500); $(after).remove();
-										});
-									});
+						$(one).insertBefore(two).promise().done(function(){
+							$(one).css("background-color", "#f4f4f4").promise().done(function(){
+								setTimeout(function(){
+									$(one).css("background-color", "inherit");
+								}, 500);
+							});
+							$(two).insertBefore(after).promise().done(function(){
+								$(two).css("background-color", "#f4f4f4").promise().done(function(){
+									setTimeout(function(){
+										$(two).css("background-color", "inherit");
+									}, 500); $(after).remove();
 								});
-							}
+							});
+						});
+					}
 				}).on("click", "a.inc", function(e){
 					var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
 					$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>", (e.ctrlKey ? {first:line_id} : {inc:line_id}), function(request){
@@ -165,6 +190,8 @@
 							$(e.currentTarget).css({height:"200px", position:"absolute", top:"7px", width:width+"px"});
 						}
 					}// console.log("is:", $(e.currentTarget).is("[multiple]"), $(e));
+				}).on('click', '[line_id]', function(e){
+					$(e.currentTarget).toggleClass('active');
 				}).one("init", function(e){
 					setTimeout(function(){
 						var th = $(e.delegateTarget).find(".table .th");
@@ -188,7 +215,6 @@
 								}
 							}else if($(".th.top").length && (top < scroll)){ console.log("removeClass:top");
 								$(".th.top").remove();
-//								$(th).removeClass("top");
 							}
 						})
 					}, 1000)
@@ -315,8 +341,7 @@
 								<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#^img(\d*|_.+)?#iu",$name)): ?>
 									<input type="file" name="<?=$name?>[]" multiple="true">
 									<span class="info_comm">
-										<?$linesda = get($tpl,'lines');?>
-										<a href="/<?=$arg['modpath']?>:img/<?=get($linesda,key($linesda))['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$name?>/w:109/h:109/null/img.png" target="_blank"><?=get($tpl,'edit',$name);?></a>
+										<a href="/<?=$arg['modpath']?>:img/<?=get($tpl, 'lines', get($tpl, 'edit', "id"))['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$name?>/w:109/h:109/null/img.png" target="_blank"><?=get($tpl,'edit',$name);?></a>
 									</span>
 								<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#^file(\d*|_.+)?#iu",$name)): ?>
 									<input type="file" name="<?=$name?>[]" multiple="true">
@@ -331,7 +356,7 @@
 									<select name="<?=$name?>">
 										<option value="NULL"></option>
 										<? foreach(rb("{$conf['db']['prefix']}users") as $uid): ?>
-											<option value="<?=$uid['id']?>" <?=((get($tpl, 'edit', $name) == $uid['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $uid['id'])) ? "selected" : "")?>><?=$uid['name']?></option>
+											<option value="<?=$uid['id']?>" <?=((get($tpl, 'edit', $name) == $uid['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $uid['id'])) || (get($_GET, 'where', 'uid') && $_GET['where']['uid'] == $uid['id']) ? "selected" : "")?>><?=$uid['name']?></option>
 										<? endforeach; ?>
 									</select>
 								<? elseif($name == "gid"): ?>
@@ -388,7 +413,7 @@
 					</div>
 				<? else: # Горизонтальный вариант таблицы ?>
 					<div class="th">
-						<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($tpl['fields'], array_flip($tpl['title'])) : $tpl['fields']), (get($tpl, 'counter') ?: array()), (get($tpl, 'ecounter') ?: array())) as $name=>$field): ?>
+						<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($tpl['fields'], array_flip($tpl['title'])) : $tpl['fields']), (get($tpl, 'counter') ?: array()), (get($tpl, 'ecounter') ?: array())) as $name=>$field):// mpre($name, $field) ?>
 							<span>
 								<? if(get($field, 'Comment')): ?>
 									<span class="info" title="<?=$field['Comment']?>">?</span>
@@ -401,6 +426,12 @@
 									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>&order=<?=(get($_GET, "order") == $name ? "{$name} DESC" : $name )?>" title="<?=$name?>">
 										<?=(get($tpl, 'etitle', $name) ?: $name)?>
 									</a>
+									<? if("id" == $name): ?>
+										<span class="control">
+											<input type="checkbox">
+											<a class="del" href="javascript:" style="display:none;"></a>
+										</span>
+									<? endif; ?>
 								<? elseif(substr($name, -3) == "_id"): ?>
 									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>&order=<?=(get($_GET, "order") == $name ? "{$name} DESC" : $name )?>" title="<?=$name?>"><?=(get($conf, 'settings', "{$arg['modpath']}_". substr($name, 0, -3)) ?: substr($name, 0, -3))?></a>
 								<? else: ?>
@@ -417,11 +448,20 @@
 								<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($lines, array_flip($tpl['title'])) : $lines), get($tpl, 'counter') ?: array(), get($tpl, 'ecounter') ?: array()) as $k=>$v): ?>
 									<span>
 										<? if(substr($k, 0, 2) == "__"): // $tpl['ecounter'] ?>
-											<? if(!$f = substr($k, 2)): mpre("Ошибка поиска названия таблицы в адресе") ?>
-											<? elseif(!$m = first(explode('_', first(explode("-", $f))))): mpre("Ошибка определения модуля таблицы для подсчета") ?>
-											<? elseif(!$field = (strpos($f, '-') ? "{$arg['modpath']}-". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) : substr($_GET['r'], strlen($conf['db']['prefix'])))): mpre("Ошибка определения поля с вторичным ключем") ?>
-											<? elseif(!$href = "/{$m}:admin/r:". (strpos($f, '-') ? "" : $conf['db']['prefix']). "{$f}?&where[{$field}]={$lines['id']}"): mpre("Ошибка генерации ссылки на связанную таблицу") ?>
-											<? else:// mpre($href) ?>
+											<? if(!$tab = substr($k, 2)): mpre("Ошибка поиска названия таблицы в адресе") ?>
+											<? elseif(!$m = first(explode('_', first(explode("-", $tab))))): mpre("Ошибка определения модуля таблицы для подсчета") ?>
+											<? elseif(!$field = call_user_func(function($tab, $table) use($conf){
+													if(!$FIELDS = fields($tab)){ mpre("Ошибка получения списка полей удаленной таблицы");
+													}elseif(!$curtab = substr($table, strlen($conf['db']['prefix']))){ mpre("Ошибка формирования короткого имени текущей таблицы");
+													}elseif(!$curex = explode('_', $curtab, 2)){ mpre("Ошибка получения составных частей текущей таблицы");
+													}elseif(!$fields1 = "{$curex[0]}-{$curex[1]}"){ mpre("Ошибка формирования стандартного имени поля");
+													}elseif(array_key_exists($fields1, $FIELDS)){ return $fields1; mpre("В таблица прописан стандартное название поля");
+													}elseif(!$fields2 = "{$curex[0]}_{$curex[1]}"){ mpre("Ошибка формирования дополнительного имени поля");
+													}elseif(array_key_exists($fields2, $FIELDS)){ return $fields2; mpre("В таблица используется дополнительное название поля");
+													}else{ mpre("Свзанное поле счетчика [{$fields1},{$fields2}] с текущей таблицей `{$curtab}` в удаленной таблице `{$tab}` не найдено", $FIELDS); }
+												}, $tab, $_GET['r'])): mpre("Ошибка нахождения имени поля") ?>
+											<? elseif(!$href = "/{$m}:admin/r:". (strpos($tab, '-') ? "" : $conf['db']['prefix']). "{$tab}?&where[{$field}]={$lines['id']}"): mpre("Ошибка генерации ссылки на связанную таблицу") ?>
+											<? else:// mpre($m, $field) ?>
 												<a href="<?=$href?>">
 													<?=(($cnt = get($v, $lines['id'], 'cnt')) ? "{$cnt}&nbspшт" : "Нет")?>
 												</a>
@@ -435,6 +475,7 @@
 												<a class="del" href="javascript:"></a>
 												<a class="edit" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&edit=<?=$v?><? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'order') ? "&order={$_GET['order']}" : "")?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : "")?>"></a>
 												<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&where[id]=<?=$v?>"><?=$v?></a>
+												<input type="checkbox" style="display:none;">
 											</span>
 										<? elseif(!preg_match("#_id$#ui",$k) AND preg_match("#^img(\d*|_.+)?#iu",$k)): ?>
 											<div class="imgs" fn="<?=$k?>" style="position:relative; height:14px;">
@@ -549,7 +590,7 @@
 											<? endif; ?>
 											<option value="NULL"></option>
 											<? foreach(rb("{$conf['db']['prefix']}users") as $uid): ?>
-												<option value="<?=$uid['id']?>" <?=((get($tpl, 'edit', $name) == $uid['id']) || (!get($tpl, 'edit') && ($uid['id'] == $conf['user']['uid'])) ? "selected" : "")?>>
+												<option value="<?=$uid['id']?>" <?=((get($tpl, 'edit', $name) == $uid['id']) || (!get($tpl, 'edit') && ($uid['id'] == $conf['user']['uid'])) || (get($_GET, 'where', 'uid') && $_GET['where']['uid'] == $uid['id']) ? "selected" : "")?>>
 													<?=$uid['id']?> <?=$uid['name']?>
 												</option>
 											<? endforeach; ?>
