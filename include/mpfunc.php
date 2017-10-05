@@ -318,43 +318,10 @@ function meta($where, $meta = null){
 	}elseif(!$themes_index = get($conf, 'themes', 'index')){ mpre("Многосайтовый режим не установлен");
 
 	}elseif(!$seo_index_themes = fk('seo-index_themes', $w= ['index_id'=>$seo_index['id'], 'themes_index'=>$themes_index['id']], $w+= ['location_id'=>$seo_location['id']]+$meta, $w)){ mpre("Ошибка добавления адресации");
-	}elseif(!$seo_location_themes = fk('seo-location_themes', $w= ['index_id'=>$seo_index['id'], 'location_id'=>$seo_location['id']], $w+= ['themes_index'=>$themes_index['id']], $w)){ mpre("Ошибка установки переадресации");
+	}elseif(!$seo_location_themes = fk('seo-location_themes', $w= ['index_id'=>$seo_index['id'], 'location_id'=>$seo_location['id']], $w+= ['themes_index'=>$themes_index['id']], $w)){ mpre("Ошибка установки <a href='/seo:admin/r:mp_seo_location_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>переадресации</a> `{$seo_location['name']}` на `{$seo_index['name']}`", $w);
 	}else{// mpre($seo_index, $seo_location, $where, $meta);
 		return $where+$seo_index_themes;
 	}
-/*	if(is_string($where)){ $where = array($where); };
-	if("/" != substr($location = get($where, 0), 0, 1)){
-		mpre("Ошибочный формат внутреннего адреса location &laquo;". get($where, 'location'). "&raquo;");
-	}else if(get($where, 1) && ("/" != substr($index = get($where, 1), 0, 1))){
-		mpre("Ошибочный формат внешнего адреса index &laquo;". get($where, 'location'). "&raquo;");
-	}else{// mpre($index, $location);
-		if("/" == substr($index = get($where, 1), 0, 1)){
-			$seo_index = fk("seo-index", $w = array("name"=>$index), $w += array("index_type_id"=>(get($meta, 'index_type_id') ?: 1), "cat_id"=>get($meta, 'cat_id')), $w);
-		}else{ $seo_index = array('id'=>0); }
-
-		if($seo_location = fk("seo-location", $w = array("name"=>$location), $w += array("location_status_id"=>(get($meta, "location_status_id") ?: 301), "index_id"=>$seo_index['id'], "cat_id"=>get($meta, 'cat_id')), $w)){
-			if(empty($seo_index)){
-				return $where + $seo_location;
-			}else if(array_key_exists('location_id', $seo_index)){ # Односайтовый режим работы
-				if($seo_index = fk("seo-index", array("id"=>$seo_index['id']), null, array("location_id"=>$seo_location['id'], "cat_id"=>get($meta, 'cat_id'))+array_diff_key($meta, array_flip(["id"])))){
-					return $where + $seo_index;
-				}else{ mpre("Ошибка установки внешнего адреса односайтового режима"); }
-			}else if($themes_index = get($conf, 'user', 'sess', 'themes_index')){ # Многосайтовый режим
-				if($tpl['seo_index_themes'] = rb("seo-index_themes", "index_id", "location_id", "themes_index", "id", $seo_index['id'], $seo_location['id'], $themes_index['id'])){
-					if((1 == count($tpl['seo_index_themes'])) && ($seo_index_themes = array_pop($tpl['seo_index_themes']))){
-						mpevent("Обновление мета информации", $seo_index['name']);
-						$seo_index_themes = fk("seo-index_themes", array("id"=>$seo_index_themes['id']), null, $meta += array("up"=>time(), "cat_id"=>$meta['cat_id']));
-					}else{ mpre("Ошибка структуры метаинформации (множественная информация для одного адреса)", $w); }
-				}elseif($seo_index_themes = fk("seo-index_themes", $w = array("index_id"=>$seo_index['id'], "themes_index"=>$themes_index['id']), $w + ["location_id"=>$seo_location['id']] + (array)$meta)){
-					if(!get($seo_index, "id")){ return ($meta !== null ? $seo_index_themes : false);
-					}elseif(!$seo_location_themes = fk("seo-location_themes", $w = array("location_id"=>$seo_location['id'], "themes_index"=>$themes_index['id'], "index_id"=>$seo_index['id']), $w)){ mpre("Ошибка добавления перенаправления", $w);
-					}else{// mpre($seo_location_themes);
-						return $where + $seo_index_themes;
-					}
-				}else{ mpre("Ошибка добавления внутреннего адреса"); }
-			}else{ return null; }
-		}else{ mpre("Ошибка добавления метаинвормауции", $w + $meta + $update); }
-	}*/
 }
 
 //функция скачки файла (чтение файла идет по 5метров)
@@ -446,7 +413,8 @@ function tables($table = null){
 } function fields($tab, $type = false){
 	global $conf;
 	if(!$table = call_user_func(function($tab) use($conf){ # Формирование полного имени таблицы
-			if(!strpos($tab, '-')){ return $tab; mpre("Адрес таблицы указан полностью");
+			if(0 === strpos($tab, $conf['db']['prefix'])){ return $tab; mpre("Адрес таблицы указан полностью");
+			}elseif(!strpos($tab, '-')){ return "{$conf['db']['prefix']}{$tab}"; mpre("Адрес таблицы указан полностью");
 			}elseif(!$ex = explode('-', $tab)){ mpre("Ошибка разбивки таблицы на составные части");
 			}elseif(!$tab = "{$conf['db']['prefix']}{$ex[0]}_{$ex[1]}"){ mpre("Ошибка составления полного имени таблицы");
 			}else{// mpre($tab);
