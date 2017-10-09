@@ -118,7 +118,7 @@ function cache($content = false){
 //			}elseif(header("Cache-control: max-age=864000") || header("Expires: ".gmdate("r", time() + 86400*10))){ mpre("Установка времени кеширования в браузере");
 //			}elseif(exit(print_r(rand(0, $sys_getloadavg[0])))){
 			}elseif(!call_user_func(function() use($conf, $REQUEST_URI, $sys_getloadavg, $cache_log){ # Отображение ранее сохраненной в мемкаше страницы
-					if(!class_exists(Memcached)){ mpre("Класс не найден");
+					if(!class_exists(Memcached)){// mpre("Класс не найден");
 					}elseif(!$Memcached = new Memcached()){ exit(!!pre("Ошибка создания обьекта мемкаш"));
 					}elseif(!$Memcached->addServer('localhost', 11211)){ exit(!!pre("Ошибка подключения к сервису мемкаш"));
 					}elseif(!$key = "{$conf['settings']['http_host']}{$REQUEST_URI}"){ mpre("Ошибка составления ключа кеша");
@@ -318,7 +318,7 @@ function meta($where, $meta = null){
 	}elseif(!$themes_index = get($conf, 'themes', 'index')){ mpre("Многосайтовый режим не установлен");
 
 	}elseif(!$seo_index_themes = fk('seo-index_themes', $w= ['index_id'=>$seo_index['id'], 'themes_index'=>$themes_index['id']], $w+= ['location_id'=>$seo_location['id']]+$meta, $w)){ mpre("Ошибка добавления адресации");
-	}elseif(!$seo_location_themes = fk('seo-location_themes', $w= ['index_id'=>$seo_index['id'], 'location_id'=>$seo_location['id']], $w+= ['themes_index'=>$themes_index['id']], $w)){ mpre("Ошибка установки <a href='/seo:admin/r:mp_seo_location_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>переадресации</a> `{$seo_location['name']}` на `{$seo_index['name']}`", $w);
+	}elseif(!$seo_location_themes = fk('seo-location_themes', $w= ['location_id'=>$seo_location['id'], 'themes_index'=>$themes_index['id']], $w+= ['index_id'=>$seo_index['id']], $w)){ mpre("Ошибка установки <a href='/seo:admin/r:mp_seo_location_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>переадресации</a> `{$seo_location['name']}` на `{$seo_index['name']}`", $w);
 	}else{// mpre($seo_index, $seo_location, $where, $meta);
 		return $where+$seo_index_themes;
 	}
