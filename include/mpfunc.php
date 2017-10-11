@@ -705,6 +705,7 @@ if (!function_exists('modules')){
 if(!function_exists('blocks')){
 	function blocks($bid = null){# Загружаем список блоков и прав доступа
 		global $conf, $arg;
+		$result = "";
 		if(!$conf['db']['info'] = "Выборка шаблонов блоков"){ pre("Установка описания запросам");
 		}elseif(!$BLOCKS = mpql(mpqw($sql = "SELECT *, `admin_access` as admin_access FROM {$conf['db']['prefix']}blocks_index WHERE hide=0". ($bid ? " AND id=". (int)$bid : " ORDER BY sort"), "Запрос списка блоков", function($error) use($conf){
 				if(strpos($error, "Unknown column 'admin_access'")){
