@@ -30,7 +30,7 @@ if (version_compare(PHP_VERSION, '5.1.2', '>=')) {
     function __autoload($classname){
         PHPClassAutoload($classname);
     }
-}	
+}
 
 # Генерация base64 последовательности изображения из картинги
 function base64($img, $w, $h, $c = 0){
@@ -62,7 +62,118 @@ function conn($init = null){
 		die(pre("Ошибка подключения к базе данных {$init}"));
 	} return $conf['db']['conn'];
 }
+//компиляция less в css и сжатие css
+function MpLessCompile($teme_folder){
+	$old_chdir = getcwd();
+	
+	$files = getDirContents($teme_folder.'styles/less',"#\.less$#iu");
+	if(substr(sprintf('%o', fileperms($teme_folder.'styles/css')), -4)!=='0777')
+		die("Please set writing permission (0777) o the following folder: [{$teme_folder}styles/css]!");				
+	foreach($files as $file){
+		$path = preg_replace("#styles/less#iu","styles/css",pathinfo($file,PATHINFO_DIRNAME));
+		$name = pathinfo($file,PATHINFO_FILENAME);
+		$css  = "{$path}/{$name}.css";	
+		if(!is_dir($path)){mkdir($path,0777,true);}
+		if(!file_exists($css) OR filectime($file)>filectime($css)){
+			if(!isset($less)) $less = new lessc;
+			try {
+				$CssText = trim($less->compileFile(($file)));
+				$CssText = preg_replace("#\s+({\n\r?)#iu","$1",$CssText);
+				$CssText = preg_replace("#(\n\r?\s+[^:]+:)\s+#iu","$1",$CssText);
+				$CssText = preg_replace("#\n(\r?\s+?)?([\w-}@])#iu","$2",$CssText);					
+				file_put_contents($css,$CssText);
+			} catch (exception $e) {
+				pre($e);
+				die();
+			}
+		}
+	}
+	
+	$files = getDirContents($teme_folder.'styles',"#^(?!.*\.(css|less)$).*$#iu");		
+	foreach($files as $file){
+		if(!is_dir($file)){		
+			if(preg_match("#/styles/css/#iu",$file)){
+				if(!realpath($file)){
+					unlink($file);
+				}
+			}else if(preg_match("#/styles/less/#iu",$file)){
+				$newfile = preg_replace("#/styles/less(/|$)#iu","/styles/css$1",$file);
+				if(!in_array($newfile,$files)){
+					$path = pathinfo($newfile,PATHINFO_DIRNAME);
+					if(!is_dir($path)){mkdir($path,0777,true);}
+					chdir($path);
+					symlink($file,pathinfo($newfile,PATHINFO_BASENAME));
+				}
+			}
+		}else if(is_dir_empty($file) AND preg_match("#/styles/css/#iu",$file)){		
+			rmdir($file);
+		}
+	}chdir($old_chdir);	
+}
 
+function MpJsAutoMini($teme_folder){
+	$old_chdir = getcwd();
+	
+	$files = getDirContents($teme_folder.'js',"#\.js$#iu");
+	if(substr(sprintf('%o', fileperms($teme_folder.'js/_min_')), -4)!=='0777')
+		die("Please set writing permission (0777) o the following folder: [{$teme_folder}js/_min_]!");//
+	foreach($files as $file){
+		if(preg_match("#^(?!.*((^/?)|(/))js/_min_/).*\.js$#iu",$file)){
+			$path = preg_replace("#/js(/|$)#iu","/js/_min_$1",pathinfo($file,PATHINFO_DIRNAME));
+			$name = pathinfo($file,PATHINFO_FILENAME);
+			$js  = "{$path}/{$name}.js";	
+			if(!is_dir($path)){mkdir($path,0777,true);}
+			if(!file_exists($js) OR filectime($file)>filectime($js)){
+				file_put_contents($js,JSCompression::minify(file_get_contents($file)));
+			}
+		}
+	}
+	
+	$files = getDirContents($teme_folder.'js',"#^(?!.*\.js$).*$#iu");		
+	foreach($files as $file){
+		if(!is_dir($file)){		
+			if(preg_match("#/js/_min_/#iu",$file)){
+				if(!realpath($file)){
+					unlink($file);
+				}
+			}else{
+				$newfile = preg_replace("#/js(/|$)#iu","/js/_min_$1",$file);
+				
+				if(!in_array($newfile,$files)){
+					$path = pathinfo($newfile,PATHINFO_DIRNAME);
+					if(!is_dir($path)){mkdir($path,0777,true);}
+					chdir($path);
+					if(!file_exists($file))
+						symlink($file,pathinfo($newfile,PATHINFO_BASENAME));
+				}
+			}
+		}else if(is_dir_empty($file) AND preg_match("#/js/_min_/#iu",$file)){		
+			rmdir($file);
+		}
+	}chdir($old_chdir);
+}
+
+
+function is_dir_empty($dir) {
+	if (!is_readable($dir)) return NULL; 
+	return (count(scandir($dir)) == 2);
+}
+
+//возвращает содержимое папки, поумолчанию рекурсивно
+function getDirContents($dir, $regexp="", $recursive=true, &$results = array()){
+	$files = scandir($dir);
+	foreach($files as $key => $value){
+		$path = realpath($dir.DIRECTORY_SEPARATOR.$value)?:realpath($dir).DIRECTORY_SEPARATOR.$value;
+		if(!is_link($path) AND  is_dir($path) AND $recursive AND $value != "." AND $value != "..") 
+			getDirContents($path, $regexp, $recursive, $results);			
+		if(!$regexp OR ($regexp AND preg_match($regexp,$value)))
+			$results[] = $path;
+	}
+	return $results;
+}
+function isJSON($string){
+   return is_string($string) && is_array(json_decode($string, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
+}
 # Генерирование паролей из 
 function MpGenPassword($max=24){
 	$chars="qazxswedcvfrtgbnhyujmkiolp1234567890QAZXSWEDCVFRTGBNHYUJMKIOLP";

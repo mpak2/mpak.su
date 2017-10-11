@@ -1,0 +1,4 @@
+{
+	'less_compile' : false,
+	'js_auto_mini' : false
+}
