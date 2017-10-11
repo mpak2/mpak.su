@@ -1,11 +1,35 @@
 <?
-
-# автозагрузка классов из одноименной директории
-if(!function_exists('__autoload')){
-	function __autoload($class_name){#Автоподгрузка классов
-		if(!$file_name = mpopendir($f = "/include/class/$class_name.php")){ mpre("Файл класса не найден {$f}");
-		}else{ include_once $file_name; }
+#Автоподгрузка классов
+function PHPClassAutoload($CN){
+	foreach(explode("\\",$CN) as $class_name){
+		//For example - include/mail/PHPMailerAutoload.php
+		$file_project = mpopendir("/include/class/$class_name/$class_name.php");
+		$file_single  = mpopendir($file = "/include/class/$class_name.php");
+		$file_mail    = mpopendir("/include/mail/class.".strtolower($class_name).".php");
+		if($file_project){
+			include_once $file_project;
+		}else if($file_single){
+			include_once $file_single;
+		}else if($file_mail ){
+			include_once $file_mail;
+		}else{			
+			if(!in_array($class_name,array('Memcached'))){
+				mpre("Файл класса не найден {$file}");
+			}
+		}
 	}
+}
+//Иницилизация автоподгрузки
+if (version_compare(PHP_VERSION, '5.1.2', '>=')) {
+    if (version_compare(PHP_VERSION, '5.3.0', '>=')){
+        spl_autoload_register('PHPClassAutoload', true, true);
+    } else {
+        spl_autoload_register('PHPClassAutoload');
+    }
+} else {
+    function __autoload($classname){
+        PHPClassAutoload($classname);
+    }
 }
 
 # Генерация base64 последовательности изображения из картинги
@@ -38,7 +62,118 @@ function conn($init = null){
 		die(pre("Ошибка подключения к базе данных {$init}"));
 	} return $conf['db']['conn'];
 }
+//компиляция less в css и сжатие css
+function MpLessCompile($teme_folder){
+	$old_chdir = getcwd();
+	
+	$files = getDirContents($teme_folder.'styles/less',"#\.less$#iu");
+	if(substr(sprintf('%o', fileperms($teme_folder.'styles/css')), -4)!=='0777')
+		die("Please set writing permission (0777) o the following folder: [{$teme_folder}styles/css]!");				
+	foreach($files as $file){
+		$path = preg_replace("#styles/less#iu","styles/css",pathinfo($file,PATHINFO_DIRNAME));
+		$name = pathinfo($file,PATHINFO_FILENAME);
+		$css  = "{$path}/{$name}.css";	
+		if(!is_dir($path)){mkdir($path,0777,true);}
+		if(!file_exists($css) OR filectime($file)>filectime($css)){
+			if(!isset($less)) $less = new lessc;
+			try {
+				$CssText = trim($less->compileFile(($file)));
+				$CssText = preg_replace("#\s+({\n\r?)#iu","$1",$CssText);
+				$CssText = preg_replace("#(\n\r?\s+[^:]+:)\s+#iu","$1",$CssText);
+				$CssText = preg_replace("#\n(\r?\s+?)?([\w-}@])#iu","$2",$CssText);					
+				file_put_contents($css,$CssText);
+			} catch (exception $e) {
+				pre($e);
+				die();
+			}
+		}
+	}
+	
+	$files = getDirContents($teme_folder.'styles',"#^(?!.*\.(css|less)$).*$#iu");		
+	foreach($files as $file){
+		if(!is_dir($file)){		
+			if(preg_match("#/styles/css/#iu",$file)){
+				if(!realpath($file)){
+					unlink($file);
+				}
+			}else if(preg_match("#/styles/less/#iu",$file)){
+				$newfile = preg_replace("#/styles/less(/|$)#iu","/styles/css$1",$file);
+				if(!in_array($newfile,$files)){
+					$path = pathinfo($newfile,PATHINFO_DIRNAME);
+					if(!is_dir($path)){mkdir($path,0777,true);}
+					chdir($path);
+					symlink($file,pathinfo($newfile,PATHINFO_BASENAME));
+				}
+			}
+		}else if(is_dir_empty($file) AND preg_match("#/styles/css/#iu",$file)){		
+			rmdir($file);
+		}
+	}chdir($old_chdir);	
+}
 
+function MpJsAutoMini($teme_folder){
+	$old_chdir = getcwd();
+	
+	$files = getDirContents($teme_folder.'js',"#\.js$#iu");
+	if(substr(sprintf('%o', fileperms($teme_folder.'js/_min_')), -4)!=='0777')
+		die("Please set writing permission (0777) o the following folder: [{$teme_folder}js/_min_]!");//
+	foreach($files as $file){
+		if(preg_match("#^(?!.*((^/?)|(/))js/_min_/).*\.js$#iu",$file)){
+			$path = preg_replace("#/js(/|$)#iu","/js/_min_$1",pathinfo($file,PATHINFO_DIRNAME));
+			$name = pathinfo($file,PATHINFO_FILENAME);
+			$js  = "{$path}/{$name}.js";	
+			if(!is_dir($path)){mkdir($path,0777,true);}
+			if(!file_exists($js) OR filectime($file)>filectime($js)){
+				file_put_contents($js,JSCompression::minify(file_get_contents($file)));
+			}
+		}
+	}
+	
+	$files = getDirContents($teme_folder.'js',"#^(?!.*\.js$).*$#iu");		
+	foreach($files as $file){
+		if(!is_dir($file)){		
+			if(preg_match("#/js/_min_/#iu",$file)){
+				if(!realpath($file)){
+					unlink($file);
+				}
+			}else{
+				$newfile = preg_replace("#/js(/|$)#iu","/js/_min_$1",$file);
+				
+				if(!in_array($newfile,$files)){
+					$path = pathinfo($newfile,PATHINFO_DIRNAME);
+					if(!is_dir($path)){mkdir($path,0777,true);}
+					chdir($path);
+					if(!file_exists($file))
+						symlink($file,pathinfo($newfile,PATHINFO_BASENAME));
+				}
+			}
+		}else if(is_dir_empty($file) AND preg_match("#/js/_min_/#iu",$file)){		
+			rmdir($file);
+		}
+	}chdir($old_chdir);
+}
+
+
+function is_dir_empty($dir) {
+	if (!is_readable($dir)) return NULL; 
+	return (count(scandir($dir)) == 2);
+}
+
+//возвращает содержимое папки, поумолчанию рекурсивно
+function getDirContents($dir, $regexp="", $recursive=true, &$results = array()){
+	$files = scandir($dir);
+	foreach($files as $key => $value){
+		$path = realpath($dir.DIRECTORY_SEPARATOR.$value)?:realpath($dir).DIRECTORY_SEPARATOR.$value;
+		if(!is_link($path) AND  is_dir($path) AND $recursive AND $value != "." AND $value != "..") 
+			getDirContents($path, $regexp, $recursive, $results);			
+		if(!$regexp OR ($regexp AND preg_match($regexp,$value)))
+			$results[] = $path;
+	}
+	return $results;
+}
+function isJSON($string){
+   return is_string($string) && is_array(json_decode($string, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
+}
 # Генерирование паролей из 
 function MpGenPassword($max=24){
 	$chars="qazxswedcvfrtgbnhyujmkiolp1234567890QAZXSWEDCVFRTGBNHYUJMKIOLP";
@@ -118,16 +253,17 @@ function cache($content = false){
 //			}elseif(header("Cache-control: max-age=864000") || header("Expires: ".gmdate("r", time() + 86400*10))){ mpre("Установка времени кеширования в браузере");
 //			}elseif(exit(print_r(rand(0, $sys_getloadavg[0])))){
 			}elseif(!call_user_func(function() use($conf, $REQUEST_URI, $sys_getloadavg, $cache_log){ # Отображение ранее сохраненной в мемкаше страницы
-					if(!class_exists(Memcached)){// mpre("Класс не найден");
-					}elseif(!$Memcached = new Memcached()){ exit(!!pre("Ошибка создания обьекта мемкаш"));
-					}elseif(!$Memcached->addServer('localhost', 11211)){ exit(!!pre("Ошибка подключения к сервису мемкаш"));
-					}elseif(!$key = "{$conf['settings']['http_host']}{$REQUEST_URI}"){ mpre("Ошибка составления ключа кеша");
-					}elseif(!$cache = $Memcached->get($key)){ // pre("Сохраненная страница в мемкаше не найден");
-					}else{ header('Content-Encoding: gzip');
-						header('Last-Modified: '. gmdate("r"));
-						header('Expires: '.gmdate('r', time() + 86400*10));
-						error_log(implode("/", $sys_getloadavg). " <~~ ". http_response_code(). " http://{$key}\n", 3, $cache_log);
-						exit($cache);
+					if(class_exists(Memcached)){
+						if(!$Memcached = new Memcached()){ exit(!!pre("Ошибка создания обьекта мемкаш"));
+						}elseif(!$Memcached->addServer('localhost', 11211)){ exit(!!pre("Ошибка подключения к сервису мемкаш"));
+						}elseif(!$key = "{$conf['settings']['http_host']}{$REQUEST_URI}"){ mpre("Ошибка составления ключа кеша");
+						}elseif(!$cache = $Memcached->get($key)){ // pre("Сохраненная страница в мемкаше не найден");
+						}else{ header('Content-Encoding: gzip');
+							header('Last-Modified: '. gmdate("r"));
+							header('Expires: '.gmdate('r', time() + 86400*10));
+							error_log(implode("/", $sys_getloadavg). " <~~ ". http_response_code(). " http://{$key}\n", 3, $cache_log);
+							exit($cache);
+						}
 					}
 				})){ mpre("Ошибка выборки данных из мемкаша");
 //			}elseif(($Memcached = new Memcached()) && ($Memcached->addServer('localhost', 11211)) && ($cache = $Memcached->get($REQUEST_URI))){
@@ -173,10 +309,11 @@ function cache($content = false){
 			}elseif(!$gzen = gzencode($content)){ mpre("Ошибка архивирования кода страницы");
 			}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg", "/sitemap.xml", "/robots.txt"/*, "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
 			}elseif(get($_COOKIE, 'sess')){// pre("Зарегистрированный пользователь");
-				if(!class_exists("Memcached")){ // mpre("Класс Мемкаш не доступен");
-				}elseif(!$Memcached = new Memcached()){ mpre("Ошибка создания обьекта мемкаш");
-				}elseif(!$Memcached->addServer('localhost', 11211)){ mpre("Ошибка подключения к серверу мемкаш");
-				}else{ $Memcached->delete("{$_SERVER['HTTP_HOST']}{$REQUEST_URI}"); }
+				if(class_exists("Memcached")){ // mpre("Класс Мемкаш не доступен");
+					if(!$Memcached = new Memcached()){ mpre("Ошибка создания обьекта мемкаш");
+					}elseif(!$Memcached->addServer('localhost', 11211)){ mpre("Ошибка подключения к серверу мемкаш");
+					}else{ $Memcached->delete("{$_SERVER['HTTP_HOST']}{$REQUEST_URI}"); }
+				}
 			}elseif((class_exists("Memcached")) && ($Memcached = new Memcached()) && ($Memcached->addServer('localhost', 11211)) && ($cache = $Memcached->set("{$_SERVER['HTTP_HOST']}{$REQUEST_URI}", $gzen))){
 				header('Content-Encoding: gzip');
 				error_log(implode("/", $sys_getloadavg). " ~~> ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
@@ -570,6 +707,7 @@ if (!function_exists('modules')){
 if(!function_exists('blocks')){
 	function blocks($bid = null){# Загружаем список блоков и прав доступа
 		global $conf, $arg;
+		$result = "";
 		if(!$conf['db']['info'] = "Выборка шаблонов блоков"){ pre("Установка описания запросам");
 		}elseif(!$BLOCKS = mpql(mpqw($sql = "SELECT *, `admin_access` as admin_access FROM {$conf['db']['prefix']}blocks_index WHERE hide=0". ($bid ? " AND id=". (int)$bid : " ORDER BY sort"), "Запрос списка блоков", function($error) use($conf){
 				if(strpos($error, "Unknown column 'admin_access'")){
@@ -610,7 +748,7 @@ if(!function_exists('blocks')){
 				}elseif($conf["settings"]["bid"] = $bid){ pre("Блок к которому мы обращаемся в параметрах блока");// $result = $cb;
 				}else{
 					ob_start();
-						inc("modules/{$block['src']}", array('arg'=>$arg));
+						inc("modules/{$block['src']}", array('arg'=>$arg));						
 					$cb = ob_get_contents(); ob_end_clean();
 
 					if(!is_numeric($block['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($block['shablon'] ?: "block.html")))){
@@ -801,10 +939,56 @@ function mc($key, $function, $force = false){
 function mp_is_html($string){
   return preg_match("/<[^<]+>/",$string,$m) != 0;
 }
-function mpsmtp($to, $subj, $text, $from = null, $files = array(), $login = null){ # Отправка письмо по SMTP протоколу
+function normalize_files_array($files = []) {
+	if(!$files)
+		$files = $_FILES;
+	$normalized_array = [];
+	foreach($files as $index => $file) {
+		if (!is_array($file['name'])) {
+			$normalized_array[$index][] = $file;
+			continue;
+		}
+		foreach($file['name'] as $idx => $name) {
+			$normalized_array[$index][$idx] = [
+				'name' => $name,
+				'type' => $file['type'][$idx],
+				'tmp_name' => $file['tmp_name'][$idx],
+				'error' => $file['error'][$idx],
+				'size' => $file['size'][$idx]
+			];
+		}
+	}
+	return $normalized_array;
+}
+function mpsmtp($to, $subj="", $text="", $from = null, $files = array(), $login = null){ # Отправка письмо по SMTP протоколу
 	global $conf;
-//	ini_set("include_path", ini_get("include_path"). ":". "./include/mail/");
-	require_once mpopendir('include/mail/PHPMailerAutoload.php');
+	$old_chdir = realpath('.');
+	$emailRegex = "[\w_\-\.]+@[\w_\-\.]+\.\w+";	
+	if(is_array($first=func_get_args()[0])){		
+		$defaults=[
+			'to'=>'required',
+			'subj'=>'',
+			'text'=>'',
+			'from'=>null,
+			'files'=>array(),
+			'file_size_limit'=>10,//MB
+			'file_accept'=>["jpg","jpeg","gif","png","doc","docx","xls","xlsx","pdf","txt","csv"],
+			'file_accept_add'=>[],
+			'login'=>null
+		];
+		foreach($defaults as $keyParam => $valueParam){
+			${$keyParam} = get($first,$keyParam)?:$valueParam;
+			if(${$keyParam}==='required'){
+				ob_clean();
+				die("mpsmtp:{$keyParam} - is required");
+			}
+		}
+		$file_accept = array_merge($file_accept,$file_accept_add);
+	}else{
+		$file_accept = [];
+		$file_size_limit = 10;
+	}
+	
 	$mail = new PHPMailer;
 	$Providers = array(
 		'smtp.mail.ru'=>array('port'=>465,'host'=>'mail.ru'),
@@ -815,16 +999,21 @@ function mpsmtp($to, $subj, $text, $from = null, $files = array(), $login = null
 	$host = explode(":", array_pop($param));
 	$auth = explode(":", implode("@", $param));
 //	mpre($param, $host, $auth);
-	if(!$from){
+	if(!$from OR !($mail_match=preg_match("#{$emailRegex}#iu",trim($from)))){
 		if (filter_var($auth[0], FILTER_VALIDATE_EMAIL)) {
 			//берем из логина в случае если это емайл
-			$from = $auth[0];
+			$from_ = $auth[0];
 		}else if(isset($Providers[$host[0]])){
 			//берем из уже известных нам провайдеров
-			$from = $auth[0] . "@" . $Providers[$host[0]]['host'];
+			$from_ = $auth[0] . "@" . $Providers[$host[0]]['host'];
 		}else{
 			//пытаемся угадать сами
-			$from = $auth[0] . "@" . trim(preg_replace("#smtp\.#iu","",$host[0]));
+			$from_ = $auth[0] . "@" . trim(preg_replace("#smtp\.#iu","",$host[0]));
+		}
+		if(!$mail_match){
+			$from = "{$from} <{$from_}>";
+		}else{
+			$from = $from_;
 		}
 	}	
 	$mail->isSMTP();
@@ -835,7 +1024,6 @@ function mpsmtp($to, $subj, $text, $from = null, $files = array(), $login = null
 	$mail->isHTML(mp_is_html($text));
 	$mail->setLanguage('ru'); 
 	$mail->CharSet = 'UTF-8';
-	$emailRegex = "[\w_\-\.]+@[\w_\-\.]+\.\w+";	
 	if(isset($Providers[$host[0]])){
 		$mail->SMTPSecure = 'ssl';
 		$mail->Port	= $Providers[$host[0]]['port'];
@@ -859,9 +1047,23 @@ function mpsmtp($to, $subj, $text, $from = null, $files = array(), $login = null
 			$mail->addAddress($recipient);
 		}
 	}	
-	if(is_string($files)){
-		$files = array($files);
-	}elseif(is_array($files)){
+	if($files===TRUE){
+		foreach(normalize_files_array() as $key => $input){
+			foreach($input as $i_file => $file){
+				if(
+					!$file['error']
+						AND
+					$file['size']/1024/1024 <= $file_size_limit
+						AND
+					(!$file_accept OR in_array(mb_strtolower(preg_replace("#^.*\.([^\.]+)$#iu","$1",$file['name'])),$file_accept))
+				){
+					$mail->addAttachment($file['tmp_name'],"{$key}_{$i_file}_{$file['name']}");
+				}
+			}
+		}	
+	}else{
+		if(is_string($files))
+			$files = array($files);
 		foreach($files as $key => $filepath){
 			if(file_exists($filepath)){
 				if(is_int($key)){
@@ -874,12 +1076,13 @@ function mpsmtp($to, $subj, $text, $from = null, $files = array(), $login = null
 	}
 	$mail->Subject = $subj;
 	$mail->Body    = $text;
-	//$mail->AltBody = '____';
 	if(!$mail->send()) {
 		$return = 'Mailer Error: ' . $mail->ErrorInfo;
 	} else {
 		$return = 0;
-	} return $return;
+	} 
+	chdir($old_chdir);
+	return $return;
 }
 
 function mpue($name){
