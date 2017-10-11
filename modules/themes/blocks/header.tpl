@@ -97,19 +97,19 @@
 <? elseif(!$themes_index = get($conf, 'themes', 'index')): mpre("Информация о хосте не найдена") ?>
 <? elseif(get($conf, 'settings', 'themes_yandex_metrika_index') && (!$THEMES_YANDEX_METRIKA_INDEX = rb("themes-yandex_metrika_index", "index_id", "id", $themes_index['id']))): mpre("У сайта не найдено <a href='/themes:admin/r:themes-yandex_metrika_index?&where[index_id]={$themes_index['id']}'>устанволенных метрик</a>") ?>
 <? elseif(get($conf, 'settings', 'themes_yandex_metrika') && (!$THEMES_YANDEX_METRIKA = rb("themes-yandex_metrika", "id", "id", rb($THEMES_YANDEX_METRIKA_INDEX, "yandex_metrika_id"))) &0): mpre("Счетчики установленные на сайте не найдены") ?>
-<? elseif((!$THEMES_YANDEX_METRIKA_GOAL_METRIKA = (get($conf, 'settings', 'themes_yandex_metrika_goal_metrika') ? rb("themes-yandex_metrika_goal_metrika", "yandex_metrika_id", "id", $THEMES_YANDEX_METRIKA) : [])) &0): mpre("Исследования для сайта не установлены") ?>
-<? elseif((!$THEMES_YANDEX_METRIKA_GOAL_ANALYSIS = (get($conf, 'settings', 'themes_yandex_metrika_goal_analysis') ? rb("themes-yandex_metrika_goal_analysis", "id", "id", rb($THEMES_YANDEX_METRIKA_GOAL_METRIKA, "yandex_metrika_goal_analysis_id")) : [])) &0): mpre("Ошибка составления списка исследований для сайта") ?>
-<? elseif((!$THEMES_YANDEX_METRIKA_GOAL = (get($conf, 'settings', 'themes_yandex_metrika_goal') ? rb("themes-yandex_metrika_goal", "yandex_metrika_goal_analysis_id", "id", $THEMES_YANDEX_METRIKA_GOAL_ANALYSIS) : [])) &0): mpre("Цели яндекс метрики не найдены"); ?>
-<? elseif((!$THEMES_YANDEX_METRIKA_GOAL_ELEMENT = (get($conf, 'settings', 'themes_yandex_metrika_goal_element') ? rb("themes-yandex_metrika_goal_element", "yandex_metrika_goal_id", "id", $THEMES_YANDEX_METRIKA_GOAL) : [])) &0): mpre("Элементы событий не найдены") ?>
-<? else:// mpre($THEMES_YANDEX_METRIKA_GOAL_ANALYSIS, $THEMES_YANDEX_METRIKA_GOAL) ?>
+
+<?// elseif((!$THEMES_YANDEX_METRIKA_GOAL_ANALYSIS = (get($conf, 'settings', 'themes_yandex_metrika_goal_analysis') ? rb("themes-yandex_metrika_goal_analysis", "id", "id", rb($THEMES_YANDEX_METRIKA_GOAL_METRIKA, "yandex_metrika_goal_analysis_id")) : [])) &0): mpre("Ошибка составления списка исследований для сайта") ?>
+<?// elseif((!$THEMES_YANDEX_METRIKA_GOAL = (get($conf, 'settings', 'themes_yandex_metrika_goal') ? rb("themes-yandex_metrika_goal", "yandex_metrika_goal_analysis_id", "id", $THEMES_YANDEX_METRIKA_GOAL_ANALYSIS) : [])) &0): mpre("Цели яндекс метрики не найдены"); ?>
+<?// elseif((!$THEMES_YANDEX_METRIKA_GOAL_ELEMENT = (get($conf, 'settings', 'themes_yandex_metrika_goal_element') ? rb("themes-yandex_metrika_goal_element", "yandex_metrika_goal_id", "id", $THEMES_YANDEX_METRIKA_GOAL) : [])) &0): mpre("Элементы событий не найдены") ?>
+<? elseif(!is_array($THEMES_YANDEX_METRIKA_GOAL_METRIKA = get($conf, 'settings', 'themes_yandex_metrika_goal_metrika') ? rb("themes-yandex_metrika_goal_metrika", "index_id", "id", $themes_index['id']) : [])): mpre("Исследования для сайта не установлены") ?>
+<? elseif(!is_array($THEMES_YANDEX_METRIKA_GOAL_GROUP = get($conf, 'settings', 'themes_yandex_metrika_goal_group') ? rb("themes-yandex_metrika_goal_group", "id", "id", rb($THEMES_YANDEX_METRIKA_GOAL_METRIKA, 'yandex_metrika_goal_group_id')) : [])): mpre("Ошибка выборки группы целей") ?>
+<? elseif(!is_array($THEMES_YANDEX_METRIKA_GOAL = get($conf, 'settings', 'themes_yandex_metrika_goal') ? rb("themes-yandex_metrika_goal", "yandex_metrika_goal_group_id", "id", $THEMES_YANDEX_METRIKA_GOAL_GROUP) : [])): mpre("Ошибка выборки группы целей") ?>
+<? else:// mpre($THEMES_YANDEX_METRIKA_GOAL) ?>
 	<!-- Yandex.Metrika counter -->
 		<? foreach($THEMES_YANDEX_METRIKA_INDEX as $themes_yandex_metrika_index): ?> 
 			<? if(!$themes_yandex_metrika = rb($THEMES_YANDEX_METRIKA, "id", $themes_yandex_metrika_index['yandex_metrika_id'])): mpre("Метрика связанная с хостом не найдена") ?>
-			<?// elseif((!$_THEMES_YANDEX_METRIKA_GOAL = rb($THEMES_YANDEX_METRIKA_GOAL, "yandex_metrika_id", "id", "[{$themes_yandex_metrika['id']},0,NULL]")) &0): mpre("Цели для метрики не найдены") ?>
-			<?// elseif((!$_THEMES_YANDEX_METRIKA_GOAL_ELEMENT = rb($THEMES_YANDEX_METRIKA_GOAL_ELEMENT, "yandex_metrika_goal_id", "id", $_THEMES_YANDEX_METRIKA_GOAL)) &0): mpre("Элементы для метрики не найдены") ?>
 			<? elseif(!$mtid = (get($themes_yandex_metrika, 'mtid') ?: $themes_yandex_metrika['id'])): mpre("Ошибка нахождения номера счетчика") ?>
-			<? /*elseif(!array_map(function($_themes_yandex_metrika_goal) use($mtid, $_THEMES_YANDEX_METRIKA_GOAL_ELEMENT){ ?>
-				<? }, $_THEMES_YANDEX_METRIKA_GOAL)): mpre("Ошибка установки событий")*/ ?>
+				<?// }, $_THEMES_YANDEX_METRIKA_GOAL)): mpre("Ошибка установки событий")*/ ?>
 			<? else: ?>
 				<script type="text/javascript">
 					/*<![CDATA[*/
@@ -134,58 +134,32 @@
 					/*]]>*/
 				</script>
 			<? endif; ?> 
-
-			
-			<? foreach($THEMES_YANDEX_METRIKA_GOAL as $themes_yandex_metrika_goal): ?>
-				<? if(!$_THEMES_YANDEX_METRIKA_GOAL_ELEMENT = rb($THEMES_YANDEX_METRIKA_GOAL_ELEMENT, "yandex_metrika_goal_id", "id", $themes_yandex_metrika_goal['id'])):// mpre("Элементы для целей не надены"); ?>
-				<? elseif(!$themes_yandex_metrika_goal_analysis = rb($THEMES_YANDEX_METRIKA_GOAL_ANALYSIS, "id", $themes_yandex_metrika_goal['yandex_metrika_goal_analysis_id'])): mpre("Ошибка получения анализа цели") ?>
-				<? elseif(!$themes_yandex_metrika_goal_metrika = rb($THEMES_YANDEX_METRIKA_GOAL_METRIKA, "yandex_metrika_goal_analysis_id", $themes_yandex_metrika_goal_analysis['id'])):// mpre("Ошибка получения связи анализа с метрикой") ?>
-				<? elseif(!$themes_yandex_metrika = rb($THEMES_YANDEX_METRIKA, "id", $themes_yandex_metrika_goal_metrika['yandex_metrika_id'])): mpre("Счетчик не найден") ?>
-				<? elseif(!$mtid = (get($themes_yandex_metrika, 'mtid') ?: $themes_yandex_metrika['id'])): mpre("Ошибка нахождения номера счетчика") ?>
-				<? else:// mpre($themes_yandex_metrika_goal, $_THEMES_YANDEX_METRIKA_GOAL_ELEMENT) ?>
-					<? foreach($_THEMES_YANDEX_METRIKA_GOAL_ELEMENT as $themes_yandex_metrika_goal_element): ?>
-						<script sync>
-							(function($, script){
-								$(document).on("<?=$themes_yandex_metrika_goal_element['event']?>", "<?=$themes_yandex_metrika_goal_element['selector']?>", function(e){
-									if(!(counter = eval("window.yaCounter<?=$mtid?>"))){ console.error("Ошибка установки счетчика");
-									}else{// console.info("Событие "+goal.alias, counter.reachGoal(goal = "GET_FORM"));
-										counter.reachGoal(alias = "<?=$themes_yandex_metrika_goal['alias']?>");
-										console.info("Yandex.События.<?=$mtid?> ", alias, "Селектор:", "«<?=$themes_yandex_metrika_goal_element['selector']?>»", " событие:", "«<?=$themes_yandex_metrika_goal_element['event']?>»");
-									}
-								}).on("init", function(e){
-									if((hide = "<?=get($themes_yandex_metrika_goal, 'hide')?>") != "1"){
-										console.info("Исследования:", "«<?=$themes_yandex_metrika_goal_analysis['name']?>»", "Счетчик:", "«<?=$mtid?>»", "Яндекс событие:", "«<?=$themes_yandex_metrika_goal['alias']?>»", "Селектор:", "«<?=$themes_yandex_metrika_goal_element['selector']?>»", "JS событие:", "«<?=$themes_yandex_metrika_goal_element['event']?>»", "Количество:", $("<?=$themes_yandex_metrika_goal_element['selector']?>").length);
-									}
-								}).ready( function(e){ $(script).parent().trigger("init"); } )
-							})(jQuery, document.currentScript)
-						</script>
-					<? endforeach; ?>
-				<? endif; ?>
-			<? endforeach; ?>
-
-			<? if(($tracking = get($themes_yandex_metrika_index, "tracking")) > 0): # Не выводим если стоит отрицательное число ?>
-				<!-- PrimeGate CallTracking-->
-					<script>
-						(function () {
-								var pg = document.createElement('script');
-								var protocol = 'https:' == document.location.protocol ? 'https://' : 'http://';
-								pg.src = protocol + 'js.primegate.io/primegate.min.js'; pg.setAttribute('async', 'true');
-								document.documentElement.getElementsByTagName('head')[0].appendChild(pg);
-								PrimeGate = {}; window.pg = []; components = ['init', 'track', 'identify'];
-								for (var i in components){
-									PrimeGate[components[i]] = (function(component){
-										return function(){
-											window.pg.push(component, [].slice.call(arguments, 0));
-										}
-									}(components[i]));
-								}
-						})();
-						PrimeGate.init(<?=$tracking?>);
-					</script>
-				<!-- PrimeGate CallTracking-->
-			<? endif; ?>
 		<? endforeach; ?> 
 	<!-- /Yandex.Metrika counter -->
+
+	<? foreach($THEMES_YANDEX_METRIKA as $themes_yandex_metrika): ?>
+		<? if(!is_numeric($mtid = ($themes_yandex_metrika['mtid'] ?: $themes_yandex_metrika['id']))): mpre("Ошибка определения кода счетчика") ?>
+		<? else:// mpre($mtid) ?>
+			<? foreach($THEMES_YANDEX_METRIKA_GOAL as $themes_yandex_metrika_goal): ?>
+				<script sync>
+					(function($, script){
+						$(document).on("<?=$themes_yandex_metrika_goal['event']?>", "<?=$themes_yandex_metrika_goal['selector']?>", function(e){
+							var counter = {};
+							// var yaCounterXXXXXX = new Ya.Metrika({id: XXXXXX})  /*eval(cnt = "window.yaCounter<?=$mtid?>")*/
+							if(!(counter = new Ya.Metrika({id:"<?=$mtid?>"}))){ console.error("Ошибка выборки счетчика метрики `"+ cnt+ "`");
+							}else{// console.info("Событие "+goal.alias, counter.reachGoal(goal = "GET_FORM"));
+								counter.reachGoal(alias = "<?=$themes_yandex_metrika_goal['alias']?>", {"selector":"<?=$themes_yandex_metrika_goal['selector']?>", "event":"<?=$themes_yandex_metrika_goal['event']?>"}, function(){
+									console.info("Yandex.События.<?=$mtid?> ", alias, "Селектор:", "«<?=$themes_yandex_metrika_goal['selector']?>»", " событие:", "«<?=$themes_yandex_metrika_goal['event']?>»");
+								});
+							}
+						}).one("goal", function(e){
+							console.info("Исследования:", "«<?=$themes_yandex_metrika_goal['name']?>»", "Счетчик:", "«<?=$mtid?>»", "Яндекс событие:", "«<?=$themes_yandex_metrika_goal['alias']?>»", "Селектор:", "$('<?=$themes_yandex_metrika_goal['selector']?>')", "JS событие:", "«<?=$themes_yandex_metrika_goal['event']?>»", "Количество:", $("<?=$themes_yandex_metrika_goal['selector']?>").length);
+						}).ready( function(e){ setTimeout(function(){ $(script).parent().trigger("goal");}, 1000); } )
+					})(jQuery, document.currentScript)
+				</script>
+			<? endforeach; ?>
+		<? endif; ?>
+	<? endforeach; ?>
 <? endif; ?>
 
 <? if(!array_search("Администратор", $conf['user']['gid'])): mpre("Раздел предназначен только администраторам") ?>

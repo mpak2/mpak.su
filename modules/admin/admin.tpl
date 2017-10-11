@@ -393,6 +393,12 @@
 								<?// elseif(array_key_exists($name, $tpl['espisok'])): ?>
 								<? elseif(get($tpl, 'espisok') && array_key_exists($name, $tpl['espisok'])): ?>
 									<select name="<?=$name?>">
+										<? if(!get($tpl, 'edit', $name)):// mpre("Значение не задано") ?>
+										<? elseif($val = get('espisok', $name, get($tpl, 'edit', $name))):// mpre("Значение найдено") ?>
+											<option value="<?=$value?>"><?=$value?></option>
+										<? else:// mpre("Значение не найдено") ?>
+											<option value="<?=get($tpl, 'edit', $name)?>"><?=get($tpl, 'edit', $name)?></option>
+										<? endif; ?>
 										<option value="NULL"></option>
 										<? foreach($tpl['espisok'][$name] as $espisok): ?>
 											<option value="<?=$espisok['id']?>" <?=(((!get($tpl, 'edit') && ($field['Default'] == $espisok['id'])) || ($espisok['id'] == get($tpl, 'edit', $name)) || (array_key_exists('edit', $_GET) && (get($_GET, 'where', $name) == $espisok['id']))) ? "selected" : "")?>><?=$espisok['id']?> <?=$espisok['name']?></option>
