@@ -46,7 +46,7 @@ if(array_key_exists("null", $_GET)){// exit(mpre("Таблица для запи
 		}else{ mpre($sql); }/* mpre($_inc, $_dec);*/ exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
 	}else{ # Правка записи и добавление новой
 		foreach($_POST as $field=>$post){
-			if(array_search($field, array(1=>"time", "last_time", "reg_time", "up", "down"))){
+			if(!preg_match("#_id$#ui",$field) AND preg_match("#(^|.+_)(time|last_time|reg_time|up|down)(\d+|_.+|$)#ui",$field)){
 				$_POST[$field] = strtotime($post);
 			} if(($_GET['r'] == "{$conf['db']['prefix']}users") && ($field == "pass") && (strlen($_POST['pass']) != 32) && (substr($_POST['pass'], 0, 1) != "!")){
 				$_POST[$field] = mphash($_POST['name'], $_POST['pass']);
