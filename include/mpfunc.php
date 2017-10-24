@@ -493,7 +493,7 @@ if($end)
 # Проверка вхождения тегов в коде и их корректная вложенность друг в друга
 # Если вложенность тегов верная возвращается false иначе список незакрытых тегов в форме массива
 # Если тегов не найдено, возвращается null
-function nesting($text, $tags = array("\? if", "\? endif", "\? foreach", "\? endforeach", "html", "div", "span", "table", "ul", "li", "tr", "td", "form", "label", "button", "script", "noscript", "p", "a")){
+function nesting($text, $tags = array("\? if", "\? endif", "\? foreach", "\? endforeach", "html", "div", "span", "table", "ul", /*"li",*/ "tr", "td", "form", "label", "button", "script", "noscript", /*"p",*/ "a")){
 	if(preg_match_all($str = "#<(\/?)(". implode("|", $tags). ")(\s.*?)?>#si", $text, $match)){
 		$nesting = $tags = array();// mpre($str, array_slice($match, 1));
 		foreach($match[2] as $n=>$tag_name){
@@ -527,15 +527,36 @@ function &get_link(&$ar){
 		}else{ return false; }
 	} return $ar;
 }
-function first($ar){
-	if(!empty($ar) && is_array($ar) && ($keys = array_keys($ar))){
+function first($ar, $cur = null){
+	if(empty($ar)){// mpre("Заданный массив пуст");
+	}elseif(!is_array($ar)){// mpre("Заданный массив не является массивом");
+	}elseif($cur !== null){// mpre("Выборка следующего элемента за текущим");
+		if(!$keys = array_keys($ar)){ mpre("Ошибка составления массива ключей");
+		}elseif(is_null($key = array_search($cur, $keys))){ mpre("Ошибка нахождения текущего элемента", $cur, $keys);
+		}elseif(!is_numeric($nxt = get($keys, $key-1))){ return []; // mpre("Ошибка нахождения предыдущего элемента");
+		}elseif(is_null($next = get($ar, $nxt))){ mpre("Ошибка нахождения предыдущего значения");
+		}else{// mpre($next);
+			return $next;
+		}
+	}elseif($keys = array_keys($ar)){
 		return get($ar, array_shift($keys));
-	}else{ return false; }
-} function last($ar){
-	if(!empty($ar) && is_array($ar) && ($keys = array_keys($ar))){
+	}else{ return null; }
+} function last($ar, $cur = null){
+	if(empty($ar)){// mpre("Заданный массив пуст");
+	}elseif(!is_array($ar)){// mpre("Заданный массив не является массивом");
+	}elseif($cur !== null){// mpre("Выборка следующего элемента за текущим");
+		if(!$keys = array_keys($ar)){ mpre("Ошибка составления массива ключей");
+		}elseif(is_null($key = array_search($cur, $keys))){ mpre("Ошибка нахождения текущего элемента", $cur, $keys);
+		}elseif(!is_numeric($nxt = get($keys, $key+1))){ return []; // mpre("Ошибка нахождения следующего элемента");
+		}elseif(is_null($next = get($ar, $nxt))){ mpre("Ошибка нахождения следующего значения");
+		}else{// mpre($next);
+			return $next;
+		}
+	}elseif($keys = array_keys($ar)){
 		return get($ar, array_pop($keys));
-	}else{ return false; }
+	}else{ return null; }
 }
+
 
 function tables($table = null){
 	global $conf;

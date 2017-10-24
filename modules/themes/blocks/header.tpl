@@ -146,14 +146,15 @@
 						$(document).on("<?=$themes_yandex_metrika_goal['event']?>", "<?=$themes_yandex_metrika_goal['selector']?>", function(e){
 							var counter = {};
 							// var yaCounterXXXXXX = new Ya.Metrika({id: XXXXXX})  /*eval(cnt = "window.yaCounter<?=$mtid?>")*/
-							if(!(counter = new Ya.Metrika({id:"<?=$mtid?>"}))){ console.error("Ошибка выборки счетчика метрики `"+ cnt+ "`");
+							if(!window.Ya){ console.error("Яндекс метрика `window.Ya` на сайте не установлена");
+							}else if(!(counter = new Ya.Metrika({id:"<?=$mtid?>"}))){ console.error("Ошибка выборки счетчика метрики `"+ cnt+ "`");
 							}else{// console.info("Событие "+goal.alias, counter.reachGoal(goal = "GET_FORM"));
 								counter.reachGoal(alias = "<?=$themes_yandex_metrika_goal['alias']?>", {"selector":"<?=$themes_yandex_metrika_goal['selector']?>", "event":"<?=$themes_yandex_metrika_goal['event']?>"}, function(){
-									console.info("Yandex.События.<?=$mtid?> ", alias, "Селектор:", "«<?=$themes_yandex_metrika_goal['selector']?>»", " событие:", "«<?=$themes_yandex_metrika_goal['event']?>»");
+									console.info("Событие: Яндекс.счетчик", "<?=$mtid?>", "«<?=$themes_yandex_metrika_goal['name']?>»", alias, "Селектор:", "«<?=$themes_yandex_metrika_goal['selector']?>»", " событие:", "«<?=$themes_yandex_metrika_goal['event']?>»");
 								});
 							}
 						}).one("goal", function(e){
-							console.info("Исследования:", "«<?=$themes_yandex_metrika_goal['name']?>»", "Счетчик:", "«<?=$mtid?>»", "Яндекс событие:", "«<?=$themes_yandex_metrika_goal['alias']?>»", "Селектор:", "$('<?=$themes_yandex_metrika_goal['selector']?>')", "JS событие:", "«<?=$themes_yandex_metrika_goal['event']?>»", "Количество:", $("<?=$themes_yandex_metrika_goal['selector']?>").length);
+							console.info("Исследование: Яндекс.счетчик", "<?=$mtid?>", "«<?=$themes_yandex_metrika_goal['name']?>»", "Яндекс событие:", "«<?=$themes_yandex_metrika_goal['alias']?>»", "Селектор:", "$('<?=$themes_yandex_metrika_goal['selector']?>')", "JS событие:", "«<?=$themes_yandex_metrika_goal['event']?>»", "Количество:", $("<?=$themes_yandex_metrika_goal['selector']?>").length);
 						}).ready( function(e){ setTimeout(function(){ $(script).parent().trigger("goal");}, 1000); } )
 					})(jQuery, document.currentScript)
 				</script>
@@ -278,7 +279,7 @@
 				var p = d.location.protocol == "https:" ? "https://" : "http://";
 				var u = /^.*roistat_visit=[^;]+(.*)?$/.test(d.cookie) ? "/dist/module.js" : "/api/site/1.0/"+id+"/init";
 				var js = d.createElement(s); js.async = 1; js.src = p+h+u; var js2 = d.getElementsByTagName(s)[0]; js2.parentNode.insertBefore(js, js2);
-		})(window, document, 'script', 'cloud.roistat.com', '<?=$themes_params_index["name"]?>');
+		})(window, document, 'script', 'cloud.roistat.com', "<?=$themes_params_index['name']?>");
 	</script>
 <? endif;*/ ?>
 
@@ -287,20 +288,21 @@
 <? elseif(!$THEMES_PARAMS_INDEX = rb("themes-params_index", "params_id", "index_id", "id", $themes_params['id'], $conf['themes']['index']['id'])):// mpre("Изменений стилей для данного сайта не требуется") ?>
 <? else:// mpre($THEMES_PARAMS_INDEX) ?>
 	<style>
-		<? foreach(rb($THEMES_PARAMS_INDEX, "hide", "id", 0) as $themes_params_index): ?>
+		/* <? foreach(rb($THEMES_PARAMS_INDEX, "hide", "id", 0) as $themes_params_index): ?> */ 
 			<?=$themes_params_index['selector']?> {<?=$themes_params_index['name']?>:<?=$themes_params_index['value']?>;/* content:"Код в заголовоке" */}
-		<? endforeach; ?>
+		/* <? endforeach; ?> */ 
 	</style>
 <? endif; ?>
 
 <? if(!$themes_getScript = get($conf, 'settings', 'themes_getScript')):// mpre("Яваскрипт для загрузки не указан") ?>
-<? elseif(!$themes_getScript = "{$themes_getScript}?". http_build_query($_COOKIE)): mpre("Адрес скрипта плюс данные куки") ?>
+<? elseif(!$COOKIE = array_diff_key($_COOKIE, array_flip(['roistat_phone_script_data']))): mpre("Ошибка формирования массива значений") ?>
+<? elseif(!$themes_getScript = "{$themes_getScript}?". http_build_query($COOKIE)): mpre("Адрес скрипта плюс данные куки") ?>
 <? else:// mpre() ?>
 	<script sync>
 		(function($, script){
 			$(script).parent().one("init", function(e){
 				setTimeout(function(){
-					$.post("<?=$themes_getScript?>", $.parseJSON('<?=json_encode(["COOKIE"=>$_COOKIE])?>'), function(data){
+					$.post("<?=$themes_getScript?>", $.parseJSON('<?=json_encode(["COOKIE"=>$COOKIE])?>'), function(data){
 					}, "script").done(function(data){// console.log("tracking:", data);
 					}).fail(function(error){
 						console.error("tracking:", error);
@@ -365,10 +367,12 @@
 			return $json;
 		}
 	}, $SEO_DATA_VALUES)): mpre("Ошибка формирования структуры тегов") ?>
-<? elseif(($seo_data['hide'] === "0") && !mpre("Структура метаинформация отображается так как это включено в <a href='/seo:admin/r:seo-data?&where[id]={$seo_data['id']}'>свойствах сайта</a>", $json)): mpre("Ошибка отображение структуры тегов") ?>
+<? elseif(($seo_data['hide'] === "0") && call_user_func(function($json) use($seo_data){
+		mpre("Структура метаинформация отображается так как это включено в <a href='/seo:admin/r:seo-data?&where[id]={$seo_data['id']}'>свойствах сайта</a>", $json);
+	}, $json)): mpre("Ошибка отображение структуры тегов") ?>
 <? else:// mpre($json) ?>
 	<script type="application/ld+json">
-		<?=json_encode($json)?>
+		<?=json_encode($json, JSON_UNESCAPED_UNICODE)?>
 	</script>
 <? endif; ?>
 

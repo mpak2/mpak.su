@@ -21,7 +21,7 @@
 				<? if($cat = $tpl['cat'][ $index['cat_id'] ]): ?>
 					Категория: <a href="/<?=$arg['modname']?>/cat_id:<?=$cat['id']?>"><?=$cat['name']?></a>
 				<? endif; ?>
-				<? if($index['count']): ?>
+				<? if(get($index, 'count')): ?>
 					Просмотров: <?=$index['count']?>
 				<? endif; ?>
 			</div>

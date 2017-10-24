@@ -1,4 +1,6 @@
-<? if(empty($tpl)): ?>
+<? if($tpl): mpre("Массив не задан") ?>
+<? elseif(!is_numeric($elm = (preg_match("#\d#", $conf['settings']['tinymce_name']) ?: 0))): mpre("Ошибка поиска номера визивика") ?>
+<? else: ?>
 	<script type="text/javascript" src="//www.google.com/jsapi"></script>
 	<script type="text/javascript"> google.load("jquery", "1"); </script>
 	<script type="text/javascript" src="/include/jquery/tiny_mce/jquery.tinymce.js"></script>
@@ -12,7 +14,7 @@
 
 				language : "ru",
 				convert_urls : false,
-				elements : "elm1,elm2",
+				elements : "elm<?=$elm?>",
 //				extended_valid_elements : "noindex",
 
 				theme : "advanced", // General options
@@ -44,9 +46,9 @@
 			});
 		});
 	</script>
+	<div>
+		<textarea id="elm<?=$elm?>" name="<?=$conf['settings']['tinymce_name']?>" rows="15" cols="80" style="width: 100%" class="tinymce">
+			<?=$conf['settings']['tinymce_text']?>
+		</textarea>
+	</div>
 <? endif; ?>
-<div>
-	<textarea id="elm1" name="<?=$conf['settings']['tinymce_name']?>" rows="15" cols="80" style="width: 100%" class="tinymce">
-		<?=$conf['settings']['tinymce_text']?>
-	</textarea>
-</div>
