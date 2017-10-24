@@ -387,7 +387,7 @@
 											</option>
 										<? endforeach; ?> 
 									</select>
-								<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#^text(\d*|_.+)?#iu",$name)): ?>
+								<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#(^|.+_)(text)(\d+|_.+|$)#iu",$name)): ?>
 									<?=mpwysiwyg($name, get($tpl, 'edit', $name) ?: "")?>
 								<?// elseif($tpl_espisok = get($tpl, 'espisok', $name)): ?>
 								<?// elseif(array_key_exists($name, $tpl['espisok'])): ?>
@@ -414,7 +414,7 @@
 						<span></span>
 						<span>
 							<button type="submit">Сохранить</button>
-							<button type="submit" name="_id" value="0">Добавить еще</button>
+							<button type="submit" name="_id" value="NULL">Добавить еще</button>
 						</span>
 					</div>
 				<? else: # Горизонтальный вариант таблицы ?>

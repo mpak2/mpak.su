@@ -1,6 +1,10 @@
 <? if($tpl): mpre("Массив не задан") ?>
-<? elseif(!is_numeric($elm = (preg_match("#\d#", $conf['settings']['tinymce_name']) ?: 0))): mpre("Ошибка поиска номера визивика") ?>
-<? else: ?>
+<?	else: ?>
+	<? 
+		if(!isset($conf['tpl']['tinymce_tmp_num']))
+			$conf['tpl']['tinymce_tmp_num']=0;
+		$elm = intval($conf['tpl']['tinymce_tmp_num']++);
+	?>
 	<script type="text/javascript" src="//www.google.com/jsapi"></script>
 	<script type="text/javascript"> google.load("jquery", "1"); </script>
 	<script type="text/javascript" src="/include/jquery/tiny_mce/jquery.tinymce.js"></script>
