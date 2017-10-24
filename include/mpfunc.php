@@ -1948,7 +1948,16 @@ function pre(){
 		foreach($list as $pre){
 			echo "<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend> {$pre['file']}:{$pre['line']} <b>{$pre['function']}</b> ()</legend>";
 			foreach(get($pre, 'args') as $n=>$z){
-				echo "<pre>\t\n\t"; print_r($z); echo "\n</pre>";
+				echo "<pre>\t\n\t"; 
+					if(is_array($z) AND !mp_array_is_simple($z)){						
+						foreach($z as $item){
+							print_r($item);
+							echo "\n";
+						}						
+					}else{
+						print_r($z);
+					}
+				echo "\n</pre>";
 			} if(true) echo "</fieldset>\n";
 		}
 	} return get(func_get_args(), 0);
