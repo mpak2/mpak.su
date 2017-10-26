@@ -159,6 +159,10 @@ function is_dir_empty($dir) {
 	return (count(scandir($dir)) == 2);
 }
 
+function ip(){
+	return get($_SERVER,'HTTP_X_REAL_IP')?:get($_SERVER,'REMOTE_ADDR');
+}
+
 //возвращает содержимое папки, поумолчанию рекурсивно
 function getDirContents($dir, $regexp="", $recursive=true, &$results = array()){
 	$files = scandir($dir);
