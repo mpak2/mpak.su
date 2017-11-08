@@ -44,7 +44,7 @@ if(array_key_exists("null", $_GET)){// exit(mpre("Таблица для запи
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
 		}else{ mpre($sql); }/* mpre($_inc, $_dec);*/ exit(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
-	}else{ # Правка записи и добавление новой
+	}else{// die(!mpre($_SERVER['REQUEST_URI'], $_POST)); # Правка записи и добавление новой
 		foreach($_POST as $field=>$post){
 			if(!preg_match("#_id$#ui",$field) AND preg_match("#(^|.+_)(time|last_time|reg_time|up|down)(\d+|_.+|$)#ui",$field)){
 				$_POST[$field] = strtotime($post);
@@ -55,7 +55,7 @@ if(array_key_exists("null", $_GET)){// exit(mpre("Таблица для запи
 			$_GET['id'] = get($_POST, '_id');
 			unset($_POST['_id']);
 		}
-		if(get($_GET, 'id')){// mpre("Редактирование", $_POST);
+		if(get($_GET, 'id') && !get($_POST, '_id')){ // mpre("Редактирование", $_POST);
 
 			if(!get($conf, 'settings', 'admin_history_log')){// mpre("История не включена");
 			}elseif(!$admin_history_type = fk("admin-history_type", $w = array("name"=>"Редактирование"), $w)){ mpre("Тип записи не найден {$w}");
@@ -68,7 +68,7 @@ if(array_key_exists("null", $_GET)){// exit(mpre("Таблица для запи
 			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=". ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\""); });
 			qw($sql = "UPDATE `{$_GET['r']}` SET ". implode(", ", array_values($_POST)). " WHERE id=". (int)$_GET['id']);
 			$el = rb($_GET['r'], "id", $_GET['id']);
-		}else{// mpre("Добавление", $_POST);
+		}else{// die(!mpre($_POST));// mpre("Добавление", $_POST);
 
 		
 			if($ar = array_filter($_POST, function($e){ return is_array($e); })){
@@ -92,6 +92,7 @@ if(array_key_exists("null", $_GET)){// exit(mpre("Таблица для запи
 					}
 				} $el = rb($_GET['r'], "id", $_GET['id']);
 			}else{
+				$_POST = array_diff_key($_POST, array_flip(['_id']));
 				array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\""); });
 				mpqw($sql = "INSERT INTO `{$_GET['r']}` (`". implode("`, `", array_keys($_POST)). "`) VALUES (". implode(", ", array_values($_POST)). ")", "Добавление записи в таблицу из админстраницы", function($error) use($conf){
 					if(($fields = fields($_GET['r'])) && preg_match("#Column '([\w-_]+)' cannot be null#", $error, $match)){
@@ -174,11 +175,7 @@ if(array_key_exists("null", $_GET)){// exit(mpre("Таблица для запи
 			exit(header("Location:/{$arg['modpath']}:admin/r:{$table}"));
 		}
 	}elseif(array_search($_GET['r'], $tpl['tables']) !== false){
-/*		if($conf['db']['type'] == "sqlite"){
-			$tpl['fields'] = qn("pragma table_info ('". $_GET['r']. "')", "name");
-		}else{
-			$tpl['fields'] = qn("SHOW FULL COLUMNS FROM {$_GET['r']}", "Field");
-		}*/ $tpl['fields'] = fields($_GET['r']);
+		$tpl['fields'] = fields($_GET['r']);
 		if(get($_GET, 'order')){ # Установка временной сортировки
 			$conf['settings'][substr($_GET['r'], strlen($conf['db']['prefix'])). "=>order"] = $_GET['order'];
 		}
@@ -189,7 +186,6 @@ if(array_key_exists("null", $_GET)){// exit(mpre("Таблица для запи
 		);
 		if(get($_GET, 'edit')){
 			$tpl['edit'] = rb($_GET['r'], "id", $_GET['edit']);
-//		}elseif(mpre(substr($_GET['r'], strlen($conf['db']['prefix'])). "=>ecounter")){
 		}elseif($settings = (get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])). "=>ecounter") /*?: get($conf, 'settings', "{$arg['modpath']}=>ecounter")*/)){
 			foreach(explode(",", $settings) as $ecounter){
 				if(!$TN = call_user_func(function($ecounter){ # Получение массива раздела и имени таблицы
@@ -200,7 +196,6 @@ if(array_key_exists("null", $_GET)){// exit(mpre("Таблица для запи
 				}elseif(count($TN) > 3){ mpre("Некорректный формат таблицы внешнего счетчика");
 				}elseif(!$table = ((count($TN) > 1) ? "{$conf['db']['prefix']}{$TN[0]}_{$TN[1]}" : "{$conf['db']['prefix']}{$ecounter}")){ mpre("Ошибка состалвения имени таблицы внешнего счетчика");
 				}elseif(!$FIELDS = fields($table)){ mpre("Ошибка получения полей таблицы внешнего счетчика `{$table}`");
-				//}elseif(!$fl = (strpos($ecounter, "-") ? "{$arg['modpath']}-". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}-")) : substr($_GET['r'], strlen("{$conf['db']['prefix']}")) /*"{$arg['modpath']}_". implode("_", array_slice($TN, 1))*/)){ mpre("Ошибка формировани поля таблицы");
 				}elseif(!$fl = call_user_func(function($FIELDS) {
 						if(!$current_table = $_GET["r"]){ mpre("Ошибка разбиения теккущей таблицы");
 						}elseif(!$sp = explode('_', $current_table, 3)){ mpre ("Ошибка получения слов");
@@ -218,7 +213,6 @@ if(array_key_exists("null", $_GET)){// exit(mpre("Таблица для запи
 				}
 			}
 		}
-//		mpre();
 		foreach($tpl['fields'] as $f=>$field){
 			if((count($fd = explode("-", $f)) >= 2) && get($conf, 'modules', $fd[0])){
 				if(array_search($f, explode(',', get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions"))) === false){

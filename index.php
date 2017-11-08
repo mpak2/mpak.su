@@ -47,9 +47,9 @@ if(!function_exists('mp_require_once')){
 mp_require_once("include/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
 
-cache();
+cache(); # Если кеш ранее создан сразу же вываливаем кешированное ранее содержимое;
 
-if(!$guest = ['id'=>0, "uname"=>"гость", "pass"=>"nopass", "reg_time"=>0, "last_time"=>time()]){ mpre("Ошибка создания пользователя");
+if(!$guest = ['id'=>0, "uname"=>"гость", "pass"=>"nopass", "reg_time"=>0, "last_time"=>time()]){ mpre("Ошибка установки свойств пользователя гость");
 }elseif(!$sess = array('id'=>0, 'uid'=>$guest['id'], "refer"=>0, 'last_time'=>time(), 'count'=>0, 'count_time'=>0, 'cnull'=>0, 'sess'=>($_COOKIE["sess"] ?: md5("{$_SERVER['REMOTE_ADDR']}:".microtime())), 'ref'=>mpquot(mpidn(urldecode($_SERVER['HTTP_REFERER']))), 'ip'=>mpquot($_SERVER['REMOTE_ADDR']), 'agent'=>mpquot($_SERVER['HTTP_USER_AGENT']), 'url'=>mpquot(urldecode($_SERVER['REQUEST_URI'])))){ pre("Ошибка создания сессии");
 }
 
@@ -194,29 +194,20 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 	}
 }
 
-
-if(array_key_exists('theme', $_GET)){
-	$conf['user']['sess']['theme'] = $conf['settings']['theme'] = basename($_GET['theme']);
-}elseif(get($conf, 'user', 'theme')){ # Изменяем тему, если для пользователя установлен другой шаблон
-	$conf['user']['sess']['theme'] = $conf['settings']['theme'] = $conf['user']['theme'];
-}
-
 if(!(array_key_exists("m", $_GET) ? (list($m) = array_keys($_GET['m'])) : "pages")){ mpre("Модуль не установлен");
 }elseif((!$conf['settings']['modpath'] = $modpath = ((!empty($m) && array_key_exists($m, $conf['modules'])) ? $conf['modules'][ $m ]['folder'] : "")) &0){ mpre("Модуль не определен");
 }elseif((array_key_exists("m", $_GET) ? (list($f) = array_values($_GET['m'])) : ($f = "index")) &0){ mpre("Страница не установлена");
 }elseif(!$conf['settings']['fn'] = $fn = ((!empty($f) && ($f != "index")) ? $f : "index")){ mpre("Страница не определена");
 }elseif(!$fn = $conf['settings']['fn']){ mpre("Имя файла не определенено");
-}elseif($theme = get($conf, 'settings', $w = "theme/{$modpath}:{$fn}")){// mpre("Тема {$w} {$theme}");
-	$conf['settings']['theme'] = $theme;
-}elseif($theme = get($conf, 'settings', $w = "theme/*:{$fn}")){// mpre("Тема {$w} {$theme}");
-	$conf['settings']['theme'] = $theme;
-//}elseif(mpre("theme/{$modpath}:*")){
-}elseif($theme = get($conf, 'settings', $w = "theme/{$modpath}:*")){// mpre("Тема {$w} {$theme}");
-	$conf['settings']['theme'] = $theme;
-} inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($conf["content"] = "")));
-
-if(get($conf, "settings", "themes_index")){ # Включение режима мультисайт
-	inc("modules/admin/admin_multisite.php", array("content"=>($conf["content"] = "")));
+}elseif(array_key_exists('theme', $_GET) && (!$conf['user']['sess']['theme'] = $conf['settings']['theme'] = basename($_GET['theme']))){ mpre("Ошибка установки темы из адреса");
+}elseif(get($conf, 'user', 'theme') && (!$conf['user']['sess']['theme'] = $conf['settings']['theme'] = $conf['user']['theme'])){ mpre("Ошибка установки темы из настроек пользователя");
+}elseif(($t = get($conf, 'settings', $w = "theme/{$modpath}:{$fn}")) && (!$conf['settings']['theme'] = $t)){ mpre("Ошибка установки темы по файлу и модулю `{$w}`");
+}elseif(($t = get($conf, 'settings', $w = "theme/*:{$fn}")) && (!$conf['settings']['theme'] = $t)){ mpre("Ошибка установки темы по модулю `{$w}`");
+}elseif(($t = get($conf, 'settings', $w = "theme/{$modpath}:*")) && (!$conf['settings']['theme'] = $t)){ mpre("Ошибка установки темы по файлу `{$w}`");
+}elseif(((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]) && (!$conf['settings']['theme'] = $conf['settings']["theme/*:admin"])){ mpre("Ошибка установки темы админ страницы");
+}elseif(!is_bool(inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($conf["content"] = ""))))){ mpre("Ошибка подключения файла инициализации");
+}elseif(get($conf, "settings", "themes_index") && !inc("modules/admin/admin_multisite.php", array("content"=>($conf["content"] = "")))){ mpre("Ошибка включения режима мультисайта");
+}else{
 }
 
 foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_gaccess ORDER BY sort", 'Права доступа группы к модулю', function($error) use($conf){
@@ -231,6 +222,7 @@ foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_gaccess OR
 		$conf['modules'][ $v['mid'] ]['admin_access'] = $v['admin_access'];
 	}
 }
+
 foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_uaccess ORDER BY uid", 'Права доступа пользователя к модулю', function($error) use($conf){
 	if(strpos($error, "doesn't exist")){
 		qw(mpre("ALTER TABLE {$conf['db']['prefix']}modules_uaccess RENAME {$conf['db']['prefix']}modules_index_uaccess"));
@@ -239,31 +231,27 @@ foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_uac
 	if ($conf['user']['uid'] == $v['uid'] && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false)
 		$conf['modules'][ $v['mid'] ]['admin_access'] = $v['admin_access'];
 }
-if((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]){ # Изменяем тему админ страницы
-	$conf['settings']['theme'] = $conf['settings']["theme/*:admin"];
-} if(isset($_GET['m']['sqlanaliz'])){
-	$zblocks = blocks();
-	$conf["content"] = modules($conf["content"]);
-}else{
-	$conf["content"] = modules($conf["content"]);
-	$zblocks = blocks();
-}
 
-if(($t = mpopendir($f = "themes/{$conf['settings']['theme']}/". (get($_GET, 'index') ?: (get($conf, 'settings', 'index') ?: "index")) . ".html")) || array_key_exists('null', $_GET)){
-	if(get($conf, 'settings', 'theme_exec')){
-		ob_start(); inc($f); $tc = ob_get_contents(); ob_clean();
-	}else{
-		$tc = file_get_contents($t);
-	}
-}else{ die(pre(__LINE__, "Шаблон {$f} не найден")); }
 
-if(!array_key_exists('null', $_GET)){
-	$conf["content"] = str_replace('<!-- [modules] -->', $conf["content"], $tc);
-} $conf["content"] = strtr($conf["content"], (array)$zblocks);
+if(!$zblocks = call_user_func(function() use(&$conf){
+		if(isset($_GET['m']['sqlanaliz'])){
+			$zblocks = blocks();
+			$conf["content"] = modules($conf["content"]);
+		}else{
+			$conf["content"] = modules($conf["content"]);
+			$zblocks = blocks();
+		} return $zblocks;
+	})){ mpre("Ошибка установки порядка следования расчетов блоков");
+}elseif(!$ind = (get($_GET, 'index') ?: (get($conf, 'settings', 'index') ?: "index"))){ mpre("Ошибка определения имени главного файла");
+}elseif(!$t = mpopendir($f = "themes/{$conf['settings']['theme']}/{$ind}.html")){
+}elseif(array_key_exists('null', $_GET)){// mpre("Аякс запросу шаблон не обязателен");
+}elseif(!get($conf, 'settings', 'theme_exec') && (!$tc = file_get_contents($t))){ mpre("Ошибка получения содержимого файла шаблона");
+}else{ ob_start(); inc($f); $tc = ob_get_contents(); ob_clean(); }
 
-$conf['settings']['microtime'] = substr(microtime(true)-$conf['settings']['microtime'], 0, 8);
-
-$conf["content"] = array_key_exists("null", $_GET) ? $conf["content"] : strtr($conf["content"], mpzam($conf['settings'], "settings", "<!-- [", "] -->"));
-
-cache($conf["content"]);
-echo $conf["content"];
+if(array_key_exists('null', $_GET)){ mpre("Аякс запрос");	
+}elseif(!$conf["content"] = str_replace('<!-- [modules] -->', $conf["content"], $tc)){ mpre("Ошибка замены содержимого модуля");
+}elseif(!$conf["content"] = strtr($conf["content"], (array)$zblocks)){ mpre("Ошибка установки содержимоого блоков");
+}elseif(!$conf['settings']['microtime'] = substr(microtime(true)-$conf['settings']['microtime'], 0, 8)){ mpre("Ошибка расчета времени генерирования страницы");
+}elseif(!$conf["content"] = array_key_exists("null", $_GET) ? $conf["content"] : strtr($conf["content"], mpzam($conf['settings'], "settings", "<!-- [", "] -->"))){ mpre("Ошибка установки переменных в текст");
+}elseif(!cache($conf["content"]) &&0){ mpre("Ошибка кеширования содержимого страницы");
+}else{ echo $conf["content"]; }

@@ -728,7 +728,7 @@ if (!function_exists('modules')){
 if(!function_exists('blocks')){
 	function blocks($bid = null){# Загружаем список блоков и прав доступа
 		global $conf, $arg;
-		$result = "";
+		$result = [];
 		if(!$conf['db']['info'] = "Выборка шаблонов блоков"){ pre("Установка описания запросам");
 		}elseif(!$BLOCKS = mpql(mpqw($sql = "SELECT *, `admin_access` as admin_access FROM {$conf['db']['prefix']}blocks_index WHERE hide=0". ($bid ? " AND id=". (int)$bid : " ORDER BY sort"), "Запрос списка блоков", function($error) use($conf){
 				if(strpos($error, "Unknown column 'admin_access'")){
@@ -785,16 +785,16 @@ if(!function_exists('blocks')){
 						'<!-- [block:title] -->'=>$block['name']
 					));
 					
-					$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$block['name'], "{fn}"=>$arg['fn'], "{id}"=>$block['id']);
-					$result["<!-- [block:{$block['id']}] -->"] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
-					if(get($block, 'alias') && ($n = "<!-- [block:{$block['alias']}] -->")){ # Подключение блока по его алиасу
-						$result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"];
-					} if($n = "<!-- [blocks:". $block['reg_id'] . "] -->"){ # Все блоки региона
-						$result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"];
-					} if(array_key_exists($block['reg_id'], $BLOCKS_REG) && array_key_exists($n = "<!-- [blocks:". $BLOCKS_REG[ $block['reg_id'] ]['reg_id']. "] -->", $result)){ # Блоки вышестоящего региона
-						$result[$n] .= strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
-					}else{
-						$result[$n] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
+					if(!$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$block['name'], "{fn}"=>$arg['fn'], "{id}"=>$block['id'])){ print_r("Ошибка создания массива замены");
+					}elseif(($blocks_start = get($conf, 'settings', 'blocks_start')) &&0){ print_r("Начальна строка замены не найдена");
+					}elseif(($blocks_stop = get($conf, 'settings', 'blocks_stop')) &&0){ print_r("Конечная строка замены не установлена");
+					}elseif(!$key = "<!-- [block:{$block['id']}] -->"){ print_r("Ошибка вычисления троки замены блока");
+					}elseif(!$block_text = "{$blocks_start}{$cb}{$blocks_stop}"){// print_r("Ошибка расчета содержимого блока");
+					}elseif(!$result[$key] = strtr($block_text, $section)){ print_r("Ошибка установки содержимого блока");
+					}elseif(get($block, 'alias') && ($n = "<!-- [block:{$block['alias']}] -->") && (!$result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"])){ # Ошибка установки содержимого по алиасу
+					}elseif(($n = "<!-- [blocks:". $block['reg_id'] . "] -->") && (!$result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"])){ mpre("Ошибка добавления блока по номеру группы");
+					}else{// mpre($section);
+						$result[$key] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
 					}
 				}
 			} return $result;
@@ -981,134 +981,11 @@ function normalize_files_array($files = []) {
 	}
 	return $normalized_array;
 }
-function mpsmtp($to, $subj="", $text="", $from = null, $files = array(), $login = null){ # Отправка письмо по SMTP протоколу
-	global $conf;
-	$old_chdir = realpath('.');
-	$emailRegex = "[\w_\-\.]+@[\w_\-\.]+\.\w+";	
-	if(is_array($first=func_get_args()[0])){		
-		$defaults=[
-			'to'=>'required',
-			'subj'=>'',
-			'text'=>'',
-			'from'=>null,
-			'files'=>array(),
-			'file_size_limit'=>10,//MB
-			'file_accept'=>["jpg","jpeg","gif","png","doc","docx","xls","xlsx","pdf","txt","csv"],
-			'file_accept_add'=>[],
-			'login'=>null
-		];
-		foreach($defaults as $keyParam => $valueParam){
-			${$keyParam} = get($first,$keyParam)?:$valueParam;
-			if(${$keyParam}==='required'){
-				ob_clean();
-				die("mpsmtp:{$keyParam} - is required");
-			}
-		}
-		$file_accept = array_merge($file_accept,$file_accept_add);
-	}else{
-		$file_accept = [];
-		$file_size_limit = 10;
-	}
-	
-	$mail = new PHPMailer;
-	$Providers = array(
-		'smtp.mail.ru'=>array('port'=>465,'host'=>'mail.ru'),
-		'smtp.yandex.ru'=>array('port'=>465,'host'=>'yandex.ru'),
-		'smtp.gmail.com'=>array('port'=>465,'host'=>'gmail.com'),
-	);	
-	$param = explode("@", $login ? $login : $conf['settings']['smtp']);
-	$host = explode(":", array_pop($param));
-	$auth = explode(":", implode("@", $param));
-//	mpre($param, $host, $auth);
-	if(!$from OR !($mail_match=preg_match("#{$emailRegex}#iu",trim($from)))){
-		if (filter_var($auth[0], FILTER_VALIDATE_EMAIL)) {
-			//берем из логина в случае если это емайл
-			$from_ = $auth[0];
-		}else if(isset($Providers[$host[0]])){
-			//берем из уже известных нам провайдеров
-			$from_ = $auth[0] . "@" . $Providers[$host[0]]['host'];
-		}else{
-			//пытаемся угадать сами
-			$from_ = $auth[0] . "@" . trim(preg_replace("#smtp\.#iu","",$host[0]));
-		}
-		if(!$mail_match){
-			$from = "{$from} <{$from_}>";
-		}else{
-			$from = $from_;
-		}
-	}	
-	$mail->isSMTP();
-	$mail->SMTPAuth = true;
-	$mail->Host = $host[0];
-	$mail->Username = $auth[0];
-	$mail->Password = $auth[1];
-	$mail->isHTML(mp_is_html($text));
-	$mail->setLanguage('ru'); 
-	$mail->CharSet = 'UTF-8';
-	if(isset($Providers[$host[0]])){
-		$mail->SMTPSecure = 'ssl';
-		$mail->Port	= $Providers[$host[0]]['port'];
-	}else{
-		if(isset($host[1]) and in_array(intval(trim($host[1])),array(465,587))){
-			$mail->SMTPSecure = 'ssl'; 
-			$mail->Port = intval(trim($host[1]));
-		}else{
-			$mail->SMTPSecure = 'tls';
-			$mail->Port = isset($host[1]) ? intval(trim($host[1])) : 25;
-		}
-	}	
-	if(preg_match("#(.+)\s+?\<($emailRegex)\>#iu",trim($from),$from_))
-		$mail->setFrom($from_[2], $from_[1]);
-	else
-		$mail->setFrom($from);
-	foreach(explode(',',$to) as $recipient){
-		if(preg_match("#(.+)\s+?\<($emailRegex)\>#iu",trim($recipient),$recipient_)){
-			$mail->addAddress($recipient_[2], $recipient_[1]);
-		}else{
-			$mail->addAddress($recipient);
-		}
-	}	
-	if($files===TRUE){
-		foreach(normalize_files_array() as $key => $input){
-			foreach($input as $i_file => $file){
-				if(
-					!$file['error']
-						AND
-					$file['size']/1024/1024 <= $file_size_limit
-						AND
-					(!$file_accept OR in_array(mb_strtolower(preg_replace("#^.*\.([^\.]+)$#iu","$1",$file['name'])),$file_accept))
-				){
-					$mail->addAttachment($file['tmp_name'],"{$key}_{$i_file}_{$file['name']}");
-				}
-			}
-		}	
-	}else{
-		if(is_string($files))
-			$files = array($files);
-		foreach($files as $key => $filepath){
-			if(file_exists($filepath)){
-				if(is_int($key)){
-					$mail->addAttachment($filepath);
-				}else{
-					$mail->addAttachment($filepath,$key);
-				}
-			}
-		}
-	}
-	$mail->Subject = $subj;
-	$mail->Body    = $text;
-	if(!$mail->send()) {
-		$return = 'Mailer Error: ' . $mail->ErrorInfo;
-	} else {
-		$return = 0;
-	} 
-	chdir($old_chdir);
-	return $return;
-}
 
 function mpue($name){
 	return str_replace('%', '%25', trim($name));
 } 
+
 function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = false){
 	global $conf;
 
@@ -1482,29 +1359,139 @@ function mpwr($tn, $get = null, $prefix = null){
 		}
 	} return $where;
 }
-/*function mpwr($tn, $get = array()){
+
+function mpsmtp($to, $subj="", $text="", $from = null, $files = array(), $login = null){ # Отправка письмо по SMTP протоколу
 	global $conf;
-	$where = ' WHERE 1=1';
-	$f = mpqn(mpqw("DESC {$tn}"), 'Field');
-	foreach((array)$get ?: $_GET as $k=>$v){
-		$n = array_pop(explode('.', $k));
-		if((substr($k, 0, 2) == '!') && ($f[substr($k, 2)] || $f[$n])){
-			$where .= " AND ". mpquot(substr($k, 2)). "<>\"". mpquot($v). "\"";
-		}elseif(is_numeric($v) && (substr($k, 0, 1) == '+') && ($f[substr($k, 1)] || $f[$n])){
-			$where .= " AND ". mpquot(substr($k, 1)). ">". (int)$v;
-		}elseif(is_numeric($v) && (substr($k, 0, 1) == '-') && ($f[substr($k, 1)] || $f[$n])){
-			$where .= " AND ". mpquot(substr($k, 1)). "<". (int)$v;
-		}elseif(is_numeric($v) && $f[$n]){
-			$where .= " AND ". mpquot($k). "=". (int)$v;
+	$old_chdir = realpath('.');
+	$emailRegex = "[\w_\-\.]+@[\w_\-\.]+\.\w+";	
+	if(is_array($first=func_get_args()[0])){		
+		$defaults=[
+			'to'=>'required',
+			'subj'=>'',
+			'text'=>'',
+			'from'=>null,
+			'files'=>array(),
+			'file_size_limit'=>10,//MB
+			'file_accept'=>["jpg","jpeg","gif","png","doc","docx","xls","xlsx","pdf","txt","csv"],
+			'file_accept_add'=>[],
+			'login'=>null
+		];
+		foreach($defaults as $keyParam => $valueParam){
+			${$keyParam} = get($first,$keyParam)?:$valueParam;
+			if(${$keyParam}==='required'){
+				ob_clean();
+				die("mpsmtp:{$keyParam} - is required");
+			}
 		}
-	} return $where;
-}*/
-//mpmail($to = '', $subj='Проверка', $text = 'Проверка', $from = ''){
+		$file_accept = array_merge($file_accept,$file_accept_add);
+	}else{
+		$file_accept = [];
+		$file_size_limit = 10;
+	}
+	
+	$mail = new PHPMailer;
+	$Providers = array(
+		'smtp.mail.ru'=>array('port'=>465,'host'=>'mail.ru'),
+		'smtp.yandex.ru'=>array('port'=>465,'host'=>'yandex.ru'),
+		'smtp.gmail.com'=>array('port'=>465,'host'=>'gmail.com'),
+	);	
+	$param = explode("@", $login ? $login : $conf['settings']['smtp']);
+	$host = explode(":", array_pop($param));
+	$auth = explode(":", implode("@", $param));
+//	mpre($param, $host, $auth);
+	if(!$from OR !($mail_match=preg_match("#{$emailRegex}#iu",trim($from)))){
+		if (filter_var($auth[0], FILTER_VALIDATE_EMAIL)) {
+			//берем из логина в случае если это емайл
+			$from_ = $auth[0];
+		}else if(isset($Providers[$host[0]])){
+			//берем из уже известных нам провайдеров
+			$from_ = $auth[0] . "@" . $Providers[$host[0]]['host'];
+		}else{
+			//пытаемся угадать сами
+			$from_ = $auth[0] . "@" . trim(preg_replace("#smtp\.#iu","",$host[0]));
+		}
+		if(!$mail_match){
+			$from = "{$from} <{$from_}>";
+		}else{
+			$from = $from_;
+		}
+	}//	mpre($Providers[$host[0]], $from, $from_);
+	$mail->isSMTP();
+	$mail->SMTPAuth = true;
+	$mail->Host = $host[0];
+	$mail->Username = $auth[0];
+	$mail->Password = $auth[1];
+	$mail->isHTML(mp_is_html($text));
+	$mail->setLanguage('ru'); 
+	$mail->CharSet = 'UTF-8';
+	if(isset($Providers[$host[0]])){
+		$mail->SMTPSecure = 'ssl';
+		$mail->Port	= $Providers[$host[0]]['port'];
+	}else{
+		if(isset($host[1]) and in_array(intval(trim($host[1])),array(465,587))){
+			$mail->SMTPSecure = 'ssl';
+			$mail->Port = intval(trim($host[1]));
+		}else{
+			$mail->SMTPSecure = 'tls';
+			$mail->Port = isset($host[1]) ? intval(trim($host[1])) : 25;
+		}
+	}	
+	if(preg_match("#(.+)\s+?\<($emailRegex)\>#iu",trim($from),$from_))
+		$mail->setFrom($from_[2], $from_[1]);
+	else
+		$mail->setFrom($from);
+	foreach(explode(',',$to) as $recipient){
+		if(preg_match("#(.+)\s+?\<($emailRegex)\>#iu",trim($recipient),$recipient_)){
+			$mail->addAddress($recipient_[2], $recipient_[1]);
+		}else{
+			$mail->addAddress($recipient);
+		}
+	}	
+	if($files===TRUE){
+		foreach(normalize_files_array() as $key => $input){
+			foreach($input as $i_file => $file){
+				if(
+					!$file['error']
+						AND
+					$file['size']/1024/1024 <= $file_size_limit
+						AND
+					(!$file_accept OR in_array(mb_strtolower(preg_replace("#^.*\.([^\.]+)$#iu","$1",$file['name'])),$file_accept))
+				){
+					$mail->addAttachment($file['tmp_name'],"{$key}_{$i_file}_{$file['name']}");
+				}
+			}
+		}	
+	}else{
+		if(is_string($files))
+			$files = array($files);
+		foreach($files as $key => $filepath){
+			if(file_exists($filepath)){
+				if(is_int($key)){
+					$mail->addAttachment($filepath);
+				}else{
+					$mail->addAttachment($filepath,$key);
+				}
+			}
+		}
+	}
+	$mail->Subject = $subj;
+	$mail->Body    = $text;
+	if(!$mail->send()) {
+		$return = 'Mailer Error: ' . $mail->ErrorInfo;
+	} else {
+		$return = 0;
+	} 
+	chdir($old_chdir);
+	return $return;
+}
+
+
+# Отправка информации на почту Параметры устанавливаются либо параметром при вызове функции, либо берутся из настроек системы
 function mpmail(){
 	global $conf;
 	$fArgs = func_get_args();
 	if($conf['settings']['smtp'] OR isset($func_get_args[5])){		
-		return call_user_func_array('mpsmtp',$fArgs);
+		return call_user_func_array('mpsmtp', $fArgs);
 	} 
 	mpevent("Отправка сообщения", $fArgs[0], $conf['user']['uid'], debug_backtrace());
 	if(empty($to)){ return false; }else{
@@ -1514,20 +1501,6 @@ function mpmail(){
 		return true;
 	}
 }
-/*function spisok($sql, $str_len = null, $left_pos = 0){
-	global $conf;
-	$spisok = array();
-	if($result = mpqw($sql)){
-		while($line = $result->fetch()){
-	//		list($id, $name) = $line;
-			$name = array_pop($line);
-			$id = array_pop($line);
-	//		pre($line); pre($id); pre($name);
-			if ($str_len) $name = substr($name, $left_pos , $str_len).(strlen($name) > $str_len ? '...' : '');
-			$spisok[$id] = $name;
-		}
-	} return (array)$spisok;
-}*/
 function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf;
 	if($prefix === null){
@@ -1731,13 +1704,16 @@ function mpreaddir($file_name, $merge=0){
 	return $itog;
 }
 function mpopendir($file_name, $merge=1){
+//	mpre(__DIR__);
 	global $conf;
-	$prefix = $merge ? explode('::', get($conf, "db", "open_basedir")) : array('./');
-	if($merge < 0) krsort($prefix);
-	foreach($prefix as $k=>$v){
-		$file = strtr(/*mpre*/("$v/$file_name"), array('/modules/..'=>''));
-		if(file_exists($file)){
-			return $file; break;
+	if(!$prefix = $merge ? explode('::', get($conf, "db", "open_basedir")) : array('./')){ mpre("Ошибка нахождения префиксов настройки системы");
+	}elseif(($merge < 0) && krsort($prefix)){ mpre("Ошибка сортировки префиксов");
+	}else{
+		foreach($prefix as $k=>$v){
+			$file = strtr(/*mpre*/("$v/$file_name"), array('/modules/..'=>''));
+			if(file_exists($file)){
+				return $file; break;
+			}
 		}
 	}
 }
@@ -1792,7 +1768,7 @@ function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 		$func_get_args[0] = mpqw($sql);
 		$r = call_user_func_array('mpqn', $func_get_args);
 		if(($mt = microtime(true) - $microtime) > .3){
-			mpevent("Кеширование нумерованного списка", $sql);
+//			mpevent("Кеширование нумерованного списка", $sql);
 			mpmc($key, $r);
 		}
 	} return $r;
@@ -1945,19 +1921,18 @@ function pre(){
 	}elseif(!is_numeric($func = ('mpre' == get($debug_backtrace, 0, 'function') ? 0 : 1))){ mpre("Ошибка получения аргументов функции");
 	}elseif(!$list[] = get($debug_backtrace, $func)){ print_r("Ошибка получения фукнции инициатора pre[{$num}]");
 	}else{
-		foreach($list as $pre){
-			echo "<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend> {$pre['file']}:{$pre['line']} <b>{$pre['function']}</b> ()</legend>";
+		foreach($list as $pre){// echo "<pre>"; print_r($pre); echo "</pre>";
+			echo "<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend> ". get($pre, 'file'). ":". get($pre, 'line'). " <b>{$pre['function']}</b> ()</legend>";
 			foreach(get($pre, 'args') as $n=>$z){
 				echo "<pre>\t\n\t"; print_r($z); echo "\n</pre>";
-			} if(true) echo "</fieldset>\n";
+			} echo "</fieldset>\n";
 		}
 	} return get(func_get_args(), 0);
-} function mpre(){
+} function mpre(){// print_r(func_get_args());
 	global $conf, $arg;
 	if((!$gid = get($conf, 'user', 'gid')) || (!array_search("Администратор", $gid))){// print_r("Отображение доступно только администраторам");
 	}else{// mpre(debug_backtrace());
 		return call_user_func_array("pre", func_get_args());
-//		return get(func_get_args(), 0);
 	}
 }
 function mpqwt($result){
@@ -1993,7 +1968,8 @@ function mpquot($data){
 	$data = str_replace("\\", "\\\\", $data); 
 	$data = str_replace("\x00", "\\x00", $data); 
 	$data = str_replace("\x1a", "\\x1a", $data); 
-	if($conf['db']['type'] == 'sqlite'){
+	if(!$data){// mpre("Содержимое не задано");
+	}elseif($conf['db']['type'] == 'sqlite'){
 		$data = strtr($data, ["'"=>"''", '"'=>'""']);
 	}else{
 		$data = str_replace("'", "\'", $data); 

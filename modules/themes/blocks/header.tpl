@@ -251,7 +251,7 @@
 		(function($, script){
 			$(script).parent().one("init", function(e){
 				$(document).data("themes_scrolltop", 1);
-				$("<button"+">").addClass("themes_scrolltop").text("<?=$themes_scrolltop?>").css({"position":"fixed", "top":"90%", "right":"3%", "display":"none"}).appendTo("body");
+				$("<button"+">").addClass("themes_scrolltop").text("<?=$themes_scrolltop?>").css({"position":"fixed", "top":"80%", "right":"3%", "display":"none"}).appendTo("body");
 				$(document).on("click", "button.themes_scrolltop", function(e){
 					$(e.delegateTarget).scrollTop(0);
 				}).on("scroll", function(e){
@@ -353,7 +353,7 @@
 				if(!$_SEO_DATA_TAG = rb($SEO_DATA_TAG, 'data_tag_id', 'id')){
 				}elseif(!$_SEO_DATA_TAG = array_map(function($_DATA_TAG) use($SEO_DATA_VALUES){
 						if(!$tags = array_column($_DATA_TAG, 'alias', 'id')){ mpre("Ошибка формирования списка тегов");
-						}elseif(!$default = array_filter(array_column($_DATA_TAG, 'value', 'id'))){ mpre("Ошибка выборки значений по умолчанию");
+						}elseif(!is_array($default = array_filter(array_column($_DATA_TAG, 'value', 'id')))){ mpre("Ошибка выборки значений по умолчанию");
 						}elseif(!$values = array_replace($tags, array_column($SEO_DATA_VALUES, 'name', 'data_tag_id'))){ mpre("Ошибка формирования списка значений");
 						}elseif(!$value = array_replace($default, array_filter($values))){ mpre("Ошибка убирания лишних элементов");
 						}elseif(!$rep = array_combine(array_intersect_key($tags, $value), array_intersect_key($value, $tags))){ mpre("Ошибка формирования json массива");

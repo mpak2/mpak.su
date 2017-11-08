@@ -95,7 +95,7 @@
 
 div.table {display:table; width:100%;}
 div.table > div {display:table-row;}
-div.table > div > span {display:table-cell; vertical-align:top; min-width: 50px; max-width: 200px; /*white-space: nowrap;overflow: hidden;text-overflow: ellipsis;*/}
+div.table > div > span {display:table-cell; vertical-align:top; min-width: 50px; /*max-width: 200px; white-space: nowrap;overflow: hidden;text-overflow: ellipsis;*/}
 div.table > div:not(.th) > span {line-height: 18px;}
 div.table > div.th >span {background-color:#aaa; color:white; font-weight:bold; border:1px solid #ddd;}
 

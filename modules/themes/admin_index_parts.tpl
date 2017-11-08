@@ -1,13 +1,6 @@
 <div class="parts">
 	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/default.min.css">
 	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/highlight.min.js"></script>
-	<script>
-/*		$(document).ready(function() {
-			$('pre').each(function(i, block) {
-				hljs.highlightBlock(block);
-			});
-		});*/
-	</script>
 	<style>
 		.parts pre { -moz-tab-size:4; -o-tab-size:4; tab-size:4; }
 	</style>
@@ -16,11 +9,15 @@
 &lt;script sync&gt;
 	(function($, script){
 		$(script).parent().one("init", function(e){
-			var forms = $(e.delegateTarget).find("form").attr("target", "response_"+(timeStamp = e.timeStamp));
-			$("<"+"iframe>").attr("name", "response_"+timeStamp).appendTo(forms).load(function(){
+			$(FORMS = $(e.currentTarget).is("form") ? e.currentTarget : $(e.currentTarget).find("form")).on("submit", function(e){
+				alert("Спасибо. Ваша заявка отправлена.");
+			}).attr("target", "response_"+(timeStamp = e.timeStamp));
+
+			$("<"+"iframe>").attr("name", "response_"+timeStamp).appendTo(FORMS).load(function(){
 				var response = $(this).contents().find("body").html();
 				if(json = $.parseJSON(response)){
 					console.log("json:", json);
+					$(FORMS).trigger('mysubmit');
 				}else{ alert(response); }
 			}).hide();
 		}).ready(function(e){ $(script).parent().trigger("init"); })

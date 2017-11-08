@@ -83,7 +83,7 @@
 							var CHECKBOX = $(del.delegateTarget).find("[line_id] input[type=checkbox]:checked");
 							$(del.currentTarget).parents(".th").find("input[type=checkbox]").prop("checked", false);
 							$(CHECKBOX).each(function(n, checkbox){
-								$(checkbox).parents("[line_id]").find("a.del").trigger("click", true);
+								$(checkbox).parents("[line_id]").find(".control a.del").trigger("click", true);
 							})
 							console.log("CHECKBOX:", CHECKBOX);
 						}else{
@@ -641,7 +641,7 @@
 													</option>
 												<? endforeach; ?>
 											</select>
-											<? if((count($SELECT) > 1000) && !mpre("Огромный список ". count($SELECT). " эл. <b>". substr($name, 0, -3). "</b> <a target='blank' href='/settings:admin/r:mp_settings/?&where[modpath]={$arg['modpath']}&where[name]={$arg['modpath']}_tpl_exceptions'>исключить</a>")); ?>
+											<? if((count($SELECT) > 1000) && !mpre("Огромный список ". count($SELECT). " эл. <b>". substr($name, 0, -3). "</b> <a target='blank' href='/settings:admin/r:mp_settings/?&where[modpath]={$arg['modpath']}&where[name]={$arg['modpath']}_tpl_exceptions&need[value]={$name}'>исключить</a>")); ?>
 										<? endif; ?>
 									<?// elseif(get($tpl, 'espisok', $name)): ?>
 									<? elseif(get($tpl, 'espisok') && array_key_exists($name, $tpl['espisok'])): ?>
