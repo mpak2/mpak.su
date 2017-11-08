@@ -373,8 +373,8 @@
 											<option value="<?=$mid['id']?>" <?=((get($tpl, 'edit', $name) == $modules['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $modules['id'])) ? "selected" : "")?>><?=$modules['name']?></option>
 										<? endforeach; ?>
 									</select>
-								<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#(^|.+_)(time|last_time|reg_time|up|down)(\d+|_.+|$)#ui",$name,$match)): # Поле времени ?>
-									<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", get($tpl, 'edit', get($match,2)) ?: time())?>" placeholder="<?=($tpl['etitle'][get($match,2)] ?: $name)?>">
+								<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#(^|.+_)(time|last_time|reg_time|up|down)(\d+|_.+|$)#ui",$name,$match)): # Поле времени ?>									
+									<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", get($tpl, 'edit', $name) ?: time())?>" placeholder="<?=($tpl['etitle'][get($match,2)] ?: $name)?>">
 								<? elseif((substr($name, -3) == "_id") && (false === array_search(substr($name, 0, -3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
 									<select name="<?=$name?>" style="width:100%;">
 										<? if(get($tpl, 'edit', $name) && !rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($name, 0, -3), "id", $tpl['edit'][$name])): ?> 
@@ -626,7 +626,7 @@
 											<? endforeach; ?>
 										</select>
 									<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#(^|.+_)(time|last_time|reg_time|up|down)(\d+|_.+|$)#ui",$name,$match)): # Поле времени ?>
-										<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", (get($_GET, 'edit') ? rb($_GET['r'], "id", $_GET['edit'], get($match,2)) : time()))?>" placeholder="<?=(get($tpl, 'etitle', get($match,2)) ?: $name)?>">
+										<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", (get($_GET, 'edit') ? rb($_GET['r'], "id", $_GET['edit'], $name) : time()))?>" placeholder="<?=(get($tpl, 'etitle', get($match,2)) ?: $name)?>">
 									<? elseif((substr($name, -3) == "_id") && (false === array_search(substr($name, 0, strlen($name)-3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
 										<? if(!is_array($SELECT = rb("{$arg['modpath']}-". substr($name, 0, -3)))): mpre("Ошибка выборки списка для отображения") ?>
 										<? else:// mpre(count($SELECT)) ?>

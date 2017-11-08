@@ -159,6 +159,10 @@ function is_dir_empty($dir) {
 	return (count(scandir($dir)) == 2);
 }
 
+function ip(){
+	return get($_SERVER,'HTTP_X_REAL_IP')?:get($_SERVER,'REMOTE_ADDR');
+}
+
 //возвращает содержимое папки, поумолчанию рекурсивно
 function getDirContents($dir, $regexp="", $recursive=true, &$results = array()){
 	$files = scandir($dir);
@@ -1924,8 +1928,17 @@ function pre(){
 		foreach($list as $pre){// echo "<pre>"; print_r($pre); echo "</pre>";
 			echo "<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend> ". get($pre, 'file'). ":". get($pre, 'line'). " <b>{$pre['function']}</b> ()</legend>";
 			foreach(get($pre, 'args') as $n=>$z){
-				echo "<pre>\t\n\t"; print_r($z); echo "\n</pre>";
-			} echo "</fieldset>\n";
+				echo "<pre>\t\n\t"; 
+					if(is_array($z) AND !mp_array_is_simple($z)){						
+						foreach($z as $item){
+							print_r($item);
+							echo "\n";
+						}						
+					}else{
+						print_r($z);
+					}
+				echo "\n</pre>";
+			} if(true) echo "</fieldset>\n";
 		}
 	} return get(func_get_args(), 0);
 } function mpre(){// print_r(func_get_args());
