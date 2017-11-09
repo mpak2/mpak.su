@@ -1,6 +1,6 @@
 <?
 
-/*// Подключаем консоль
+// Подключаем консоль
 if(!$DIR = explode("/", __DIR__)){ print_r("Ошибка определения текущей директории");
 }elseif(!$offset = array_search($d = "xn--90aomikyxn--p1ai", $DIR)){ print_r("Директория с проектом не найдена `{$d}`"); print_r($DIR);
 }elseif(!$folder = implode("/", array_slice($DIR, 0, $offset+1))){ print_r("Ошибка выборка директории");
@@ -23,8 +23,8 @@ if(!$DIR = explode("/", __DIR__)){ print_r("Ошибка определения 
 	}else{ mpre($telegram_bot);
 	}
 }else{ mpre($cmd);}
-*/
 
+/*
 if(!empty($conf)){ mpre("Жираф уже подключен");
 }elseif(isset($argv)){ print_r("Запускаем не из консоли", $argv);
 }elseif(!chdir($dir = "/var/www/html")){ print_r("Ошибка установки корневой директории");
@@ -40,4 +40,4 @@ if(!empty($conf)){ mpre("Жираф уже подключен");
 
 //	unset($conf['db']['pass']); $conf['db']['sql'] = array();
 }
-
+*/
