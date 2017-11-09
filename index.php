@@ -11,6 +11,8 @@
 // ----------------------------------------------------------------------
 
 ini_set('display_errors', 1); error_reporting(E_ALL /*& ~E_NOTICE & ~E_STRICT*/);
+if(function_exists("mb_internal_encoding"))
+	mb_internal_encoding("UTF-8");
 date_default_timezone_set('Europe/Moscow');
 header('Content-Type: text/html; charset=utf-8');
 header("Cache-Control:no-cache, must-revalidate;");
@@ -29,12 +31,6 @@ if(strpos(__DIR__, "phar://") === 0){ # Файл index.php внутри phar а�
 	}
 }
 
-$conf['settings'] = array(
-	'http_host' => strtolower(function_exists("idn_to_utf8") ? idn_to_utf8($_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST']),
-	'access_array' => array('0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ'),
-	'microtime' => microtime(true),
-);
-
 if(!function_exists('mp_require_once')){
 	function mp_require_once($link){
 		global $conf, $arg, $tpl;
@@ -47,25 +43,50 @@ if(!function_exists('mp_require_once')){
 mp_require_once("include/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
 
-cache(); # Если кеш ранее создан сразу же вываливаем кешированное ранее содержимое;
+if($argv and count($argv)>1){
+	chdir( __DIR__ );
+	$conf['user']['gid'] = array(1=>"Администратор");
+	conn();
+	array_shift($argv);//выкидвыаем путь к файлу
+	$mode = explode(":",array_shift($argv));
+	if(!isset($mode[1])) $mode[1]='index'; //index
+	$arg =[
+		'modpath' => $mode[0],
+		'modname' => $mode[0],
+		'fn' => $mode[1],
+		'fe' => null,
+		'admin_access' => 5
+	];
+	$mode = "modules/".implode("/",$mode);//собираем путь к модулю и 
+	//Get параметры )))
+	foreach($argv as $k=>$item){
+		$item = explode(":",$item);
+		if(is_numeric($item[0]) AND !isset($item[1])){
+			$_GET['id'] = $item[0];
+		}else if(count($item)==2){
+			$_GET[$item[0]] = $item[1];
+		}
+		$_REQUEST = $_GET;
+	}
+	mp_require_once($mode,['arg'=>$arg]);
+	exit();
+}
 
-if(!$guest = ['id'=>0, "uname"=>"гость", "pass"=>"nopass", "reg_time"=>0, "last_time"=>time()]){ mpre("Ошибка установки свойств пользователя гость");
+$conf['settings'] = array(
+	'http_host' => strtolower(function_exists("idn_to_utf8") ? idn_to_utf8($_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST']),
+	'access_array' => array('0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ'),
+	'microtime' => microtime(true),
+);
+
+cache();
+
+if(!$guest = ['id'=>0, "uname"=>"гость", "pass"=>"nopass", "reg_time"=>0, "last_time"=>time()]){ mpre("Ошибка создания пользователя");
 }elseif(!$sess = array('id'=>0, 'uid'=>$guest['id'], "refer"=>0, 'last_time'=>time(), 'count'=>0, 'count_time'=>0, 'cnull'=>0, 'sess'=>($_COOKIE["sess"] ?: md5("{$_SERVER['REMOTE_ADDR']}:".microtime())), 'ref'=>mpquot(mpidn(urldecode($_SERVER['HTTP_REFERER']))), 'ip'=>mpquot($_SERVER['REMOTE_ADDR']), 'agent'=>mpquot($_SERVER['HTTP_USER_AGENT']), 'url'=>mpquot(urldecode($_SERVER['REQUEST_URI'])))){ pre("Ошибка создания сессии");
 }
 
-try{
-	if($conf['db']['type'] == "sqlite"){
-		$conf['db']['conn'] = new PDO("{$conf['db']['type']}:". mpopendir($conf['db']['name']));
-		$conf['db']['conn']->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-		$conf['db']['conn']->exec('PRAGMA foreign_keys=ON');
-	}else{
-		ini_set("default_socket_timeout", 0.1);
-		$conf['db']['conn'] = new PDO("{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>0.1));
-		$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
-	}// return $conf['db']['conn'];
-}catch(Exception $e){ cache(0);
-	pre("Ошибка подключения к базе данных");
-} if((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !tables()){
+conn(); 
+
+if((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !tables()){
 	exit(inc('include/install.php'));
 } $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']);
 

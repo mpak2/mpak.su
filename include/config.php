@@ -1,8 +1,5 @@
 <?
 
-mb_internal_encoding("UTF-8");
-date_default_timezone_set('Europe/Moscow');
-
 $conf['db']['conn'] = null;
 $conf['db']['type'] = 'sqlite';//mysql:sqlite
 $conf['db']['prefix'] = 'mp_';
