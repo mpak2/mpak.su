@@ -1922,24 +1922,14 @@ EOF;
 function pre(){
 	global $conf;
 	if(!$debug_backtrace = debug_backtrace()){ mpre("Ошибка получения списка функций");
-	}elseif(!is_numeric($func = ('mpre' == get($debug_backtrace, 0, 'function') ? 0 : 1))){ mpre("Ошибка получения аргументов функции");
-	}elseif(!$list[] = get($debug_backtrace, $func)){ print_r("Ошибка получения фукнции инициатора pre[{$num}]");
-	}else{
-		foreach($list as $pre){// echo "<pre>"; print_r($pre); echo "</pre>";
-			echo "<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend> ". get($pre, 'file'). ":". get($pre, 'line'). " <b>{$pre['function']}</b> ()</legend>";
-			foreach(get($pre, 'args') as $n=>$z){
-				echo "<pre>\t\n\t"; 
-					if(is_array($z) AND !mp_array_is_simple($z)){						
-						foreach($z as $item){
-							print_r($item);
-							echo "\n";
-						}						
-					}else{
-						print_r($z);
-					}
-				echo "\n</pre>";
-			} if(true) echo "</fieldset>\n";
-		}
+	}elseif(!is_numeric($func = ('mpre' == get($debug_backtrace, 1, 'function') ? 1 : 0))){ mpre("Ошибка получения аргументов функции");
+	}elseif(!$pre = get($debug_backtrace, $func)){ print_r("Ошибка получения фукнции инициатора pre[{$num}]");
+	}elseif(!$args = get($pre, 'args')){ mpre("Ошибка выборки аргументов");
+	}else{// echo "<pre>"; print_r($args); echo "</pre>";
+		echo "<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend> ". get($pre, 'file'). ":". get($pre, 'line'). " <b>{$pre['function']}</b> ()</legend>";
+		foreach($args as $n=>$z){
+			echo "<pre>\t\n\t"; print_r($z); echo "\n</pre>";
+		} echo "</fieldset>\n";
 	} return get(func_get_args(), 0);
 } function mpre(){// print_r(func_get_args());
 	global $conf, $arg;
@@ -1948,43 +1938,18 @@ function pre(){
 		return call_user_func_array("pre", func_get_args());
 	}
 }
-function mpqwt($result){
-	echo "<table style='background-color:#888;' cellspacing=0 cellpadding=3 border=1><tr>";
-	foreach($result[0] as $k=>$v){
-		echo "<td align=center style='background-color: #888; color:white;'><b>$k</b></td>";
-	} echo "</tr>";
-	foreach($result as $k=>$l){
-		echo "<tr valign='top' style='background-color: #eee;'>";
-		foreach($l as $null=>$v){
-			echo "<td>".(strlen($v) ? $v : '&nbsp;')."</td>";
-		}
-		echo "</tr>";
-	}
-	echo "</table>";
-}
-/*function mptree($ar, $func, $top = array("id"=>0), $level = 0, $line = 0){
-	global $arg, $conf;
-	$tree = function($p, $tree, $func, $level, $line) use($ar, $conf, $arg){
- 		if($level) $func($p, $ar, $line);
-		if($ar[ $p['id'] ]){
-			foreach($ar[ $p['id'] ] as $v){
-				$tree($v, $tree, $func, $level, $line+1);
-			}
-		} if(!$level) $func($p, $ar, $line);
-	}; $tree($top, $tree, $func, $level, $line);
-}*/
-function mpquot($data){	
+function mpquot($data){ # экранирование символов при использовании в запросах к базе данных
 	global $conf;
-	if(ini_get('magic_quotes_gpc')){
-		$data = stripslashes($data); //; Волшебные кавычки для входных данных GET/POST/Cookie. magic_quotes_gpc = On
+	if(ini_get('magic_quotes_gpc')){ # Волшебные кавычки для входных данных GET/POST/Cookie. magic_quotes_gpc = On
+		$data = stripslashes($data);
 	}
 	$data = str_replace("\\", "\\\\", $data); 
 	$data = str_replace("\x00", "\\x00", $data); 
 	$data = str_replace("\x1a", "\\x1a", $data); 
 	if(!$data){// mpre("Содержимое не задано");
-	}elseif($conf['db']['type'] == 'sqlite'){
+	}elseif($conf['db']['type'] == 'sqlite'){ # sqlite
 		$data = strtr($data, ["'"=>"''", '"'=>'""']);
-	}else{
+	}else{ # mysql
 		$data = str_replace("'", "\'", $data); 
 		$data = str_replace('"', '\"', $data); 
 		$data = str_replace("\r", "\\r", $data); 
