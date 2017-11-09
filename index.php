@@ -269,11 +269,7 @@ if(!$zblocks = call_user_func(function() use(&$conf){
 }elseif(!get($conf, 'settings', 'theme_exec') && (!$tc = file_get_contents($t))){ mpre("Ошибка получения содержимого файла шаблона");
 }else{ ob_start(); inc($f); $tc = ob_get_contents(); ob_clean(); }
 
-<<<<<<< HEAD
 if(array_key_exists('null', $_GET)){ echo $conf["content"];
-=======
-if(array_key_exists('null', $_GET)){ //mpre("Аякс запрос");	
->>>>>>> 0f7bedb8f2cba084e1af023198e98f726363c258
 }elseif(!$conf["content"] = str_replace('<!-- [modules] -->', $conf["content"], $tc)){ mpre("Ошибка замены содержимого модуля");
 }elseif(!$conf["content"] = strtr($conf["content"], (array)$zblocks)){ mpre("Ошибка установки содержимоого блоков");
 }elseif(!$conf['settings']['microtime'] = substr(microtime(true)-$conf['settings']['microtime'], 0, 8)){ mpre("Ошибка расчета времени генерирования страницы");

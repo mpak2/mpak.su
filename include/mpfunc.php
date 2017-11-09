@@ -605,14 +605,8 @@ function indexes($table_name){
 	}
 }
 # Подключение страницы
-<<<<<<< HEAD
 /*function inc($file_name, $variables = [], $req = false){
 	global $conf; extract($variables);
-=======
-function inc($file_name, $variables = [], $req = false , &$return = null){
-	global $conf;
-	extract($variables);
->>>>>>> 0f7bedb8f2cba084e1af023198e98f726363c258
 	if(preg_match("#(.*)(\.php|\.tpl|\.html)$#", $file_name, $match)){
 		global $tpl;
 		if($f = mpopendir($file_name)){
