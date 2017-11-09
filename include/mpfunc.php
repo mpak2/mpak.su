@@ -1,4 +1,5 @@
 <?
+
 #Автоподгрузка классов
 function PHPClassAutoload($CN){
 	foreach(explode("\\",$CN) as $class_name){
@@ -605,7 +606,7 @@ function indexes($table_name){
 }
 
 # Подключение страницы
-function inc($file_name, $variables = [], $req = false){
+/*function inc($file_name, $variables = [], $req = false){
 	global $conf; extract($variables);
 	if(preg_match("#(.*)(\.php|\.tpl|\.html)$#", $file_name, $match)){
 		global $tpl;
@@ -648,6 +649,39 @@ function inc($file_name, $variables = [], $req = false){
 		$tpl = inc("{$file_name}.tpl", $variables, $req);
 		return ($php || $tpl);
 	} return false;
+}*/
+
+function inc($file_name, $variables = [], $req = false){ global $conf, $tpl;
+	if(extract($variables) &&0){ mpre("Ошибка восстановления переданных значений");
+	}elseif(!preg_match("#(.*)(\.php|\.tpl|\.html)$#", $file_name, $match)){// mpre("Расширение не указано подключаем оба формата `{$file_name}`");
+		if($php = inc("{$file_name}.php", $variables, $req, $tpl)){// mpre("Вернулась ошибка - не запускаем шаблон");
+			return $php;
+		}else{// mpre("При запуске скрипта ошибок не возникло - отображаем шаблон");
+			$tpl = inc("{$file_name}.tpl", $variables, $req, $tpl);
+			return ($tpl ?: $php);
+		}
+	}elseif(!$file = mpopendir($file_name)){// mpre("Файл в файловой системе не найден `{$file_name}`");
+	}elseif(!$_arg = $GLOBALS['arg']){ mpre("Ошибка сохранения вышестоящих аргументов");
+	}elseif(($path = explode("/", $file_name)) && (!$path[0] == "modules")){ mpre("Файл не из директории с модулями");
+	}elseif(($mod = get($conf, 'modules', $path[1])) &&0){ mpre("Директория раздела не установлена", $path);
+	}elseif(!$arg = array("modpath"=>$path[1], 'modname'=>$mod['modname'], "admin_access"=>$mod['admin_access'], "fn"=>first(explode(".", $path[2])))){ mpre("Ошибка установки аргументов файла");
+	}elseif($return = false){ mpre("Установка значения возврата");
+	}elseif(!$content = call_user_func(function($file, $content = '') use(&$conf, &$tpl, &$return, $match, $variables, $req){
+			if(($modules_start = get($conf, 'settings', 'modules_start')) &&0){ mpre("Идентификатор начала блока");
+			}elseif(($modules_stop = get($conf, 'settings', 'modules_stop')) &&0){ mpre("Идентификатор конца блока");
+			}elseif(($content = call_user_func(function($file) use(&$conf, $variables, &$tpl, $req, &$arg, &$return){
+					ob_start(); extract($variables);
+					($req ? require($file) : include($file));
+					return ob_get_clean();
+				}, $file)) &&0){ mpre("Ошибка получения вывода файла");
+			}elseif(array_search("Администратор", get($conf, 'user', 'gid')) && (!$content = "{$modules_start}{$content}{$modules_stop}")){ mpre("Ошибка добавления тегов подсказок администратору");
+			}else{ return $content; }
+		}, $file)){ mpre("Ошибка получения содержимого файла");
+	}elseif(!$GLOBALS['arg'] = $_arg){ mpre("Ошибка возврата сохраненных значений аргумента");
+//	}elseif(!$conf["content"] .= $content){ mpre("Ошибка добавления содержимого к контенту страницы");
+	}else{ echo $content;
+		return $return;
+	}
 }
 
 # Функция определения seo вдреса страницы. Если адрес не определен в таблице seo_redirect то false

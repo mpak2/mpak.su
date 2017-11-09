@@ -205,7 +205,7 @@ if(!(array_key_exists("m", $_GET) ? (list($m) = array_keys($_GET['m'])) : "pages
 }elseif(($t = get($conf, 'settings', $w = "theme/*:{$fn}")) && (!$conf['settings']['theme'] = $t)){ mpre("Ошибка установки темы по модулю `{$w}`");
 }elseif(($t = get($conf, 'settings', $w = "theme/{$modpath}:*")) && (!$conf['settings']['theme'] = $t)){ mpre("Ошибка установки темы по файлу `{$w}`");
 }elseif(((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]) && (!$conf['settings']['theme'] = $conf['settings']["theme/*:admin"])){ mpre("Ошибка установки темы админ страницы");
-}elseif(!is_bool(inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($conf["content"] = ""))))){ mpre("Ошибка подключения файла инициализации");
+}elseif(inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($conf["content"] = "")))){ mpre("Ошибка подключения файла инициализации");
 }elseif(get($conf, "settings", "themes_index") && !inc("modules/admin/admin_multisite.php", array("content"=>($conf["content"] = "")))){ mpre("Ошибка включения режима мультисайта");
 }else{
 }
@@ -248,7 +248,7 @@ if(!$zblocks = call_user_func(function() use(&$conf){
 }elseif(!get($conf, 'settings', 'theme_exec') && (!$tc = file_get_contents($t))){ mpre("Ошибка получения содержимого файла шаблона");
 }else{ ob_start(); inc($f); $tc = ob_get_contents(); ob_clean(); }
 
-if(array_key_exists('null', $_GET)){ mpre("Аякс запрос");	
+if(array_key_exists('null', $_GET)){ echo $conf["content"];
 }elseif(!$conf["content"] = str_replace('<!-- [modules] -->', $conf["content"], $tc)){ mpre("Ошибка замены содержимого модуля");
 }elseif(!$conf["content"] = strtr($conf["content"], (array)$zblocks)){ mpre("Ошибка установки содержимоого блоков");
 }elseif(!$conf['settings']['microtime'] = substr(microtime(true)-$conf['settings']['microtime'], 0, 8)){ mpre("Ошибка расчета времени генерирования страницы");
