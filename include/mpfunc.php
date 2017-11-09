@@ -1922,10 +1922,10 @@ EOF;
 function pre(){
 	global $conf;
 	if(!$debug_backtrace = debug_backtrace()){ mpre("Ошибка получения списка функций");
-	}elseif(!is_numeric($func = ('mpre' == get($debug_backtrace, 1, 'function') ? 1 : 0))){ mpre("Ошибка получения аргументов функции");
+	}elseif(!is_numeric($func = ('mpre' == get($debug_backtrace, 2, 'function') ? 2 : 0))){ mpre("Ошибка получения аргументов функции");
 	}elseif(!$pre = get($debug_backtrace, $func)){ print_r("Ошибка получения фукнции инициатора pre[{$num}]");
 	}elseif(!$args = get($pre, 'args')){ mpre("Ошибка выборки аргументов");
-	}else{// echo "<pre>"; print_r($args); echo "</pre>";
+	}else{// echo "<pre>"; print_r($pre); echo "</pre>";
 		echo "<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend> ". get($pre, 'file'). ":". get($pre, 'line'). " <b>{$pre['function']}</b> ()</legend>";
 		foreach($args as $n=>$z){
 			echo "<pre>\t\n\t"; print_r($z); echo "\n</pre>";
