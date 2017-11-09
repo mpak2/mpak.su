@@ -603,10 +603,10 @@ function indexes($table_name){
 		return qn("SHOW INDEXES IN {$_GET['r']}", "Column_name");
 	}
 }
-
 # Подключение страницы
-function inc($file_name, $variables = [], $req = false){
-	global $conf; extract($variables);
+function inc($file_name, $variables = [], $req = false , &$return = null){
+	global $conf;
+	extract($variables);
 	if(preg_match("#(.*)(\.php|\.tpl|\.html)$#", $file_name, $match)){
 		global $tpl;
 		if($f = mpopendir($file_name)){
@@ -619,9 +619,8 @@ function inc($file_name, $variables = [], $req = false){
 				}
 			} if(array_search("Администратор", get($conf, 'user', 'gid'))){
 				ob_start();
-					call_user_func_array(function($f, $variables, $req) use(&$conf, &$arg, &$tpl){ extract($variables); ($req ? require($f) : include($f)); }, [$f, $variables, $req]);
-					$content = ob_get_contents();
-				ob_end_clean();
+					call_user_func_array(function($f, $variables, $req) use(&$conf, &$arg, &$tpl,&$return){ extract($variables); ($req ? require($f) : include($f)); }, [$f, $variables, $req]);
+					$content = ob_get_clean();
 				if((".tpl" == get($match, 2))){
 					echo strtr(get($conf, 'settings', 'modules_start'), array('{path}'=>$f));
 					if($nesting = nesting($content)){
@@ -644,8 +643,15 @@ function inc($file_name, $variables = [], $req = false){
 			mpre("Подключаемый файл не найден", $file_name);
 		}
 	}else{
-		$php = inc("{$file_name}.php", $variables, $req);
-		$tpl = inc("{$file_name}.tpl", $variables, $req);
+		$php = inc("{$file_name}.php", $variables, $req, $return);
+		if($return){// mpre("Ошибочный возвращенный статус 1");	
+			return 0;
+		}else{
+			$tpl = inc("{$file_name}.tpl", $variables, $req);
+			if($return){	// mpre("Ошибочный возвращенный статус 1");
+				return 0;
+			}
+		}
 		return ($php || $tpl);
 	} return false;
 }
