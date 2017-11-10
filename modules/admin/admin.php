@@ -1,7 +1,7 @@
 <?
 
-if(array_key_exists("null", $_GET)){// mpre("Таблица для записи не указана");$return = 556;
-	if(!$_POST){ mpre("", "Данных для сохарения не задано"); $return = 556;
+if(array_key_exists("null", $_GET)){// mpre("Таблица для записи не указана");$_RETURN = 556;
+	if(!$_POST){ mpre("", "Данных для сохарения не задано"); $_RETURN = 556;
 	}elseif(!get($_GET, 'r')){ mpre("Таблица сохранения не указана");
 	}elseif(!$order = (get($conf, "settings", substr($_GET['r'], strlen($conf['db']['prefix'])). "=>order") ?: "sort")){ mpre("Ошибка формирования сортировки таблицы");
 	}elseif(get($_GET, "id") && array_key_exists("id", $_POST) && ($_POST['id'] < 0)){// mpre($_POST); # Удаление элемента
@@ -12,8 +12,8 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 				}elseif(!$admin_history = fk("admin-history", null, array("history_type_id"=>$admin_history_type['id'], "name"=>$_GET['id'], "history_tables_id"=>$admin_history_tables['id'], "data"=>json_encode($data)))){ die(mpre("Ошибка сохранения истории действий в админстранице"));
 				}else{ return $data; }
 			})){ mpre("Лог файл отключен");
-		}elseif(qw($sql = "DELETE FROM {$_GET['r']} WHERE id=". (int)abs($_GET['id']))){ mpre("Ошибка удаления записи `{$sql}`");$return = 556;
-		}else{ echo(json_encode([]));$return = 556; }
+		}elseif(qw($sql = "DELETE FROM {$_GET['r']} WHERE id=". (int)abs($_GET['id']))){ mpre("Ошибка удаления записи `{$sql}`");$_RETURN = 556;
+		}else{ echo(json_encode([]));$_RETURN = 556; }
 	}elseif(get($_POST, "inc") && ($inc = rb($_GET['r'], "id", $_POST['inc']))){ # Изменение сортировки вверх
 		if(!$list = qn($sql = "SELECT * FROM {$_GET['r']} WHERE ". (mpdbf($_GET['r'], get($_GET, 'where'), true) ?: 1). " ORDER BY ". (get($_GET, 'order') ?: $order). "")){ mpre("Элементы в списке не найдены");
 		}elseif(!$keys = array_keys($list)){ mpre("Ошибка формирования ключей массива");
@@ -23,7 +23,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
 			echo(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));
-			$return = 556;
+			$_RETURN = 556;
 		}// die();
 	}elseif(get($_POST, "dec") && ($dec = rb($_GET['r'], "id", $_POST['dec']))){ # Изменение сортировки вниз
 		if(!$list = qn($sql = "SELECT * FROM {$_GET['r']} WHERE ". (($where = get($_GET, 'where')) ? mpdbf($_GET['r'], $where, true) : 1). " ORDER BY ". (get($_GET, 'order') ?: $order). "")){ mpre("Элементы в списке не найдены");
@@ -33,18 +33,18 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		}else{// mpre($nn, $inc);
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
-			echo(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));$return = 556;
+			echo(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));$_RETURN = 556;
 		} die;
 	}elseif(get($_POST, "first") && ($inc = rb($_GET['r'], "id", $_POST["first"]))){ # Сортировка списка элементов
 		if($dec = ql($sql = "SELECT * FROM {$_GET['r']} WHERE ". (mpdbf($_GET['r'], get($_GET, 'where'), true) ?: 1). " ORDER BY ". (get($_GET, 'order') ?: $order). " LIMIT 1", 0)){
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
-		}else{ mpre($sql); }/* mpre($_inc, $_dec);*/ echo(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));$return = 556;
+		}else{ mpre($sql); }/* mpre($_inc, $_dec);*/ echo(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));$_RETURN = 556;
 	}elseif(get($_POST, "last") && ($inc = rb($_GET['r'], "id", $_POST["last"]))){ # Сортировка списка элементов
 		if($dec = ql($sql = "SELECT * FROM {$_GET['r']} WHERE ". (mpdbf($_GET['r'], get($_GET, 'where'), true) ?: 1). " ORDER BY ". (get($_GET, 'order') ?: $order). " DESC LIMIT 1", 0)){
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
-		}else{ mpre($sql); }/* mpre($_inc, $_dec);*/ echo(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));$return = 556;
+		}else{ mpre($sql); }/* mpre($_inc, $_dec);*/ echo(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));$_RETURN = 556;
 	}else{// die(!mpre($_SERVER['REQUEST_URI'], $_POST)); # Правка записи и добавление новой
 		foreach($_POST as $field=>$post){
 			if(!preg_match("#_id$#ui",$field) AND preg_match("#(^|.+_)(time|last_time|reg_time|up|down)(\d+|_.+|$)#ui",$field)){
@@ -68,7 +68,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 
 			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=". ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\""); });
 			qw($sql = "UPDATE `{$_GET['r']}` SET ". implode(", ", array_values($_POST)). " WHERE id=". (int)$_GET['id']);
-			$el = rb($_GET['r'], "id", $_GET['id']);// $return = 556;
+			$el = rb($_GET['r'], "id", $_GET['id']);// $_RETURN = 556;
 //			die(!mpre($_POST));
 		}else{// die(!mpre($_POST));// mpre("Добавление", $_POST);
 
@@ -130,7 +130,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 					foreach($file['error'] as $key=>$error){
 						if($file['name'][$key]){
 							if($error){
-								echo("Ошибка загрузки файла {$file['name'][$key]}");$return = 556;
+								echo("Ошибка загрузки файла {$file['name'][$key]}");$_RETURN = 556;
 							}else{
 								if($key > 0){
 									$el = fk($_GET['r'], null, $w = array_diff_key($el, array_flip(array("id", "sort"))), $w);
@@ -142,7 +142,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 					}
 				}else if($file_id = mpfid($_GET['r'], $param_name, $el['id'], null, $ext)){
 					# Файл загружен
-				}else{ echo("Ошибка загрузки файла {$file['name']}");$return = 556; }
+				}else{ echo("Ошибка загрузки файла {$file['name']}");$_RETURN = 556; }
 			}elseif(get($_POST, $f)){ # Адрес внешнего изображения
 				$file_id = mphid($class, $f, $el['id'], $_POST[$f], $ext);
 			}
@@ -152,8 +152,8 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		
 		if(array_key_exists("sort", $el) && !$el['sort']){ # Если у нас есть поле сортировки и оно пустое, то назначаем его равным id
 			$el = fk($_GET['r'], array("id"=>$el['id']), null, array("sort"=>$el['id']));
-		} echo(htmlspecialchars(json_encode($el)));$return = 556;
-	} /*echo("Аварийный выход");*/$return = 556;
+		} echo(htmlspecialchars(json_encode($el)));$_RETURN = 556;
+	} /*echo("Аварийный выход");*/$_RETURN = 556;
 }else{ # Выборка таблицы
 	if(strpos($_GET['r'], "-") && ($r = explode("-", $_GET['r']))){
 		$_GET['r'] = $conf['db']['prefix']. first($r). "_". last($r);
@@ -172,9 +172,9 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 	} if(empty($_GET['r'])){
 		$modules_index = fk("modules-index", array("folder"=>$arg['modpath']), null, array("priority"=>time()));
 		if($tpl['tables'] && ($table = array_shift($tables = $tpl['tables']))){
-			header("Location:/{$arg['modpath']}:admin/r:{$table}");$return = 556;
+			header("Location:/{$arg['modpath']}:admin/r:{$table}");$_RETURN = 556;
 		}elseif($table = "{$conf['db']['prefix']}{$arg['modpath']}_index"){
-			header("Location:/{$arg['modpath']}:admin/r:{$table}");$return = 556;
+			header("Location:/{$arg['modpath']}:admin/r:{$table}");$_RETURN = 556;
 		}
 	}elseif(array_search($_GET['r'], $tpl['tables']) !== false){
 		$tpl['fields'] = fields($_GET['r']);
