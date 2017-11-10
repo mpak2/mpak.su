@@ -153,7 +153,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		if(array_key_exists("sort", $el) && !$el['sort']){ # Если у нас есть поле сортировки и оно пустое, то назначаем его равным id
 			$el = fk($_GET['r'], array("id"=>$el['id']), null, array("sort"=>$el['id']));
 		} echo(htmlspecialchars(json_encode($el)));$return = 556;
-	} echo("Аварийный выход");$return = 556;
+	} /*echo("Аварийный выход");*/$return = 556;
 }else{ # Выборка таблицы
 	if(strpos($_GET['r'], "-") && ($r = explode("-", $_GET['r']))){
 		$_GET['r'] = $conf['db']['prefix']. first($r). "_". last($r);
