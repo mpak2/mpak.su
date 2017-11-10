@@ -261,6 +261,7 @@ foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_uac
 }
 
 
+
 if(!$zblocks = call_user_func(function() use(&$conf){
 		if(isset($_GET['m']['sqlanaliz'])){
 			$zblocks = blocks();
@@ -274,7 +275,20 @@ if(!$zblocks = call_user_func(function() use(&$conf){
 }elseif(!$t = mpopendir($f = "themes/{$conf['settings']['theme']}/{$ind}.html")){
 }elseif(array_key_exists('null', $_GET)){// mpre("Аякс запросу шаблон не обязателен");
 }elseif(!get($conf, 'settings', 'theme_exec') && (!$tc = file_get_contents($t))){ mpre("Ошибка получения содержимого файла шаблона");
-}else{ ob_start(); inc($f); $tc = ob_get_contents(); ob_clean(); }
+}else{
+	if($teme_config=mpopendir("themes/{$conf['settings']['theme']}/config.json") AND $teme_config=file_get_contents($teme_config) AND isJSON($teme_config)){
+		$teme_config = json_decode($teme_config,true);
+		if(get($teme_config,'less_compile')){		
+			MpLessCompile(mpopendir("themes/{$conf['settings']['theme']}/"));
+		}
+		if(get($teme_config,'js_auto_mini')){		
+			MpJsAutoMini(mpopendir("themes/{$conf['settings']['theme']}/"));
+		}
+	}
+	ob_start(); 
+		inc($f); 
+	$tc = ob_get_clean(); 
+}
 
 if(array_key_exists('null', $_GET)){ echo $conf["content"];
 }elseif(!$conf["content"] = str_replace('<!-- [modules] -->', $conf["content"], $tc)){ mpre("Ошибка замены содержимого модуля");

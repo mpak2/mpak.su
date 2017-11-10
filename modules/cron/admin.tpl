@@ -1,5 +1,1 @@
-<?
-	include_once(__DIR__ . "/../admin/admin.tpl");
-	
-	
-?>
+<? include_once(mpopendir('modules/admin/admin.tpl')); ?>
