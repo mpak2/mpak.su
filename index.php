@@ -47,26 +47,9 @@ if($argv and count($argv)>1){
 	chdir( __DIR__ );
 	$conf['user']['gid'] = array(1=>"Администратор");
 	conn();
-	if(preg_match("#/#iu",get($argv,1))){//формат ссылки
-		$_GET = mpgt("/". $argv[1]);
-		list($mode[0], $mode[1]) = each($_GET['m']);
-		if(!get($mode,1)) $mode[1]='index'; //index
-		ksort($mode);
-	}else{//отдельные параметры
-		array_shift($argv);//выкидвыаем путь к файлу
-		$mode = explode(":",array_shift($argv));
-		if(!isset($mode[1])) $mode[1]='index'; //index
-		//Get параметры )))
-		foreach($argv as $k=>$item){
-			$item = explode(":",$item);
-			if(is_numeric($item[0]) AND !isset($item[1])){
-				$_GET['id'] = $item[0];
-			}else if(count($item)==2){
-				$_GET[$item[0]] = $item[1];
-			}			
-		}
-	}
-	$_REQUEST = $_GET;
+	array_shift($argv);//выкидвыаем путь к файлу
+	$mode = explode(":",array_shift($argv));
+	if(!isset($mode[1])) $mode[1]='index'; //index
 	$arg =[
 		'modpath' => $mode[0],
 		'modname' => $mode[0],
@@ -75,7 +58,17 @@ if($argv and count($argv)>1){
 		'admin_access' => 5
 	];
 	$mode = "modules/".implode("/",$mode);//собираем путь к модулю и 
-	inc($mode,['arg'=>$arg]);
+	//Get параметры )))
+	foreach($argv as $k=>$item){
+		$item = explode(":",$item);
+		if(is_numeric($item[0]) AND !isset($item[1])){
+			$_GET['id'] = $item[0];
+		}else if(count($item)==2){
+			$_GET[$item[0]] = $item[1];
+		}
+		$_REQUEST = $_GET;
+	}
+	mp_require_once($mode,['arg'=>$arg]);
 	exit();
 }
 
@@ -282,4 +275,5 @@ if(array_key_exists('null', $_GET)){ echo $conf["content"];
 }elseif(!$conf['settings']['microtime'] = substr(microtime(true)-$conf['settings']['microtime'], 0, 8)){ mpre("Ошибка расчета времени генерирования страницы");
 }elseif(!$conf["content"] = array_key_exists("null", $_GET) ? $conf["content"] : strtr($conf["content"], mpzam($conf['settings'], "settings", "<!-- [", "] -->"))){ mpre("Ошибка установки переменных в текст");
 }elseif(!cache($conf["content"]) &&0){ mpre("Ошибка кеширования содержимого страницы");
+}else{ echo $conf["content"]; }
 }else{ echo $conf["content"]; }
