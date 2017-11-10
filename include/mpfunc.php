@@ -659,14 +659,17 @@ function indexes($table_name){
 # Подключение фала. Путь должен быть от корня сайта /modules/pages/index Можно указать расширение .tpl .php В случае успешного подключения возвращается ноль. На ошибке выполнение прекращается
 function inc($file_name, $variables = [], $req = false){ global $conf, $tpl;
 	if(extract($variables) &&0){ mpre("Ошибка восстановления переданных значений");
+//	}elseif((strpos($file_name, 'admin.tpl')) && mpre($file_name, debug_backtrace())){
 	}elseif(!preg_match("#(.*)(\.php|\.tpl|\.html)$#", $file_name, $match)){// mpre("Расширение не указано подключаем оба формата `{$file_name}`");
-		if($php = inc("{$file_name}.php", $variables, $req, $tpl)){// mpre("Вернулась ошибка - не запускаем шаблон");
+		/*if((strpos($file_name, 'admin.tpl')) && !mpre($file_name, debug_backtrace())){
+		}else*/if($php = inc("{$file_name}.php", $variables, $req, $tpl)){// mpre("Вернулась ошибка - не запускаем шаблон");
 			return $php;
 		}else{// mpre("При запуске скрипта ошибок не возникло - отображаем шаблон");
 			$tpl = inc("{$file_name}.tpl", $variables, $req, $tpl);
 			return ($tpl ?: $php);
 		}
 	}elseif(!$file = mpopendir($file_name)){// mpre("Файл в файловой системе не найден `{$file_name}`");
+//	}elseif((strpos($file_name, 'admin.tpl')) && !mpre($file_name, $file)){
 	}elseif(($_arg = $GLOBALS['arg']) &&0){ mpre("Ошибка сохранения вышестоящих аргументов");
 	}elseif(($path = explode("/", $file_name)) && (!$path[0] == "modules")){ mpre("Файл не из директории с модулями");
 	}elseif(($mod = get($conf, 'modules', $path[1])) &&0){ mpre("Директория раздела не установлена", $path);
@@ -749,7 +752,8 @@ if (!function_exists('modules')){
 			}elseif(!$arg = array('modpath'=>$mod['folder'], 'modname'=>$mod['modname'], 'fn'=>$v, "fe"=>"", 'admin_access'=>$mod['admin_access'])){ pre("Ошибка формирования аргументов страницы");
 			}elseif($v == "admin"){
 				ob_start();
-					if(inc("modules/{$mod['link']}/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')))){
+					if(!is_null($return = inc("modules/{$mod['link']}/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin'))))){// mpre("Успешный запуск админстраницы", $return);
+					}else{// mpre("return", var_dump($return));
 						inc("modules/admin/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')));
 					}
 				$content .= ob_get_contents(); ob_end_clean();
@@ -762,7 +766,7 @@ if (!function_exists('modules')){
 							inc("modules/seo/admin_meta.php", array('arg'=>$arg, "uri"=>$uri, "get"=>$get, "canonical"=>$canonical));
 						}
 					}
-					if(inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg))){ # Если не создано скриптов и шаблона для страницы запускаетм общую
+					if(!inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg))){ # Если не создано скриптов и шаблона для страницы запускаетм общую
 						inc("modules/{$mod['link']}/default.tpl", array('arg'=>$arg));
 					}
 				$content .= ob_get_contents(); ob_end_clean();
