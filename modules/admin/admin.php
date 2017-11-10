@@ -68,7 +68,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 
 			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=". ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\""); });
 			qw($sql = "UPDATE `{$_GET['r']}` SET ". implode(", ", array_values($_POST)). " WHERE id=". (int)$_GET['id']);
-			echo (json_encode($el = rb($_GET['r'], "id", $_GET['id'])));// $return = 556;
+			$el = rb($_GET['r'], "id", $_GET['id']);// $return = 556;
 //			die(!mpre($_POST));
 		}else{// die(!mpre($_POST));// mpre("Добавление", $_POST);
 

@@ -671,11 +671,11 @@ function inc($file_name, $variables = [], $req = false){ global $conf, $tpl;
 	}elseif(($path = explode("/", $file_name)) && (!$path[0] == "modules")){ mpre("Файл не из директории с модулями");
 	}elseif(($mod = get($conf, 'modules', $path[1])) &&0){ mpre("Директория раздела не установлена", $path);
 	}elseif(!$arg = array("modpath"=>$path[1], 'modname'=>$mod['modname'], "admin_access"=>$mod['admin_access'], "fn"=>first(explode(".", get($path, 2))))){ mpre("Ошибка установки аргументов файла");
-//	}elseif(!mpre($file_name, $arg)){
 	}elseif($return = false){ mpre("Установка значения возврата");
 	}elseif(!is_string($content = call_user_func(function($file, $content = '') use(&$conf, &$tpl, &$return, $arg, $file_name, $match, $variables, $req){
 			if(($modules_start = get($conf, 'settings', 'modules_start')) && (!$modules_start = strtr($modules_start, ['{path}'=>$file]))){ mpre("Установка путь до файла в подсказку");
 			}elseif(($modules_stop = get($conf, 'settings', 'modules_stop')) && (!$modules_stop = strtr($modules_stop, ['{path}'=>$file]))){ mpre("Установка путь до файла в подсказку");
+			}elseif(($GLOBALS['arg'] = $arg) &&0){ mpre("Установка глобального параметра для использования в запросах блоков");
 			}elseif(($content = call_user_func(function($file) use(&$conf, $variables, &$tpl, $req, &$arg, &$return){
 					ob_start(); extract($variables);
 					($req ? require($file) : include($file));
