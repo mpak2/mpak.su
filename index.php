@@ -234,7 +234,7 @@ if(!(array_key_exists("m", $_GET) ? (list($m) = array_keys($_GET['m'])) : "pages
 }elseif(($t = get($conf, 'settings', $w = "theme/{$modpath}:*")) && (!$conf['settings']['theme'] = $t)){ mpre("Ошибка установки темы по файлу `{$w}`");
 }elseif(((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]) && (!$conf['settings']['theme'] = $conf['settings']["theme/*:admin"])){ mpre("Ошибка установки темы админ страницы");
 }elseif(inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($conf["content"] = "")))){ mpre("Ошибка подключения файла инициализации");
-}elseif(get($conf, "settings", "themes_index") && !inc("modules/admin/admin_multisite.php", array("content"=>($conf["content"] = "")))){ mpre("Ошибка включения режима мультисайта");
+}elseif(get($conf, "settings", "themes_index") && inc("modules/admin/admin_multisite.php", array("content"=>($conf["content"] = "")))){ mpre("Ошибка включения режима мультисайта");
 }else{
 }
 

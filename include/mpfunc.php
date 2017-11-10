@@ -656,6 +656,7 @@ function indexes($table_name){
 	} return false;
 }*/
 
+# Подключение фала. Путь должен быть от корня сайта /modules/pages/index Можно указать расширение .tpl .php В случае успешного подключения возвращается ноль. На ошибке выполнение прекращается
 function inc($file_name, $variables = [], $req = false){ global $conf, $tpl;
 	if(extract($variables) &&0){ mpre("Ошибка восстановления переданных значений");
 	}elseif(!preg_match("#(.*)(\.php|\.tpl|\.html)$#", $file_name, $match)){// mpre("Расширение не указано подключаем оба формата `{$file_name}`");
@@ -666,24 +667,26 @@ function inc($file_name, $variables = [], $req = false){ global $conf, $tpl;
 			return ($tpl ?: $php);
 		}
 	}elseif(!$file = mpopendir($file_name)){// mpre("Файл в файловой системе не найден `{$file_name}`");
-	}elseif(!$_arg = $GLOBALS['arg']){ mpre("Ошибка сохранения вышестоящих аргументов");
+	}elseif(($_arg = $GLOBALS['arg']) &&0){ mpre("Ошибка сохранения вышестоящих аргументов");
 	}elseif(($path = explode("/", $file_name)) && (!$path[0] == "modules")){ mpre("Файл не из директории с модулями");
 	}elseif(($mod = get($conf, 'modules', $path[1])) &&0){ mpre("Директория раздела не установлена", $path);
-	}elseif(!$arg = array("modpath"=>$path[1], 'modname'=>$mod['modname'], "admin_access"=>$mod['admin_access'], "fn"=>first(explode(".", $path[2])))){ mpre("Ошибка установки аргументов файла");
+	}elseif(!$arg = array("modpath"=>$path[1], 'modname'=>$mod['modname'], "admin_access"=>$mod['admin_access'], "fn"=>first(explode(".", get($path, 2))))){ mpre("Ошибка установки аргументов файла");
+//	}elseif(!mpre($file_name, $arg)){
 	}elseif($return = false){ mpre("Установка значения возврата");
-	}elseif(!$content = call_user_func(function($file, $content = '') use(&$conf, &$tpl, &$return, $match, $variables, $req){
-			if(($modules_start = get($conf, 'settings', 'modules_start')) &&0){ mpre("Идентификатор начала блока");
-			}elseif(($modules_stop = get($conf, 'settings', 'modules_stop')) &&0){ mpre("Идентификатор конца блока");
+	}elseif(!is_string($content = call_user_func(function($file, $content = '') use(&$conf, &$tpl, &$return, $arg, $file_name, $match, $variables, $req){
+			if(($modules_start = get($conf, 'settings', 'modules_start')) && (!$modules_start = strtr($modules_start, ['{path}'=>$file]))){ mpre("Установка путь до файла в подсказку");
+			}elseif(($modules_stop = get($conf, 'settings', 'modules_stop')) && (!$modules_stop = strtr($modules_stop, ['{path}'=>$file]))){ mpre("Установка путь до файла в подсказку");
 			}elseif(($content = call_user_func(function($file) use(&$conf, $variables, &$tpl, $req, &$arg, &$return){
 					ob_start(); extract($variables);
 					($req ? require($file) : include($file));
 					return ob_get_clean();
 				}, $file)) &&0){ mpre("Ошибка получения вывода файла");
-			}elseif(array_search("Администратор", get($conf, 'user', 'gid')) && (!$content = "{$modules_start}{$content}{$modules_stop}")){ mpre("Ошибка добавления тегов подсказок администратору");
+			}elseif(!array_search("Администратор", get($conf, 'user', 'gid'))){ return $content; mpre("Не администраторам не доступны подсказки");
+			}elseif(!preg_match("#(.*)(\.tpl|\.html)$#", $file_name, $match)){ return $content; mpre("Только шаблоны оборачиваются подсказками");
+			}elseif(!$content = "{$modules_start}{$content}{$modules_stop}"){ mpre("Ошибка добавления тегов подсказок администратору");
 			}else{ return $content; }
-		}, $file)){ mpre("Ошибка получения содержимого файла");
-	}elseif(!$GLOBALS['arg'] = $_arg){ mpre("Ошибка возврата сохраненных значений аргумента");
-//	}elseif(!$conf["content"] .= $content){ mpre("Ошибка добавления содержимого к контенту страницы");
+		}, $file))){ mpre("Ошибка получения содержимого файла `{$file}`");
+	}elseif(($GLOBALS['arg'] = $_arg) &&0){ mpre("Ошибка возврата сохраненных значений аргумента");
 	}else{ echo $content;
 		return $return;
 	}
@@ -1961,10 +1964,11 @@ EOF;
 function pre(){
 	global $conf;
 	if(!$debug_backtrace = debug_backtrace()){ mpre("Ошибка получения списка функций");
-	}elseif(!is_numeric($func = ('mpre' == get($debug_backtrace, 2, 'function') ? 2 : 0))){ mpre("Ошибка получения аргументов функции");
+	}elseif(!is_numeric($func = ('mpre' == get($debug_backtrace, 1, 'function') ? 1 : 0))){ mpre("Ошибка получения аргументов функции");
+	}elseif(!is_numeric($func = ('mpre' == get($debug_backtrace, 2, 'function') ? 2 : $func))){ mpre("Ошибка получения аргументов функции");
 	}elseif(!$pre = get($debug_backtrace, $func)){ print_r("Ошибка получения фукнции инициатора pre[{$num}]");
 	}elseif(!$args = get($pre, 'args')){ mpre("Ошибка выборки аргументов");
-	}else{// echo "<pre>"; print_r($pre); echo "</pre>";
+	}else{// echo "<pre>"; print_r($debug_backtrace); echo "</pre>";
 		echo "<fieldset class='pre' style=\"z-index:". ($conf['settings']['themes-z-index'] = ($z_index = get($conf, "settings", 'themes-z-index')) ? --$z_index : 999999). "\"><legend> ". get($pre, 'file'). ":". get($pre, 'line'). " <b>{$pre['function']}</b> ()</legend>";
 		foreach($args as $n=>$z){
 			echo "<pre>\t\n\t"; print_r($z); echo "\n</pre>";
