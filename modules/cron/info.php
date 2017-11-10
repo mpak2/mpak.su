@@ -1,13 +1,13 @@
 <?
 
 $conf['modversion']=array(
-	'name'=>basename(__DIR__),
+	'name'=>"Cron",
 	'author'=>'demon2009g',
-	'contact'=>'',
-	'version'=>'1.0',
+	'contact'=>'fisenko-dmitriy@yandex.ru',
+	'version'=>'1.0000',
 	'description'=>'Планировщик',
 	'enabled'=>'2',
 	'admin_access'=>'1',
-	'admin'=>'3',
-	'md5'=>'1e21159b34a9e0494e4caf4804b94087',
+	'admin'=>'6',
+	'md5'=>'',
 );

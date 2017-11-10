@@ -11,8 +11,9 @@
 					if(isNaN(response)){
 						alert(response);
 						document.location.reload(true);
-					}else{
-						console.log("response:", response);
+					}else{						
+						document.location.reload(true);
+						//console.log("response:", response);
 					}
 				})
 			}).on("click", "a.uninstall", function(e){

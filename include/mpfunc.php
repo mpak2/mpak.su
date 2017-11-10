@@ -571,7 +571,7 @@ function tables($table = null){
 		$tpl['tables'] = qn("SHOW TABLES", "Tables_in_{$conf['db']['name']}");
 	}// pre($tpl['tables']);
 
-	if($table){ return $tpl['tables'][$table]; }else{
+	if($table){ return get($tpl,'tables',$table); }else{
 		ksort($tpl['tables']);// pre(array_keys($tpl['tables']));
 		return $tpl['tables'];
 	}

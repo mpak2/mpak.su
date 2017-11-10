@@ -1,13 +1,34 @@
-<?
+<? # modules/cron/init.php
 
-mpqw($sql = "CREATE TABLE `{$conf['db']['prefix']}{$arg['modpath']}_index` (
-	`id` int(11) NOT NULL auto_increment,
-	`time` int(11) NOT NULL,
-	`uid` int(11) NOT NULL,
-	`img` varchar(255) NOT NULL,
-	`name` varchar(255) NOT NULL,
-	`description` text NOT NULL,
-	PRIMARY KEY  (`id`)
-) ENGINE=InnoDB DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci"); echo "<p>{$sql}";
+if(mpsettings($t = "cron_index", "Cron") && !tables($table = ("{$conf['db']['prefix']}{$t}"))){
+	qw("CREATE TABLE `mp_cron_index` (
+	  `id` int(11) NOT NULL AUTO_INCREMENT,
+	  `name` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+	  `cron` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+	  `path` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+	  `hide` int(11) DEFAULT NULL,
+	  PRIMARY KEY (`id`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+} 
+if(mpsettings($t = "cron_log", "Лог") && !tables($table = ("{$conf['db']['prefix']}{$t}"))){
+	qw("CREATE TABLE `{$table}` (
+	  `id` int(11) NOT NULL AUTO_INCREMENT,
+	  `time` int(11) DEFAULT NULL,
+	  `value` text,
+	  `index_id` int(11) DEFAULT NULL,
+	  PRIMARY KEY (`id`),
+	  KEY `index_id` (`index_id`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+} 
+if(mpsettings($t = "cron_settings", "Настройки") && !tables($table = ("{$conf['db']['prefix']}{$t}"))){
+	qw("CREATE TABLE `{$table}` (
+	  `id` int(11) NOT NULL AUTO_INCREMENT,
+	  `name` varchar(255) DEFAULT NULL,
+	  `value` varchar(255) DEFAULT NULL,
+	  `description` varchar(255) DEFAULT NULL,
+	  PRIMARY KEY (`id`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+} 
 
-mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('{$arg['modpath']}', '{$arg['modpath']}_tpl_exceptions', 1, 4, '')");
+mpsettings("{$arg['modpath']}_admin_index", "Cron");
+mpsettings("{$arg['modpath']}_tpl_exceptions", "1");

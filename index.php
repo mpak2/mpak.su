@@ -17,7 +17,7 @@ date_default_timezone_set('Europe/Moscow');
 header('Content-Type: text/html; charset=utf-8');
 header("Cache-Control:no-cache, must-revalidate;");
 setlocale (LC_ALL, "Russian"); putenv("LANG=ru_RU");
-
+chdir( __DIR__ );
 if(strpos(__DIR__, "phar://") === 0){ # Файл index.php внутри phar архива
 	if(!isset($index) && ($index = './index.php') && file_exists($index)){
 		include $index; if($conf) die;
@@ -44,7 +44,6 @@ mp_require_once("include/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
 
 if($argv and count($argv)>1){
-	chdir( __DIR__ );
 	$conf['user']['gid'] = array(1=>"Администратор");
 	conn();
 	if(preg_match("#/#iu",get($argv,1))){//формат ссылки
@@ -61,8 +60,8 @@ if($argv and count($argv)>1){
 			$item = explode(":",$item);
 			if(is_numeric($item[0]) AND !isset($item[1])){
 				$_GET['id'] = $item[0];
-			}else if(count($item)==2){
-				$_GET[$item[0]] = $item[1];
+			}else{
+				$_GET[$item[0]] = get($item,1)?:"";
 			}			
 		}
 	}

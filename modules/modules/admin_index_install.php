@@ -7,7 +7,7 @@ if(!array_key_exists("null", $_GET)){// mpre("Директория устано�
 	exit($modules_index);
 }else{
 	include $f;
-	$modules_index = fk("index", $w = array("folder"=>$folder), $w += ["hide"=>0, 'modversion'=>$conf['modversion']], $w);
+	$modules_index = fk("index", $w = ["folder"=>$folder], $w += $conf['modversion'], $w,'id');
 	$arg['modpath'] = $folder;
 	inc("modules/{$folder}/init.php", array('arg'=>array('modpath'=>$folder)));
 	inc("modules/{$folder}/sql.php", array('arg'=>array('modpath'=>$folder)));

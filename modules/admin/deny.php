@@ -1,4 +1,1 @@
-<?
-include(mpopendir("modules/{$arg['modpath']}/deny.tpl"));
-
-?>
+<? include(mpopendir("modules/{$arg['modpath']}/deny.tpl")); ?>
