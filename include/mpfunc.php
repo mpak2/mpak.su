@@ -766,7 +766,7 @@ if (!function_exists('modules')){
 							inc("modules/seo/admin_meta.php", array('arg'=>$arg, "uri"=>$uri, "get"=>$get, "canonical"=>$canonical));
 						}
 					}
-					if(!inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg))){ # Если не создано скриптов и шаблона для страницы запускаетм общую
+					if(is_null($return = inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg)))){ # Если не создано скриптов и шаблона для страницы запускаетм общую
 						inc("modules/{$mod['link']}/default.tpl", array('arg'=>$arg));
 					}
 				$content .= ob_get_contents(); ob_end_clean();
