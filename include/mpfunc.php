@@ -660,7 +660,7 @@ function indexes($table_name){
 function inc($file_name, $variables = [], $req = false){ global $conf, $tpl;
 	if(extract($variables) &&0){ mpre("Ошибка восстановления переданных значений");
 	}elseif(!preg_match("#(.*)(\.php|\.tpl|\.html)$#", $file_name, $match)){// mpre("Расширение не указано подключаем оба формата `{$file_name}`");
-		if($php = inc("{$file_name}.php", $variables, $req, $tpl)){ mpre("Вернулась ошибка - не запускаем шаблон");
+		if($php = inc("{$file_name}.php", $variables, $req, $tpl)){// mpre("Вернулась ошибка - не запускаем шаблон");
 			return $php;
 		}else{// mpre("При запуске скрипта ошибок не возникло - отображаем шаблон");
 			$tpl = inc("{$file_name}.tpl", $variables, $req, $tpl);
