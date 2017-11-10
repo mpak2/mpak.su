@@ -749,7 +749,7 @@ if (!function_exists('modules')){
 			}elseif(!$arg = array('modpath'=>$mod['folder'], 'modname'=>$mod['modname'], 'fn'=>$v, "fe"=>"", 'admin_access'=>$mod['admin_access'])){ pre("Ошибка формирования аргументов страницы");
 			}elseif($v == "admin"){
 				ob_start();
-					if(!inc("modules/{$mod['link']}/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')))){
+					if(inc("modules/{$mod['link']}/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')))){
 						inc("modules/admin/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')));
 					}
 				$content .= ob_get_contents(); ob_end_clean();
@@ -762,7 +762,7 @@ if (!function_exists('modules')){
 							inc("modules/seo/admin_meta.php", array('arg'=>$arg, "uri"=>$uri, "get"=>$get, "canonical"=>$canonical));
 						}
 					}
-					if(!inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg))){ # Если не создано скриптов и шаблона для страницы запускаетм общую
+					if(inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg))){ # Если не создано скриптов и шаблона для страницы запускаетм общую
 						inc("modules/{$mod['link']}/default.tpl", array('arg'=>$arg));
 					}
 				$content .= ob_get_contents(); ob_end_clean();
