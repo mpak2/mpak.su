@@ -70,7 +70,7 @@
 		}
 		.line_links .settings ul li {display:list-item;}
 		.line_links .settings ul li:before {content:none;}
-		.line_links .settings .table>div>span:last-child {text-align:right;}
+		.line_links .settings .table>div>span:last-child {text-align:right;overflow: hidden;width: 183px;display: inline-block;}
 	</style>
 	<div class="table line_links">
 		<div>
