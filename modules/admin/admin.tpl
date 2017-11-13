@@ -1,6 +1,6 @@
 <ul class="nl tabs">
 	<style>
-		ul.tabs li ul {position:absolute; display:none;}
+		ul.tabs li ul {position:absolute;z-index:2; display:none;}
 		ul.tabs li:hover ul {
 			display: block;
 			width: inherit;
@@ -45,9 +45,108 @@
 		</li>
 	<? endforeach; ?>
 </ul>
+<? if(array_search($_GET['r'], $tpl['tables']) !== false): ?>
+	<style>
+		.line_links ul.admin li {display:inline-block;}
+		.line_links ul.admin li:before{ content:"• "; }
+		.line_links li div.settings {
+			display:none;
+			position:absolute; 
+			width:300px;
+			right:-20px;
+			text-align:left; 
+			min-height:50px;
+			padding-top: 5px;
+			-webkit-box-shadow: 0px 10px 10px 0px rgba(0,0,0,0.1);
+			-moz-box-shadow: 0px 10px 10px 0px rgba(0,0,0,0.1);
+			box-shadow: 0px 10px 10px 0px rgba(0,0,0,0.1);
+		}
+		.line_links li:hover div.settings {display:block;}
+		.line_links li div.settings .content{
+			padding:10px; 
+			border:1px solid #eee; 
+			border-top:0;
+			background-color:white; 
+		}
+		.line_links .settings ul li {display:list-item;}
+		.line_links .settings ul li:before {content:none;}
+		.line_links .settings .table>div>span:last-child {text-align:right;}
+	</style>
+	<div class="table line_links">
+		<div>
+			<? if(get($tpl, 'title') && !get($_GET, "edit")): ?>
+				<span style="width:60px; padding-left:20px;vertical-align:middle;">
+					<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/edit?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : "")?>">
+						<button type="button">Добавить</button>
+					</a>
+				</span>
+			<? endif; ?>
+			<? if(!get($tpl, 'edit')): ?>
+				<span style="width:430px;"><?=$tpl['pager']?></span>
+			<? endif; ?>
+			<span style="padding-right:20px; text-align:right; overflow:visible; white-space:normal;">
+				<? if($t = implode("_", array_slice(explode("_", $_GET['r']), 1))): # Короткое имя текущей таблицы ?>
+					<ul class="admin">
+						<? foreach(array_unique(array_map(function($f){ return first(explode('.', $f)); }, mpreaddir("/modules/{$arg['modpath']}", 1))) as $f): ?>
+							<? if(strpos($f, "admin_") === false):// mpre("Имя файла не админ_") ?>
+							<? elseif(!$fl = implode('_', array_slice(explode('_', $f), 1))): mpre("Ошибка формирования алиаса файла") ?>
+							<? elseif(!($ft = implode('_', array_slice(explode('_', $t), 1))) &0): mpre("Ошибка формирования внутреннего имени таблицы") ?>
+							<? elseif(!$ft || (strpos($fl, $ft) !== 0)):// mpre("Имя не соответствует формату страницы") ?>
+							<? elseif(!$href = "/{$arg['modpath']}:{$f}". (($id = get($_GET, 'where', 'id')) ? "/{$id}" : ""). ""): mpre("Ошибка формирования адреса страницы") ?>
+							<?// elseif(!$dir = mpopendir($od = $fl)): mpre("Имя файла в файловой системе не найдено {$od}") ?>
+							<? elseif(!($title = mpopendir("modules/{$arg['modpath']}/{$f}.tpl")) && !($title = mpopendir("modules/{$arg['modpath']}/{$f}.php"))): mpre("Имя файла в файловой системе не найдено"); ?>
+							<? elseif(!$bold = (strpos($title, "phar://") === 0 ? "inherit" : "bold")): mpre("Ошибка вычисления толщины текста"); ?>
+							<? elseif(!$st = get($conf, 'settings', ($af = "{$arg['modpath']}_{$f}"))):// mpre("Имя страница в свойствах раздела не установлено") ?>
+								<li title="<?=$title?>"><a href="<?=$href?>" style="font-weight:<?=$bold?>; color:#bbb;"><?=$af?></a></li>
+							<? else: ?>
+								<li title="<?=$title?>"><a href="<?=$href?>" style="font-weight:<?=$bold?>;"><?=$st?></a></li>
+							<? endif; ?>
+						<? endforeach; ?>
+						<li><b><a href="/sqlanaliz:admin_sql/r:<?=$_GET['r']?>">БД</a></b></li>
+						<li class="settings" style="position:relative; z-index:10;">
+							<div class="settings">
+								<h2>Свойства</h2>
+								<div class="content">
+									<h4>Свойства таблицы</h4>
+									<div class="table" style="width:100%;">
+										<? foreach(["{$arg['modpath']}"=>["Список"=>"=>espisok", "Исключения"=>"_tpl_exceptions"], "{$t}"=>["Название"=>"", "Заголовки"=>"=>title", "Сортировка"=>"=>order", "Счетчик"=>"=>ecounter"]] as $prx=>$params): ?>
+											<? foreach($params as $name=>$uri): ?>
+												<div>
+													<span style="font-weight:<?=($prx == $arg['modpath'] ? "bold" : "inherit")?>;"><?=$name?></span>
+													<span>
+														<a target="blank" href="/settings:admin/r:mp_settings/?&where[modpath]=<?=$arg['modpath']?>&where[name]=<?=($st = $prx. $uri)?>">
+															<?=(get($conf, 'settings', $st) ?: "Нет")?>
+														</a>
+													</span>
+												</div>
+											<? endforeach; ?>
+										<? endforeach; ?>
+									</div>
+								</div>
+							</div>
+							<b style="z-index:10;"><a href="/settings:admin/r:<?=$conf['db']['prefix']?>settings?&where[modpath]=<?=$arg['modpath']?>">СВ</a></b>
+						</li>
+					</ul>
+				<? endif; ?>
+			</span>
+		</div>
+	</div>
+<? endif; ?>
 <div class="lines">
 	<? if(array_search($_GET['r'], $tpl['tables']) !== false): ?>
 		<style>
+			.table > .th > span:first-child,
+			.table [line_id] >span:first-child{
+					background-color:#fff;
+					position: absolute;
+					height: 18px;
+					border-right:1px solid #eaeaea;
+					position:relative;
+					z-index: 2;
+			}
+			.table [line_id]:hover >span:first-child{background-color: #f4f4f4;}
+			.table [line_id].active >span:first-child{background-color: #d4d4d4;}
+			.table > div > span: {    background: #fff;border-right: 1px solid #efefef;}
 			.table > div > span {border-collapse:collapse; padding:5px; vertical-align:middle;}
 			.table > div > span:first-child {width:70px;}
 			.table > div:hover {background-color:#f4f4f4;}
@@ -62,17 +161,14 @@
 			.table .control a.del {display:inline-block; background:url(i/mgif.gif); background-position:0 -56px; width:16px; height:16px;}
 			.table a.key {display:inline-block; background:url(i/mgif.gif); background-position:-2px -155px; width:16px; height:16px; opacity:0.3}
 			.table a.ekey {display:inline-block; background:url(i/mgif.gif); background-position:-20px -155px; width:16px; height:16px; opacity:0.3}
-			.lines ul.admin li {display:inline-block;}
-			.lines ul.admin li:before{ content:"• "; }
-			.lines .settings ul li {display:list-item;}
-			.lines .settings ul li:before {content:none;}
-			.lines .settings .table>div>span:last-child {text-align:right;}
-			
 			.table .th.top {position:absolute; z-index:10; top:0;}
 			.info_comm{color: #a5a5a5;}
 		</style>
 		<script>
 			(function($, script){
+				$('#content >.lines').on('scroll', function () {console.log(44);
+				  $('.table > .th > span:first-child,.table [line_id] >span:first-child').css('left', $(this).scrollLeft());
+				});
 				$(script).parent().on("click", ".control a.del", function(del){
 //					var all = $(del.currentTarget).parents(".th").length;
 					var checkbox = $(del.currentTarget).parents("[line_id]").find("input[type=checkbox]");
@@ -233,7 +329,7 @@
 								console.log("json:", json);
 								var button = $(e.delegateTarget).find("button[type=submit]:focus");
 //								console.log("button:", button, "content:", $(button).text());
-								if("Добавить еще" == $(button).text()){
+								if("Дублировать" == $(button).text()){
 									document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""). "?&edit="?>'+ json.id+ '<?=(get($_GET, "where") ? "&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?><?=(($limit = get($_GET, "limit")) ? "/limit:{$limit}" : "")?>';
 								}else{
 									document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""). (get($_GET, "where") ? "?&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?><?=(($limit = get($_GET, "limit")) ? "/limit:{$limit}" : "")?>';
@@ -245,76 +341,7 @@
 					}).ready(function(e){ $(script).parent().trigger("init"); })
 				})(jQuery, document.currentScript)
 			</script>
-			<div class="table">
-				<div>
-					<? if(get($tpl, 'title') && !get($_GET, "edit")): ?>
-						<span style="width:60px; padding-left:20px;vertical-align:middle;">
-							<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/edit?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : "")?>">
-								<button type="button">Добавить</button>
-							</a>
-						</span>
-					<? endif; ?>
-					<? if(!get($tpl, 'edit')): ?>
-						<span style="width:430px;"><?=$tpl['pager']?></span>
-					<? endif; ?>
-					<span style="padding-right:20px; text-align:right; overflow:visible; white-space:normal;">
-						<script sync>
-							(function($, script){
-								$(script).parent().on("mouseenter mouseleave", "li.settings", function(e){ // Загрузка родительского элемента
-									if("mouseenter" == e.type){
-										$(e.delegateTarget).find("div.settings").show();
-									}else{
-										$(e.delegateTarget).find("div.settings").hide();
-									}
-								})
-							})(jQuery, document.scripts[document.scripts.length-1])
-						</script>
-						<? if($t = implode("_", array_slice(explode("_", $_GET['r']), 1))): # Короткое имя текущей таблицы ?>
-							<ul class="admin">
-								<? foreach(array_unique(array_map(function($f){ return first(explode('.', $f)); }, mpreaddir("/modules/{$arg['modpath']}", 1))) as $f): ?>
-									<? if(strpos($f, "admin_") === false):// mpre("Имя файла не админ_") ?>
-									<? elseif(!$fl = implode('_', array_slice(explode('_', $f), 1))): mpre("Ошибка формирования алиаса файла") ?>
-									<? elseif(!($ft = implode('_', array_slice(explode('_', $t), 1))) &0): mpre("Ошибка формирования внутреннего имени таблицы") ?>
-									<? elseif(!$ft || (strpos($fl, $ft) !== 0)):// mpre("Имя не соответствует формату страницы") ?>
-									<? elseif(!$href = "/{$arg['modpath']}:{$f}". (($id = get($_GET, 'where', 'id')) ? "/{$id}" : ""). ""): mpre("Ошибка формирования адреса страницы") ?>
-									<?// elseif(!$dir = mpopendir($od = $fl)): mpre("Имя файла в файловой системе не найдено {$od}") ?>
-									<? elseif(!($title = mpopendir("modules/{$arg['modpath']}/{$f}.tpl")) && !($title = mpopendir("modules/{$arg['modpath']}/{$f}.php"))): mpre("Имя файла в файловой системе не найдено"); ?>
-									<? elseif(!$bold = (strpos($title, "phar://") === 0 ? "inherit" : "bold")): mpre("Ошибка вычисления толщины текста"); ?>
-									<? elseif(!$st = get($conf, 'settings', ($af = "{$arg['modpath']}_{$f}"))):// mpre("Имя страница в свойствах раздела не установлено") ?>
-										<li title="<?=$title?>"><a href="<?=$href?>" style="font-weight:<?=$bold?>; color:#bbb;"><?=$af?></a></li>
-									<? else: ?>
-										<li title="<?=$title?>"><a href="<?=$href?>" style="font-weight:<?=$bold?>;"><?=$st?></a></li>
-									<? endif; ?>
-								<? endforeach; ?>
-								<li><b><a href="/sqlanaliz:admin_sql/r:<?=$_GET['r']?>">БД</a></b></li>
-								<li class="settings" style="position:relative; z-index:10;">
-									<div class="settings" style="display:none; position:absolute; width:300px; background-color:white; right:0px; top:20; text-align:left; min-height:50px;">
-										<h2>Свойства</h2>
-										<div style="padding:10px; border:1px solid #eee; border-top:0;">
-											<h4>Свойства таблицы</h4>
-											<div class="table" style="width:100%;">
-												<? foreach(["{$arg['modpath']}"=>["Список"=>"=>espisok", "Исключения"=>"_tpl_exceptions"], "{$t}"=>["Название"=>"", "Заголовки"=>"=>title", "Сортировка"=>"=>order", "Счетчик"=>"=>ecounter"]] as $prx=>$params): ?>
-													<? foreach($params as $name=>$uri): ?>
-														<div>
-															<span style="font-weight:<?=($prx == $arg['modpath'] ? "bold" : "inherit")?>;"><?=$name?></span>
-															<span>
-																<a target="blank" href="/settings:admin/r:mp_settings/?&where[modpath]=<?=$arg['modpath']?>&where[name]=<?=($st = $prx. $uri)?>">
-																	<?=(get($conf, 'settings', $st) ?: "Нет")?>
-																</a>
-															</span>
-														</div>
-													<? endforeach; ?>
-												<? endforeach; ?>
-											</div>
-										</div>
-									</div>
-									<b style="z-index:10;"><a href="/settings:admin/r:<?=$conf['db']['prefix']?>settings?&where[modpath]=<?=$arg['modpath']?>">СВ</a></b>
-								</li>
-							</ul>
-						<? endif; ?>
-					</span>
-				</div>
-			</div>
+			
 			<div class="table">
 				<? if(get($tpl, 'title') && array_key_exists("edit", $_GET)): ?>
 					<div class="th">
@@ -414,7 +441,7 @@
 						<span></span>
 						<span>
 							<button type="submit">Сохранить</button>
-							<button type="submit" name="_id" value="NULL">Добавить еще</button>
+							<button type="submit" name="_id" value="NULL">Дублировать</button>
 						</span>
 					</div>
 				<? else: # Горизонтальный вариант таблицы ?>
