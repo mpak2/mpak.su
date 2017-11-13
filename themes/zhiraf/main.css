@@ -295,7 +295,7 @@ input[type="submit"]{
 				overflow-x: auto;
 				width: calc(100vw - 221px);
 				min-height: calc(100vh - 178px);
-				margin-bottom: -14px;
+				margin-bottom: -16px;
 			}
 #footer{
 	clear:both;
