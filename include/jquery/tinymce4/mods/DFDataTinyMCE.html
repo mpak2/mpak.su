@@ -1,0 +1,204 @@
+<style>
+.DFData {border-width: 1px; z-index: 65536; left: 50%; top: 140px; width: 800px; height: 460px; margin:0 -400px;} 
+.DFData .mce-reset {height: 100%;}
+.DFData .mce-window-head .mce-close i {color: #9b9b9b;right: 11px;position: absolute;top: 11px;}
+.DFData .mce-container-body{width: 100%; height: 72%;height: calc(100% - 90px);}
+.DFData .mce-container-body .mce-container{left: 0px; top: 0px; width: 100%; height: 100%;}
+.DFData .mce-tab.mce-active{background-color: #5d77b1;color:#fff;}
+.DFData .mce-tab.mce-disabled{pointer-events: none; opacity: 0.4;}
+.DFData .mce-container-body .mce-container .mce-container-body{width: 100%; height: 212px;height: calc(100% - 30px);}
+.DFData .mce-foot{border-width: 1px 0px 0px; left: 0px; top: 0px; width: 100%; height: 50px;}
+.DFData .mce-foot > div {width: 100%; height: 50px;}
+.DFData .mce-foot .mce-first.mce-btn-has-text {right: 95px; top: 10px; width: 50px; height: 28px;}
+.DFData .mce-foot .mce-last.mce-btn-has-text {right: 11px; top: 10px; width: 76px; height: 28px;}
+.DFData button[type="button"] {height: 100%; width: 100%;}
+.DFData .items .items-list{
+	float:left;
+	height:100%;
+	width:calc(100% - 200px);
+	overflow-y:auto;
+	overflow-x:hidden;
+	border-right: 1px solid #c5c5c5;
+	margin-right:-1px;
+}
+.DFData .items .mce-dropzone{
+	width: 100%; height: 100%; 
+	left: 0; top:0;
+	width: calc(100% - 206px);
+	height: calc(100% - 6px); 
+	background-color: rgba(255, 255, 255, 0.98);
+	font-weight: bold;
+	display: none;
+}
+.DFData .items.drop .mce-dropzone{
+	display: block;
+}
+.DFData .items .mce-dropzone span{
+	font-weight: bold;
+}
+.DFData .items .items-list .item{
+	position:relative;
+	cursor:pointer;
+	margin-top:10px;
+	margin-left:10px;
+	float:left;
+	width:135px;
+	width: calc(25% - 14px);
+	height:90px;
+	background:#fff;
+	background-image:url(http://newsite2.1.it-impulse.ru/data:img/186/tn:index/fn:img/null/img.png);
+	background-size: cover;
+	background-repeat: no-repeat;
+	border-radius:3px;
+	border: 1px solid #ccc;
+}
+.DFData .items .items-list[filetype="file"] .item{
+	width: calc(16% - 10px);
+    background-size: 65px;
+    background-position: center 5px;
+}
+.DFData .items .items-list .item.active{
+	border: 3px solid #66A7E8;
+	margin:8px -2px -2px 8px;
+}
+.DFData .items .items-list .item:focus {
+	outline: thin dotted;
+	outline: 5px auto -webkit-focus-ring-color;
+	outline-offset: -2px;
+}
+.DFData .items .items-list .item .footer {
+	opacity:0.9;
+	pointer-events: none;
+	width:100%;
+	height:16px;
+	position:absolute;
+	bottom:0px;left0px;
+	background-color: #eee;
+	line-height:16px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+
+}
+.DFData .items .items-list .item.active .footer,
+.DFData .items .items-list .item:focus  .footer,
+.DFData .items .items-list .item:hover .footer {
+	opacity:1;
+}
+.DFData .items .items-list .item .footer .check{
+	width:13px;
+	height:13px;
+	margin:1.5px 0px 1.5px 3px;
+}
+.DFData[multi="false"] .items .items-list .item .footer .check{
+	display:none;
+}
+.DFData .items .items-list .item .footer .name{
+	margin-left:3px;
+	line-height:16px;
+	font-size:11px;
+}
+.DFData .items .items-list .item .remove{
+	position:absolute;
+	top:1px;right:1px;
+	cursor:pointer;
+	background-color: #eee;
+	border: 1px solid #888;
+	border-radius: 3px;
+	width:15px;
+	height:15px;
+	background-image:url(http://newsite2.1.it-impulse.ru/img/del.png);
+	background-position: center;
+	background-repeat: no-repeat
+}
+.DFData .items .items-menu{
+	float:left;
+	height: 91.5%;
+    height: calc(100% - 29px);
+	width:200px;
+	overflow-y:auto;
+	overflow-x:hidden;
+}
+.DFData .items .items-menu .item{
+	cursor:pointer;
+	margin:3px 5px;
+	padding:5px;
+	background:#f7f7f7;
+	border: 1px solid #c5c5c5;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: clip;
+}
+.DFData .items .items-menu .item.active{
+	background:#D1E8FF;
+	border: 1px solid #66A7E8;
+}
+.DFData .items .items-menu .item:hover:not(.active){
+	background:#E5F3FB;
+	border: 1px solid #70C0E7;
+}
+.DFData .items .buttons{
+	position:relative;
+	float: left;
+    height: 30px;
+    width: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+.DFData .items .buttons input[type="file"]{
+	display:none;
+}
+.DFData .items .buttons .mce-btn{
+	width: 100%;
+}
+</style>
+<div class="mce-container mce-panel mce-floatpanel mce-window mce-in DFData" id="DFData">
+   <div class="mce-reset">
+		<div class="mce-window-head">
+			<div class="mce-title">Менеджер данных</div>
+			<button type="button" class="mce-close"><i class="mce-ico mce-i-remove"></i></button>
+		</div>
+      <div class="mce-container-body mce-window-body mce-abs-layout">
+         <div class="mce-container mce-panel mce-abs-layout-item mce-first mce-last">
+            <div class="mce-tabs">
+               <div class="mce-tab mce-active" value="image">Изображения</div>
+               <div class="mce-tab" value="file">Файлы</div>
+               <div class="mce-tab mce-disabled" value="media">Медиа</div>
+            </div>
+            <div class="mce-container-body mce-abs-layout items">
+				<div class="items-list" filetype="image">
+					<a href="/data:img/1/tn:index/fn:img/null/img.png" target="blank" class="item">
+						<div class="remove"></div>
+						<div class="footer">
+							<input type="checkbox" class="check" tabindex="-1"/>
+							<span class="name">БлаБла Имя.jpg</span>
+						</div>
+					</a>
+				</div>
+				<div class="items-menu">
+					<div class="item" value='' tabindex="0">Все</div>
+				</div>
+				<div class="buttons" style="">
+					<input type="file" class="file-btn image" multiple name="files[]" accept="image/*" />
+					<input type="file" class="file-btn file" multiple name="files[]"  accept="*"/>
+					<input type="file" class="file-btn media" multiple name="files[]" accept="*"/>
+					<div class="mce-widget mce-btn mce-abs-layout-item mce-btn-has-text">
+						<button type="button" class="upload"><span class="mce-txt">Звгрузить + <span class="loading"></span></span></button>
+					</div>
+				</div>
+			   <div class="mce-dropzone mce-abs-layout-item mce-last"><span>Перетащите файлы сюда</span></div>
+            </div>
+         </div>
+      </div>
+      <div class="mce-container mce-panel mce-foot">
+         <div class="mce-container-body mce-abs-layout">           
+            <div class="mce-widget mce-btn mce-primary mce-abs-layout-item mce-first mce-btn-has-text">
+				<button type="button" class="ok"><span class="mce-txt">Ок</span></button>
+			</div>
+            <div class="mce-widget mce-btn mce-abs-layout-item mce-last mce-btn-has-text">
+				<button type="button" class="close"><span class="mce-txt">Отменить</span></button>
+			</div>
+         </div>
+      </div>
+   </div>
+</div>

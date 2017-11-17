@@ -1,58 +1,12 @@
 <?
-
-$defaultmimes = array(
-	'aif' => 'audio/x-aiff',
-	'aiff' => 'audio/x-aiff',
-	'arc' => 'application/octet-stream',
-	'arj' => 'application/octet-stream',
-	'art' => 'image/x-jg',
-	'asf' => 'video/x-ms-asf',
-	'asx' => 'video/x-ms-asf',
-	'avi' => 'video/avi',
-	'bin' => 'application/octet-stream',
-	'bm' => 'image/bmp',
-	'bmp' => 'image/bmp',
-	'bz2' => 'application/x-bzip2',
-	'css' => 'text/css',
-	'doc' => 'application/msword',
-	'dot' => 'application/msword',
-	'dv' => 'video/x-dv',
-	'dvi' => 'application/x-dvi',
-	'eps' => 'application/postscript',
-	'exe' => 'application/octet-stream',
-	'gif' => 'image/gif',
-	'gz' => 'application/x-gzip',
-	'gzip' => 'application/x-gzip',
-	'htm' => 'text/html',
-	'html' => 'text/html',
-	'ico' => 'image/x-icon',
-	'jpe' => 'image/jpeg',
-	'jpg' => 'image/jpeg',
-	'jpeg' => 'image/jpeg',
-	'js' => 'application/x-javascript',
-	'log' => 'text/plain',
-	'mid' => 'audio/x-midi',
-	'mov' => 'video/quicktime',
-	'mp2' => 'audio/mpeg',
-	'mp3' => 'audio/mpeg3',
-	'mpg' => 'audio/mpeg',
-	'pdf' => 'aplication/pdf',
-	'png' => 'image/png',
-	'rtf' => 'application/rtf',
-	'tif' => 'image/tiff',
-	'tiff' => 'image/tiff',
-	'txt' => 'text/plain',
-	'xml' => 'text/xml',
-);
-
 $path = mpopendir("img/". last(explode("/", $_SERVER['REQUEST_URI'])));// exit(mpre($path));
 
 if(get($_GET, 'w') && get($_GET, 'h') && file_exists($f = mpopendir("img/". basename($_GET[''])))){
-	header("Content-type: ". ($ext = get($defaultmimes, last(explode(".", $f)))) ?: "image/png");
+	header("Content-type: ". ($ext = get($conf['defaultmimes'], last(explode(".", $f)))) ?: "image/png");
 	echo mprs($f, get($_GET, 'w'), get($_GET, 'h'), get($_GET, 'c'));
-}elseif(($ext = strtolower(last(explode('.', $path)))) && array_key_exists($ext, $defaultmimes) && file_exists($path)){
+}elseif(($ext = strtolower(last(explode('.', $path)))) && array_key_exists($ext, $conf['defaultmimes']) && file_exists($path)){
 	if(!ob_get_length()){
-		header("Content-type: ". (get($defaultmimes, $ext) ?: "application/download"));
+		header("Content-type: ". (get($conf['defaultmimes'], $ext) ?: $conf['defaultmimes']['default']));
 	} $f = fopen($path, "rb");
 	while (!feof($f)) {
 		echo fread($f, 256);

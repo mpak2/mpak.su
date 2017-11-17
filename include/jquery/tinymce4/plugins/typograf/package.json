@@ -1,0 +1,99 @@
+{
+  "name": "typograf",
+  "description": "The client and server typography",
+  "version": "6.6.0",
+  "author": {
+    "name": "Denis Seleznev",
+    "email": "hcodes@yandex.ru",
+    "url": "https://github.com/typograf/typograf"
+  },
+  "main": "dist/typograf.js",
+  "homepage": "https://github.com/typograf",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/typograf/typograf.git"
+  },
+  "keywords": [
+    "typo",
+    "text",
+    "typograf",
+    "typographer",
+    "typography"
+  ],
+  "engines": {
+    "node": ">= 4"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "bin",
+    "LICENSE",
+    "typograf.d.ts"
+  ],
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "chai": "~4.1.2",
+    "eslint": "^4.10.0",
+    "gulp": "~3.9.1",
+    "gulp-concat": "~2.6.1",
+    "gulp-filter": "~5.0.1",
+    "gulp-jsonlint": "^1.2.0",
+    "gulp-load-plugins": "^1.5.0",
+    "gulp-rename": "~1.2.0",
+    "gulp-replace": "^0.6.1",
+    "gulp-rollup": "^2.15.0",
+    "gulp-uglify": "~3.0.0",
+    "gulp-util": "~3.0.8",
+    "istanbul": "~0.4.4",
+    "mocha": "~4.0.1",
+    "rollup-plugin-babel": "^3.0.2",
+    "sinon": "^4.0.2",
+    "sort-keys": "~2.0.0",
+    "through": "~2.3.6",
+    "yaspeller": "~4.0.0"
+  },
+  "scripts": {
+    "benchmark": "node benchmark/test.js",
+    "dist": "gulp dist",
+    "eslint": "eslint .",
+    "prepublish": "npm run dist",
+    "rebuild": "gulp",
+    "test": "npm run rebuild && npm run eslint && npm run unit-test-coverage",
+    "unit-test": "mocha -u bdd -R spec --recursive test",
+    "unit-test-coverage": "istanbul cover ./node_modules/mocha/bin/_mocha -- -u bdd -R spec --recursive test",
+    "yaspeller": "yaspeller ."
+  },
+  "typings": "./typograf.d.ts",
+  "gitHead": "b5761ff635311e130d107d056c5d984b674f7b62",
+  "bugs": {
+    "url": "https://github.com/typograf/typograf/issues"
+  },
+  "_id": "typograf@6.6.0",
+  "_npmVersion": "5.3.0",
+  "_nodeVersion": "8.6.0",
+  "_npmUser": {
+    "name": "hcodes",
+    "email": "hcodes@yandex.ru"
+  },
+  "dist": {
+    "integrity": "sha512-e3ey4PdRnyt9SlZE2xTrFQCQqLmwSuNTnE1GzAGA7OJ6x5G7238ujyGMetNIHvmzx7jttEkXJR/3Bsk+tY83tw==",
+    "shasum": "51fbf8b3714d6d21f9c90b7859cba6a8beab6f69",
+    "tarball": "https://registry.npmjs.org/typograf/-/typograf-6.6.0.tgz"
+  },
+  "maintainers": [
+    {
+      "name": "hcodes",
+      "email": "hcodes@yandex.ru"
+    }
+  ],
+  "_npmOperationalInternal": {
+    "host": "s3://npm-registry-packages",
+    "tmp": "tmp/typograf-6.6.0.tgz_1509317364810_0.44450135878287256"
+  },
+  "directories": {},
+  "_shasum": "51fbf8b3714d6d21f9c90b7859cba6a8beab6f69",
+  "_from": "typograf@",
+  "_resolved": "https://registry.npmjs.org/typograf/-/typograf-6.6.0.tgz"
+}

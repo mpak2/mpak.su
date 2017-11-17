@@ -1552,25 +1552,17 @@ function mpmail(){
 	}
 }
 function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
-	global $conf;
-	if($prefix === null){
-		$file = $_FILES[$fn];
-	}else{
-		$file = array(
-			'name'=>$_FILES[$fn]['name'][$prefix],
-			'type'=>$_FILES[$fn]['type'][$prefix],
-			'tmp_name'=>$_FILES[$fn]['tmp_name'][$prefix],
-			'error'=>$_FILES[$fn]['error'][$prefix],
-			'size'=>$_FILES[$fn]['size'][$prefix],
-		);
-	}// mpre($file);
+	global $conf;	
+	$file = get(normalize_files_array(),$fn,intval($prefix));
+	$folder = preg_match_all("#^image/\w+$#iu",$file['type']) ? 'images' : 'files';
+	// mpre($file);
 	if($file['error'] === 0){
 		if(($ext = get($exts, $file['type'] )) || get($exts, '*')){
 			if(!strlen($ext)){
 				$ext = '.'. last(explode('.', $file['name']));
 			} $f = "{$tn}_{$fn}_". (int)($img_id = mpfdk($tn, $w = array("id"=>$id), $w += array("time"=>time(), "uid"=>$conf['user']['uid']), $w)). $ext;
-			if(($ufn = mpopendir('include/images')) && move_uploaded_file($file['tmp_name'], "$ufn/$f")){
-				/*if($img_id != $id)*/ mpqw($sql = "UPDATE {$tn} SET `". mpquot($fn). "`=\"". mpquot($return = "images/$f"). "\" WHERE id=". (int)$img_id);
+			if(($ufn = mpopendir("include/{$folder}")) && move_uploaded_file($file['tmp_name'], "$ufn/$f")){
+				/*if($img_id != $id)*/ mpqw($sql = "UPDATE {$tn} SET `". mpquot($fn). "`=\"". mpquot($return = "{$folder}/{$f}"). "\" WHERE id=". (int)$img_id);
 				mpevent("Загрузка файла", $_SERVER['REQUEST_URI'], $conf['user']['uid'], $file);
 			}else{
 				if($img_id != $id){
@@ -1897,34 +1889,23 @@ function mpgc($value, $param = null){
 }
 function mpwysiwyg($name, $content = null, $tpl = ""){
 	global $conf;
-	if(!empty($conf['modules']['redactor']['admin_access'])){
-		$conf['settings']['redactor_name'] = $name;
-		$conf['settings']['redactor_text'] = $content;
-		if($tpl && $fn = mpopendir("modules/redactor/". basename($tpl))){
+	if(!isset($conf['settings']['wysiwyg']) OR empty($conf['settings']['wysiwyg'])){
+		$conf['settings']['wysiwyg'] = 'tinymce';		
+		fk(
+			"{$conf['db']['prefix']}settings",
+			$w=['name'=>'wysiwyg'],
+			$w+['modpath'=>'settings','value'=>$conf['settings']['wysiwyg']],
+			['value'=>$conf['settings']['wysiwyg']]
+		);
+	}
+	if(isset($conf['modules'][$conf['settings']['wysiwyg']]) AND !empty($conf['modules'][$conf['settings']['wysiwyg']]['admin_access'])){
+		$conf['settings'][$conf['settings']['wysiwyg'].'_name'] = $name;
+		$conf['settings'][$conf['settings']['wysiwyg'].'_text'] = $content;
+		if($tpl && $fn = mpopendir("modules/{$conf['settings']['wysiwyg']}/". basename($tpl))){
 			include $fn;
 		}else{
-			include mpopendir("modules/redactor/wysiwyg.tpl");
+			include mpopendir("modules/{$conf['settings']['wysiwyg']}/wysiwyg.tpl");
 		}
-	}elseif(!empty($conf['modules']['tinymce']['admin_access'])){
-		$conf['settings']['tinymce_name'] = $name;
-		$conf['settings']['tinymce_text'] = $content;
-		if($tpl && $fn = mpopendir("modules/tinymce/". basename($tpl))){
-			include $fn;
-		}else{
-			include mpopendir("modules/tinymce/wysiwyg.tpl");
-		}
-	}elseif(true){
-		include_once("include/spaw2/spaw.inc.php");
-		ob_start();
-		$spaw1 = new SpawEditor($name, $content);
-		$spaw1->show();
-		$spaw2 = ob_get_contents();
-		ob_end_clean();
-		return $spaw2;
-	}elseif(!empty($conf['modules']['rte']['admin_access'])){
-		$conf['settings']['rte_name'] = $name;
-		$conf['settings']['rte_text'] = $content;
-		include mpopendir("modules/rte/wysiwyg.tpl");
 	}else{
 		return "<textarea name='$name' style='width:100%; height:200px;'>$content</textarea>";
 	}

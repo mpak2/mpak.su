@@ -42,6 +42,7 @@ if(!function_exists('mp_require_once')){
 }
 mp_require_once("include/config.php"); # Конфигурация
 mp_require_once("include/mpfunc.php"); # Функции системы
+mp_require_once("include/constant_vars.php"); # Глобальные настройки/переменные движка
 
 if($argv and count($argv)>1){
 	$conf['user']['gid'] = array(1=>"Администратор");

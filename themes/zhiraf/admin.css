@@ -95,7 +95,7 @@
 
 div.table {display:table; width:100%;}
 div.table > div {display:table-row;}
-div.table > div > span {display:table-cell; vertical-align:top; min-width: 50px; /*max-width: 200px; white-space: nowrap;overflow: hidden;text-overflow: ellipsis;*/}
+div.table > div > span {display:table-cell; vertical-align:top; min-width: 50px; }
 div.table > div:not(.th) > span {line-height: 18px;}
 div.table > div.th >span {background-color:#aaa; color:#008ee9; font-weight:bold; border:1px solid #ddd;}
 
@@ -103,6 +103,7 @@ div.table > div.th >span {background-color:#aaa; color:#008ee9; font-weight:bold
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	max-width: 300px;
 }
 #header div.table > div > span {max-width:none;}
 .admin span {overflow:visible;}

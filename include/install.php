@@ -21,6 +21,7 @@ function perm2str($perm){
 
 $files_array = array( # Список папок и их прав доступа
 	'include/images'=>'0777',
+	'include/files'=>'0777',
 );
 
 
