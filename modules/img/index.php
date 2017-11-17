@@ -1,6 +1,6 @@
 <?
 $path = mpopendir("img/". last(explode("/", $_SERVER['REQUEST_URI'])));// exit(mpre($path));
-
+include_once(mpopendir('modules/files/defaultmimes.php'));
 if(get($_GET, 'w') && get($_GET, 'h') && file_exists($f = mpopendir("img/". basename($_GET[''])))){
 	header("Content-type: ". ($ext = get($conf['defaultmimes'], last(explode(".", $f)))) ?: "image/png");
 	echo mprs($f, get($_GET, 'w'), get($_GET, 'h'), get($_GET, 'c'));

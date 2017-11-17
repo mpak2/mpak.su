@@ -19,6 +19,7 @@ if($_FILES && ($arg['admin_access'] > 1)){
 }elseif($_GET['id'] || $_GET['cat_id']){
 	$img = array('jpg', 'jpeg', 'gif', 'png');
 	if($v = mpql(mpqw($sql = "SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_files WHERE activ=1". ($_GET['cat_id'] ? " AND cat_id=". (int)$_GET['cat_id']. " ORDER BY RAND() LIMIT 1" : ""). ($_GET['id'] ? " AND id=".(int)$_GET['id'] : "")), 0)){
+			include_once(mpopendir('modules/files/defaultmimes.php'));
 			mpqw("UPDATE {$conf['db']['prefix']}{$arg['modpath']}_files SET count=count+1 WHERE id=".(int)$v['id']);
 			$ext = strtolower(array_pop(explode('.', $v['name'])));
 			if($v['description']){

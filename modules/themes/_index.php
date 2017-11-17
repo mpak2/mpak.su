@@ -26,6 +26,7 @@ if(isset($_GET['q'])){
 //		header('Last-Modified: '. gmdate("r", $filectime));
 //		header('Expires: '.gmdate('r', time() + 86400*10));
 		if(!ob_get_length()){
+			include_once(mpopendir('modules/files/defaultmimes.php'));
 			header("Content-type: ".(get($conf['defaultmimes'],$ext)?:"text/$ext"));
 		} if((array_key_exists("w", $_GET) || array_key_exists("h", $_GET)) && array_search($ext, array(1=>'jpg', 'png', 'gif'))){
 			echo mprs($res, (array_key_exists("w", $_GET) ? $_GET['w'] : 0), (array_key_exists("h", $_GET) ? $_GET['h'] : 0), (array_key_exists("c", $_GET) ? $_GET['c'] : 0));

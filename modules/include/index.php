@@ -1,4 +1,5 @@
 <?
+include_once(mpopendir('modules/files/defaultmimes.php'));
 if(!$uri = implode("/", $ar = array_filter(explode("/", $_SERVER['REQUEST_URI'])))){ mpre("Путь до файла не найден");
 }elseif(!$uri = first(explode("?", $uri))){ mpre("Путь отделения динамической части адреса");
 }elseif(!$path = mpopendir($uri)){ pre("Ошибка определения пути к файлу <b>{$uri}</b>");
