@@ -269,7 +269,7 @@ if(!$zblocks = call_user_func(function() use(&$conf){
 			$conf["content"] = modules($conf["content"]);
 			$zblocks = blocks();
 		} return $zblocks;
-	})){ mpre("Ошибка установки порядка следования расчетов блоков");
+	}) and !get($conf,"deny")){ mpre("Ошибка установки порядка следования расчетов блоков");
 }elseif(!$ind = (get($_GET, 'index') ?: (get($conf, 'settings', 'index') ?: "index"))){ mpre("Ошибка определения имени главного файла");
 }elseif(!$t = mpopendir($f = "themes/{$conf['settings']['theme']}/{$ind}.html")){
 }elseif(array_key_exists('null', $_GET)){// mpre("Аякс запросу шаблон не обязателен");
