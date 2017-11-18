@@ -738,10 +738,15 @@ if (!function_exists('modules')){
 			}elseif(!$gmax = ($MODULES_INDEX_GACCESS ? max(array_column($MODULES_INDEX_GACCESS, 'admin_access')) : 1)){ mpre("Ошибка максимального разрешения для группы");
 			}elseif(!$umax = ($MODULES_INDEX_UACCESS ? max(array_column($MODULES_INDEX_UACCESS, 'admin_access')) : 1)){ mpre("Ошибка максимального разрешения для пользователя");
 			}elseif(!is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < $access)){// mpre("Недостаточно прав доступа к разделу", $umax, $gmax, $access);
-				if(!mpopendir($f = "modules/admin/deny.php")){ pre("Не найдена страница запрета доступа");
+				if(!mpopendir($f = "modules/admin/deny.tpl")){ pre("Не найдена страница запрета доступа");
 					header("HTTP/1.0 403 admin_access Denied");
 					exit(header("Location: /users:login"));
-				}else{ inc("modules/admin/deny.php"); }
+				}else{
+					$conf["deny"] = true;
+					ob_start();
+						inc("modules/admin/deny");				
+					$content = ob_get_clean();
+				}
 			}elseif(!$v = $v != 'del' && $v != 'init' && $v != 'sql' && strlen($v) ? $v : 'index'){ pre("Ошибка определения имени скрипта");
 			}elseif(!$conf['db']['info'] = "Модуль '". ($name = $mod['name']). "'"){ pre("Ошибка установки описания запрос к БД");
 //			}elseif(!$g = (preg_match("/[a-z]/", $v) ? "/{$v}.*.php" : "/*.{$v}.php")){ pre("Ошибка определения шаблона запроса к файловой системе");
