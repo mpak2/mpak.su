@@ -64,7 +64,7 @@ $(function(){
 					selector: 'textarea.tinymce',
 					height: 500,
 					theme: 'modern',//advanced
-					plugins: 'print preview fullpage searchreplace autolink directionality visualblocks visualchars fullscreen image link media template codesample table charmap hr pagebreak nonbreaking anchor toc insertdatetime advlist lists textcolor wordcount imagetools  contextmenu colorpicker textpattern paste browse_source typograf code',
+					plugins: 'print preview searchreplace autolink directionality visualblocks visualchars fullscreen image link media template codesample table charmap hr pagebreak nonbreaking anchor toc insertdatetime advlist lists textcolor wordcount imagetools  contextmenu colorpicker textpattern paste browse_source typograf code',
 					toolbar1: 'browse_source | formatselect | bold italic  | alignleft aligncenter alignright alignjustify  | numlist bullist outdent indent  | link image | typograf  removeformat | code ',
 					image_advtab: false,
 					language:"ru",

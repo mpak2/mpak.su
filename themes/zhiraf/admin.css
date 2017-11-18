@@ -111,6 +111,7 @@ div.table > div.th >span {background-color:#aaa; color:#008ee9; font-weight:bold
 img.minPreview{border:1px solid #aaa; padding:2px;height:16px;}
 div.bigPreview{
     position: absolute;
+	z-index:3;
     width: 100px;
     height: 100px;
     background-color: #fff;
@@ -120,8 +121,8 @@ div.bigPreview{
     background-size: contain;
     background-position: center;
 	-webkit-box-shadow: -10px 9px 33px -8px rgba(0,0,0,0.37);
--moz-box-shadow: -10px 9px 33px -8px rgba(0,0,0,0.37);
-box-shadow: -10px 9px 33px -8px rgba(0,0,0,0.37);
+	-moz-box-shadow: -10px 9px 33px -8px rgba(0,0,0,0.37);
+	box-shadow: -10px 9px 33px -8px rgba(0,0,0,0.37);
 }
 div.bigPreview:before{
 	content: "";
