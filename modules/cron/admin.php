@@ -23,16 +23,14 @@
 		$hash = hash('crc32',$_SERVER['DOCUMENT_ROOT']);//хеш проекта	
 		
 		$cronText = shell_exec("crontab -l");//читаетм крон
-		preg_match_all("@(#MPCron-{$hash}-(\d+)-(\w+)\s[^\n]+)\n(.*)@iu",$cronText,$matches);//ищем только наши задачи
+		preg_match_all("@.*((#MPCron-{$hash}-(\d+)-(\w+))\s[^\n]+)@iu",$cronText,$matches);//ищем только наши задачи
 		
 		//функция удаления задачи
 		$del_task = function($id) use(&$matches){
-			$find_id = array_search($id,$matches[2]);
-			if(isset($matches[1][$find_id])){
-				exec("(crontab -l | grep -v '{$matches[1][$find_id]}' | crontab -)");
-				exec("(crontab -l | grep -v '{$matches[4][$find_id]}' | crontab -)");
-			}
-		};	
+			$find_id = array_search($id,$matches[3]);
+			if(isset($matches[2][$find_id]))
+				exec("(crontab -l | grep -v '{$matches[2][$find_id]}' | crontab -)");
+		};		
 		$translit = function ($string){
 			$converter = [
 				'а' => 'a',   'б' => 'b',   'в' => 'v', 'г' => 'g',	'д' => 'd',   'е' => 'e', 'ё' => 'e',   'ж' => 'zh',  'з' => 'z', 'и' => 'i',
@@ -45,7 +43,7 @@
 			];return strtr($string, $converter);
 		};
 		//Задачи найденные в Кроне
-		foreach($matches[2] as $TaskID){
+		foreach($matches[3] as $TaskID){
 			//Ситуация №3 & №5 (удаляем)
 			if(!isset($tasks[$TaskID]) OR get($tasks,$TaskID,'hide')){
 				$del_task($TaskID);
@@ -57,20 +55,19 @@
 			$update = false;//флаг обновления задачи
 			$name = $translit(trim(preg_replace("#[\"'\\\/`]*#iu",'',$data['name']))); //имя задачи (вырезаем все лишнее)
 			$bin  = get($settings,'bin','value')?:"php"; //какой будем использовать бинарник
-			$cron_cmd  = "{$data['cron']} {$bin} -f {$_SERVER['DOCUMENT_ROOT']}index.php cron {$TaskID}"; //крон задача
+			$cron_cmd  = "{$data['cron']} {$bin} -f {$_SERVER['DOCUMENT_ROOT']}index.php cron {$TaskID} > /dev/null & "; //крон задача
 			$cron_hash =  hash('crc32',$cron_cmd.$name);//хеш задачи
-			$cron_id   = "#MPCron-{$hash}-{$TaskID}-{$cron_hash} {{$name}}";//индификатор задачи
+			$cron_cmd .= "#MPCron-{$hash}-{$TaskID}-{$cron_hash} {{$name}}";//индификатор задачи
 			
 			//если задча активна и она записанна но синтаксис не актуален - то обновляем
-			if(is_numeric($find_id = array_search($TaskID,$matches[2])) AND !$data['hide'] AND $matches[3][$find_id]!=$cron_hash){
+			if(is_numeric($find_id = array_search($TaskID,$matches[3])) AND !$data['hide'] AND $matches[4][$find_id]!=$cron_hash){
 				$del_task($TaskID);
 				$update = true;
 			}
 			//если крон верный
 			if($is_cron($data['cron'])){
 				//Ситуация №2 или №1 (добавляем)
-				if((!in_array($TaskID,$matches[2]) AND !$data['hide']) OR $update){
-					exec("(crontab -l ; echo '{$cron_id}') | crontab -");
+				if((!in_array($TaskID,$matches[3]) AND !$data['hide']) OR $update){
 					exec("(crontab -l ; echo '{$cron_cmd}') | crontab -");
 				}
 			}
