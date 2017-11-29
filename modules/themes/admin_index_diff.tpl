@@ -43,8 +43,8 @@
 			<? foreach((array)get($tpl, 'search') as $search): ?>
 				<div class="table">
 					<div>
-						<span><?=$search['file2']?></span>
-						<span><?=$search['file1']?></span>
+						<span><a href="/themes:<?=$arg['fn']?>?download=<?=$search['path2']?>"><?=$search['file2']?></a></span>
+						<span><a href="/themes:<?=$arg['fn']?>?download=<?=$search['path1']?>"><?=$search['file1']?></a></span>
 					</div>
 				</div>
 			<? endforeach; ?>

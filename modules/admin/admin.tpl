@@ -137,9 +137,12 @@
 		<? if(array_search($_GET['r'], $tpl['tables']) !== false): ?>
 			<style>
 				.lines, .lines .inner {
-					-moz-transform: scaleY(-1);
-					-webkit-transform: scaleY(-1);
+					-moz-transform: scaleY(-1); /* Переворачивает элемент со скролом (чтобы поставить его сверху) */
+					-webkit-transform: scaleY(-1); /* Переворачиваем внутренний элемент */
 				}
+				.lines { position:relative; }
+				.lines .inner { position:absolute; bottom:0; }
+
 				.table > .th > span:first-child,
 				.table [line_id] >span:first-child{
 						background-color:#fff;
