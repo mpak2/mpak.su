@@ -141,7 +141,7 @@
 					-webkit-transform: scaleY(-1); /* Переворачиваем внутренний элемент */
 				}
 				.lines { position:relative; }
-				.lines .inner { position:absolute; bottom:0; }
+				.lines .inner { position:absolute; bottom:0;     width: 100%;}
 
 				.table > .th > span:first-child,
 				.table [line_id] >span:first-child{
@@ -173,10 +173,30 @@
 				.info_comm{color: #a5a5a5;}
 			</style>
 			<script>
+				$(function(){					
+					var ch = $('input[type=checkbox][name="id"]');	
+					var lastChecked = null;
+					ch.on("click",function(e) {
+							console.log(lastChecked);
+							if(!lastChecked) {
+								lastChecked = this;
+								return;
+							}
+							if(e.shiftKey) {
+								var start = ch.index(this);
+								var end = ch.index(lastChecked);
+								ch.slice(Math.min(start,end), Math.max(start,end)+ 1).prop('checked', lastChecked.checked);
+							}
+							lastChecked = this;
+							console.log(lastChecked);
+						});
+					
+				});
 				(function($, script){
 					$('#content >.lines').on('scroll', function () {console.log(44);
 						$('.table > .th > span:first-child,.table [line_id] >span:first-child').css('left', $(this).scrollLeft());
 					});
+					
 					$(script).parent().on("click", ".control a.del", function(del){
 	//					var all = $(del.currentTarget).parents(".th").length;
 						var checkbox = $(del.currentTarget).parents("[line_id]").find("input[type=checkbox]");
@@ -202,13 +222,12 @@
 								})
 							}
 						}
-					}).on("change", ".th input[type=checkbox]", function(e){
-						var checked = $(e.currentTarget).is(":checked");
-						console.log("lines:", $(e.currentTarget).parents(".lines").find("[line_id]"));
+					}).on("click", ".th input[type=checkbox]", function(e){
 						$(e.currentTarget).next().show();
-
-						$(e.currentTarget).parents(".lines").find("[line_id]").each(function(n, line){
-							$(line).find("input[type=checkbox]").prop('checked', checked).show();
+						
+						var checked = $(e.currentTarget).is(":checked");
+						$(e.currentTarget).parents(".lines").find('input[type=checkbox][name="id"]').each(function(n, checkbox){
+							$(checkbox).prop('checked', e.shiftKey ? checked : !$(checkbox).is(":checked")).show();
 						})
 					}).on("invert", function(e, request, one, two){
 						if($(two).length == 0){
@@ -322,7 +341,9 @@
 								}
 							})
 						}, 1000)
-					}).ready(function(e){ $(script).parent().trigger("init"); })
+					}).ready(function(e){ 
+						$(script).parent().trigger("init"); 
+					});
 				})(jQuery, document.currentScript)
 			</script>
 			<form action="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?><?=(get($_GET, "edit") ? "/{$_GET['edit']}" : "")?>/null" method="post" enctype="multipart/form-data">
@@ -469,7 +490,7 @@
 										</a>
 										<? if("id" == $name): ?>
 											<span class="control">
-												<input type="checkbox">
+												<input type="checkbox" title="Стандартно - инверсия; Shift - Повторение">
 												<a class="del" href="javascript:" style="display:none;"></a>
 											</span>
 										<? endif; ?>
@@ -516,7 +537,7 @@
 													<a class="del" href="javascript:"></a>
 													<a class="edit" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&edit=<?=$v?><? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'order') ? "&order={$_GET['order']}" : "")?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : "")?>"></a>
 													<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&where[id]=<?=$v?>"><?=$v?></a>
-													<input type="checkbox" style="display:none;">
+													<input type="checkbox" name="id" value="<?=$v?>" style="display:none;">
 												</span>
 											<? elseif(!preg_match("#_id$#ui",$k) AND preg_match("#^img(\d*|_.+)?#iu",$k)): ?>
 												<div class="imgs" fn="<?=$k?>" style="position:relative; height:14px;">
