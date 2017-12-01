@@ -68,6 +68,7 @@ $(function(){
 					toolbar1: 'browse_source | formatselect | bold italic  | alignleft aligncenter alignright alignjustify  | numlist bullist outdent indent  | link image | typograf  removeformat | code ',
 					image_advtab: false,
 					language:"ru",
+					convert_urls : false,
 					//images_upload_base_path: '/some/basepath',
 					automatic_uploads: false,
 					images_upload_url: 'postAcceptor.php',
