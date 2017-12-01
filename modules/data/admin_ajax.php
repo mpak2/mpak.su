@@ -12,7 +12,7 @@
 		}else{
 			preg_match("@[/&\?]r[:=]([^:/&#\?]+)@iu", get($_SERVER,'HTTP_REFERER'),$cat);
 			$cat = preg_replace("#\/\\\"\'\s#iu","",urldecode((string)get($cat,1)));
-		}		
+		}
 		
 		if(($action=trim(get($_POST,'action'))) == 'upload'){
 			$Files = normalize_files_array();
@@ -91,7 +91,7 @@
 		}elseif($action=='get'){
 			$return = ['error'=>0,'mess'=>'','data'=>[],'cats'=>[],'data_id'=>[]];
 			
-			$cat_id = $cat ? rb("cat",'name',"[{$cat}]",'id') : 0;
+			$cat_id = $cat ? fk("cat",$w=['name'=>$cat],$w,$w,'id') : 0;
 			$type_id = rb('type','description',"[{$FileType}]",'id')?:rb('type','description','[image]','id');
 			
 			if($type_id AND $cat_id AND $cat_id_item){
