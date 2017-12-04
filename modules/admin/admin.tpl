@@ -141,7 +141,7 @@
 					-webkit-transform: scaleY(-1); /* Переворачиваем внутренний элемент */
 				}
 				.lines { position:relative; }
-				.lines .inner { position:absolute; bottom:0; }
+				.lines .inner { /*position:absolute;*/ bottom:0; width:100%;}
 
 				.table > .th > span:first-child,
 				.table [line_id] >span:first-child{
