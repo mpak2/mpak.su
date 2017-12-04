@@ -66,7 +66,13 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 			}else{ //mpre("История сохранена", $admin_history);
 			}
 
-			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=". ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\""); });
+			/*
+				https://webhamster.ru/mytetrashare/index/mtb0/14670332485rAaNEteTA
+				Я хочу написать в редакторе <script> и чтобы в БД попала запись &lt;script&gt;
+				А иначе потом данный скрипт выведется мне на страницу.
+			*/
+			//array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=". ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\""); });
+			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=". ($val == "NULL" ? "NULL" : "\"". mpquot($val). "\""); });
 			qw($sql = "UPDATE `{$_GET['r']}` SET ". implode(", ", array_values($_POST)). " WHERE id=". (int)$_GET['id']);
 			$el = rb($_GET['r'], "id", $_GET['id']);// $_RETURN = 556;
 //			die(!mpre($_POST));
@@ -77,8 +83,14 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 				array_walk($_POST, function($val, $key){
 					if(is_array($val)){
 						$_POST[$key] = null;
-					}else{
-						$_POST[$key] = ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\"");
+					}else{						
+						/*
+							https://webhamster.ru/mytetrashare/index/mtb0/14670332485rAaNEteTA
+							Я хочу написать в редакторе <script> и чтобы в БД попала запись &lt;script&gt;
+							А иначе потом данный скрипт выведется мне на страницу.
+						*/
+						//$_POST[$key] = ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\"");
+						$_POST[$key] = ($val == "NULL" ? "NULL" : "\"". mpquot($val). "\"");
 					}
 				}); $_POST = array_filter($_POST);
 				foreach($ar as $a=>$r){
@@ -95,7 +107,13 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 				} $el = rb($_GET['r'], "id", $_GET['id']);
 			}else{
 				$_POST = array_diff_key($_POST, array_flip(['_id']));
-				array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\""); });
+				/*
+					https://webhamster.ru/mytetrashare/index/mtb0/14670332485rAaNEteTA
+					Я хочу написать в редакторе <script> и чтобы в БД попала запись &lt;script&gt;
+					А иначе потом данный скрипт выведется мне на страницу.
+				*/
+				//array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\""); });
+				array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = ($val == "NULL" ? "NULL" : "\"". mpquot($val). "\""); });
 				mpqw($sql = "INSERT INTO `{$_GET['r']}` (`". implode("`, `", array_keys($_POST)). "`) VALUES (". implode(", ", array_values($_POST)). ")", "Добавление записи в таблицу из админстраницы", function($error) use($conf){
 					if(($fields = fields($_GET['r'])) && preg_match("#Column '([\w-_]+)' cannot be null#", $error, $match)){
 					}elseif($type = $fields[$match[1]]['Type']){ mpre("Тип данных для правки структуры БД не определен", $_GET['r'], $match);
