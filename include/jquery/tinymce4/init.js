@@ -68,6 +68,8 @@ $(function(){
 					toolbar1: 'browse_source | formatselect | bold italic  | alignleft aligncenter alignright alignjustify  | numlist bullist outdent indent  | link image | typograf  removeformat | code ',
 					image_advtab: false,
 					language:"ru",
+					convert_urls : false,
+					extended_valid_elements : "a[*],abbr[*],acronym[*],address[*],applet[*],area[*],article[*],aside[*],audio[*],b[*],base[*],basefont[*],bdi[*],bdo[*],bgsound[*],big[*],blink[*],blockquote[*],body[*],br[*],button[*],canvas[*],caption[*]center[*],cite[*],code[*],col[*],colgroup[*],command[*],comment[*],datalist[*],dd[*],del[*],details[*],dfn[*],dir[*],div[*],dl[*],dt[*],em[*],embed[*],fieldset[*],figcaption[*],figure[*],font[*],footer[*],for[*],frame[*],frameset[*],h1[*],h2[*],h3[*],h4[*],h5[*],h6[*],head[*],header[*],hgroup[*],hr[*],html[*],i[*],iframe[*],img[*],input[*],ins[*],isindex[*],kbd[*],keygen[*],label[*],legend[*],li[*],link[*],listin[*],map[*],mark[*],marquee[*],menu[*],meta[*],meter[*],multicol[*],nav[*],nobr[*],noembed[*],noframes[*],noscript[*],object[*],ol[*],optgroup[*],option[*],output[*],p[*],param[*],plaintext[*],pre[*],progress[],q[*],rp[*],rt[*],ruby[*],s[*],samp[*],script[*],section[*],select[*],small[*],source[*],spacer[*],span[*],strike[*],strong[*],style[*],sub[*],summary[*],sup[*],table[*],tbody[*],td[*],textarea[*],tfoot[*],t[*],thead[*],time[*],title[*],tr[*],track[*],tt[*],u[*],ul[*],var[*],video[*],wbr[*],xmp[*]",
 					//images_upload_base_path: '/some/basepath',
 					automatic_uploads: false,
 					images_upload_url: 'postAcceptor.php',
