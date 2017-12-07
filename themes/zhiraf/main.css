@@ -294,7 +294,9 @@ input[type="submit"]{
 			#content >.lines{
 				overflow-x: auto;
 				width: calc(100vw - 221px);
+/*
 				min-height: calc(100vh - 178px);
+*/
 				margin-bottom: -16px;
 			}
 #footer{
