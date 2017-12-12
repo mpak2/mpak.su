@@ -1225,19 +1225,24 @@ function mpdbf($tn, $post = null, $and = false){
 	global $conf;
 	$fields = $f = array();
 	if(!isset($post)) $post = $_POST;
+	/*
+		Отключаем обработку html тегов
+		$conf['settings']['html_mpquot_disable'] = true;
+	*/
+	$html_mpquot = get($conf,'settings','html_mpquot_disable') ? [] : ["<"=>"&lt;", ">"=>"&gt;"];
 //	foreach(mpql(mpqw("SHOW COLUMNS FROM `$tn`")) as $k=>$v){
 	foreach(fields($tn) as $name=>$field){
 		$fields[$name] = (get($field, 'Type') ?: $field['type']);
 	} foreach((array)$post AS $k=>$v){
 		if(!empty($conf['settings']['analizsql_autofields']) && $conf['settings']['analizsql_autofields'] && !array_key_exists($k, $fields) && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false){
 			mpqw($sql = "ALTER TABLE `$tn` ADD `$k` ". (is_numeric($v) ? "INT" : "varchar(255)"). " NOT NULL"); echo "\n<br>". $sql;
-			$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
+			$f[] = "`$k`=\"". mpquot(strtr($v, $html_mpquot)). "\"";
 		}elseif(array_key_exists($k, $fields)){
 			if(is_array($v)){
 				if(mp_is_assoc($v)){
-					$f[] = "`$k` IN (". mpquot(strtr(implode(",", $v), array("<"=>"&lt;", ">"=>"&gt;"))). ")";
+					$f[] = "`$k` IN (". mpquot(strtr(implode(",", $v), $html_mpquot)). ")";
 				}else{
-					$f[] = "`$k`=\"". mpquot(strtr(implode(",", $v), array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
+					$f[] = "`$k`=\"". mpquot(strtr(implode(",", $v), $html_mpquot)). "\"";
 				}
 			}else{
 				if($v === null){
@@ -1245,7 +1250,7 @@ function mpdbf($tn, $post = null, $and = false){
 				}elseif(is_int($v) || ($v == "NULL")){
 					$f[] = "`$k`=". $v;
 				}else{
-					$f[] = "`$k`=\"". mpquot(strtr($v, array("<"=>"&lt;", ">"=>"&gt;"))). "\"";
+					$f[] = "`$k`=\"". mpquot(strtr($v, $html_mpquot)). "\"";
 				}
 			}
 		}
@@ -1978,6 +1983,7 @@ function mpquot($data){ # экранирование символов при и�
 	if(ini_get('magic_quotes_gpc')){ # Волшебные кавычки для входных данных GET/POST/Cookie. magic_quotes_gpc = On
 		$data = stripslashes($data);
 	}
+	
 	$data = str_replace("\\", "\\\\", $data); 
 	$data = str_replace("\x00", "\\x00", $data); 
 	$data = str_replace("\x1a", "\\x1a", $data); 
@@ -1989,7 +1995,9 @@ function mpquot($data){ # экранирование символов при и�
 		$data = str_replace('"', '\"', $data); 
 		$data = str_replace("\r", "\\r", $data); 
 		$data = str_replace("\n", "\\n", $data); 
-	} return $data;
+	} 
+	
+	return $data;
 }
 
 # Изменение размеров изображения. ($max_width и $max_height) высота и ширина. Параметр $crop это способ обработки. Обрезать или вписать в размер
