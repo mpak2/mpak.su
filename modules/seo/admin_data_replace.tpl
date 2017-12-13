@@ -3,11 +3,18 @@
 <? elseif(!$SEO_DATA_VALUES = rb('seo-data_values', 'data_id', 'id', $seo_data['id'])): mpre("Ошибка выборки скрытых значений") ?>
 <? elseif(!$SEO_DATA_TAG = rb('seo-data_tag', 'id', 'id', rb($SEO_DATA_VALUES, 'data_tag_id'))): mpre("Ошибка выборки списка тегов") ?>
 <? elseif($themes_index = rb('themes-index', 'id', get($_GET, 'themes-index'))): mpre("Формирование микроразметки для <a href='//{$themes_index['name']}'>{$themes_index['name']}</a>") ?>
-	<? if(!$hh_blocks = rb('hh-blocks', 'id', $themes_index['hh_blocks'])): mpre("Ошибка выборки ЖК сайта") ?>
+	<? if(!$data = fk('seo-data', $w = ['themes-index'=>$themes_index['id']], $w += ['name'=>$themes_index['name'], 'hide'=>0])): mpre("Ошибка добавления даты") ?>
+	<? elseif(!$hh_blocks = rb('hh-blocks', 'id', $themes_index['hh_blocks'])): mpre("Ошибка выборки ЖК сайта") ?>
 	<? elseif(!$hh_builders = rb('hh-builders', 'id', $hh_blocks['builders_id'])): mpre("Ошибка выборки застройщика сайта") ?>
-	<? elseif(!$ZAM = mpzam(['hh-blocks'=>$hh_blocks, 'hh-builders'=>$hh_builders, 'themes-index'=>$themes_index])): mpre("Ошибка формирования массива замены") ?>
-	<? elseif(!$data = fk('seo-data', $w = ['themes-index'=>$themes_index['id']], $w += ['name'=>$themes_index['name'], 'hide'=>0])): mpre("Ошибка добавления даты") ?>
-	<? elseif(!mpre($ZAM)): mpre("Ошибка вывода массива замены") ?>
+	<? elseif(!$hh_regions = rb('hh-regions', 'id', $hh_blocks['regions_id'])): mpre("Ошибка определения района ЖК") ?>
+	<? elseif(!$zam = ['hh-blocks'=>$hh_blocks, 'hh-builders'=>$hh_builders, 'hh-regions'=>$hh_regions, 'themes-index'=>$themes_index]): mpre("Ошибка формирования массива замены") ?>
+	<? elseif(!$INFO = array_map(function($key, $zam){
+			if(!$name = (get(['hh-blocks'=>'Жилой комплекс', 'hh-builders'=>'Информация о застройщике', 'hh-regions'=>'Район жилого комплекса', 'themes-index'=>'Свойства сайта'], $key) ?: $key)){ mpre("Ошибка поиска описания таблицы");
+			}else{ mpre($name, mpzam([$key=>$zam]));
+			}
+		}, array_keys($zam), $zam)): mpre("Ошибка формирования информационного массива") ?>
+	<?// elseif(!mpre($ZAM)): mpre("Ошибка вывода массива замены") ?>
+	<? elseif(!$ZAM = mpzam($zam)): mpre("Ошибка формирования массива замены") ?>
 	<? elseif(!$_SEO_DATA_VALUES = array_map(function($seo_data_values) use($themes_index, $data, $SEO_DATA_TAG, $ZAM){
 			if(!$seo_data_tag = rb($SEO_DATA_TAG, 'id', $seo_data_values['data_tag_id'])){ mpre("Ошибка выборки тега значения");
 			}elseif(!is_string($name = strtr($seo_data_values['name'], $ZAM))){ mpre("Ошибка замены тегов в значении");
@@ -19,7 +26,7 @@
 	<? endif; ?>
 <?// elseif(!$SEO_DATA_VALUES = rb('seo-data_values', 'hide', 'id', 1)): mpre("Ошибка выборки скрытых значений") ?>
 <?// elseif(!$SEO_DATA_TAG = rb('seo-data_tag', 'id', 'id', rb($SEO_DATA_VALUES, 'data_tag_id'))): mpre("Ошибка выборки списка тегов") ?>
-<? elseif(!$SEO_DATA_HREF = rb('seo-data_href', 'id', 'id', rb($SEO_DATA_VALUES, 'data_href_id'))): mpre("Ошибка выборки всех ссылок значений") ?>
+<? elseif(!is_array($SEO_DATA_HREF = rb('seo-data_href', 'id', 'id', rb($SEO_DATA_VALUES, 'data_href_id')))): mpre("Ошибка выборки всех ссылок значений") ?>
 <? elseif(!$SEO_DATA = rb('seo-data', 'id', 'id', rb($SEO_DATA_VALUES, 'data_id'))): mpre("Ошибка выборки даты") ?>
 
 <?// elseif(!$SEO_DATA_VALUES = rb('seo-data_values', 'data_id', 'data_href_id', 'id', "[". get($seo_data, 'id'). ",0,NULL]", "[". get($seo_data_href, 'id'). ",0,NULL]")):// mpre("Ошибка выборки данных микроразметки") ?>

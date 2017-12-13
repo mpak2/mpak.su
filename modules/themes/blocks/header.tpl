@@ -8,9 +8,6 @@
 	div.table > div {display:table-row;}
 	div.table > div > span {display:table-cell; padding:3px; vertical-align:top;}
 	div.table > div.th > span {background-color:#444; color:white;}
-	
-	.pre {/*position:absolute;*/ z-index:999; background-color:white; border-radius:10px; padding:5px; opacity:0.8; border:3px double red; font-size:12px; color:gray;}
-	.pre legend { color:black; font-size:100%; /*top: 13px;*/ position: relative; }
 
 	.pager a.active {color:#fe8e23;}
 </style>
@@ -52,7 +49,10 @@
 	<!-- {/literal} -->
 <? endif; ?>
 
-<? if($callback = get($conf, 'themes', 'index', 'callback')): # Форма обратной связи eyenewton.ru ?>
+<? if(!$themes_index = get($conf, 'themes', 'index')): mpre("Ошибка расчета текущего хоста") ?>
+<? elseif(!array_key_exists('callback', $themes_index)):// mpre("Параметр обратного вызова не задан в свойствах сайта") ?>
+<? elseif(!$callback = get($themes_index, 'callback')): mpre("Форма обратной связи eyenewton.ru <a href='/themes:admin/r:themes-index?&where[id]={$themes_index['id']}'>не задана</a>") ?>
+<? else: ?>
 	<script type="text/javascript" src="//eyenewton.ru/scripts/callback.min.js" charset="UTF-8"></script>
 	<script type="text/javascript">/*<![CDATA[*/var newton_callback_id="<?=$callback?>";/*]]>*/</script>
 <? endif; ?>
@@ -67,7 +67,7 @@
 
 <? if(!get($conf, 'settings', 'themes_params')):// mpre("Таблица параметров не создана") ?>
 <? elseif(!$themes_params = rb("themes-params", "name", $p = "[Код pozvonim.com]")):// mpre("Параметр не найден {$p}") ?>
-<? elseif(!$themes_params_index = rb("themes-params_index", "params_id", "index_id", $themes_params['id'], "[0,NULL,{$conf['themes']['index']['id']}]")):// mpre("Значение параметра для сайта не найдено {$p}") ?>
+<? elseif(!$themes_params_index = rb("themes-params_index", "params_id", "index_id", $themes_params['id'], "[0,NULL,{$conf['themes']['index']['id']}]")): mpre("Значение параметра для сайта не найдено <a href='/themes:admin/r:themes-params_index?&where[params_id]={$themes_params['id']}&where[index_id]={$conf['themes']['index']['id']}'>{$themes_params['name']}</a>") ?>
 <? else: ?>
 	<script crossorigin="anonymous" async type="text/javascript" src="//api.pozvonim.com/widget/callback/v3/<?=$themes_params_index['name']?>/connect" id="check-code-pozvonim" charset="UTF-8"></script>
 <? endif; ?> 
@@ -184,6 +184,11 @@
 					</span>
 				</div>
 			</div>
+			<style>
+				.pre {/*position:absolute;*/ z-index:999; background-color:white; border-radius:10px; padding:5px; opacity:0.8; border:3px double red; font-size:12px; color:gray;}
+				.pre legend { color:black; font-size:100%; /*top: 13px;*/ position: relative; }
+				.pre a.del { float:right; position:absolute; top:13px; right:7px; }
+			</style>
 			<script>
 				$(function(){// Ссылка на редактирование заголовка страницы
 					if("object" == typeof(index = $.parseJSON(canonical = '<?=strtr(json_encode($canonical, JSON_UNESCAPED_UNICODE), ["\\\""=>""])?>'))){// console.log("index", index);
@@ -233,6 +238,11 @@
 					console.log(e.type, "pre");
 				})*/.one("init", function(e){ // Перетаскивание админских элементов
 					$.getScript("//code.jquery.com/ui/1.11.4/jquery-ui.js", function(){
+						var img = $("<img>").attr("src", "/img/del.png");
+						$("<a>").html(img).addClass("del").appendTo("fieldset.pre");
+						$("fieldset.pre").on("click", "a.del", function(e){
+							$(e.delegateTarget).remove();
+						})
 						setTimeout(function(){ // Ожидаем загрузки всех элементов на страницу
 							$("fieldset.pre").draggable({handle:"legend"}).css("position", "absolute").find("legend").css("cursor", "pointer");
 						}, 1000);
@@ -269,20 +279,6 @@
 	</script>
 <? endif; ?>
 
-<? /*if(!get($conf, 'settings', 'themes_params')):// mpre("Таблица параметров не найдена") ?>
-<? elseif(!$themes_params = rb("themes-params", "name", $p = "[Код роистата]")):// mpre("Код риостата не найден") ?>
-<? elseif(!$themes_params_index = rb("themes-params_index", "params_id", "index_id", $themes_params['id'], $w = "[". get($conf, 'themes', 'index', 'id'). ",0,NULL]")):// mpre("Значение параметра для сайта не найдено {$p}", $w) ?>
-<? else: ?>
-	<script>
-		(function(w, d, s, h, id) {
-				w.roistatProjectId = id; w.roistatHost = h;
-				var p = d.location.protocol == "https:" ? "https://" : "http://";
-				var u = /^.*roistat_visit=[^;]+(.*)?$/.test(d.cookie) ? "/dist/module.js" : "/api/site/1.0/"+id+"/init";
-				var js = d.createElement(s); js.async = 1; js.src = p+h+u; var js2 = d.getElementsByTagName(s)[0]; js2.parentNode.insertBefore(js, js2);
-		})(window, document, 'script', 'cloud.roistat.com', "<?=$themes_params_index['name']?>");
-	</script>
-<? endif;*/ ?>
-
 <? if(!get($conf, 'settings', 'themes_params')):// mpre("Таблица параметров не найдена") ?>
 <? elseif(!$themes_params = rb("themes-params", "name", $p = "[Изменение стилей для шаблона]")):// mpre("Параметр не найден {$p}") ?>
 <? elseif(!$THEMES_PARAMS_INDEX = rb("themes-params_index", "params_id", "index_id", "id", $themes_params['id'], $conf['themes']['index']['id'])):// mpre("Изменений стилей для данного сайта не требуется") ?>
@@ -294,15 +290,15 @@
 	</style>
 <? endif; ?>
 
-<? if(!$themes_getScript = get($conf, 'settings', 'themes_getScript')):// mpre("Яваскрипт для загрузки не указан") ?>
+<? /*if(!$themes_getScript = get($conf, 'settings', 'themes_getScript')):// mpre("Яваскрипт для загрузки не указан") ?>
 <? elseif(!$COOKIE = array_diff_key($_COOKIE, array_flip(['roistat_phone_script_data']))): mpre("Ошибка формирования массива значений") ?>
-<? elseif(!$themes_getScript = "{$themes_getScript}?". http_build_query($COOKIE)): mpre("Адрес скрипта плюс данные куки") ?>
+<? elseif(!$themes_getScript = "{$themes_getScript}?"): mpre("Адрес скрипта плюс данные куки");// http_build_query($COOKIE) ?>
 <? else:// mpre() ?>
 	<script sync>
 		(function($, script){
 			$(script).parent().one("init", function(e){
 				setTimeout(function(){
-					$.post("<?=$themes_getScript?>", $.parseJSON('<?=json_encode(["COOKIE"=>$COOKIE])?>'), function(data){
+					$.post("<?=$themes_getScript?>", [], function(data){ // $.parseJSON('<?//=json_encode(["COOKIE"=>$COOKIE])?>')
 					}, "script").done(function(data){// console.log("tracking:", data);
 					}).fail(function(error){
 						console.error("tracking:", error);
@@ -311,7 +307,7 @@
 			}).ready(function(e){ $(script).parent().trigger("init"); })
 		})(jQuery, document.currentScript)
 	</script>
-<? endif; ?>
+<? endif;*/ ?>
 
 <? if(!get($conf, 'settings', 'themes_params')):// mpre("Таблица параметров не найдена") ?>
 <? elseif(!$themes_params = rb("themes-params", "name", $p = "[Hotjar Tracking Code]")):// mpre("Параметр не найден {$p}") ?>
@@ -340,27 +336,29 @@
 <? elseif(!$SEO_DATA_VALUES = rb('seo-data_values', 'data_id', 'data_href_id', 'id', "[". get($seo_data, 'id'). ",0,NULL]", "[". get($seo_data_href, 'id'). ",0,NULL]")):// mpre("Ошибка выборки данных микроразметки") ?>
 <?// elseif(mpre($SEO_DATA_VALUES)): ?>
 <? elseif(!$SEO_DATA_TAG = rb('seo-data_tag', 'id', 'id', rb($SEO_DATA_VALUES, 'data_tag_id'))): mpre("Ошибка выборки тегов значений") ?>
-<? elseif(!$_SEO_DATA_TAG = array_filter(array_map(function($seo_data_tag){// mpre($seo_data_tag);
+<? elseif(!is_array($_SEO_DATA_TAG = array_filter(array_map(function($seo_data_tag){// mpre($seo_data_tag);
 		return ($seo_data_tag['data_tag_id'] ? $seo_data_tag : null);
-	}, $SEO_DATA_TAG))): mpre("Ошибка получения вложенных элементов") ?>
+	}, $SEO_DATA_TAG)))): mpre("Ошибка получения вложенных элементов") ?>
 <? elseif(!$json = call_user_func(function($SEO_DATA_VALUES) use($SEO_DATA_TAG, $_SEO_DATA_TAG){ # Массив ключей и значений
 		if(!$SEO_DATA_TAG_[$n = 'Корневые'] = array_filter(array_map(function($seo_data_tag){
 				return ($seo_data_tag['data_tag_id'] ? null : $seo_data_tag);
 			}, $SEO_DATA_TAG))){ mpre("Ошибка формирования списка `{$n}`");
 		}elseif(!$tags = array_column($SEO_DATA_TAG_['Корневые'], 'alias', 'id')){ mpre("Ошибка формирования списка тегов");
 		}elseif(!$values = array_replace($tags, array_intersect_key(array_column($SEO_DATA_VALUES, 'name', 'data_tag_id'), $tags))){ mpre("Ошибка формирования списка значений");
-		}elseif(!$rep = call_user_func(function($SEO_DATA_TAG) use($SEO_DATA_VALUES){
-				if(!$_SEO_DATA_TAG = rb($SEO_DATA_TAG, 'data_tag_id', 'id')){
-				}elseif(!$_SEO_DATA_TAG = array_map(function($_DATA_TAG) use($SEO_DATA_VALUES){
+		}elseif(!is_array($rep = call_user_func(function($SEO_DATA_TAG) use($SEO_DATA_VALUES){
+				if(!$_SEO_DATA_TAG = rb($SEO_DATA_TAG, 'data_tag_id', 'id')){ return []; mpre("Ошибка получения тегов данных");
+				}elseif(!is_array($_SEO_DATA_TAG = array_map(function($_DATA_TAG) use($SEO_DATA_VALUES){
 						if(!$tags = array_column($_DATA_TAG, 'alias', 'id')){ mpre("Ошибка формирования списка тегов");
 						}elseif(!is_array($default = array_filter(array_column($_DATA_TAG, 'value', 'id')))){ mpre("Ошибка выборки значений по умолчанию");
 						}elseif(!$values = array_replace($tags, array_column($SEO_DATA_VALUES, 'name', 'data_tag_id'))){ mpre("Ошибка формирования списка значений");
 						}elseif(!$value = array_replace($default, array_filter($values))){ mpre("Ошибка убирания лишних элементов");
-						}elseif(!$rep = array_combine(array_intersect_key($tags, $value), array_intersect_key($value, $tags))){ mpre("Ошибка формирования json массива");
-						}else{ return $rep; }
-					}, $_SEO_DATA_TAG)){ mpre("Ошибка установки значения в тегах");
+						}elseif(!is_array($rep = array_combine(array_intersect_key($tags, $value), array_intersect_key($value, $tags)))){ mpre("Ошибка формирования json массива");
+						}else{// mpre($rep);
+							return $rep;
+						}
+					}, $_SEO_DATA_TAG))){ mpre("Ошибка установки значения в тегах");
 				}else{ return $_SEO_DATA_TAG; }
-			}, $_SEO_DATA_TAG)){ mpre("Ошибка формирования многоуровневой замены");
+			}, $_SEO_DATA_TAG))){ mpre("Ошибка формирования многоуровневой замены");
 		}elseif(!$values = array_replace($values, $rep)){ mpre("Ошибка установки значений корневых элементов");
 		}elseif(!$json = array_combine($tags, array_intersect_key($values, $tags))){ mpre("Ошибка формирования json массива");
 		}else{// mpre($rep, $json);
