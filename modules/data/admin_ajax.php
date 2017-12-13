@@ -182,7 +182,7 @@
 						'ext'=>($ext=get(pathinfo($data_item['file']),'extension')),
 						'id' =>$data_item['id'],
 						'name' =>$data_item['name'].".{$ext}",
-						'url'=>"/data:file/{$data_item['id']}/tn:index/fn:file/null/file.".$ext,
+						'url'=>"/data:file/{$data_item['id']}/tn:index/fn:file/null/".urlencode($data_item['name']).".".$ext,
 						'bg'=>"/include/jquery/tinymce4/mods/file_icon/".($get_icon($ext)),
 					];
 				}
