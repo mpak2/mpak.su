@@ -1472,7 +1472,7 @@ function mpsmtp($to, $subj="", $text="", $from = null, $files = array(), $login 
 			//пытаемся угадать сами
 			$from_ = $auth[0] . "@" . trim(preg_replace("#smtp\.#iu","",$host[0]));
 		}
-		if(!$mail_match){
+		if(isset($mail_match) and !$mail_match){
 			$from = "{$from} <{$from_}>";
 		}else{
 			$from = $from_;
