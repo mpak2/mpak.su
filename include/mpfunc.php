@@ -671,7 +671,9 @@ function inc($file_name, $variables = [], $req = false){ global $conf, $tpl;
 	}elseif(!$file = mpopendir($file_name)){// mpre("Файл в файловой системе не найден `{$file_name}`");
 //	}elseif((strpos($file_name, 'admin.tpl')) && !mpre($file_name, $file)){
 	}elseif(($_arg = $GLOBALS['arg']) &&0){ mpre("Ошибка сохранения вышестоящих аргументов");
-	}elseif(($path = explode("/", $file_name)) && (!$path[0] == "modules")){ mpre("Файл не из директории с модулями");
+	}elseif(!$path = explode("/", $file_name)){ mpre("Ошибка разбивки директорий разделителем");
+	}elseif(!$path[0] && (!$path = array_slice($path, 1))){ mpre("Ошибка правки смещения при первом левом слеше");
+	}elseif(!$path[0] == "modules"){ mpre("Файл не из директории с модулями `{$file_name}`", $path);
 	}elseif(($mod = get($conf, 'modules', $path[1])) &&0){ mpre("Директория раздела не установлена", $path);
 	}elseif(!$arg = array("modpath"=>$path[1], 'modname'=>$mod['modname'], "admin_access"=>$mod['admin_access'], "fn"=>first(explode(".", get($path, 2))))){ mpre("Ошибка установки аргументов файла");
 	}elseif($_RETURN = false){ mpre("Установка значения возврата");
@@ -1973,7 +1975,7 @@ function pre(){
 	} return get(func_get_args(), 0);
 } function mpre(){// print_r(func_get_args());
 	global $conf, $arg;
-	if((!$gid = get($conf, 'user', 'gid')) || (!array_search("Администратор", $gid))){// print_r("Отображение доступно только администраторам");
+	if((!$gid = get($conf, 'user', 'gid')) || (!array_search("Администратор", $gid))){ return first(func_get_args()); // print_r("Отображение доступно только администраторам");
 	}else{// mpre(debug_backtrace());
 		return call_user_func_array("pre", func_get_args());
 	}
