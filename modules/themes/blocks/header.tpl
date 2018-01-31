@@ -49,7 +49,7 @@
 	<!-- {/literal} -->
 <? endif; ?>
 
-<? if(!$themes_index = get($conf, 'themes', 'index')): mpre("Ошибка расчета текущего хоста") ?>
+<? if(!$themes_index = get($conf, 'themes', 'index')):// mpre("Ошибка расчета текущего хоста") ?>
 <? elseif(!array_key_exists('callback', $themes_index)):// mpre("Параметр обратного вызова не задан в свойствах сайта") ?>
 <? elseif(!$callback = get($themes_index, 'callback')): mpre("Форма обратной связи eyenewton.ru <a href='/themes:admin/r:themes-index?&where[id]={$themes_index['id']}'>не задана</a>") ?>
 <? else: ?>

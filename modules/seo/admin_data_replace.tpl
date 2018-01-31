@@ -7,9 +7,22 @@
 	<? elseif(!$hh_blocks = rb('hh-blocks', 'id', $themes_index['hh_blocks'])): mpre("Ошибка выборки ЖК сайта") ?>
 	<? elseif(!$hh_builders = rb('hh-builders', 'id', $hh_blocks['builders_id'])): mpre("Ошибка выборки застройщика сайта") ?>
 	<? elseif(!$hh_regions = rb('hh-regions', 'id', $hh_blocks['regions_id'])): mpre("Ошибка определения района ЖК") ?>
-	<? elseif(!$zam = ['hh-blocks'=>$hh_blocks, 'hh-builders'=>$hh_builders, 'hh-regions'=>$hh_regions, 'themes-index'=>$themes_index]): mpre("Ошибка формирования массива замены") ?>
+	<? elseif(!$hh_blocks_index = call_user_func(function($hh_blocks){
+			if($hh_blocks_index = []){ mpre("Итоговый массив с данными");
+			}elseif(!$HH_BLOCKS_INDEX = rb('hh-blocks_index', 'blocks_id', 'id', $hh_blocks['id'])){ mpre("Ошибка выборки списка счетчиков");
+			}elseif(!$hh_blocks_index['min'] = min(array_filter(array_column($HH_BLOCKS_INDEX, 'min')))){ mpre("Ошибка расчета минимальной цены");
+			}elseif(!$hh_blocks_index['max'] = max(array_filter(array_column($HH_BLOCKS_INDEX, 'max')))){ mpre("Ошибка расчета минимальной цены");
+			}elseif(!$hh_blocks_index['count'] = array_sum(array_column($HH_BLOCKS_INDEX, 'name'))){ mpre("Ошибка расчета количества страниц");
+			}elseif(!is_array($_HH_BLOCKS_INDEX = array_filter(array_map(function($hh_blocks_index){ return $hh_blocks_index['name'] ? $hh_blocks_index : null; }, $HH_BLOCKS_INDEX)))){ mpre("Ошибка фильтрации квартир в наличае");
+			}elseif(!$HH_ROOMTYPES = rb('hh-roomtypes', 'id', 'id', rb($_HH_BLOCKS_INDEX, 'roomtypes_id'))){ mpre("Ошибка получения списка типов квартир");
+			}elseif(!$hh_blocks_index['list'] = implode(',', array_column($HH_ROOMTYPES, 'description'))){ mpre("Ошибка формирования списка квартир");
+			}else{// mpre($HH_ROOMTYPES);
+				return $hh_blocks_index;
+			}
+		}, $hh_blocks)): mpre("Ошибка расчета списка счетчиков") ?>
+	<? elseif(!$zam = ['hh-blocks'=>$hh_blocks, 'hh-blocks_index'=>$hh_blocks_index, 'hh-builders'=>$hh_builders, 'hh-regions'=>$hh_regions, 'themes-index'=>$themes_index]): mpre("Ошибка формирования массива замены") ?>
 	<? elseif(!$INFO = array_map(function($key, $zam){
-			if(!$name = (get(['hh-blocks'=>'Жилой комплекс', 'hh-builders'=>'Информация о застройщике', 'hh-regions'=>'Район жилого комплекса', 'themes-index'=>'Свойства сайта'], $key) ?: $key)){ mpre("Ошибка поиска описания таблицы");
+			if(!$name = (get(['hh-blocks'=>'Жилой комплекс', 'hh-blocks_index'=>'Счетчики', 'hh-builders'=>'Информация о застройщике', 'hh-regions'=>'Район жилого комплекса', 'themes-index'=>'Свойства сайта'], $key) ?: $key)){ mpre("Ошибка поиска описания таблицы");
 			}else{ mpre($name, mpzam([$key=>$zam]));
 			}
 		}, array_keys($zam), $zam)): mpre("Ошибка формирования информационного массива") ?>

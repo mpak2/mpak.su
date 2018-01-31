@@ -1078,7 +1078,7 @@ function rb($src, $key = 'id'){
 
 # Пересборка данных массива. Исходный массив должен находится в первой форме
 #	[0]  = (array)|(string)			массив|название тавлицы
-#   	[1] ?= (int) \d+				пагинатор
+#	[1] ?= (int) \d+				пагинатор
 #	[2] ?= (string) 'id|name_id'	другой id
 #	[.] ?= (mixed)					параметры выборки
 #
@@ -1117,6 +1117,7 @@ function erb($src, $key = null){
 	}elseif(!is_numeric($min = min(count($FIELDS), count($VALUES)))){ mpre("Ошибка получения минимального значения");
 	}elseif(!is_array($_FIELDS = array_slice($FIELDS, 0, $min))){ mpre("Ошибка урезание полей до количетсва значений");
 	}elseif(!is_array($_VALUES = array_slice($VALUES, 0, $min))){ mpre("Ошибка выборки значений");
+//	}elseif(mpre($src) &&0){
 	}elseif(!is_array($SRC = (is_array($src) ? array_filter(array_map(function($src) use($min, $conf, $_FIELDS, $_VALUES){
 			if(!$_VALUES){ return $src;
 //			}elseif(!$_VALUES_ = array_combine($_FIELDS, $_VALUES)){ mpre("Ошибка сбора массива по ключам и значениям");
@@ -1126,7 +1127,7 @@ function erb($src, $key = null){
 					if(!$field = get($_FIELDS, $key)){ return null;
 					}elseif(is_numeric($value) && ((int)get($src, $field) !== (int)$value)){ return null;
 					}elseif(is_array($value) && !call_user_func(function($src) use($field, $value){
-							if(($val = get($src, $field)) &0){ mpre("Значение массива");
+							if(($val = get($src, $field)) &&0){ mpre("Значение массива");
 							}elseif(is_null($val) && array_key_exists("NULL", $value)){ return $src;
 							}elseif(!array_key_exists($val, $value)){ return null;
 							}else{ return $src; }

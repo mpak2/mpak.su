@@ -22,6 +22,10 @@ if(!$DIR = explode("/", __DIR__)){ print_r("Ошибка определения 
 	if(!$telegram_bot = rb("bim-telegram_bot", "name", $w = "[bimorphbot]")){ mpre("Значение по имени не найдено `{$w}`");
 	}else{ mpre($telegram_bot);
 	}
+# Запуск файлов
+//}else if(!$cmd = "php -f modules/{$arg['modpath']}/sh/". basename($argv[0]). " bin {$vals}"){ mpre("Установка команды запуска");
+//}else if(!mpre("Запуск обучения выходных знаков `{$cmd}`")){
+//}else if(passthru($cmd)){ mpre("Выполнение команды");
 }else{ mpre($cmd);}
 
 /*
