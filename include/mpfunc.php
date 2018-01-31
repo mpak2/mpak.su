@@ -881,19 +881,19 @@ function mp_array_format($array,$array_format){
 	if(is_array($array) AND (is_array($array_format) OR is_string($array_format))){
 		foreach($array as $key => $value){
 			if(is_array($array_format)){
-				if(!isset($buf[$key])) $buf[$key] = array();
+				if(!isset($buf[$key])) $buf[$key] = array();				
 				foreach($array_format as $key_from => $key_to){						
 					if(is_string($key_from)){	
-						if(isset($value[(string)$key_from]))
+						if(array_key_exists((string)$key_from,$value))
 							$buf[$key][(string)$key_to] = $value[(string)$key_from];
 					}else{
-						if(isset($value[(string)$key_to]))
+						if(array_key_exists((string)$key_to,$value))
 							$buf[$key][(string)$key_to] = $value[(string)$key_to];
 					}					
 				}
 			}else if(is_string($array_format)){				
 				if(!isset($buf[$key])) $buf[$key] = array();					
-				if(isset($value[$array_format])) 
+				if(array_key_exists((string)$array_format,$value))
 					$buf[$key][(string)$array_format] = $value[(string)$array_format];				
 			}
 		}
@@ -1475,7 +1475,7 @@ function mpsmtp($to, $subj="", $text="", $from = null, $files = array(), $login 
 			//пытаемся угадать сами
 			$from_ = $auth[0] . "@" . trim(preg_replace("#smtp\.#iu","",$host[0]));
 		}
-		if(!$mail_match){
+		if(isset($mail_match) and !$mail_match){
 			$from = "{$from} <{$from_}>";
 		}else{
 			$from = $from_;
