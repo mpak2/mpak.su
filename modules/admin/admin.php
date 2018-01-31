@@ -141,30 +141,20 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		
 
 		foreach($matchFiles[0] as $mKey=>$param_name){
-			$f = $matchFiles[1][$mKey];
-			$ext = $exts[$f];
-			if($file = get($_FILES, $param_name)){ # POST содержащий  файл
-				if(is_array($file['error'])){ # Множественная загрузка
-					foreach($file['error'] as $key=>$error){
-						if($file['name'][$key]){
-							if($error){
-								echo("Ошибка загрузки файла {$file['name'][$key]}");$_RETURN = 556;
-							}else{
-								if($key > 0){
-									$el = fk($_GET['r'], null, $w = array_diff_key($el, array_flip(array("id", "sort"))), $w);
-								} if(array_key_exists("sort", $el) && ($el['sort'] == 0)){
-									$el = fk($_GET['r'], array("id"=>$el['id']), null, array("sort"=>$el['id']));
-								} $file_id = mpfid($_GET['r'], $param_name, $el['id'], $key, $ext);
-							}
-						}
+			if(!$f = $matchFiles[1][$mKey]){ mpre("Ошибка выборки поля данных");
+			}elseif(!$ext = $exts[$f]){ mpre("Ошибка выборки расшерения");
+			}elseif(!$file = get($_FILES, $param_name)){ mpre("Ошибка выборки параметров файла");
+			}else{// mpre($file);
+				foreach($file['error'] as $key=>$error){
+					if(!$name = $file['name'][$key]){// exit(!mpre("Имя файла не установлено"));
+					}elseif($error = $file['error'][$key]){ mpre("Код ошибки `{$error}` для файла `{$name}` поле `{$param_name}`");
+					}elseif(($key > 0) && (!$el = fk($_GET['r'], null, $w = array_diff_key($el, array_flip(array("id", "sort"))), $w))){ mpre("Ошибка добавления новой записи с файла");
+					}elseif((array_key_exists("sort", $el) && ($el['sort'] == 0)) && (!$el = fk($_GET['r'], array("id"=>$el['id']), null, array("sort"=>$el['id'])))){ mpre("Ошибка установки значения сортировки");
+					}elseif(!$file_id = mpfid($_GET['r'], $param_name, $el['id'], $key, $ext)){ mpre("Ошибка установки изображения");
+					}else{ //mpre($file);
 					}
-				}else if($file_id = mpfid($_GET['r'], $param_name, $el['id'], null, $ext)){
-					# Файл загружен
-				}else{ echo("Ошибка загрузки файла {$file['name']}");$_RETURN = 556; }
-			}elseif(get($_POST, $f)){ # Адрес внешнего изображения
-				$file_id = mphid($class, $f, $el['id'], $_POST[$f], $ext);
+				}
 			}
-			
 		}
 		
 		
