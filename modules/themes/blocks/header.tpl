@@ -167,7 +167,7 @@
 <? elseif(!($themes_index = get($conf, 'themes', 'index')) &&0):// mpre("Хост сайта не найден") ?>
 <? elseif(($canonical = get($conf, 'settings', 'canonical')) &&0): mpre("Канонический адрес не задан") ?>
 <? elseif(($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? $canonical['name'] : $_SERVER['REQUEST_URI']) && (!$get = mpgt($uri)) &0): mpre("Параметры адреса не определены <b>{$uri}</b>") ?>
-<? elseif(!$alias = first(array_keys((array)get($get, 'm'))). ":". first(get($get, 'm')). (($keys = array_keys(array_diff_key($get, array_flip(["m", "id"])))) ? "/". implode("/", $keys) : "")): mpre("Алиас сфоримрован ошибочно") ?>
+<? elseif(!$alias = first(array_keys((array)get($get, 'm'))). ":". first(get($get, 'm')). (($keys = array_keys(array_diff_key($get, array_flip(["m"])))) ? "/". implode("/", $keys) : "")): mpre("Алиас сфоримрован ошибочно") ?>
 <? elseif((!$seo_cat = rb("seo-cat", "id", get($canonical, 'cat_id'))) && (!$seo_cat = rb("seo-cat", "alias", (empty($alias) ? false : "[{$alias}]"))) &0): mpre("Категория не найдена") ?>
 <? else:// mpre($seo_cat) ?>
 		<div class="themes_header_seo_blocks" style="z-index:9999; border:1px solid #eee; border-radius:7px; position:fixed; background-color:rgba(255,255,255,0.7); color:black; padding:0 5px; left:10px; top:10px; width:auto;">
