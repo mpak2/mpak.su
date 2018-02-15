@@ -764,19 +764,23 @@ if (!function_exists('modules')){
 						inc("modules/admin/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')));
 					}
 				$content .= ob_get_contents(); ob_end_clean();
-			}else{
-				ob_start();
-					if(!get($conf, 'settings', 'seo_meta')){// pre("Обработкич мета информации страницы выключен");
-					}elseif((!$get = []) && ($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? get($canonical, 'name') : $_SERVER['REQUEST_URI']) && (!$get = mpgt($uri))){
-					}else{
-						if(!array_key_exists("null", $get) && !array_key_exists("p", $get) && ($conf['settings']['theme/*:admin'] != $conf['settings']['theme']) && !array_search($arg['fn'], ['', 'ajax', 'json', '404'])){ # Нет перезагрузки страницы адреса
-							inc("modules/seo/admin_meta.php", array('arg'=>$arg, "uri"=>$uri, "get"=>$get, "canonical"=>$canonical));
+			}else{// mpre($_SERVER['REQUEST_URI']);
+					if(!get($conf, 'settings', 'seo_meta')){ mpre("Обработкич мета информации страницы выключен");
+					}elseif($get = []){ mpre("Задание параметров запроса");
+					}elseif(!$uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? get($canonical, 'name') : $_SERVER['REQUEST_URI']){ mpre("Ошибка формирования адреса страницы");
+					}elseif(!$get = mpgt($uri)){// mpre("Параметры в адресе не заданы");
+					}elseif(array_key_exists("null", $get)){// mpre("Аякс запрос");
+					}elseif(array_key_exists("p", $get)){// mpre("Установлена пагинация старницы");
+					}elseif($conf['settings']['theme/*:admin'] == $conf['settings']['theme']){// mpre("Админ страница");
+					}elseif(array_search($arg['fn'], ['', 'ajax', 'json', '404'])){// mpre("Список исключенных для СЕО старниц");
+					}else{// mpre($canonical);
+						inc("modules/seo/admin_meta.php", array('arg'=>$arg, "uri"=>$uri, "get"=>$get, "canonical"=>$canonical));
+					}
+					ob_start();
+						if(is_null($return = inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg)))){ # Если не создано скриптов и шаблона для страницы запускаетм общую (аля 404 для модуля)
+							inc("modules/{$mod['link']}/default.tpl", array('arg'=>$arg));
 						}
-					}
-					if(is_null($return = inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg)))){ # Если не создано скриптов и шаблона для страницы запускаетм общую (аля 404 для модуля)
-						inc("modules/{$mod['link']}/default.tpl", array('arg'=>$arg));
-					}
-				$content .= ob_get_contents(); ob_end_clean();
+					$content .= ob_get_contents(); ob_end_clean();
 			}
 		} return $content;
 	}

@@ -1,7 +1,8 @@
 <?
 
-if($canonical){ # Нет мета или обновление категории больше чем у записи
+if($canonical){// mpre("Каноническая ссылка не установлена"); # Нет мета или обновление категории больше чем у записи
 }elseif(!$alias = "{$arg['modpath']}:{$arg['fn']}". (($keys = array_keys(array_diff_key($get, array_flip(["m"])))) ? "/". implode("/", $keys) : "")){ mpre("Алиас сфоримрован ошибочно");
+//}elseif(!mpre($alias)){
 }elseif(array_search('', $_GET)){// mpre("Пустые значения в адресе");
 }elseif(!$cat_name = $conf['modules'][$arg['modpath']]['name']. " » ". (get($conf, 'settings', "{$arg['modpath']}_{$arg['fn']}") ?: $arg['fn'])){ mpre("Ошибка формирования имени категории");
 }elseif(!$seo_cat = fk("{$conf['db']['prefix']}seo_cat", $w = ["alias"=>$alias], $w += ["name"=>$cat_name], $w)){ mpre("Ошибка добавления категория переадресации", $w);
@@ -51,10 +52,12 @@ if($canonical){ # Нет мета или обновление категории
 				}else{ return $index; }
 			}, array_keys($links), $links) : []))){ mpre("Ошибка получения значений ссылок");
 		}elseif(!is_array($INDEX += ($_INDEX ? array_combine(array_keys($links), $_INDEX) : []))){ mpre("Ошибка установки ключей значений");
+//		}elseif(!mpre($INDEX)){
 		}else{ return $INDEX; }
 	}, $tables)){ mpre("Ошибка получения значений ссылок");
-//}elseif(mpre($INDEX)){ # Список Значений связанных таблиц с ключами - адресами
-}elseif(!$ZAM = mpzam($INDEX)){// mpre("Ошибка формирования массива замены"); //}elseif(mpre($ZAM)){ # Список заменяемых элементов в адреса
+//}elseif(mpre($INDEX, $_INDEX)){ # Список Значений связанных таблиц с ключами - адресами
+//}elseif(!$INDEX = $INDEX + $_INDEX){ mpre("Ошибка совмещения основных данных и дополнительных");
+}elseif(!is_array($ZAM = mpzam($INDEX))){// mpre("Ошибка формирования массива замены"); //}elseif(mpre($ZAM)){ # Список заменяемых элементов в адреса
 }elseif(!$href = strtr($href, $ZAM)){ mpre("Ошибка замены тегов в адресе");
 //}elseif(!$href = strtr($href, $CHARACTERS)){ mpre("Ошибка замены адреса посимвольно");
 }elseif(!$href = htmlspecialchars_decode(mb_strtolower($href, 'UTF-8'))){ mpre("Строчные символы и мнемоники");
