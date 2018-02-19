@@ -1,5 +1,18 @@
 <?
 
+
+# Получение алиаса страницы сайта (Используется для формирования адресов СЕО модуля)
+function seo_alias($canonical){
+		if(!is_array($get = mpgt($canonical ?: $_SERVER['REQUEST_URI']))){ mpre("ОШИБКА получения параметров адресной строки");
+		}elseif(!is_array($mod = get($get, 'm'))){ mpre("ОШИБКА получения параметров адреса");
+		}elseif(!$modpath = first(array_keys($mod))){ mpre("ОШИБКА получения модуля из адреса");
+		}elseif(!$fn = first($mod) ?: "index"){ mpre("ОШИБКА получения модуля из адреса");
+		}elseif(!is_array($get = array_diff_key($get, array_flip(['m'])))){ mpre("ОШИБКА получения параметров без адресации");
+		}elseif(!is_array($params = array_keys($get))){ mpre("ОШИБКА получения списка имен параметров");
+		}elseif(!$alias = "{$modpath}:{$fn}". ($params ? "/". implode("/", $params) : "")){ mpre("ОШИБКА получения алиаса");
+		}else{ return $alias; }
+}
+
 #Автоподгрузка классов
 function PHPClassAutoload($CN){
 	foreach(explode("\\",$CN) as $class_name){

@@ -167,7 +167,7 @@
 <? elseif(!($themes_index = get($conf, 'themes', 'index')) &&0):// mpre("Хост сайта не найден") ?>
 <? elseif(($canonical = get($conf, 'settings', 'canonical')) &&0): mpre("Канонический адрес не задан") ?>
 <? elseif(($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? $canonical['name'] : $_SERVER['REQUEST_URI']) &0): mpre("Параметры адреса не определены <b>{$uri}</b>") ?>
-<? elseif(!$alias = call_user_func(function($canonical){
+<? /*elseif(!$alias = call_user_func(function($canonical){
 		if(!is_array($get = mpgt($canonical ?: $_SERVER['REQUEST_URI']))){ mpre("ОШИБКА получения параметров адресной строки");
 		}elseif(!is_array($mod = get($get, 'm'))){ mpre("ОШИБКА получения параметров адреса");
 		}elseif(!$modpath = first(array_keys($mod))){ mpre("ОШИБКА получения модуля из адреса");
@@ -176,11 +176,12 @@
 		}elseif(!is_array($params = array_keys($get))){ mpre("ОШИБКА получения списка имен параметров");
 		}elseif(!$alias = "{$modpath}:{$fn}". ($params ? "/". implode("/", $params) : "")){ mpre("ОШИБКА получения алиаса");
 		}else{ return $alias; }
-	}, $canonical)): mpre("ОШИБКА получения алиаса категории адреса") ?>
+	}, $canonical)): mpre("ОШИБКА получения алиаса категории адреса")*/ ?>
+<? elseif(!$alias = seo_alias($canonical)): mpre("ОШИБКА получения алиаса категории адреса") ?>
 <? elseif((!$seo_cat = rb("seo-cat", "id", get($canonical, 'cat_id'))) && (!$seo_cat = rb("seo-cat", "alias", (empty($alias) ? false : "[{$alias}]"))) &0): mpre("Категория не найдена") ?>
 <? elseif(!$index = is_array($canonical) ? get($canonical, 'name') : $canonical): mpre("ОШИБКА получения адреса страницы") ?>
 <? else:// mpre($uri) ?>
-		<div class="themes_header_seo_blocks" style="z-index:99999; border:1px solid #eee; border-radius:7px; position:fixed; background-color:rgba(255,255,255,0.7); color:black; padding:0 5px; left:10px; top:10px; width:auto;">
+		<div class="themes_header_seo_blocks" style="z-index:9999; border:1px solid #eee; border-radius:7px; position:fixed; background-color:rgba(255,255,255,0.7); color:black; padding:0 5px; left:10px; top:10px; width:auto;">
 			<div class="table">
 				<div>
 					<span><a href="/admin" title="Перейти в админраздел"><img src="/themes/theme:zhiraf/null/i/logo.png"></a></span>
@@ -195,7 +196,7 @@
 				</div>
 			</div>
 			<style>
-				.pre {/*position:absolute;*/ z-index:99999; background-color:white; border-radius:10px; padding:5px; opacity:0.8; border:3px double red; font-size:12px; color:gray;}
+				.pre {/*position:absolute;*/ z-index:999; background-color:white; border-radius:10px; padding:5px; opacity:0.8; border:3px double red; font-size:12px; color:gray;}
 				.pre legend { color:black; font-size:100%; /*top: 13px;*/ position: relative; }
 				.pre a.del { float:right; position:absolute; top:13px; right:7px; }
 			</style>
