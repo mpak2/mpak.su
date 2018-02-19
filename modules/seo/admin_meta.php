@@ -1,22 +1,13 @@
 <?
 
 if($canonical){// mpre("Каноническая ссылка не установлена"); # Нет мета или обновление категории больше чем у записи
-//}elseif(!$alias = "{$arg['modpath']}:{$arg['fn']}". (($keys = array_keys(array_diff_key($get, array_flip(["m"])))) ? "/". implode("/", $keys) : "")){ mpre("Алиас сфоримрован ошибочно");
 }elseif(!$alias = "{$arg['modpath']}:{$arg['fn']}". (($keys = array_keys(array_diff_key(array_filter($_GET), array_flip(["m", ""])))) ? "/". implode("/", $keys) : "")){ mpre("Алиас сфоримрован ошибочно");
-/*}elseif(!$alias = call_user_func(function($canonical){
-		if(!is_array($get = mpgt($canonical ?: $_SERVER['REQUEST_URI']))){ mpre("ОШИБКА получения параметров адресной строки");
-		}elseif(!is_array($mod = get($get, 'm'))){ mpre("ОШИБКА получения параметров адреса");
-		}elseif(!$modpath = first(array_keys($mod))){ mpre("ОШИБКА получения модуля из адреса");
-		}elseif(!$fn = first($mod) ?: "index"){ mpre("ОШИБКА получения модуля из адреса");
-		}elseif(!is_array($get = array_diff_key($get, array_flip(['m'])))){ mpre("ОШИБКА получения параметров без адресации");
-		}elseif(!is_array($params = array_keys($get))){ mpre("ОШИБКА получения списка имен параметров");
-		}elseif(!$alias = "{$modpath}:{$fn}". ($params ? "/". implode("/", $params) : "")){ mpre("ОШИБКА получения алиаса");
-		}else{ return $alias; }
-	}, $canonical)){ mpre("ОШИБКА получения алиаса категории адреса");*/
 }elseif(!$alias = seo_alias($canonical)){ mpre("ОШИБКА получения алиаса категории адреса");
 }elseif(array_search('', $_GET)){// mpre("Пустые значения в адресе");
-}elseif(!$cat_name = $conf['modules'][$arg['modpath']]['name']. " » ". (get($conf, 'settings', "{$arg['modpath']}_{$arg['fn']}") ?: $arg['fn'])){ mpre("Ошибка формирования имени категории");
-}elseif(!$seo_cat = fk("{$conf['db']['prefix']}seo_cat", $w = ["alias"=>$alias], $w += ["name"=>$cat_name], $w)){ mpre("Ошибка добавления категория переадресации", $w);
+}elseif(!$fn_name = (get($conf, 'settings', "{$arg['modpath']}_{$arg['fn']}") ?: ($arg['fn'] == "index" ? "Главная" : $arg['fn']))){ mpre("Ошибка формирования имени страницы");
+}elseif(!$mod_name = get($conf, 'modules', $arg['modpath'], 'name')){ mpre("ОШИБКА формировния имени модуля");
+}elseif(!$cat_name = "{$mod_name} » {$fn_name}"){ mpre("Ошибка формирования имени категории");
+}elseif(!$seo_cat = fk("seo-cat", $w = ["alias"=>$alias], $w += ["name"=>$cat_name], $w)){ mpre("Ошибка добавления категория переадресации", $w);
 }elseif($seo_cat['hide'] !== "0"){// mpre("Категория скрыта");
 }elseif(!$settings = mpzam($conf['settings'], "settings")){ mpre("Ошибка формирования системных переменных");
 }elseif(!$lang = ((strpos($_SERVER['HTTP_HOST'], "xn--") === 0) ? "Русские" : "Английские")){ mpre("Определение языка сайта");

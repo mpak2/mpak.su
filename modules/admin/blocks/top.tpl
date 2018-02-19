@@ -4,7 +4,7 @@ include_once mpopendir('include/idna_convert.class.inc');
 $http_host = (new idna_convert())->decode($_SERVER['HTTP_HOST']);
 
 ?>
-<div id="header" style="white-space:nowrap;">
+<div id="header" style="white-space:nowrap; padding-bottom:5px;">
 		<div class="table" style="width:auto;">
 			<div>
 				<a href="/" class="logo"><img src="i/logo.png"></a>
