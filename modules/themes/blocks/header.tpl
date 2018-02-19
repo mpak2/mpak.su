@@ -166,12 +166,19 @@
 <? if(!array_search("Администратор", $conf['user']['gid'])): mpre("Раздел предназначен только администраторам") ?>
 <? elseif(!($themes_index = get($conf, 'themes', 'index')) &&0):// mpre("Хост сайта не найден") ?>
 <? elseif(($canonical = get($conf, 'settings', 'canonical')) &&0): mpre("Канонический адрес не задан") ?>
-<? elseif(($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? $canonical['name'] : $_SERVER['REQUEST_URI']) && (!$get = mpgt($uri)) &0): mpre("Параметры адреса не определены <b>{$uri}</b>") ?>
-<? elseif(!$alias = first(array_keys((array)get($get, 'm'))). ":". first(get($get, 'm')). (($keys = array_keys(array_diff_key($get, array_flip(["m"])))) ? "/". implode("/", $keys) : "")): mpre("Алиас сфоримрован ошибочно") ?>
-<? /*elseif(!$alias = call_user_func(function(){
-	}, )): mpre("Ошибка формирования алиаса категории")*/ ?>
-<?// elseif(!mpre($alias)): ?>
+<? elseif(($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? $canonical['name'] : $_SERVER['REQUEST_URI']) &0): mpre("Параметры адреса не определены <b>{$uri}</b>") ?>
+<? elseif(!$alias = call_user_func(function($canonical){
+		if(!is_array($get = mpgt($canonical ?: $_SERVER['REQUEST_URI']))){ mpre("ОШИБКА получения параметров адресной строки");
+		}elseif(!is_array($mod = get($get, 'm'))){ mpre("ОШИБКА получения параметров адреса");
+		}elseif(!$modpath = first(array_keys($mod))){ mpre("ОШИБКА получения модуля из адреса");
+		}elseif(!$fn = first($mod)){ mpre("ОШИБКА получения модуля из адреса");
+		}elseif(!is_array($get = array_diff_key($get, array_flip(['m'])))){ mpre("ОШИБКА получения параметров без адресации");
+		}elseif(!is_array($params = array_keys($get))){ mpre("ОШИБКА получения списка имен параметров");
+		}elseif(!$alias = "{$modpath}:{$fn}". ($params ? "/". implode("/", $params) : "")){ mpre("ОШИБКА получения алиаса");
+		}else{ return $alias; }
+	}, $canonical)): mpre("ОШИБКА получения алиаса категории адреса") ?>
 <? elseif((!$seo_cat = rb("seo-cat", "id", get($canonical, 'cat_id'))) && (!$seo_cat = rb("seo-cat", "alias", (empty($alias) ? false : "[{$alias}]"))) &0): mpre("Категория не найдена") ?>
+<? elseif(!$index = is_array($canonical) ? get($canonical, 'name') : $canonical): mpre("ОШИБКА получения адреса страницы") ?>
 <? else:// mpre($uri) ?>
 		<div class="themes_header_seo_blocks" style="z-index:9999; border:1px solid #eee; border-radius:7px; position:fixed; background-color:rgba(255,255,255,0.7); color:black; padding:0 5px; left:10px; top:10px; width:auto;">
 			<div class="table">
@@ -183,7 +190,7 @@
 								<a href="/seo:admin/r:seo-cat?&where[id]=<?=get($seo_cat, 'id')?>"><?=$name?></a>
 							<? else: ?>Категория не задана<? endif; ?>
 						</div>
-						<div class="admin_content" title="Информация о странице"><?=get($canonical, 'name')?></div>
+						<div class="admin_content" title="Информация о странице"><a href=""><?=$index?></a></div>
 					</span>
 				</div>
 			</div>
@@ -212,7 +219,7 @@
 							}}, "json").fail(function(error) {if(typeof(rollback) == "function"){
 									rollback.call(e.currentTarget, error);
 							} alert(error.responseText) });
-						}).on("click", ".admin_content", function(e){
+						})/*.on("click", ".admin_content", function(e){
 							if(!(href = prompt("Адрес страницы"))){ // alert("Отмена действия");
 							}else if(href.substring(0, 1) != "/"){ alert("Адрес должен начинаться с правого слеша «/»");
 							}else{ console.log("Выполнение");
@@ -221,7 +228,7 @@
 									var title = h1.innerHTML;
 								}else{ console.log("Заголовок для сайта не найден"); }
 
-/*								$(e.delegateTarget).trigger("ajax", ["seo", "index", {"uri":href}, {}, function(seo_index){
+								$(e.delegateTarget).trigger("ajax", ["seo", "index", {"uri":href}, {}, function(seo_index){
 									console.log("seo_index:", seo_index);
 									$(e.delegateTarget).trigger("ajax", ["seo", "location", {"uri":document.location.pathname}, {}, function(seo_location){
 										console.log("seo_location:", seo_location);
@@ -233,9 +240,9 @@
 											}])
 										}])
 									}])
-								}])*/
+								}])
 							}
-						}).find(".admin_content").css("cursor", "pointer").text(canonical != "false" ? canonical : "Задать адрес");
+						}).find(".admin_content").css("cursor", "pointer").text(canonical != "false" ? canonical : "Задать адрес")*/;
 					}
 				})/*.on("click", "fieldset.pre", function(e){
 					console.log(e.type, "pre");

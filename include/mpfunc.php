@@ -457,7 +457,7 @@ function meta($where, $meta = null){
 	}elseif(!$location = get($where, 0)){ mpre("Ошибка не задан внутренний адрес");
 	}elseif("/" != substr($location, 0, 1)){ mpre("Ошибка. Формат внутреннего адреса `{$location}` задан не верно ожидается первый слеш");
 	}elseif(!$seo_location = fk("seo-location", $w = ['name'=>$location], $w)){ mpre("Ошибка установки внутреннего адреса `{$location}`");
-	}elseif(!$themes_index = get($conf, 'themes', 'index')){ mpre("Многосайтовый режим не установлен");
+	}elseif(!$themes_index = get($conf, 'themes', 'index')){// mpre("Многосайтовый режим не установлен");
 		if(!$seo_index = fk('seo-index', $w= ['id'=>$seo_index['id']], $w+= ['location_id'=>$seo_location['id']]+$meta, $w)){ mpre("Ошибка добавления внешнего");
 		}elseif(!$seo_location = fk('seo-location', $w= ['id'=>$seo_location['id']], $w+= ['index_id'=>$seo_index['id']], $w)){ mpre("Ошибка установки <a href='/seo:admin/r:mp_seo_location_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>переадресации</a> `{$seo_location['name']}` на `{$seo_index['name']}`", $w);
 		}else{ return $where+$seo_index; }
@@ -1320,7 +1320,8 @@ function mpdbf($tn, $post = null, $and = false){
 		$t = $conf['db']['prefix']. implode("_", explode("-", $t));
 	}elseif(!preg_match("#^{$conf['db']['prefix']}.*#iu",$t)){
 		$t = "{$conf['db']['prefix']}{$arg['modpath']}_{$t}";	
-	} if($index = fdk($t, $find, $insert, $update, $log)){
+	}
+	if($index = fdk($t, $find, $insert, $update, $log)){
 		return $key ? $index[$key] : $index;
 	}
 }
