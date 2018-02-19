@@ -307,9 +307,9 @@ input[type="submit"]{
 /* *** Хедер *** */
 #header .logo{
 	display:inline-block;
-	width:47px;
+	width:65px;
 	height:47px;
-	background:url("i/logo.png");
+/*	background:url("i/logo.png");*/
 	left:15px;
 	position:relative;
 	top:6px;

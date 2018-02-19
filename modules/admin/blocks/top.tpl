@@ -7,9 +7,7 @@ $http_host = (new idna_convert())->decode($_SERVER['HTTP_HOST']);
 <div id="header" style="white-space:nowrap;">
 		<div class="table" style="width:auto;">
 			<div>
-				<span style="width:70px;">
-					<a href="/admin" class="logo"></a>
-				</span>
+				<a href="/" class="logo"><img src="i/logo.png"></a>
 				<span style="vertical-align:bottom;">
 					<? if($version = mpopendir("version.txt")): ?>
 						<div><b>Собрано</b>: <?=file_get_contents($version)?></div>
