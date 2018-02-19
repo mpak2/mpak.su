@@ -167,7 +167,7 @@
 <? elseif(!($themes_index = get($conf, 'themes', 'index')) &&0):// mpre("Хост сайта не найден") ?>
 <? elseif(($canonical = get($conf, 'settings', 'canonical')) &&0): mpre("Канонический адрес не задан") ?>
 <? elseif(($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? $canonical['name'] : $_SERVER['REQUEST_URI']) &0): mpre("Параметры адреса не определены <b>{$uri}</b>") ?>
-<? elseif(!$alias = seo_alias($canonical)): mpre("ОШИБКА получения алиаса категории адреса") ?>
+<? elseif(!$alias = seo_alias($uri)): mpre("ОШИБКА получения алиаса категории адреса") ?>
 <? elseif((!$seo_cat = rb("seo-cat", "id", get($canonical, 'cat_id'))) && (!$seo_cat = rb("seo-cat", "alias", (empty($alias) ? false : "[{$alias}]"))) &0): mpre("Категория не найдена") ?>
 <? elseif(!is_string($index = is_array($canonical) ? get($canonical, 'name') : $canonical)): mpre("ОШИБКА получения адреса страницы", $canonical) ?>
 <? elseif(!is_array($seo_location = ($index ? rb("seo-location", "name", "[{$index}]") : []))): mpre("ОШИБКА нахождения внутреннего адреса `{$index}`") ?>
@@ -175,17 +175,17 @@
 <? elseif(!is_array($seo_index_themes = (get($themes_index, 'id') ? rb("seo-index_themes", "theme_index", "location_id", $themes_index['id'], $seo_location['id']) : []))): mpre("Адрес мультисайт режима не найден"); ?>
 <? elseif(!is_array($seo_index = call_user_func(function($seo_location) use($conf, $themes_index, $seo_index_themes){
 		if(!$themes_index = get($conf, 'themes', 'index')){// mpre("Односайтовый режим");
-			if(!$seo_index = rb('seo-index', 'location_id', $seo_location['id'])){ mpre("ОШИБКА выборки внешнего адреса страницы");
+			if(!$seo_index = rb('seo-index', 'location_id', get($seo_location, 'id'))){ return []; mpre("ОШИБКА выборки внешнего адреса страницы");
 			}else{ return $seo_index; }
 		}elseif(!$seo_index = rb('seo-index', 'id', $seo_index_themes['index_id'])){ mpre("Внешний адрес мультисайт режима не найден");
 		}else{ return $seo_index; }
 	}, $seo_location))): mpre("ОШИБКА нахождения внешнего адреса") ?>
-<? else:// mpre($seo_index, $seo_index_themes) ?>
+<? else:// mpre($alias) ?>
 		<div class="themes_header_seo_blocks" style="z-index:9999; border:1px solid #eee; border-radius:7px; position:fixed; background-color:rgba(255,255,255,0.7); color:black; padding:0 5px; left:10px; top:10px; width:auto;">
 			<div class="table">
 				<div>
 					<span><a href="/admin" title="Перейти в админраздел"><img src="/themes/theme:zhiraf/null/i/logo.png"></a></span>
-					<span>
+					<span class="admin_links">
 						<div title="Категория ссылки">
 							<? if($name = get($seo_cat, 'name')): ?>
 								<a href="/seo:admin/r:seo-cat?&where[id]=<?=get($seo_cat, 'id')?>"><?=$name?></a>
@@ -194,6 +194,8 @@
 						<div class="admin_content" title="Информация о странице">
 							<? if($seo_index_themes): ?>
 								<a href="/seo:admin/r:seo-index_themes?&where[id]=<?=$seo_index_themes['id']?>"><?=$seo_location['name']?></a>
+							<? elseif(!$seo_index): ?>
+								<span><?=$uri?></span>
 							<? else: ?>
 								<a href="/seo:admin/r:seo-index?&where[id]=<?=$seo_index['id']?>"><?=$seo_location['name']?></a>
 							<? endif; ?>
@@ -205,38 +207,13 @@
 				.pre {/*position:absolute;*/ z-index:999; background-color:white; border-radius:10px; padding:5px; opacity:0.8; border:3px double red; font-size:12px; color:gray;}
 				.pre legend { color:black; font-size:100%; /*top: 13px;*/ position: relative; }
 				.pre a.del { float:right; position:absolute; top:13px; right:7px; }
+				.admin_links { line-height:22px; }
 			</style>
 			<script>
 				(function($, script){
-					$(function(){// Ссылка на редактирование заголовка страницы
-						if("object" == typeof(index = $.parseJSON(canonical = '<?=strtr(json_encode($canonical, JSON_UNESCAPED_UNICODE), ["\\\""=>""])?>'))){// console.log("index", index);
-							var themes_index = $.parseJSON('<?=strtr(json_encode($themes_index, JSON_UNESCAPED_UNICODE), ["\\\""=>""])?>');
-							$(".themes_header_seo_blocks").on("click", ".admin_content", function(e){
-								window.open("/seo:admin/r:seo-index_themes?&where[location_id]="+index.id+"&where[themes_index]="+themes_index.id);
-							}).find(".admin_content").css("cursor", "pointer");
-						}else{// console.log("canonical:", canonical);
-							$(".themes_header_seo_blocks").on("ajax", function(e, modpath, table, get, post, complete, rollback){
-								var href = "/"+modpath+":ajax/class:"+table; console.log("get:", get);
-								$.each(get, function(key, val){ href += (key == "uri" ? "" : "/"+ key+ ":"+ val); });
-								if(typeof(get["uri"]) != "undefined"){
-										href = href + "/null/name:"+get["uri"];
-								} console.log("href:", href);
-
-								$.post(href, post, function(data){ if(typeof(complete) == "function"){
-									complete.call(e.currentTarget, data);
-								}}, "json").fail(function(error) {if(typeof(rollback) == "function"){
-										rollback.call(e.currentTarget, error);
-								} alert(error.responseText) });
-							})
-						}
-					}).one("init", function(e){ // Перетаскивание админских элементов
+					$(script).parent().one("init", function(e){ // Перетаскивание админских элементов
 						$.getScript("//code.jquery.com/ui/1.11.4/jquery-ui.js", function(){
 							$(".themes_header_seo_blocks").draggable({handle:".table"}).css("position", "absolute").css(".table", "pointer");
-/*							var img = $("<img>").attr("src", "/img/del.png");
-							$("<a>").html(img).addClass("del").appendTo("fieldset.pre");
-							$("fieldset.pre").on("click", "a.del", function(e){
-								$(e.delegateTarget).remove();
-							})*/
 							setTimeout(function(){ // Ожидаем загрузки всех элементов на страницу
 								$("fieldset.pre").draggable({handle:"legend"}).css("position", "absolute").find("legend").css("cursor", "pointer");
 							}, 1000);
