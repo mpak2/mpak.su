@@ -135,7 +135,7 @@ function MpJsAutoMini($teme_folder){
 		if(!is_dir($file)){		
 			if(preg_match("#/js/_min_/#iu",$file)){
 				if(!realpath($file)){
-					unlink($file);
+					exec("rm {$file}");
 				}
 			}else{
 				$newfile = preg_replace("#/js(/|$)#iu","/js/_min_$1",$file);

@@ -368,7 +368,7 @@
 										<?endif;?>
 									}
 								}}catch(e){if(isNaN(data)){ alert(data) }else{
-									alert(data);
+									console.log(data);
 								}}
 							}).hide();
 						}).ready(function(e){ $(script).parent().trigger("init"); })
