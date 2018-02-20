@@ -160,7 +160,7 @@ foreach(mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index", "Спи�
 	$conf['modules'][ $modules['id'] ] = &$conf['modules'][ $modules['folder'] ];
 }
 
-if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Главная страница
+if(get($conf, 'settings', 'start_mod') && !array_key_exists("m", $_GET)){ # Главная страница
 	if(strpos($conf['settings']['start_mod'], "http://") === 0){
 		exit(header("Location: {$conf['settings']['start_mod']}"));
 	}elseif(($seo_index = rb("{$conf['db']['prefix']}seo_index", "name", "[/]")) /*&& array_key_exists("themes_index", $redirect)*/){
@@ -201,7 +201,7 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 				header("Content-Type: {$seo_index_type['name']}");
 			}
 		}else{ $_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = $redirect, 'name'), $_GET); }
-	}elseif($conf['settings']['start_mod'] == $_SERVER['REQUEST_URI']){ # Заглавная страница
+	}elseif(get($conf, 'settings', 'start_mod') == $_SERVER['REQUEST_URI']){ # Заглавная страница
 		$conf['settings']['canonical'] = "/";
 	}elseif(!array_key_exists("404", $conf['settings']) || ($_404 = $conf['settings']['404'])){ # Если не прописан адрес 404 ошибки, то его обработку оставляем для init.php
 		$keys = array_keys($ar = array_keys($_GET['m']));
@@ -210,18 +210,21 @@ if($conf['settings']['start_mod'] && !array_key_exists("m", $_GET)){ # Глав�
 		}
 	}
 
-	if($seo_location = rb("{$conf['db']['prefix']}seo_location", "name", "[{$_SERVER['REQUEST_URI']}]")){
-		if($seo_location['location_status_id'] && ($seo_location_status = rb("{$conf['db']['prefix']}seo_location_status", "id", $seo_location['location_status_id']))){
-			if(get($seo_location, "index_id") && ($seo_index = rb("{$conf['db']['prefix']}seo_index", "id", $seo_location['index_id']))){
-				header("Debug info:". __FILE__. ":". __LINE__);
-				header("HTTP/1.1 {$seo_location_status['id']} {$seo_location_status['name']}");
-				exit(header("Location: {$seo_index['name']}"));
-			}
-		}
-	}
 }
 
-if(!(array_key_exists("m", $_GET) ? (list($m) = array_keys($_GET['m'])) : "pages")){ mpre("Модуль не установлен");
+if(call_user_func(function($conf){ # Если прописана внутренняя страница и перенаправлениее ее на внешнюю делаем переход и отображаем об этом информацию
+		if(!$seo_location = rb("{$conf['db']['prefix']}seo_location", "name", "[{$_SERVER['REQUEST_URI']}]")){// mpre("Адрес внутренней страници в админке не задан");
+		}elseif(!$seo_location['location_status_id']){ mpre("Статус перенаправления не установлен");
+		}elseif(!$seo_location_status = rb("{$conf['db']['prefix']}seo_location_status", "id", $seo_location['location_status_id'])){ mpre("ОШИБКА выборки статуса перенаправления");
+		}elseif(!get($seo_location, "index_id")){ mpre("Внешний адрес для перенаправления не установлен");
+		}elseif(!$seo_index = rb("{$conf['db']['prefix']}seo_index", "id", $seo_location['index_id'])){ mpre("ОШИБКА выборки адреса для перенаправления");
+		}elseif(($gid = get($conf, 'user', 'gid')) && array_search("Администратор", $gid)){ mpre("Перенаправляем страницу на внешний адрес <a href='{$seo_index['name']}'>{$seo_index['name']}</a>");
+		}else{
+			header("HTTP/1.1 {$seo_location_status['id']} {$seo_location_status['name']}");
+			exit(header("Location: {$seo_index['name']}"));
+		}
+	}, $conf)){ mpre("Перенаправление страницы по внутреннему адерсу");
+}elseif(!(array_key_exists("m", $_GET) ? (list($m) = array_keys($_GET['m'])) : "pages")){ mpre("Модуль не установлен");
 }elseif((!$conf['settings']['modpath'] = $modpath = ((!empty($m) && array_key_exists($m, $conf['modules'])) ? $conf['modules'][ $m ]['folder'] : "")) &0){ mpre("Модуль не определен");
 }elseif((array_key_exists("m", $_GET) ? (list($f) = array_values($_GET['m'])) : ($f = "index")) &0){ mpre("Страница не установлена");
 }elseif(!$conf['settings']['fn'] = $fn = ((!empty($f) && ($f != "index")) ? $f : "index")){ mpre("Страница не определена");

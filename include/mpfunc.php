@@ -1,5 +1,25 @@
 <?
 
+
+# Получение алиаса страницы сайта (Используется для формирования адресов СЕО модуля)
+function seo_alias($canonical){// mpre($canonical);
+		if(!$uri = call_user_func(function($canonical){
+				if(is_array($canonical)){ return get($canonical, 'name');
+				}elseif(is_string($canonical)){ return $canonical;
+				}else{ return $_SERVER['REQUEST_URI']; }
+			}, $canonical)){ mpre("ОШИБКА определения адреса");
+		}elseif(!is_array($get = mpgt($uri))){ mpre("ОШИБКА получения параметров адресной строки");
+		}elseif(!is_array($mod = get($get, 'm'))){ mpre("ОШИБКА получения параметров адреса");
+		}elseif(!$modpath = first(array_keys($mod))){ mpre("ОШИБКА получения модуля из адреса");
+		}elseif(!$fn = first($mod) ?: "index"){ mpre("ОШИБКА получения модуля из адреса");
+		}elseif(!is_array($get = array_diff_key($get, array_flip(['m'])))){ mpre("ОШИБКА получения параметров без адресации");
+		}elseif(!is_array($params = array_keys($get))){ mpre("ОШИБКА получения списка имен параметров");
+		}elseif(!$alias = "{$modpath}:{$fn}". ($params ? "/". implode("/", $params) : "")){ mpre("ОШИБКА получения алиаса");
+		}else{// mpre($alias)
+			return $alias;
+		}
+}
+
 #Автоподгрузка классов
 function PHPClassAutoload($CN){
 	foreach(explode("\\",$CN) as $class_name){
@@ -457,7 +477,7 @@ function meta($where, $meta = null){
 	}elseif(!$location = get($where, 0)){ mpre("Ошибка не задан внутренний адрес");
 	}elseif("/" != substr($location, 0, 1)){ mpre("Ошибка. Формат внутреннего адреса `{$location}` задан не верно ожидается первый слеш");
 	}elseif(!$seo_location = fk("seo-location", $w = ['name'=>$location], $w)){ mpre("Ошибка установки внутреннего адреса `{$location}`");
-	}elseif(!$themes_index = get($conf, 'themes', 'index')){ mpre("Многосайтовый режим не установлен");
+	}elseif(!$themes_index = get($conf, 'themes', 'index')){// mpre("Многосайтовый режим не установлен");
 		if(!$seo_index = fk('seo-index', $w= ['id'=>$seo_index['id']], $w+= ['location_id'=>$seo_location['id']]+$meta, $w)){ mpre("Ошибка добавления внешнего");
 		}elseif(!$seo_location = fk('seo-location', $w= ['id'=>$seo_location['id']], $w+= ['index_id'=>$seo_index['id']], $w)){ mpre("Ошибка установки <a href='/seo:admin/r:mp_seo_location_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>переадресации</a> `{$seo_location['name']}` на `{$seo_index['name']}`", $w);
 		}else{ return $where+$seo_index; }
@@ -764,19 +784,23 @@ if (!function_exists('modules')){
 						inc("modules/admin/admin", array('arg'=>array('modpath'=>$mod['link'], 'fn'=>'admin')));
 					}
 				$content .= ob_get_contents(); ob_end_clean();
-			}else{
-				ob_start();
-					if(!get($conf, 'settings', 'seo_meta')){// pre("Обработкич мета информации страницы выключен");
-					}elseif((!$get = []) && ($uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? get($canonical, 'name') : $_SERVER['REQUEST_URI']) && (!$get = mpgt($uri))){
-					}else{
-						if(!array_key_exists("null", $get) && !array_key_exists("p", $get) && ($conf['settings']['theme/*:admin'] != $conf['settings']['theme']) && !array_search($arg['fn'], ['', 'ajax', 'json', '404'])){ # Нет перезагрузки страницы адреса
-							inc("modules/seo/admin_meta.php", array('arg'=>$arg, "uri"=>$uri, "get"=>$get, "canonical"=>$canonical));
+			}else{// mpre($_SERVER['REQUEST_URI']);
+					if(!get($conf, 'settings', 'seo_meta')){ mpre("Обработкич мета информации страницы выключен");
+					}elseif($get = []){ mpre("Задание параметров запроса");
+					}elseif(!$uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? get($canonical, 'name') : $_SERVER['REQUEST_URI']){ mpre("Ошибка формирования адреса страницы");
+					}elseif(!$get = mpgt($uri)){// mpre("Параметры в адресе не заданы");
+					}elseif(array_key_exists("null", $get)){// mpre("Аякс запрос");
+					}elseif(array_key_exists("p", $get)){// mpre("Установлена пагинация старницы");
+					}elseif($conf['settings']['theme/*:admin'] == $conf['settings']['theme']){// mpre("Админ страница");
+					}elseif(array_search($arg['fn'], ['', 'ajax', 'json', '404'])){// mpre("Список исключенных для СЕО старниц");
+					}else{// mpre($canonical);
+						inc("modules/seo/admin_meta.php", array('arg'=>$arg, "uri"=>$uri, "get"=>$get, "canonical"=>$canonical));
+					}
+					ob_start();
+						if(is_null($return = inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg)))){ # Если не создано скриптов и шаблона для страницы запускаетм общую (аля 404 для модуля)
+							inc("modules/{$mod['link']}/default.tpl", array('arg'=>$arg));
 						}
-					}
-					if(is_null($return = inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg)))){ # Если не создано скриптов и шаблона для страницы запускаетм общую (аля 404 для модуля)
-						inc("modules/{$mod['link']}/default.tpl", array('arg'=>$arg));
-					}
-				$content .= ob_get_contents(); ob_end_clean();
+					$content .= ob_get_contents(); ob_end_clean();
 			}
 		} return $content;
 	}
@@ -881,19 +905,19 @@ function mp_array_format($array,$array_format){
 	if(is_array($array) AND (is_array($array_format) OR is_string($array_format))){
 		foreach($array as $key => $value){
 			if(is_array($array_format)){
-				if(!isset($buf[$key])) $buf[$key] = array();
+				if(!isset($buf[$key])) $buf[$key] = array();				
 				foreach($array_format as $key_from => $key_to){						
 					if(is_string($key_from)){	
-						if(isset($value[(string)$key_from]))
+						if(array_key_exists((string)$key_from,$value))
 							$buf[$key][(string)$key_to] = $value[(string)$key_from];
 					}else{
-						if(isset($value[(string)$key_to]))
+						if(array_key_exists((string)$key_to,$value))
 							$buf[$key][(string)$key_to] = $value[(string)$key_to];
 					}					
 				}
 			}else if(is_string($array_format)){				
 				if(!isset($buf[$key])) $buf[$key] = array();					
-				if(isset($value[$array_format])) 
+				if(array_key_exists((string)$array_format,$value))
 					$buf[$key][(string)$array_format] = $value[(string)$array_format];				
 			}
 		}
@@ -1078,7 +1102,7 @@ function rb($src, $key = 'id'){
 
 # Пересборка данных массива. Исходный массив должен находится в первой форме
 #	[0]  = (array)|(string)			массив|название тавлицы
-#   	[1] ?= (int) \d+				пагинатор
+#	[1] ?= (int) \d+				пагинатор
 #	[2] ?= (string) 'id|name_id'	другой id
 #	[.] ?= (mixed)					параметры выборки
 #
@@ -1117,6 +1141,7 @@ function erb($src, $key = null){
 	}elseif(!is_numeric($min = min(count($FIELDS), count($VALUES)))){ mpre("Ошибка получения минимального значения");
 	}elseif(!is_array($_FIELDS = array_slice($FIELDS, 0, $min))){ mpre("Ошибка урезание полей до количетсва значений");
 	}elseif(!is_array($_VALUES = array_slice($VALUES, 0, $min))){ mpre("Ошибка выборки значений");
+//	}elseif(mpre($src) &&0){
 	}elseif(!is_array($SRC = (is_array($src) ? array_filter(array_map(function($src) use($min, $conf, $_FIELDS, $_VALUES){
 			if(!$_VALUES){ return $src;
 //			}elseif(!$_VALUES_ = array_combine($_FIELDS, $_VALUES)){ mpre("Ошибка сбора массива по ключам и значениям");
@@ -1126,7 +1151,7 @@ function erb($src, $key = null){
 					if(!$field = get($_FIELDS, $key)){ return null;
 					}elseif(is_numeric($value) && ((int)get($src, $field) !== (int)$value)){ return null;
 					}elseif(is_array($value) && !call_user_func(function($src) use($field, $value){
-							if(($val = get($src, $field)) &0){ mpre("Значение массива");
+							if(($val = get($src, $field)) &&0){ mpre("Значение массива");
 							}elseif(is_null($val) && array_key_exists("NULL", $value)){ return $src;
 							}elseif(!array_key_exists($val, $value)){ return null;
 							}else{ return $src; }
@@ -1315,7 +1340,8 @@ function mpdbf($tn, $post = null, $and = false){
 		$t = $conf['db']['prefix']. implode("_", explode("-", $t));
 	}elseif(!preg_match("#^{$conf['db']['prefix']}.*#iu",$t)){
 		$t = "{$conf['db']['prefix']}{$arg['modpath']}_{$t}";	
-	} if($index = fdk($t, $find, $insert, $update, $log)){
+	}
+	if($index = fdk($t, $find, $insert, $update, $log)){
 		return $key ? $index[$key] : $index;
 	}
 }

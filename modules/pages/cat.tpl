@@ -1,7 +1,7 @@
 <div>
-	<? if($cat = $tpl['cat'][ $_GET['id'] ]): ?>
+	<? if($cat = rb("pages-cat", "id", get($_GET, 'id'))): ?>
 		<h1><?=$cat['name']?></h1>
-		<? if($cat['cat_id']): ?>
+		<? if(get($cat, 'cat_id')): ?>
 			<div class="bradcrumbs">
 				<? $function = function($cat) use(&$function, $tpl, $arg){ ?>
 					<? if($c = $tpl['cat'][ $cat['cat_id'] ]): ?>
@@ -10,21 +10,14 @@
 				<? }; $function($tpl['cat'][ $cat['cat_id'] ]); ?>
 			</div>
 		<? endif; ?>
-		<? if(rb($tpl['cat'], "cat_id", "id", $cat['id'])): ?>
+
+		<? if(!$PAGES_INDEX = rb("pages-index", "cat_id", "id", $cat['id'])): mpre("Статей в категории не найдено") ?>
+		<? else: ?>
 			<ul>
-				<? foreach(rb($tpl['cat'], "cat_id", "id", $cat['id']) as $scat): ?>
-					<li><a href="/pages:cat/<?=$scat['id']?>"><?=$scat['name']?></a></li>
+				<? foreach($PAGES_INDEX as $pages_index): ?>
+					<li><a href="/pages:index/<?=$pages_index['id']?>"><?=$pages_index['name']?></a></li>
 				<? endforeach; ?>
 			</ul><br /><br />
 		<? endif; ?>
 	<? endif; ?>
-	<? foreach(rb($tpl['cat'], "id", "id", ($_GET['id'] ?: $tpl['cat'])) as $cat): ?>
-		<p>
-			<ul>
-				<? foreach(rb($tpl['index'], "cat_id", "id", $cat['id']) as $index): ?>
-					<li><a href="/<?=$arg['modpath']?>/<?=$index['id']?>"><?=$index['name']?></a></li>
-				<? endforeach; ?>
-			</ul>
-		</p>
-	<? endforeach; ?>
 </div>

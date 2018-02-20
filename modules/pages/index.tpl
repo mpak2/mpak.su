@@ -22,6 +22,9 @@
 		
 		<div><?=aedit("/?m[{$arg['modpath']}]=admin&r={$conf['db']['prefix']}{$arg['modpath']}_index&where[id]=". (int)$index['id'])?></div>
 		<h1><?=$index['name']?></h1>
+		<? if(get($index, 'img')): ?>
+			<img src="/pages:img/<?=$index['id']?>/tn:index/fn:img/w:300/h:300/null/img.png">
+		<? endif; ?>
 		<div><?=$index['text']?></div>
 		<div style="margin-top:20px;"><?=get($conf, 'settings', 'comments')?></div>
 	<? else: ?>

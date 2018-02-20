@@ -1,0 +1,10 @@
+# $ sudo apt install php-cli
+# vim /etc/php/7.0/cli/php.ini
+
+# Необходимая пция для формирования phar архива
+[Phar]
+; http://php.net/phar.readonly
+phar.readonly = On
+
+# Запуск сбора архива
+$ php -f phar.php
