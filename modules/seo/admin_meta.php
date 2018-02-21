@@ -17,7 +17,6 @@ if($canonical){// mpre("Каноническая ссылка не устано�
 }elseif("/" != substr($seo_cat['href'], 0, 1)){ mpre("Формат устанавливаемого адреса должен начинаться со слеша <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>");
 }elseif(!list($modpath, $fn) = each($get['m'])){ mpre("Ошибка получения модуля и имени файла");
 }elseif(!is_array($self = (get($get, 'id') ? rb("{$modpath}-{$fn}", "id", $get['id']) : []))){ mpre("Ошибка выборки данных страницы");
-}elseif($INDEX = []){ mpre("Ошибка добавления значений самой таблицы к общему списку значений");
 }elseif(!is_array($links = call_user_func(function($self) use($arg){// mpre($self);
 		if(!is_array($fields = array_filter(array_map(function($key, $val){
 				if(substr($key, -3) == "_id"){ return $key; mpre("Связанная таблица внутри раздела");
@@ -45,15 +44,14 @@ if($canonical){// mpre("Каноническая ссылка не устано�
 		}else{ return $values; }
 	}))){ mpre("Ошибка добавления занчений списка тегов из адреса");
 }elseif(!is_array($tables = $links + $gets)){ mpre("Ошибка создания массива для выборки данных из таблиц");
-}elseif(!$INDEX += call_user_func(function($links, $INDEX = []){// mpre($links);
+}elseif(!is_array($INDEX = call_user_func(function($links, $INDEX = []){// mpre($links);
 		if(!is_array($_INDEX = ($links ? (array)array_map(function($tab, $id){
 				if(!$index = rb($tab, 'id', $id)){ mpre("Ошибка выборки элемента связанной таблицы `{$tab}` {$id}");
 				}else{ return $index; }
 			}, array_keys($links), $links) : []))){ mpre("Ошибка получения значений ссылок");
 		}elseif(!is_array($INDEX += ($_INDEX ? array_combine(array_keys($links), $_INDEX) : []))){ mpre("Ошибка установки ключей значений");
 		}else{ return $INDEX; }
-	}, $tables)){ mpre("Ошибка получения значений ссылок");
-//}elseif(!mpre($INDEX)){
+	}, $tables))){ mpre("Ошибка получения значений ссылок");
 }elseif(!is_array($ZAM = mpzam($self))){// mpre("Ошибка формирования массива замены"); //}elseif(mpre($ZAM)){ # Список заменяемых элементов в адреса
 
 }elseif(!$href = strtr($href, $ZAM)){ mpre("Ошибка замены тегов в адресе");
