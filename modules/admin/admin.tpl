@@ -620,8 +620,7 @@
 													<a class="ekey" href="<?=$href?>" title="<?=$v?>"></a>&nbsp;<?=$name?>
 												<? endif; ?>
 											<? elseif($k == "name"): ?>
-												<a href="/<?=$arg['modpath']?>
-													<?=(($substr = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))) == "index" ? "" : ":{$substr}")?>/<?=$lines['id']?>"><?=htmlspecialchars($v)?>
+												<a href="/<?=$arg['modpath']?>:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/<?=$lines['id']?>"><?=htmlspecialchars($v)?>
 												</a>
 											<? else: ?>
 												<?=htmlspecialchars(strip_tags($v))?>

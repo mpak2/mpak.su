@@ -98,6 +98,9 @@ div.table > div {display:table-row;}
 div.table > div > span {display:table-cell; vertical-align:top; min-width: 50px; }
 div.table > div:not(.th) > span {line-height: 18px;}
 div.table > div.th >span {background-color:#aaa; color:white; font-weight:bold; border:1px solid #ddd;}
+div.table.table.border { border-collapse:collapse; }
+div.table.table.border > div.th > span { border:0; }
+div.table.table.border > div > span { border:1px solid #ddd; }
 
 .lines div.table > div[line_id] > span {
 	white-space: nowrap;

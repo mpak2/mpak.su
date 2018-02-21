@@ -10,15 +10,16 @@
 // Original Author of file: Krivoshlykov Evgeniy (mpak) +7 929 1140042
 // ----------------------------------------------------------------------
 
-ini_set('display_errors', 1); error_reporting(E_ALL /*& ~E_NOTICE & ~E_STRICT*/);
-if(function_exists("mb_internal_encoding"))
-	mb_internal_encoding("UTF-8");
-date_default_timezone_set('Europe/Moscow');
-header('Content-Type: text/html; charset=utf-8');
-header("Cache-Control:no-cache, must-revalidate;");
-setlocale (LC_ALL, "Russian"); putenv("LANG=ru_RU");
-//chdir( __DIR__ );
-if(strpos(__DIR__, "phar://") === 0){ # Файл index.php внутри phar архива
+if(!call_user_func(function(){
+		ini_set('display_errors', 1);
+		date_default_timezone_set('Europe/Moscow');
+		header('Content-Type: text/html; charset=utf-8');
+		header("Cache-Control:no-cache, must-revalidate;");
+		setlocale (LC_ALL, "Russian"); putenv("LANG=ru_RU");
+		return error_reporting(E_ALL /*& ~E_NOTICE & ~E_STRICT*/);
+	})){ mpre("Установка системных переменных и уровня отчета ошибок");
+}elseif(function_exists("mb_internal_encoding") && !mb_internal_encoding("UTF-8")){ mpre("Кодировки библиотеки корвертации");
+}elseif(strpos(__DIR__, "phar://") === 0){ # Файл index.php внутри phar архива
 	if(!isset($index) && ($index = './index.php') && file_exists($index)){
 		include $index; if($conf) die;
 	} $conf["db"]["open_basedir"] = implode("/", array_slice(explode("/", dirname(__DIR__)), 2)). "::". __DIR__;
@@ -31,19 +32,19 @@ if(strpos(__DIR__, "phar://") === 0){ # Файл index.php внутри phar а�
 	}
 }
 
-if(!function_exists('mp_require_once')){
-	function mp_require_once($link){
+if(!$conf = call_user_func(function($conf){
+		return $conf;
+	}, $conf)){ print_r("ОШИБКА установки переменных окружения");
+}elseif(!$mp_require_once = function($link){
 		global $conf, $arg, $tpl;
 		foreach(explode('::', $conf["db"]["open_basedir"]) as $k=>$v){
 			if(!file_exists($file_name = "$v/$link")) continue;
-			require_once $file_name; return;
-		}
-	}
-}
-mp_require_once("include/config.php"); # Конфигурация
-mp_require_once("include/mpfunc.php"); # Функции системы
-
-if($argv and count($argv)>1){
+			require_once $file_name; return $file_name;
+		} return $file_name;
+	}){ mpre("Функция подключения ресурсов");
+}elseif(!$mp_require_once("include/config.php")){ mpre("ОШИБКА подключения файла конфигурации");
+}elseif(!$mp_require_once("include/mpfunc.php")){ mpre("ОШИБКА подключения функций системы");
+}elseif($argv and count($argv)>1){
 	$conf['user']['gid'] = array(1=>"Администратор");
 	conn();
 	if(preg_match("#/#iu",get($argv,1))){//формат ссылки
@@ -76,23 +77,17 @@ if($argv and count($argv)>1){
 	$mode = "modules/".implode("/",$mode);//собираем путь к модулю и 
 	inc($mode,['arg'=>$arg]);
 	exit();
+}elseif(!$conf['settings']['http_host'] = strtolower(function_exists("idn_to_utf8") ? idn_to_utf8($_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST'])){ pre("ОШИБКА конвертации имени хоста");
+}elseif(!$conf['settings']['access_array'] = ['0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ']){ mpre("ОШИБКА установки уровней доступа");
+}elseif(!$conf['settings']['microtime'] = microtime(true)){ mpre("Фиксация начала запуска скрипта");
+}elseif(cache()){ mpre("Выдаем сохраненную версию если страница кеширована ранее");
+}else{
 }
-
-$conf['settings'] = array(
-	'http_host' => strtolower(function_exists("idn_to_utf8") ? idn_to_utf8($_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST']),
-	'access_array' => array('0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ'),
-	'microtime' => microtime(true),
-);
-
-cache();
 
 if(!$guest = ['id'=>0, "uname"=>"гость", "pass"=>"nopass", "reg_time"=>0, "last_time"=>time()]){ mpre("Ошибка создания пользователя");
 }elseif(!$sess = array('id'=>0, 'uid'=>$guest['id'], "refer"=>0, 'last_time'=>time(), 'count'=>0, 'count_time'=>0, 'cnull'=>0, 'sess'=>($_COOKIE["sess"] ?: md5("{$_SERVER['REMOTE_ADDR']}:".microtime())), 'ref'=>mpquot(mpidn(urldecode($_SERVER['HTTP_REFERER']))), 'ip'=>mpquot($_SERVER['REMOTE_ADDR']), 'agent'=>mpquot($_SERVER['HTTP_USER_AGENT']), 'url'=>mpquot(urldecode($_SERVER['REQUEST_URI'])))){ pre("Ошибка создания сессии");
-}
-
-conn(); 
-
-if((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !tables()){
+}elseif(!$conf['db']['conn'] = conn()){ mpre("ОШИБКА подключения к базе данных");
+}elseif((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !tables()){
 	exit(inc('include/install.php'));
 } $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']);
 
@@ -101,7 +96,8 @@ if(!$_POST && !get($_COOKIE, "sess")){// print_r("Сессия выключен�
 		setcookie("sess", $sess['sess'], 0, "/");
 		if(!$_sess = ql($sql = "SELECT * FROM {$conf['db']['prefix']}sess WHERE `ip`='{$sess['ip']}' AND last_time>=".(time()-86400)." AND `agent`=\"{$sess['agent']}\" AND ". ($_COOKIE["sess"] ? "sess=\"{$sess['sess']}\"" : "uid=". $guest['id'])." ORDER BY id DESC", 0)){
 			qw($sql = "INSERT INTO {$conf['db']['prefix']}sess (`". implode("`, `", array_keys(array_diff_key($sess, array_flip(['id'])))). "`) VALUES ('". implode("', '", array_values(array_diff_key($sess, array_flip(['id'])))). "')");
-			$sess = ['id'=>($conf['db']['conn']->lastInsertId())] + $sess; return $sess;
+			$sess['id'] = $conf['db']['conn']->lastInsertId();
+			return $sess;
 		}else{ return $_sess; }
 	}, $sess)){ pre("Ошибка создания сессии");
 }elseif(array_key_exists('null', $_REQUEST)){ mpre("Отключено обновление сессии для ресурсов");

@@ -2,13 +2,15 @@
 <!--<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>-->
 <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script> Из за неработаюго метода .load() пока не можем перейти (Используется при обработки form.load в перехвате загрузки) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-
 <style>
 	div.table {display:table; width:100%; vertical-align:top; border-collapse:collapse;}
 	div.table > div {display:table-row;}
 	div.table > div > span {display:table-cell; padding:3px; vertical-align:top;}
 	div.table > div.th > span {background-color:#444; color:white;}
 
+	div.table.border { border-collapse:collapse; }
+	div.table.border > div > span { border:1px solid gray; }
+	div.table.border > div.th > span { border:0; }
 	.pager a.active {color:#fe8e23;}
 </style>
 
@@ -168,8 +170,13 @@
 <? elseif(($canonical = get($conf, 'settings', 'canonical')) &&0): mpre("Канонический адрес не задан") ?>
 <? elseif(!$alias = seo_alias($canonical)): mpre("ОШИБКА получения алиаса категории адреса") ?>
 <? elseif((!$seo_cat = rb("seo-cat", "id", get($canonical, 'cat_id'))) && (!$seo_cat = rb("seo-cat", "alias", (empty($alias) ? false : "[{$alias}]"))) &0): mpre("Категория не найдена") ?>
-<? elseif(!is_string($index = is_array($canonical) ? get($canonical, 'name') : $canonical)): mpre("ОШИБКА получения адреса страницы", $canonical) ?>
-<? elseif(!is_array($seo_location = ($index ? rb("seo-location", "name", "[{$index}]") : []))): mpre("ОШИБКА нахождения внутреннего адреса `{$index}`") ?>
+<?// elseif(!is_string($index = is_array($canonical) ? get($canonical, 'name') : $canonical)): mpre("ОШИБКА получения адреса страницы") ?>
+<? elseif(!is_string($uri = call_user_func(function($canonical){
+		if(is_array($canonical)){ return get($canonical, 'name');
+		}elseif(is_string($canonical)){ return $canonical;
+		}else{ return $_SERVER['REQUEST_URI']; }
+	}, $canonical))): mpre("ОШИБКА расчета адреса страницы") ?>
+<? elseif(!is_array($seo_location = ($uri ? rb("seo-location", "name", "[{$uri}]") : []))): mpre("ОШИБКА нахождения внутреннего адреса `{$index}`") ?>
 <? elseif(!is_array($themes_index = get($conf, 'themes', 'index') ?: [])): mpre("ОШИБКА выборки хоста сайта") ?>
 <? elseif(!is_array($seo_index_themes = (get($themes_index, 'id') ? rb("seo-index_themes", "theme_index", "location_id", $themes_index['id'], $seo_location['id']) : []))): mpre("Адрес мультисайт режима не найден"); ?>
 <? elseif(!is_array($seo_index = call_user_func(function($seo_location) use($conf, $themes_index, $seo_index_themes){
