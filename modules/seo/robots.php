@@ -16,7 +16,7 @@ if(!is_array($SEO_ROBOTS = call_user_func(function() use($conf, $arg){
 	}else{ return []; }}))){ mpre("Список запрещенных адресов не задан");
 }elseif(get($conf, 'settings', 'themes_index') && !is_array($themes_index = get($conf, 'themes', 'index'))){ mpre("Определение хоста");
 }elseif(!empty($themes_index) && get($themes_index, 'hide') && (print("User-agent: *\n\nDisallow: /"))){ mpre("Сайт скрыт, так как является <a href=''>зеркалом</a>");
-}else{ mpre("Количество элементов ". count($_SEO_ROBOTS_DISALLOW));
+}else{// mpre("Количество элементов ". count($_SEO_ROBOTS_DISALLOW));
 	foreach(rb($SEO_ROBOTS_AGENT, "name") + ['*'=>['name'=>'*'], 'Yandex'=>['name'=>'Yandex']] as $seo_robots_agent){// mpre($seo_robots_agent);
 		if(!print("User-agent: {$seo_robots_agent['name']}\n")){
 		}elseif(get($conf, 'themes', 'index', 'hide')){ echo "\nDisallow: /";
