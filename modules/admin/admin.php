@@ -150,7 +150,8 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 					}elseif($error = $file['error'][$key]){ mpre("Код ошибки `{$error}` для файла `{$name}` поле `{$param_name}`");
 					}elseif(($key > 0) && (!$el = fk($_GET['r'], null, $w = array_diff_key($el, array_flip(array("id", "sort"))), $w))){ mpre("Ошибка добавления новой записи с файла");
 					}elseif((array_key_exists("sort", $el) && ($el['sort'] == 0)) && (!$el = fk($_GET['r'], array("id"=>$el['id']), null, array("sort"=>$el['id'])))){ mpre("Ошибка установки значения сортировки");
-					}elseif(!$file_id = mpfid($_GET['r'], $param_name, $el['id'], $key, $ext)){ mpre("Ошибка установки изображения");
+//					}elseif(!$file_id = mpfid($_GET['r'], $param_name, $el['id'], $key, $ext)){ mpre("Ошибка установки изображения");
+					}elseif(!$file_id = fid($_GET['r'], $param_name, $el['id'], $key, $ext)){ mpre("Ошибка установки изображения");
 					}else{ //mpre($file);
 					}
 				}
