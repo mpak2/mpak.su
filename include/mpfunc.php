@@ -1637,7 +1637,7 @@ function fid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png
 	}
 }
 function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpeg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
-	global $conf;
+	global $conf;	mpre("Устаревшая функция новая hid в ней изменено возвращаемое значение на массив");
 	if($data = file_get_contents($href)){
 		if (($ext = '.'. preg_replace("/[\W]+.*/", '', preg_replace("/.*?\./", '', $href))) && (array_search(strtolower($ext), $exts) || isset($exts['*']))){
 			$f = "{$tn}_{$fn}_". (int)($img_id = mpfdk($tn, $w = array("id"=>$id), $w += array("time"=>time()), $w)). $ext;
@@ -1661,6 +1661,7 @@ function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'ima
 		pre("Ошибка загрузки файла", $href);
 	} return null;
 }
+
 function hid($tn, $href, $id = false, $fn = "img", $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpeg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf, $arg;
 	if(!$data = file_get_contents($href)){ pre("Ошибка загрузки файла", $href);
