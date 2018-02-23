@@ -1592,7 +1592,7 @@ function mpmail(){
 	}
 }
 function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
-	global $conf;	
+	global $conf;	mpre("Устаревшая функция новая fid в ней изменено возвращаемое значение на массив");
 	$file = get(normalize_files_array(),$fn,intval($prefix));
 	$folder = preg_match_all("#^image/\w+$#iu",$file['type']) ? 'images' : 'files';
 	// mpre($file);
@@ -1600,7 +1600,7 @@ function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.p
 		if(($ext = get($exts, $file['type'] )) || get($exts, '*')){
 			if(!strlen($ext)){
 				$ext = '.'. last(explode('.', $file['name']));
-			} $f = "{$tn}_{$fn}_". (int)($img_id = mpfdk($tn, $w = array("id"=>$id), $w += array("time"=>time(), "uid"=>$conf['user']['uid']), $w)). $ext;
+			} $f = "{$tn}_{$fn}_". (int)($img_id = mpfdk($tn, $w = ($id ? ["id"=>$id] : []), $w += ["time"=>time(), "uid"=>$conf['user']['uid']], $w)). $ext;
 			if(($ufn = mpopendir("include/{$folder}")) && move_uploaded_file($file['tmp_name'], "$ufn/$f")){
 				/*if($img_id != $id)*/ mpqw($sql = "UPDATE {$tn} SET `". mpquot($fn). "`=\"". mpquot($return = "{$folder}/{$f}"). "\" WHERE id=". (int)$img_id);
 				mpevent("Загрузка файла", $_SERVER['REQUEST_URI'], $conf['user']['uid'], $file);
@@ -1618,6 +1618,23 @@ function mpfid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.p
 		echo "file error {$file['error']}";
 		mpevent("Ошибка загрузки файла", $_SERVER['REQUEST_URI'], $conf['user']['uid'], $file);
 	} return null;
+}
+function fid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
+	global $conf;	
+	$file = get(normalize_files_array(),$fn,intval($prefix));
+	$folder = preg_match_all("#^image/\w+$#iu",$file['type']) ? 'images' : 'files';
+	if($file['error'] != 0){ mpre("ОШИБКА загрузки файла");
+	}elseif((!$ext = get($exts, $file['type'])) && !get($exts, '*')){ mpre("Тип загрузаемого файла не найден среди разрешенных");
+	}elseif(!strlen($ext) && (!$ext = '.'. last(explode('.', $file['name'])))){ mpre("ОШИБКА расчета расширения");
+	}elseif(!$img = fk($tn, $w = ($id ? ["id"=>$id] : []), $w += ['time'=>time(), 'uid'=>$conf['user']['uid']])){ mpre("ОШИБКА выборки записи по идентификатору");
+	}elseif(!$file_name = "{$tn}_{$fn}_{$img['id']}{$ext}"){ mpre("ОШИБКА расчета имени файла");
+	}elseif(!$ufn = mpopendir("include/{$folder}")){ mpre("ОШИБКА получения пути к загружаемой директории");
+	}elseif(!move_uploaded_file($file['tmp_name'], "$ufn/$file_name")){ mpre("ОШИБКА перемещения файла с временной директории в директорию системы");
+	}elseif(!$img = fk($tn, $w = ['id'=>$img['id']], $w += [$fn=>"{$folder}/{$file_name}"], $w)){ mpre("ОШИБКА обновления имени файла в записи изображения");
+//	}elseif(($img['id'] != $id) && mpqw("DELETE FROM {$tn} WHERE id=". (int)$img_id)){ mpre("ОШИБКА удаления файла если загрузка не удалась");
+	}else{// mpre($img);
+		return $img;
+	}
 }
 function mphid($tn, $fn, $id = 0, $href, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpeg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
 	global $conf;
@@ -1656,8 +1673,8 @@ function hid($tn, $href, $id = false, $fn = "img", $exts = array('image/png'=>'.
 	}else{ return $el; }
 }
 function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
-	global $conf;
 	mpevent("Устаревшая функция", "mpfn", $conf['users']['uid']);
+	global $conf;
 	if($prefix === null){
 		$file = $_FILES[$fn];
 	}else{
