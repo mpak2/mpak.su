@@ -49,6 +49,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 			if(!preg_match("#_id$#ui",$field) AND preg_match("#(^|.+_)(time|last_time|reg_time|up|down)(\d+|_.+|$)#ui",$field)){ $post = strtotime($post);
 			}elseif(($_GET['r'] == "{$conf['db']['prefix']}users") && ($field == "pass") && (strlen($_POST['pass']) != 32) && (substr($_POST['pass'], 0, 1) != "!")){ $post = mphash($_POST['name'], $_POST['pass']);
 			}elseif(empty($post)){ return $post;
+			}elseif(is_numeric($post)){ return $post;
 			}elseif("_id" != substr($field, -3)){// return $post;
 			}elseif(!$tab = substr($field, 0, -3)){ mpre("ОШИБКА определения связанной таблицы таблицы");
 			}elseif(!$TAB = explode("_", $_GET['r'])){ mpre("ОШИБКА парсинга полного адреса текущей таблицы");
@@ -64,8 +65,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 			$_GET['id'] = get($_POST, '_id');
 			unset($_POST['_id']);
 		}
-		if(get($_GET, 'id') && !get($_POST, '_id')){ // mpre("Редактирование", $_POST);
-
+		if(get($_GET, 'id') && !get($_POST, '_id')){// mpre("Редактирование", $_POST);
 			if(!get($conf, 'settings', 'admin_history_log')){// mpre("История не включена");
 			}elseif(!$admin_history_type = fk("admin-history_type", $w = array("name"=>"Редактирование"), $w)){ mpre("Тип записи не найден {$w}");
 			}elseif(!$admin_history_tables = fk("admin-history_tables", $w = array("name"=>$_GET['r']), $w += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn'], "description"=>get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])))), $w)){ mpre("Ошибка сохранения названия таблицы");
@@ -113,7 +113,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 						}
 					}
 				} $el = rb($_GET['r'], "id", $_GET['id']);
-			}else{
+			}else{// mpre("Добавление", $_POST);
 				$_POST = array_diff_key($_POST, array_flip(['_id']));
 				/*
 					https://webhamster.ru/mytetrashare/index/mtb0/14670332485rAaNEteTA
@@ -129,10 +129,11 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 							mpre("Правка структуры таблицы", $sql = "ALTER TABLE {$_GET['r']} CHANGE `{$match[1]}` `{$match[1]}` {$type} DEFAULT NULL COMMENT '". mpquot(get($fields, $match[1], 'Comment')). "'", $error, $match, get($fields, $match[1]));
 							qw($sql);
 					}
-				});
+				});// mpre($sql);
 				$_GET['id'] = $conf['db']['conn']->lastInsertId();
 				$el = rb($_GET['r'], "id", $_GET['id']);
 			}
+
 			if(!get($conf, 'settings', 'admin_history_log')){// mpre("Логирование записи выключено");
 			}elseif(!$admin_history_type = fk("admin-history_type", $w = array("name"=>"Добавление"), $w)){ mpre("Тип записи не найден {$w}");
 			}elseif(!$admin_history_tables = fk("admin-history_tables", $w = array("name"=>$_GET['r']), $w += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn'], "description"=>get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])))), $w)){ mpre("Ошибка сохранения названия таблицы");
