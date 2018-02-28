@@ -45,14 +45,22 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
 		}else{ mpre($sql); }/* mpre($_inc, $_dec);*/ echo(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));$_RETURN = 556;
-	}else{// die(!mpre($_SERVER['REQUEST_URI'], $_POST)); # Правка записи и добавление новой
-		foreach($_POST as $field=>$post){
-			if(!preg_match("#_id$#ui",$field) AND preg_match("#(^|.+_)(time|last_time|reg_time|up|down)(\d+|_.+|$)#ui",$field)){
-				$_POST[$field] = strtotime($post);
-			} if(($_GET['r'] == "{$conf['db']['prefix']}users") && ($field == "pass") && (strlen($_POST['pass']) != 32) && (substr($_POST['pass'], 0, 1) != "!")){
-				$_POST[$field] = mphash($_POST['name'], $_POST['pass']);
+	}elseif(!array_walk($_POST, function(&$post, $field) use($conf){
+			if(!preg_match("#_id$#ui",$field) AND preg_match("#(^|.+_)(time|last_time|reg_time|up|down)(\d+|_.+|$)#ui",$field)){ $post = strtotime($post);
+			}elseif(($_GET['r'] == "{$conf['db']['prefix']}users") && ($field == "pass") && (strlen($_POST['pass']) != 32) && (substr($_POST['pass'], 0, 1) != "!")){ $post = mphash($_POST['name'], $_POST['pass']);
+			}elseif(empty($post)){ return $post;
+			}elseif("_id" != substr($field, -3)){// return $post;
+			}elseif(!$tab = substr($field, 0, -3)){ mpre("ОШИБКА определения связанной таблицы таблицы");
+			}elseif(!$TAB = explode("_", $_GET['r'])){ mpre("ОШИБКА парсинга полного адреса текущей таблицы");
+			}elseif(!$table = "{$TAB[1]}-$tab"){ mpre("ОШИБКА получения имени связанной таблицы");
+			}elseif(!$index = fk($table, $w = ['name'=>$post], $w)){ mpre("ОШИБКА добавления занчения в связанную таблицу");
+			}else{// mpre($table, $index);
+				$post = $index['id'];
 			}
-		} if(is_numeric(get($_POST, '_id'))){
+		})){ mpre("ОШИБКА предобработки занчений пост запроса");
+//	}elseif(mpre($_POST)){
+	}else{// die(!mpre($_SERVER['REQUEST_URI'], $_POST)); # Правка записи и добавление новой
+		if(is_numeric(get($_POST, '_id'))){
 			$_GET['id'] = get($_POST, '_id');
 			unset($_POST['_id']);
 		}
