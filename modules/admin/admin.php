@@ -177,7 +177,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		}elseif(!is_string($pager = (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""))){ mpre("Учитываем страницу на которой находимся в пагинаторе");
 		}elseif(!is_array($where = call_user_func(function(){
 				if(!$where = get($_GET, 'where')){ return [];
-				}elseif(!$WHERE = array_map(function(){
+				}elseif(!$WHERE = array_map(function($key, $val){
 						return "where[{$key}]={$val}";
 					}, array_keys($where), $where)){ mpre("ОШИБКА выборки форматирования условий выборки");
 				}else{ return $WHERE; }
