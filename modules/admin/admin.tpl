@@ -361,11 +361,7 @@
 									if("Дублировать" == $(button).text()){
 										document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""). "?&edit="?>'+ json.id+ '<?=(get($_GET, "where") ? "&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?><?=(($limit = get($_GET, "limit")) ? "/limit:{$limit}" : "")?>';
 									}else{
-										<?if(isset($_GET['go_to_save'])):?>
-											document.location.href = '<?=$_GET['go_to_save'];?>';
-										<?else:?>
-											document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""). (get($_GET, "where") ? "?&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?><?=(($limit = get($_GET, "limit")) ? "/limit:{$limit}" : "")?>';
-										<?endif;?>
+										document.location.href = '<?=$tpl['href']?>';
 									}
 								}}catch(e){if(isNaN(data)){ alert(data) }else{
 									alert(data);

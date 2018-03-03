@@ -163,6 +163,23 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 			$el = fk($_GET['r'], array("id"=>$el['id']), null, array("sort"=>$el['id']));
 		} echo(htmlspecialchars(json_encode($el)));$_RETURN = 556;
 	} /*echo("Аварийный выход");*/$_RETURN = 556;
+}elseif(!$tpl['href'] = get($_GET, 'go_to_save') ?: call_user_func(function() use($arg){
+		if(!$base = "/{$arg["modpath"]}:admin/r:{$_GET["r"]}"){ mpre("Основной адрес страницы");
+		}elseif(!is_string($pager = (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""))){ mpre("Учитываем страницу на которой находимся в пагинаторе");
+		}elseif(!is_array($where = call_user_func(function(){
+				if(!$where = get($_GET, 'where')){ return [];
+				}elseif(!$WHERE = array_map(function(){
+						return "where[{$key}]={$val}";
+					}, array_keys($where), $where)){ mpre("ОШИБКА выборки форматирования условий выборки");
+				}else{ return $WHERE; }
+			}))){ mpre("Ошибка установки условий выборки таблицы");
+		}elseif(!is_string($limit = ($l = get($_GET, "limit")) ? "/limit:{$l}" : "")){ mpre("Условие указания лимитов");
+		}elseif(!is_string($split = ($where ? "?" : ""))){ mpre("Расчет разделителя параметров");
+		}elseif(!$href = "{$base}{$pager}{$limit}{$split}". implode('&', $where)){ mpre("ОШИБКА составления ссылки");
+		}else{// mpre($href);
+			return $href;
+		}
+	})){ mpre("ОШИБКА составления ссылки");
 }else{ # Выборка таблицы
 	if(strpos($_GET['r'], "-") && ($r = explode("-", $_GET['r']))){
 		$_GET['r'] = $conf['db']['prefix']. first($r). "_". last($r);
