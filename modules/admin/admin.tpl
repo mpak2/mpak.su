@@ -432,7 +432,7 @@
 									<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#(^|.+_)(time|last_time|reg_time|up|down)(\d+|_.+|$)#ui",$name,$match)): # Поле времени ?>									
 										<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", get($tpl, 'edit', $name) /* ?: time() Сбивает пустое время */)?>" placeholder="<?=($tpl['etitle'][get($match,2)] ?: $name)?>">
 									<? elseif((substr($name, -3) == "_id") && (false === array_search(substr($name, 0, -3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
-										<select name="<?=$name?>" style="width:100%;">
+										<!--<select name="<?=$name?>" style="width:100%;">
 											<? if(get($tpl, 'edit', $name) && !rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($name, 0, -3), "id", $tpl['edit'][$name])): ?> 
 												<option><?=htmlspecialchars($tpl['edit'][$name])?></option>
 											<? endif; ?> 
@@ -442,7 +442,22 @@
 													<?=$ln['id']?>&nbsp;<?=$ln['name']?>
 												</option>
 											<? endforeach; ?> 
-										</select>
+										</select>-->
+
+										<? if(!$tab = substr($name, 0, -3)): mpre("ОШИБКА определения имени таблицы списка") ?>
+										<? elseif(!is_array($LIST = rb("{$arg['modpath']}-{$tab}"))): mpre("ОШИБКА выборки списка для поля") ?>
+										<? elseif((!$list_id = get($tpl, 'edit', $name)) && !is_numeric($list_id) && !is_string($list_id) && !is_null($list_id)): mpre("ОШИБКА определения номера списка `{$name}`", get($tpl, 'edit'), $name, gettype($list_id)) ?>
+										<? elseif(!is_array($list = rb($LIST, "id", $list_id))): mpre("ОШИБКА выборки связанной таблицы") ?>
+										<? elseif((!$list_value = get($list, 'name')) && !is_numeric($list_value) && !is_string($list_value) && !is_null($list_value)): mpre("ОШИБКА
+ определения занчения списка", gettype($list_value)) ?>
+										<? else:// mpre(htmlspecialchars($list_value)) ?>
+											<input type="text" name="<?=$name?>" value="<?=($list ? htmlspecialchars($list_value) : $list_id)?>" list="<?=$name?>_list">
+											<datalist id="<?=$name?>_list">
+												<? foreach($LIST as $list): ?>
+													<option value="<?=htmlspecialchars(get($list, 'name'))?>"><?=$list['id']?></option>
+												<? endforeach; ?>
+											</datalist>
+										<? endif; ?>
 									<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#(^|.+_)(text)(\d+|_.+|$)#iu",$name)): ?>
 										<?=mpwysiwyg($name, get($tpl, 'edit', $name) ?: "")?>
 									<?// elseif($tpl_espisok = get($tpl, 'espisok', $name)): ?>
