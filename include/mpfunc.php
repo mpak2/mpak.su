@@ -1782,7 +1782,7 @@ function mpeval($file_name, $arg = array(), $vr = 1){
   if (!file_exists($file = "$v/$file_name")) return "<div style=\"margin-top:100px; text-align:center;\"><span style=color:red;>Ошибка доступа к файлу</span> $v/$file_name</div>";
   ob_start();
   $conf['settings']['data-file'] = $file;
-  eval('?>'. strtr(file_get_contents($file), array('<? die;'=>'<?', '<?php die;'=>'<?php')));
+  eval('?>'. file_get_contents($file));
   $content = ob_get_contents();
   ob_end_clean();
   return $content;
