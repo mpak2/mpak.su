@@ -163,17 +163,15 @@ function MpJsAutoMini($teme_folder){
 				if(!in_array($newfile,$files)){
 					$path = pathinfo($newfile,PATHINFO_DIRNAME);
 					if(!is_dir($path)){mkdir($path,0777,true);}
-					if(!file_exists($newfile) and file_exists($file)){
-						chdir($path);
+					chdir($path);
+					if(!file_exists($file))
 						symlink($file,pathinfo($newfile,PATHINFO_BASENAME));
-					}
 				}
 			}
 		}else if(is_dir_empty($file) AND preg_match("#/js/_min_/#iu",$file)){		
 			rmdir($file);
 		}
 	}chdir($old_chdir);
-	exit();
 }
 
 

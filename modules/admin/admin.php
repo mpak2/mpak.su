@@ -45,19 +45,27 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 			$_inc = fk($_GET['r'], array("id"=>$inc['id']), null, array("sort"=>$dec['sort']));
 			$_dec = fk($_GET['r'], array("id"=>$dec['id']), null, array("sort"=>$inc['sort']));
 		}else{ mpre($sql); }/* mpre($_inc, $_dec);*/ echo(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));$_RETURN = 556;
-	}else{// die(!mpre($_SERVER['REQUEST_URI'], $_POST)); # Правка записи и добавление новой
-		foreach($_POST as $field=>$post){
-			if(!preg_match("#_id$#ui",$field) AND preg_match("#(^|.+_)(time|last_time|reg_time|up|down)(\d+|_.+|$)#ui",$field)){
-				$_POST[$field] = strtotime($post);
-			} if(($_GET['r'] == "{$conf['db']['prefix']}users") && ($field == "pass") && (strlen($_POST['pass']) != 32) && (substr($_POST['pass'], 0, 1) != "!")){
-				$_POST[$field] = mphash($_POST['name'], $_POST['pass']);
+	}elseif(!array_walk($_POST, function(&$post, $field) use($conf){
+			if(!preg_match("#_id$#ui",$field) AND preg_match("#(^|.+_)(time|last_time|reg_time|up|down)(\d+|_.+|$)#ui",$field)){ $post = strtotime($post);
+			}elseif(($_GET['r'] == "{$conf['db']['prefix']}users") && ($field == "pass") && (strlen($_POST['pass']) != 32) && (substr($_POST['pass'], 0, 1) != "!")){ $post = mphash($_POST['name'], $_POST['pass']);
+			}elseif("_id" != substr($field, -3)){ return $post; // return $post;
+			}elseif(empty($post)){ return $post = "NULL";
+			}elseif(is_numeric($post)){// mpre("Ключ связанной таблицы");
+			}elseif(!$tab = substr($field, 0, -3)){ mpre("ОШИБКА определения связанной таблицы таблицы");
+			}elseif(!$TAB = explode("_", $_GET['r'])){ mpre("ОШИБКА парсинга полного адреса текущей таблицы");
+			}elseif(!$table = "{$TAB[1]}-$tab"){ mpre("ОШИБКА получения имени связанной таблицы");
+			}elseif(!$index = fk($table, $w = ['name'=>$post], $w)){ mpre("ОШИБКА добавления занчения в связанную таблицу");
+			}else{// mpre($field, $post);
+				$post = $index['id'];
 			}
-		} if(is_numeric(get($_POST, '_id'))){
+		})){ mpre("ОШИБКА предобработки занчений пост запроса");
+//	}elseif(mpre($_POST)){
+	}else{// die(!mpre($_SERVER['REQUEST_URI'], $_POST)); # Правка записи и добавление новой
+		if(is_numeric(get($_POST, '_id'))){
 			$_GET['id'] = get($_POST, '_id');
 			unset($_POST['_id']);
 		}
-		if(get($_GET, 'id') && !get($_POST, '_id')){ // mpre("Редактирование", $_POST);
-
+		if(get($_GET, 'id') && !get($_POST, '_id')){// mpre("Редактирование", $_POST);
 			if(!get($conf, 'settings', 'admin_history_log')){// mpre("История не включена");
 			}elseif(!$admin_history_type = fk("admin-history_type", $w = array("name"=>"Редактирование"), $w)){ mpre("Тип записи не найден {$w}");
 			}elseif(!$admin_history_tables = fk("admin-history_tables", $w = array("name"=>$_GET['r']), $w += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn'], "description"=>get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])))), $w)){ mpre("Ошибка сохранения названия таблицы");
@@ -105,7 +113,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 						}
 					}
 				} $el = rb($_GET['r'], "id", $_GET['id']);
-			}else{
+			}else{// mpre("Добавление", $_POST);
 				$_POST = array_diff_key($_POST, array_flip(['_id']));
 				/*
 					https://webhamster.ru/mytetrashare/index/mtb0/14670332485rAaNEteTA
@@ -121,10 +129,11 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 							mpre("Правка структуры таблицы", $sql = "ALTER TABLE {$_GET['r']} CHANGE `{$match[1]}` `{$match[1]}` {$type} DEFAULT NULL COMMENT '". mpquot(get($fields, $match[1], 'Comment')). "'", $error, $match, get($fields, $match[1]));
 							qw($sql);
 					}
-				});
+				});// mpre($sql);
 				$_GET['id'] = $conf['db']['conn']->lastInsertId();
 				$el = rb($_GET['r'], "id", $_GET['id']);
 			}
+
 			if(!get($conf, 'settings', 'admin_history_log')){// mpre("Логирование записи выключено");
 			}elseif(!$admin_history_type = fk("admin-history_type", $w = array("name"=>"Добавление"), $w)){ mpre("Тип записи не найден {$w}");
 			}elseif(!$admin_history_tables = fk("admin-history_tables", $w = array("name"=>$_GET['r']), $w += array("modpath"=>$arg['modpath'], "fn"=>$arg['fn'], "description"=>get($conf, 'settings', substr($_GET['r'], strlen($conf['db']['prefix'])))), $w)){ mpre("Ошибка сохранения названия таблицы");
@@ -150,7 +159,8 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 					}elseif($error = $file['error'][$key]){ mpre("Код ошибки `{$error}` для файла `{$name}` поле `{$param_name}`");
 					}elseif(($key > 0) && (!$el = fk($_GET['r'], null, $w = array_diff_key($el, array_flip(array("id", "sort"))), $w))){ mpre("Ошибка добавления новой записи с файла");
 					}elseif((array_key_exists("sort", $el) && ($el['sort'] == 0)) && (!$el = fk($_GET['r'], array("id"=>$el['id']), null, array("sort"=>$el['id'])))){ mpre("Ошибка установки значения сортировки");
-					}elseif(!$file_id = mpfid($_GET['r'], $param_name, $el['id'], $key, $ext)){ mpre("Ошибка установки изображения");
+//					}elseif(!$file_id = mpfid($_GET['r'], $param_name, $el['id'], $key, $ext)){ mpre("Ошибка установки изображения");
+					}elseif(!$file_id = fid($_GET['r'], $param_name, $el['id'], $key, $ext)){ mpre("Ошибка установки изображения");
 					}else{ //mpre($file);
 					}
 				}
@@ -162,6 +172,23 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 			$el = fk($_GET['r'], array("id"=>$el['id']), null, array("sort"=>$el['id']));
 		} echo(htmlspecialchars(json_encode($el)));$_RETURN = 556;
 	} /*echo("Аварийный выход");*/$_RETURN = 556;
+}elseif(!$tpl['href'] = get($_GET, 'go_to_save') ?: call_user_func(function() use($arg){
+		if(!$base = "/{$arg["modpath"]}:admin/r:{$_GET["r"]}"){ mpre("Основной адрес страницы");
+		}elseif(!is_string($pager = (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""))){ mpre("Учитываем страницу на которой находимся в пагинаторе");
+		}elseif(!is_array($where = call_user_func(function(){
+				if(!$where = get($_GET, 'where')){ return [];
+				}elseif(!$WHERE = array_map(function($key, $val){
+						return "where[{$key}]={$val}";
+					}, array_keys($where), $where)){ mpre("ОШИБКА выборки форматирования условий выборки");
+				}else{ return $WHERE; }
+			}))){ mpre("Ошибка установки условий выборки таблицы");
+		}elseif(!is_string($limit = ($l = get($_GET, "limit")) ? "/limit:{$l}" : "")){ mpre("Условие указания лимитов");
+		}elseif(!is_string($split = ($where ? "?" : ""))){ mpre("Расчет разделителя параметров");
+		}elseif(!$href = "{$base}{$pager}{$limit}{$split}". implode('&', $where)){ mpre("ОШИБКА составления ссылки");
+		}else{// mpre($href);
+			return $href;
+		}
+	})){ mpre("ОШИБКА составления ссылки");
 }else{ # Выборка таблицы
 	if(strpos($_GET['r'], "-") && ($r = explode("-", $_GET['r']))){
 		$_GET['r'] = $conf['db']['prefix']. first($r). "_". last($r);

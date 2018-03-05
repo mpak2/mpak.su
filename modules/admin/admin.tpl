@@ -361,11 +361,7 @@
 									if("Дублировать" == $(button).text()){
 										document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""). "?&edit="?>'+ json.id+ '<?=(get($_GET, "where") ? "&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?><?=(($limit = get($_GET, "limit")) ? "/limit:{$limit}" : "")?>';
 									}else{
-										<?if(isset($_GET['go_to_save'])):?>
-											document.location.href = '<?=$_GET['go_to_save'];?>';
-										<?else:?>
-											document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""). (get($_GET, "where") ? "?&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?><?=(($limit = get($_GET, "limit")) ? "/limit:{$limit}" : "")?>';
-										<?endif;?>
+										document.location.href = '<?=$tpl['href']?>';
 									}
 								}}catch(e){if(isNaN(data)){ alert(data) }else{
 									console.log(data);
@@ -434,19 +430,34 @@
 											<? endforeach; ?>
 										</select>
 									<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#(^|.+_)(time|last_time|reg_time|up|down)(\d+|_.+|$)#ui",$name,$match)): # Поле времени ?>									
-										<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", get($tpl, 'edit', $name) ?: time())?>" placeholder="<?=($tpl['etitle'][get($match,2)] ?: $name)?>">
+										<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", get($tpl, 'edit', $name) /* ?: time() Сбивает пустое время */)?>" placeholder="<?=($tpl['etitle'][get($match,2)] ?: $name)?>">
 									<? elseif((substr($name, -3) == "_id") && (false === array_search(substr($name, 0, -3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
-										<select name="<?=$name?>" style="width:100%;">
-											<? if(get($tpl, 'edit', $name) && !rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($name, 0, -3), "id", $tpl['edit'][$name])): ?> 
-												<option><?=htmlspecialchars($tpl['edit'][$name])?></option>
-											<? endif; ?> 
-											<option value="NULL"></option>
-											<? foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($name, 0, -3)) as $ln): ?> 
-												<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $name) == $ln['id']) || (!get($tpl, 'edit') && ($ln['id'] == (get($_GET, 'where', $name) ?: get($field, 'Default')))) ? "selected" : "")?>>
-													<?=$ln['id']?>&nbsp;<?=$ln['name']?>
-												</option>
-											<? endforeach; ?> 
-										</select>
+										<? if(!get($conf, 'settings', 'admin_datalist')): ?>
+											<select name="<?=$name?>" style="width:100%;">
+												<? if(get($tpl, 'edit', $name) && !rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($name, 0, -3), "id", $tpl['edit'][$name])): ?> 
+													<option><?=htmlspecialchars($tpl['edit'][$name])?></option>
+												<? endif; ?> 
+												<option value="NULL"></option>
+												<? foreach(rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($name, 0, -3)) as $ln): ?> 
+													<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $name) == $ln['id']) || (!get($tpl, 'edit') && ($ln['id'] == (get($_GET, 'where', $name) ?: get($field, 'Default')))) ? "selected" : "")?>>
+														<?=$ln['id']?>&nbsp;<?=$ln['name']?>
+													</option>
+												<? endforeach; ?> 
+											</select>
+										<? elseif(!$tab = substr($name, 0, -3)): mpre("ОШИБКА определения имени таблицы списка") ?>
+										<? elseif(!is_array($LIST = rb("{$arg['modpath']}-{$tab}"))): mpre("ОШИБКА выборки списка для поля") ?>
+										<? elseif((!$list_id = (get($tpl, 'edit', $name) ?: get($_GET, 'where', $name))) && !is_numeric($list_id) && !is_string($list_id) && !is_null($list_id)): mpre("ОШИБКА определения номера списка `{$name}`", get($tpl, 'edit'), $name, gettype($list_id)) ?>
+										<? elseif(!is_array($list = rb($LIST, "id", $list_id))): mpre("ОШИБКА выборки связанной таблицы") ?>
+										<? elseif((!$list_value = get($list, 'name')) && !is_numeric($list_value) && !is_string($list_value) && !is_null($list_value)): mpre("ОШИБКА
+ определения занчения списка", gettype($list_value)) ?>
+										<? else:// mpre(htmlspecialchars($list_value)) ?>
+											<input type="text" name="<?=$name?>" value="<?=($list ? htmlspecialchars($list_value) : ($list_id ?: ""))?>" list="<?=$name?>_list" style="background-color:#ddd;">
+											<datalist id="<?=$name?>_list">
+												<? foreach($LIST as $list): ?>
+													<option value="<?=htmlspecialchars(array_key_exists('name', $list) ? get($list, 'name') : $list_id)?>"><?=$list['id']?></option>
+												<? endforeach; ?>
+											</datalist>
+										<? endif; ?>
 									<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#(^|.+_)(text)(\d+|_.+|$)#iu",$name)): ?>
 										<?=mpwysiwyg($name, get($tpl, 'edit', $name) ?: "")?>
 									<?// elseif($tpl_espisok = get($tpl, 'espisok', $name)): ?>
@@ -620,8 +631,7 @@
 													<a class="ekey" href="<?=$href?>" title="<?=$v?>"></a>&nbsp;<?=$name?>
 												<? endif; ?>
 											<? elseif($k == "name"): ?>
-												<a href="/<?=$arg['modpath']?>
-													<?=(($substr = substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))) == "index" ? "" : ":{$substr}")?>/<?=$lines['id']?>"><?=htmlspecialchars($v)?>
+												<a href="/<?=$arg['modpath']?>:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/<?=$lines['id']?>"><?=htmlspecialchars($v)?>
 												</a>
 											<? else: ?>
 												<?=htmlspecialchars(strip_tags($v))?>
@@ -689,7 +699,7 @@
 											<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", (get($_GET, 'edit') ? rb($_GET['r'], "id", $_GET['edit'], $name) : time()))?>" placeholder="<?=(get($tpl, 'etitle', get($match,2)) ?: $name)?>">
 										<? elseif((substr($name, -3) == "_id") && (false === array_search(substr($name, 0, strlen($name)-3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
 											<? if(!is_array($SELECT = rb("{$arg['modpath']}-". substr($name, 0, -3)))): mpre("Ошибка выборки списка для отображения") ?>
-											<? else:// mpre(count($SELECT)) ?>
+											<? elseif(!get($conf, 'settings', 'admin_datalist')): ?>
 												<select name="<?=$name?>" style="width:100%;">
 													<option value="NULL"></option>
 													<? if(get($tpl, "edit", $name) && !rb("{$arg['modpath']}-". substr($name, 0, -3), "id", $tpl['edit'][$name])): ?>
@@ -702,6 +712,19 @@
 													<? endforeach; ?>
 												</select>
 												<? if((count($SELECT) > 1000) && !mpre("Огромный список ". count($SELECT). " эл. <b>". substr($name, 0, -3). "</b> <a target='blank' href='/settings:admin/r:mp_settings/?&where[modpath]={$arg['modpath']}&where[name]={$arg['modpath']}_tpl_exceptions&need[value]={$name}'>исключить</a>")); ?>
+											<? elseif(!$tab = substr($name, 0, -3)): mpre("ОШИБКА определения имени таблицы списка") ?>
+											<? elseif(!is_array($LIST = rb("{$arg['modpath']}-{$tab}"))): mpre("ОШИБКА выборки списка для поля") ?>
+											<? elseif((!$list_id = (get($tpl, 'edit', $name) ?: get($_GET, 'where', $name))) && !is_numeric($list_id) && !is_string($list_id) && !is_null($list_id)): mpre("ОШИБКА определения номера списка `{$name}`", get($tpl, 'edit'), $name, gettype($list_id)) ?>
+											<? elseif(!is_array($list = rb($LIST, "id", $list_id))): mpre("ОШИБКА выборки связанной таблицы") ?>
+											<? elseif((!$list_value = get($list, 'name')) && !is_numeric($list_value) && !is_string($list_value) && !is_null($list_value)): mpre("ОШИБКА
+	определения занчения списка", gettype($list_value)) ?>
+											<? else:// mpre(htmlspecialchars($list_value)) ?>
+												<input type="text" name="<?=$name?>" value="<?=(array_key_exists('name', $list) ? htmlspecialchars($list_value) : $list_id)?>" list="<?=$name?>_list" style="background-color:#ddd;">
+												<datalist id="<?=$name?>_list">
+													<? foreach($LIST as $list): ?>
+														<option value="<?=htmlspecialchars(get($list, 'name'))?>"><?=$list['id']?></option>
+													<? endforeach; ?>
+												</datalist>
 											<? endif; ?>
 										<?// elseif(get($tpl, 'espisok', $name)): ?>
 										<? elseif(get($tpl, 'espisok') && array_key_exists($name, $tpl['espisok'])): ?>

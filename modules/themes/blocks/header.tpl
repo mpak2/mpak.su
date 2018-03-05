@@ -2,13 +2,15 @@
 <!--<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>-->
 <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script> Из за неработаюго метода .load() пока не можем перейти (Используется при обработки form.load в перехвате загрузки) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-
 <style>
 	div.table {display:table; width:100%; vertical-align:top; border-collapse:collapse;}
 	div.table > div {display:table-row;}
 	div.table > div > span {display:table-cell; padding:3px; vertical-align:top;}
 	div.table > div.th > span {background-color:#444; color:white;}
 
+	div.table.border { border-collapse:collapse; }
+	div.table.border > div > span { border:1px solid gray; }
+	div.table.border > div.th > span { border:0; }
 	.pager a.active {color:#fe8e23;}
 </style>
 
@@ -168,8 +170,13 @@
 <? elseif(($canonical = get($conf, 'settings', 'canonical')) &&0): mpre("Канонический адрес не задан") ?>
 <? elseif(!$alias = seo_alias($canonical)): mpre("ОШИБКА получения алиаса категории адреса") ?>
 <? elseif((!$seo_cat = rb("seo-cat", "id", get($canonical, 'cat_id'))) && (!$seo_cat = rb("seo-cat", "alias", (empty($alias) ? false : "[{$alias}]"))) &0): mpre("Категория не найдена") ?>
-<? elseif(!is_string($index = is_array($canonical) ? get($canonical, 'name') : $canonical)): mpre("ОШИБКА получения адреса страницы", $canonical) ?>
-<? elseif(!is_array($seo_location = ($index ? rb("seo-location", "name", "[{$index}]") : []))): mpre("ОШИБКА нахождения внутреннего адреса `{$index}`") ?>
+<?// elseif(!is_string($index = is_array($canonical) ? get($canonical, 'name') : $canonical)): mpre("ОШИБКА получения адреса страницы") ?>
+<? elseif(!is_string($uri = call_user_func(function($canonical){
+		if(is_array($canonical)){ return get($canonical, 'name');
+		}elseif(is_string($canonical)){ return $canonical;
+		}else{ return $_SERVER['REQUEST_URI']; }
+	}, $canonical))): mpre("ОШИБКА расчета адреса страницы") ?>
+<? elseif(!is_array($seo_location = ($uri ? rb("seo-location", "name", "[{$uri}]") : []))): mpre("ОШИБКА нахождения внутреннего адреса `{$index}`") ?>
 <? elseif(!is_array($themes_index = get($conf, 'themes', 'index') ?: [])): mpre("ОШИБКА выборки хоста сайта") ?>
 <? elseif(!is_array($seo_index_themes = (get($themes_index, 'id') ? rb("seo-index_themes", "theme_index", "location_id", $themes_index['id'], $seo_location['id']) : []))): mpre("Адрес мультисайт режима не найден"); ?>
 <? elseif(!is_array($seo_index = call_user_func(function($seo_location) use($conf, $themes_index, $seo_index_themes){
@@ -345,3 +352,35 @@
 	</script>
 <? endif; ?>
 
+<!-- плайер -->
+<? if(!get($conf, 'settings', 'themes_v6player')):# Таблица микроразметки не создана ?>
+<? elseif(!$seo_alias = seo_alias(get($conf, 'settings', 'canonical'))): mpre("ОШИБКА получения алиаса") ?>
+<?// elseif($conf['user']['uid'] <= 0): mpre("Незарегистрировнные пользователи - скрываем") ?>
+<? elseif($seo_alias != "kf:event_index/kf-event"):// mpre("Не совпадает страница") ?>
+<? elseif(615 != get($_GET, 'kf-event')):// mpre("Не совпадает идентификатор события") ?>
+<?// elseif(true): mpre("Плеер выключен") ?>
+<? else:// mpre($seo_alias) ?>
+	<script sync>
+		(function($, script){
+			$(script).parent().one("init", function(e){
+				var height = $(e.delegateTarget).height();
+				$(".content-section").css("height", "calc(100%-"+ height+ "px-40px)");
+			}).ready(function(e){ $(script).parent().trigger("init"); })
+		})(jQuery, document.currentScript)
+	</script>
+	<script src="//cdn.006.spb.ru/private/player/video/player.js"></script>
+	<link rel="stylesheet" type="text/css" href="//cdn.006.spb.ru/private/player/video/player.css">
+
+<!--	<script>
+		$(function(){ $('#videoPlayer').videoplayer({}, false); });
+	</script>
+	<style>
+		.v6player {
+			width:800px; height:800px; position:absolute; top:0; z-index:999; border:1px;
+			border:1px solid gray;
+		}
+	</style>
+	<div style="display:none;">
+		<video id="videoPlayer" src="https://erlyvideo.v6.spb.ru:443//BATTLE/2017/12_V1Battle_23_12_2017/09_RAP_BATTLE_1na1/NAREZKA/01.mp4"></video>
+	</div> -->
+<? endif; ?>
