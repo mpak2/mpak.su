@@ -2,9 +2,10 @@
 
 
 # Получение алиаса страницы сайта (Используется для формирования адресов СЕО модуля)
-function seo_alias($canonical){// mpre($canonical);
+function seo_alias($canonical = null){// mpre($canonical);
     if(!$uri = call_user_func(function($canonical){
-        if(is_array($canonical)){ return get($canonical, 'name');
+				if(empty($canonical)){ return $_SERVER['REQUEST_URI'];
+        }elseif(is_array($canonical)){ return get($canonical, 'name');
         }elseif(is_string($canonical)){ return $canonical;
         }else{ return $_SERVER['REQUEST_URI']; }
       }, $canonical)){ mpre("ОШИБКА определения адреса");
@@ -1629,7 +1630,8 @@ function fid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png
   }elseif(!strlen($ext) && (!$ext = '.'. last(explode('.', $file['name'])))){ mpre("ОШИБКА расчета расширения");
   }elseif(!$img = fk($tn, $w = ($id ? ["id"=>$id] : []), $w += ['time'=>time(), 'uid'=>$conf['user']['uid']])){ mpre("ОШИБКА выборки записи по идентификатору");
   }elseif(!$file_name = "{$tn}_{$fn}_{$img['id']}{$ext}"){ mpre("ОШИБКА расчета имени файла");
-  }elseif(!$ufn = mpopendir("include/{$folder}")){ mpre("ОШИБКА получения пути к загружаемой директории");
+  }elseif(!$ufn = mpopendir($d = "include/{$folder}")){ die(!mpre("ОШИБКА Создайте директорию для хранения файлов `{$d}`"));
+  }elseif(!is_writeable($ufn)){ die(!mpre("Недостаточно прав доступа к директории `{$ufn}`"));
   }elseif(!move_uploaded_file($file['tmp_name'], "$ufn/$file_name")){ mpre("ОШИБКА перемещения файла с временной директории в директорию системы");
   }elseif(!$img = fk($tn, $w = ['id'=>$img['id']], $w += [$fn=>"{$folder}/{$file_name}"], $w)){ mpre("ОШИБКА обновления имени файла в записи изображения");
 //  }elseif(($img['id'] != $id) && mpqw("DELETE FROM {$tn} WHERE id=". (int)$img_id)){ mpre("ОШИБКА удаления файла если загрузка не удалась");
