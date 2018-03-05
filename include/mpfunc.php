@@ -173,7 +173,6 @@ function MpJsAutoMini($teme_folder){
 			rmdir($file);
 		}
 	}chdir($old_chdir);
-	exit();
 }
 
 
