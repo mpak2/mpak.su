@@ -48,14 +48,14 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 	}elseif(!array_walk($_POST, function(&$post, $field) use($conf){
 			if(!preg_match("#_id$#ui",$field) AND preg_match("#(^|.+_)(time|last_time|reg_time|up|down)(\d+|_.+|$)#ui",$field)){ $post = strtotime($post);
 			}elseif(($_GET['r'] == "{$conf['db']['prefix']}users") && ($field == "pass") && (strlen($_POST['pass']) != 32) && (substr($_POST['pass'], 0, 1) != "!")){ $post = mphash($_POST['name'], $_POST['pass']);
-			}elseif(empty($post)){ return $post;
-			}elseif(is_numeric($post)){ return $post;
-			}elseif("_id" != substr($field, -3)){// return $post;
+			}elseif("_id" != substr($field, -3)){ return $post; // return $post;
+			}elseif(empty($post)){ return $post = "NULL";
+			}elseif(is_numeric($post)){// mpre("Ключ связанной таблицы");
 			}elseif(!$tab = substr($field, 0, -3)){ mpre("ОШИБКА определения связанной таблицы таблицы");
 			}elseif(!$TAB = explode("_", $_GET['r'])){ mpre("ОШИБКА парсинга полного адреса текущей таблицы");
 			}elseif(!$table = "{$TAB[1]}-$tab"){ mpre("ОШИБКА получения имени связанной таблицы");
 			}elseif(!$index = fk($table, $w = ['name'=>$post], $w)){ mpre("ОШИБКА добавления занчения в связанную таблицу");
-			}else{// mpre($table, $index);
+			}else{// mpre($field, $post);
 				$post = $index['id'];
 			}
 		})){ mpre("ОШИБКА предобработки занчений пост запроса");
