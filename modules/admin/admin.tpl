@@ -361,11 +361,7 @@
 									if("Дублировать" == $(button).text()){
 										document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""). "?&edit="?>'+ json.id+ '<?=(get($_GET, "where") ? "&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?><?=(($limit = get($_GET, "limit")) ? "/limit:{$limit}" : "")?>';
 									}else{
-										<?if(isset($_GET['go_to_save'])):?>
-											document.location.href = '<?=$_GET['go_to_save'];?>';
-										<?else:?>
-											document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""). (get($_GET, "where") ? "?&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?><?=(($limit = get($_GET, "limit")) ? "/limit:{$limit}" : "")?>';
-										<?endif;?>
+										document.location.href = '<?=$tpl['href']?>';
 									}
 								}}catch(e){if(isNaN(data)){ alert(data) }else{
 									alert(data);
@@ -452,10 +448,16 @@
 										<? elseif(!is_array($LIST = rb("{$arg['modpath']}-{$tab}"))): mpre("ОШИБКА выборки списка для поля") ?>
 										<? elseif((!$list_id = (get($tpl, 'edit', $name) ?: get($_GET, 'where', $name))) && !is_numeric($list_id) && !is_string($list_id) && !is_null($list_id)): mpre("ОШИБКА определения номера списка `{$name}`", get($tpl, 'edit'), $name, gettype($list_id)) ?>
 										<? elseif(!is_array($list = rb($LIST, "id", $list_id))): mpre("ОШИБКА выборки связанной таблицы") ?>
+<<<<<<< HEAD
 										<? elseif((!$list_value = get($list, 'name')) && !is_numeric($list_value) && !is_string($list_value) && !is_null($list_value)): mpre("ОШИБКА
  определения занчения списка", gettype($list_value)) ?>
 										<? else:// mpre(htmlspecialchars($list_value)) ?>
 											<input type="text" name="<?=$name?>" value="<?=($list ? htmlspecialchars($list_value) : ($list_id ?: ""))?>" list="<?=$name?>_list" style="background-color:#ddd;">
+=======
+										<? elseif((!$list_value = get($list, 'name')) && !is_numeric($list_value) && !is_string($list_value) && !is_null($list_value)): mpre("ОШИБКА определения занчения списка", gettype($list_value)) ?>
+										<? else:// mpre($LIST) ?>
+											<input type="text" name="<?=$name?>" value="<?=($list ? htmlspecialchars($list_value) : $list_id)?>" list="<?=$name?>_list">
+>>>>>>> 35cbf77e5493a01183063e7f5f27732110c9751f
 											<datalist id="<?=$name?>_list">
 												<? foreach($LIST as $list): ?>
 													<option value="<?=htmlspecialchars(array_key_exists('name', $list) ? get($list, 'name') : $list_id)?>"><?=$list['id']?></option>

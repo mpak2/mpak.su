@@ -16,7 +16,9 @@ if($canonical){// mpre("Каноническая ссылка не устано�
 }elseif(!$href = $seo_cat['href']){ mpre("Не задан адрес ссылки <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>");
 }elseif("/" != substr($seo_cat['href'], 0, 1)){ mpre("Формат устанавливаемого адреса должен начинаться со слеша <a href='/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}'>{$seo_cat['name']}</a>");
 }elseif(!list($modpath, $fn) = each($get['m'])){ mpre("Ошибка получения модуля и имени файла");
-}elseif(!is_array($self = (get($get, 'id') ? rb("{$modpath}-{$fn}", "id", $get['id']) : []))){ mpre("Ошибка выборки данных страницы");
+}elseif(!$fn = (!empty($fn) ? $fn : "index")){ mpre("ОШИБКА установки дефолтного значения имени файла (Если не указан в адресе)");
+//}elseif(!mpre("Адресация", $modpath, $fn)){
+}elseif(!is_array($self = (get($get, 'id') ? rb($t = "{$modpath}-{$fn}", "id", $get['id']) : []))){ mpre("Ошибка выборки данных страницы");
 }elseif(!is_array($links = call_user_func(function($self) use($arg){// mpre($self);
 		if(!is_array($fields = array_filter(array_map(function($key, $val){
 				if(substr($key, -3) == "_id"){ return $key; mpre("Связанная таблица внутри раздела");
@@ -52,8 +54,8 @@ if($canonical){// mpre("Каноническая ссылка не устано�
 		}elseif(!is_array($INDEX += ($_INDEX ? array_combine(array_keys($links), $_INDEX) : []))){ mpre("Ошибка установки ключей значений");
 		}else{ return $INDEX; }
 	}, $tables))){ mpre("Ошибка получения значений ссылок");
-}elseif(!is_array($ZAM = mpzam($self))){// mpre("Ошибка формирования массива замены"); //}elseif(mpre($ZAM)){ # Список заменяемых элементов в адреса
-
+}elseif(!is_array($ZAM = mpzam($self))){ mpre("ОШИБКА получения массива основной замены");
+}elseif(!is_array($ZAM = array_map(function($text){ return trim($text); }, $ZAM))){// mpre("Ошибка формирования массива замены"); //}elseif(mpre($ZAM)){ # Список заменяемых элементов в адреса
 }elseif(!$href = strtr($href, $ZAM)){ mpre("Ошибка замены тегов в адресе");
 }elseif(!is_array($ZAM_INDEX = mpzam($INDEX))){ mpre("ОШИБКА замены связанных таблиц");
 }elseif(!$href = strtr($href, $ZAM_INDEX)){ mpre("Ошибка замены тегов в адресе");
@@ -70,12 +72,12 @@ if($canonical){// mpre("Каноническая ссылка не устано�
 					}elseif(!is_string($text = strtr($text, $ZAM_GET))){ mpre("Ошибка замены тегов в мета информации `{$text}`");
 					}else{ return $text; }
 				}, $meta)){
-			}else{// mpre($meta);
-			}
+			}else{ }
 		}while(($meta != $temp) && ($temp = $meta));
 		return $meta;
 	}, $meta)){ mpre("Ошибка замены тегов в мета информации", $meta);
 }elseif("/" != substr($href, 0, 1)){ mpre("Первым символом в адресе должен быть правый слеш `{$href}`");
+}elseif($href == "/"){ mpre("ОШИБКА формирования внешнего адреса. Полученный адрес совпал с главной <a href='/'>/</a>");
 }elseif(preg_match_all("#{(.*):?(.*?)}#", $href. implode("", $meta), $match) && !call_user_func(function($seo_cat) use($conf, $href, $meta, $ZAM, $ZAM_INDEX, $ZAM_GET){
 		if(!$seo_href = "/seo:admin/r:{$conf['db']['prefix']}seo_cat?&where[id]={$seo_cat['id']}"){ mpre("ОШИБКА формирования адреса перехода на СЕО категорию");
 		}else{
