@@ -325,7 +325,7 @@ function cache($content = false){
       }else{
         error_log(implode("/", $sys_getloadavg). " <== http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
         header('Content-Encoding: gzip');
-        exit($row['content']);
+        return $row['content'];
       }
     }else{ # Сохраняем кеш в sqlite
       if(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
@@ -1293,10 +1293,11 @@ function mpdbf($tn, $post = null, $and = false){
       if($update && ($upd = mpdbf($tn, $update))){
         qw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE `id`=". (int)$s['id']);
       } return $s['id'];
-    }else{ mpre("Множественные изменения запрещены `{$tn}`", $find); # Множественное обновление. Если в качестве условия используется несколько элементов
-/*      if($update && ($upd = mpdbf($tn, $update))){
-        qw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE `id` IN (". in($sel). ")");
-      } return $sel;*/
+		}elseif(!$where = array_map(function($key, $val){
+				return "where[{$key}]={$val}";
+			}, array_keys($find), $find)){ mpre("ОШИБКА формирования массива условий для выборки списка элементов");
+		}elseif(!$href = "/{$arg['modpath']}:admin/r:{$tn}?&where[id]=338"){ mpre("ОШИБКА формировани я ссылки на элементы списка");
+    }else{ mpre("Множественные изменения запрещены <a href=''>{$tn}</a>", $find); # Множественное обновление. Если в качестве условия используется несколько элементов
     }
   }elseif($insert){
     if($fields = fields($tn)){
@@ -1665,9 +1666,10 @@ function mphid($tn, $fn, $id = null, $href, $exts = array('image/png'=>'.png', '
   } return null;
 }
 
-function hid($tn, $href, $id = null, $fn = "img", $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpeg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
+function hid($tn, $href, $id = 0, $fn = "img", $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpeg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
   global $conf, $arg;
-  if(!$data = file_get_contents($href)){ pre("Ошибка загрузки файла", $href);
+  if(!is_numeric($id)){ mpre("Третий параметр функции загрузки удаленных изображения должен быть числом");
+  }elseif(!$data = file_get_contents($href)){ pre("Ошибка загрузки файла", $href);
   }elseif(!($ext = '.'. preg_replace("/[\W]+.*/", '', preg_replace("/.*?\./", '', $href))) && (array_search(strtolower($ext), $exts) || isset($exts['*']))){ pre("Запрещенное к загрузке расширение", $ext);
   }elseif(!$el = fk($tn, $w = ($id ? ["id"=>$id] : null), $w = ['id'=>NULL])){ mpre("Ошибка получения идентификатора элемента {$tn}");
   }elseif(!$f = "{$tn}_{$fn}_". (int)$el['id']. $ext){ mpre("Ошибка формирования имени файла");
@@ -2181,4 +2183,4 @@ if(!function_exists("array_column")){
       }
     } return $result;
   }
-}
+}else{ mpre("Функция array_column() содержится нативно. Можно удалить добавление дубля"); }

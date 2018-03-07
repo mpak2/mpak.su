@@ -10,6 +10,10 @@
 // Original Author of file: Krivoshlykov Evgeniy (mpak) +7 911 9842884
 // ----------------------------------------------------------------------
 
+header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
+header("Pragma: no-cache"); // HTTP 1.0.
+header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+
 if(!call_user_func(function(){
     ini_set('display_errors', 1);
     date_default_timezone_set('Europe/Moscow');
@@ -78,7 +82,7 @@ if(!$conf = call_user_func(function($conf){
 }elseif(!$conf['settings']['http_host'] = strtolower(function_exists("idn_to_utf8") ? idn_to_utf8($_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST'])){ pre("ОШИБКА конвертации имени хоста");
 }elseif(!$conf['settings']['access_array'] = ['0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ']){ mpre("ОШИБКА установки уровней доступа");
 }elseif(!$conf['settings']['microtime'] = microtime(true)){ mpre("Фиксация начала запуска скрипта");
-}elseif(cache()){ mpre("Выдаем сохраненную версию если страница кеширована ранее");
+}elseif(empty(get($conf, 'settings', 'users_cashe_disacled')) && ($cache = cache())){ exit($cache); mpre("Выдаем сохраненную версию если страница кеширована ранее");
 }else{
 }
 
@@ -291,5 +295,5 @@ if(array_key_exists('null', $_GET)){ echo $conf["content"];
 }elseif(!$conf["content"] = strtr($conf["content"], (array)$zblocks)){ mpre("Ошибка установки содержимоого блоков");
 }elseif(!$conf['settings']['microtime'] = substr(microtime(true)-$conf['settings']['microtime'], 0, 8)){ mpre("Ошибка расчета времени генерирования страницы");
 }elseif(!$conf["content"] = array_key_exists("null", $_GET) ? $conf["content"] : strtr($conf["content"], mpzam($conf['settings'], "settings", "<!-- [", "] -->"))){ mpre("Ошибка установки переменных в текст");
-}elseif(!cache($conf["content"]) &&0){ mpre("Ошибка кеширования содержимого страницы");
+}elseif(empty(get($conf, 'settings', 'users_cashe_disacled')) && cache($conf["content"]) &&0){ mpre("Ошибка кеширования содержимого страницы");
 }else{ echo $conf["content"]; }
