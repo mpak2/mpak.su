@@ -33,8 +33,8 @@
 			})(jQuery, document.currentScript)
 		</script>
 		<p><input type="file" multiple accept="image/*,image/jpeg,image/png" name="img[]" value="<?=get($pages_index, 'img')?>"></p>
-		<p><input type="text" placeholder="Заголовок статьи" name="name" value="<?=get($pages_index, 'name')?>" style="width:100%;"></p>
-		<p><input type="text" required placeholder="Ссылка на видео c youtube.com" name="youtube" value="<?=get($pages_index, 'youtube')?>" style="width:100%;"></p>
+		<p><input type="text" required placeholder="Заголовок статьи" name="name" value="<?=get($pages_index, 'name')?>" style="width:100%;"></p>
+		<p><input type="text" placeholder="Ссылка на видео c youtube.com" name="youtube" value="<?=get($pages_index, 'youtube')?>" style="width:100%;"></p>
 		<? if($conf['user']['gid']['1']): ?>
 			<p><?=mpwysiwyg("text", get($pages_index, 'text'))?></p>
 		<? else: ?>

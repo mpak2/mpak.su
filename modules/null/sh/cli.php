@@ -17,7 +17,7 @@ if(!$DIR = explode("/", __DIR__)){ print_r("Ошибка определения 
 }elseif(!$modpath = (isset($argv) ? basename(dirname(dirname(__FILE__))) : basename(dirname(__FILE__)))){ mpre("Ошибка вычисления имени модуля");
 }elseif(!$arg = ['modpath'=>$modpath, "fn"=>implode(".", array_slice(explode(".", basename(__FILE__)), 0, -1))]){ mpre("Установка аргументов");
 }elseif(!isset($argv)){ pre("Запуск из веб интерфейса");
-}elseif(!$conf['db']['conn'] = conn()){ mpre("Ошибка подключения БД");
+}elseif(!$conf['db']['conn'] = conn()){ mpre("Ошибка подключения БД попробуйте установить `apt install php-sqlite3`");
 }elseif(array_search($cmd["webhook"] = "Подключить вебхук", $cmd) == get($argv, 1)){// pre("Метод", get($argv, 1));
 	if(!$telegram_bot = rb("bim-telegram_bot", "name", $w = "[bimorphbot]")){ mpre("Значение по имени не найдено `{$w}`");
 	}else{ mpre($telegram_bot);
