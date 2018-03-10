@@ -2,7 +2,7 @@
 include_once(mpopendir('modules/files/defaultmimes.php'));
 if(!$uri = implode("/", $ar = array_filter(explode("/", $_SERVER['REQUEST_URI'])))){ mpre("Путь до файла не найден");
 }elseif(!$uri = first(explode("?", $uri))){ mpre("Путь отделения динамической части адреса");
-}elseif(!$path = mpopendir($uri)){ pre("Ошибка определения пути к файлу <b>{$uri}</b>");
+}elseif(!$path = mpopendir($uri)){ pre("Файл по прямой ссылке не найден <b>{$uri}</b>");
 	header("HTTP/1.1 404 Not Found");
 }elseif(!$keys = array_keys($ar = explode('.', $path))){ mpre("Ошибка составления массива элементов пути");
 }elseif(!$ext = strtolower($ar[max($keys)])){ mpre("Ошибка поиска расширения файла");
