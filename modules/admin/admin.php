@@ -50,6 +50,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 			}elseif(($_GET['r'] == "{$conf['db']['prefix']}users") && ($field == "pass") && (strlen($_POST['pass']) != 32) && (substr($_POST['pass'], 0, 1) != "!")){ $post = mphash($_POST['name'], $_POST['pass']);
 			}elseif("_id" != substr($field, -3)){ return $post; // return $post;
 			}elseif(empty($post)){ return $post = "NULL";
+			}elseif($post == "NULL"){// mpre("Пустое значение от формы");
 			}elseif(is_numeric($post)){// mpre("Ключ связанной таблицы");
 			}elseif(!$tab = substr($field, 0, -3)){ mpre("ОШИБКА определения связанной таблицы таблицы");
 			}elseif(!$TAB = explode("_", $_GET['r'])){ mpre("ОШИБКА парсинга полного адреса текущей таблицы");
@@ -58,7 +59,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 			}else{// mpre($field, $post);
 				$post = $index['id'];
 			}
-		})){ mpre("ОШИБКА предобработки занчений пост запроса");
+		})){ mpre("ОШИБКА предобработки занчений связанных таблиц");
 //	}elseif(mpre($_POST)){
 	}else{// die(!mpre($_SERVER['REQUEST_URI'], $_POST)); # Правка записи и добавление новой
 		if(is_numeric(get($_POST, '_id'))){

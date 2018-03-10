@@ -262,15 +262,18 @@ foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_uac
 
 
 
-if(!$zblocks = call_user_func(function() use(&$conf){
-    if(isset($_GET['m']['sqlanaliz'])){
-      $zblocks = blocks();
-      $conf["content"] = modules($conf["content"]);
-    }else{
-      $conf["content"] = modules($conf["content"]);
-      $zblocks = blocks();
-    } return $zblocks;
-  }) and !get($conf,"deny")){ mpre("Ошибка установки порядка следования расчетов блоков");
+if(!is_array($zblocks = call_user_func(function() use(&$conf){
+		if(array_key_exists('blocks', $_GET['m'])){// pre($_GET);
+			$conf["content"] = modules($conf["content"]);
+			$zblocks = [];
+		}elseif(isset($_GET['m']['sqlanaliz'])){
+			$zblocks = blocks();
+			$conf["content"] = modules($conf["content"]);
+		}else{
+			$conf["content"] = modules($conf["content"]);
+			$zblocks = blocks();
+		} return $zblocks;
+	})) and !get($conf,"deny")){ mpre("Ошибка установки порядка следования расчетов блоков");
 }elseif(!$ind = (get($_GET, 'index') ?: (get($conf, 'settings', 'index') ?: "index"))){ mpre("Ошибка определения имени главного файла");
 }elseif(!$t = mpopendir($f = "themes/{$conf['settings']['theme']}/{$ind}.html")){
 }elseif(array_key_exists('null', $_GET)){// mpre("Аякс запросу шаблон не обязателен");
