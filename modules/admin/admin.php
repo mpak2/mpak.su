@@ -51,10 +51,11 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 			}elseif("_id" != substr($field, -3)){ return $post; // return $post;
 			}elseif(empty($post)){ return $post = "NULL";
 			}elseif($post == "NULL"){// mpre("Пустое значение от формы");
-			}elseif(is_numeric($post)){// mpre("Ключ связанной таблицы");
 			}elseif(!$tab = substr($field, 0, -3)){ mpre("ОШИБКА определения связанной таблицы таблицы");
 			}elseif(!$TAB = explode("_", $_GET['r'])){ mpre("ОШИБКА парсинга полного адреса текущей таблицы");
 			}elseif(!$table = "{$TAB[1]}-$tab"){ mpre("ОШИБКА получения имени связанной таблицы");
+			}elseif($index = rb($table, "name", "[{$post}]")){ $post = $index['id'];
+			}elseif(is_numeric($post)){// mpre("Ключ связанной таблицы");
 			}elseif(!$index = fk($table, $w = ['name'=>$post], $w)){ mpre("ОШИБКА добавления занчения в связанную таблицу");
 			}else{// mpre($field, $post);
 				$post = $index['id'];
