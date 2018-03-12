@@ -263,7 +263,7 @@ foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_uac
 
 
 if(!is_array($zblocks = call_user_func(function() use(&$conf){
-		if(array_key_exists('blocks', $_GET['m']) && get($_GET, 'id')){// pre($_GET);
+		if(array_key_exists('blocks', $_GET['m'])){// pre($_GET);
 			$conf["content"] = modules($conf["content"]);
 			$zblocks = [];
 		}elseif(isset($_GET['m']['sqlanaliz'])){
