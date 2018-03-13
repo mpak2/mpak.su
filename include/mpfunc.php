@@ -1094,7 +1094,7 @@ function rb($src, $key = 'id'){
 //	echo "<pre>"; print_r($func_get_args); echo "</pre>"; exit;
 	if(is_string($src)){
 		if(strpos($func_get_args[0], '-')){ # Разделитель  - (тире) считается разделителем для раздела
-			$func_get_args[0] = $conf['db']['prefix']. implode("_", explode("-", $func_get_args[0]));
+			$func_get_args[0] = $conf['db']['prefix']. implode("_", array_filter(explode("-", $func_get_args[0])));
 		}else if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$func_get_args[0])){ # Если имя таблицы начинается с префика
 			$func_get_args[0] = "{$conf['db']['prefix']}{$arg['modpath']}_{$func_get_args[0]}";
 		} //проверка полное или коротное название таблицы
@@ -1338,7 +1338,7 @@ function mpdbf($tn, $post = null, $and = false){
 } function fk($t, $find, $insert = array(), $update = array(), $key = false, $log = false){
 	global $conf, $arg;
 	if(strpos($t, '-')){ //проверка полное или коротное название таблицы
-		$t = $conf['db']['prefix']. implode("_", explode("-", $t));
+		$t = $conf['db']['prefix']. implode("_", array_filter(explode("-", $t)));
 	}elseif(!preg_match("#^{$conf['db']['prefix']}.*#iu",$t)){
 		$t = "{$conf['db']['prefix']}{$arg['modpath']}_{$t}";	
 	}
