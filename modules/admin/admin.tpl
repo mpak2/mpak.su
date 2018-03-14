@@ -283,7 +283,7 @@
 							console.error("error:", error);
 							alert(error.responseText);
 						});
-					}).on("click", ".imgs a.del", function(e){
+					}).on("click", "[line_id] a.del", function(e){ alert("Удаление");
 						if(e.ctrlKey || confirm("Удалить элемент?")){
 							var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
 							var fn = $(e.currentTarget).parents("[fn]").attr("fn");
@@ -568,9 +568,12 @@
 													<? endif; ?>
 												</div>
 											<? elseif(!preg_match("#_id$#ui",$k) AND preg_match("#^file(\d*|_.+)?#iu",$k)): ?>
-												<a target="blank" href="/<?=$arg['modpath']?>:file/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:file/null/<?=basename($lines[$k])?>" title="<?=$v?>">
-													<?=$v?>
-												</a>
+												<div class="imgs" fn="<?=$k?>" style="position:relative; height:14px;">
+													<a class="del <?=($lines[$k]?"":"disabled")?>" href="javascript:void(0)" title="Удалить файл"><img src="/img/del.png"></a>
+													<a target="blank" href="/<?=$arg['modpath']?>:file/<?=$lines['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:file/null/<?=basename($lines[$k])?>" title="<?=$v?>">
+														<?=$v?>
+													</a>
+												</div>
 											<? elseif($k == "sort"): ?>
 												<div class="sort" style="white-space:nowrap;">
 													<a class="inc" href="javascript:void(0);" style="background:url(i/mgif.gif); background-position:-18px -90px; width: 10px; height: 14px; display:inline-block;"></a>
