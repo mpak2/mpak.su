@@ -215,6 +215,7 @@ if(call_user_func(function($conf){ # Если прописана внутрен�
     }elseif(!$seo_location['location_status_id']){ mpre("Статус перенаправления не установлен");
     }elseif(!$seo_location_status = rb("{$conf['db']['prefix']}seo_location_status", "id", $seo_location['location_status_id'])){ mpre("ОШИБКА выборки статуса перенаправления");
     }elseif(!get($seo_location, "index_id")){ mpre("Внешний адрес для перенаправления не установлен");
+    }elseif(get($conf, 'settings', 'seo_meta_hidden')){// mpre("Скрываем сообщения для администраторов");
     }elseif(!$seo_index = rb("{$conf['db']['prefix']}seo_index", "id", $seo_location['index_id'])){ mpre("ОШИБКА выборки адреса для перенаправления");
     }elseif(empty(get($conf, 'settings', 'seo_meta_hidden')) && ($gid = get($conf, 'user', 'gid')) && array_search("Администратор", $gid)){ mpre("Перенаправляем страницу на внешний адрес <a href='{$seo_index['name']}'>{$seo_index['name']}</a>");
     }else{
@@ -263,7 +264,7 @@ foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_uac
 
 
 if(!is_array($zblocks = call_user_func(function() use(&$conf){
-		if(array_key_exists('blocks', $_GET['m'])){// pre($_GET);
+		if(array_key_exists('blocks', $_GET['m']) && ($_GET['m']['blocks'] == "index") && !get($_GET, 'id')){// pre($_GET);
 			$conf["content"] = modules($conf["content"]);
 			$zblocks = [];
 		}elseif(isset($_GET['m']['sqlanaliz'])){
