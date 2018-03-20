@@ -430,7 +430,14 @@
 											<? endforeach; ?>
 										</select>
 									<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#(^|.+_)(time|last_time|reg_time|up|down)(\d+|_.+|$)#ui",$name,$match)): # Поле времени ?>									
-										<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", get($tpl, 'edit', $name) /* ?: time() Сбивает пустое время */)?>" placeholder="<?=($tpl['etitle'][get($match,2)] ?: $name)?>">
+										<? if(!is_numeric($time = call_user_func(function($name){// mpre(123);
+												if(!array_key_exists('edit', $_GET)){ return 0;// mpre("Нет edit");
+												}elseif($index = rb($_GET['r'], "id", $_GET['edit'])){ return (int)get($index, $name);// mpre("index");
+												}else{ return time(); }
+											}, $name))): mpre("ОШИБКА расчета текущего времени") ?>
+										<? else: ?>
+											<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", $time)?>" placeholder="<?=($tpl['etitle'][get($match,2)] ?: $name)?>">
+										<? endif; ?>
 									<? elseif((substr($name, -3) == "_id") && (false === array_search(substr($name, 0, -3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
 										<? if(!get($conf, 'settings', 'admin_datalist')): ?>
 											<select name="<?=$name?>" style="width:100%;">
@@ -699,7 +706,15 @@
 												<? endforeach; ?>
 											</select>
 										<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#(^|.+_)(time|last_time|reg_time|up|down)(\d+|_.+|$)#ui",$name,$match)): # Поле времени ?>
-											<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", (get($_GET, 'edit') ? rb($_GET['r'], "id", $_GET['edit'], $name) : time()))?>" placeholder="<?=(get($tpl, 'etitle', get($match,2)) ?: $name)?>">
+											<?// if(!$etime = (get($_GET, 'edit') ? rb($_GET['r'], "id", $_GET['edit'], $name) : time())): mpre("ОШИБКА расчета текущего времени") ?>
+											<? if(!is_numeric($time = call_user_func(function($name){// mpre(123);
+													if(!array_key_exists('edit', $_GET)){ return time();
+													}elseif($index = rb($_GET['r'], "id", $_GET['edit'])){ return (int)get($index, $name);
+													}else{ return 0; }
+												}, $name))): mpre("ОШИБКА расчета текущего времени") ?>
+											<? else: ?>
+												<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", $time)?>" placeholder="<?=(get($tpl, 'etitle', get($match,2)) ?: $name)?>">
+											<? endif; ?>
 										<? elseif((substr($name, -3) == "_id") && (false === array_search(substr($name, 0, strlen($name)-3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
 											<? if(!is_array($SELECT = rb("{$arg['modpath']}-". substr($name, 0, -3)))): mpre("Ошибка выборки списка для отображения") ?>
 											<? elseif(!get($conf, 'settings', 'admin_datalist')): ?>
@@ -719,8 +734,7 @@
 											<? elseif(!is_array($LIST = rb("{$arg['modpath']}-{$tab}"))): mpre("ОШИБКА выборки списка для поля") ?>
 											<? elseif((!$list_id = (get($tpl, 'edit', $name) ?: get($_GET, 'where', $name))) && !is_numeric($list_id) && !is_string($list_id) && !is_null($list_id)): mpre("ОШИБКА определения номера списка `{$name}`", get($tpl, 'edit'), $name, gettype($list_id)) ?>
 											<? elseif(!is_array($list = rb($LIST, "id", $list_id))): mpre("ОШИБКА выборки связанной таблицы") ?>
-											<? elseif((!$list_value = get($list, 'name')) && !is_numeric($list_value) && !is_string($list_value) && !is_null($list_value)): mpre("ОШИБКА
-	определения занчения списка", gettype($list_value)) ?>
+											<? elseif((!$list_value = get($list, 'name')) && !is_numeric($list_value) && !is_string($list_value) && !is_null($list_value)): mpre("ОШИБКА определения занчения списка", gettype($list_value)) ?>
 											<? else:// mpre(htmlspecialchars($list_value)) ?>
 												<input type="text" name="<?=$name?>" value="<?=(array_key_exists('name', $list) ? htmlspecialchars($list_value) : $list_id)?>" list="<?=$name?>_list" style="background-color:#ddd;">
 												<datalist id="<?=$name?>_list">

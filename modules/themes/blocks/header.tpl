@@ -12,6 +12,10 @@
 	div.table.border > div > span { border:1px solid gray; }
 	div.table.border > div.th > span { border:0; }
 	.pager a.active {color:#fe8e23;}
+
+	.right { text-align:right; }
+	.center { text-align:center; }
+	.left { text-align:left; }
 </style>
 
 <? if(!get($conf, 'settings', 'themes_params')):// mpre("Параметры редактора тем не заданы") ?>
@@ -356,8 +360,8 @@
 <? if(!get($conf, 'settings', 'themes_v6player')):# Таблица микроразметки не создана ?>
 <? elseif(!$seo_alias = seo_alias(get($conf, 'settings', 'canonical'))): mpre("ОШИБКА получения алиаса") ?>
 <?// elseif($conf['user']['uid'] <= 0): mpre("Незарегистрировнные пользователи - скрываем") ?>
-<? elseif($seo_alias != "kf:event_index/kf-event"):// mpre("Не совпадает страница") ?>
-<? elseif(615 != get($_GET, 'kf-event')):// mpre("Не совпадает идентификатор события") ?>
+<?// elseif($seo_alias != "kf:event_index/kf-event"):// mpre("Не совпадает страница") ?>
+<?// elseif(615 != get($_GET, 'kf-event')):// mpre("Не совпадает идентификатор события") ?>
 <?// elseif(true): mpre("Плеер выключен") ?>
 <? else:// mpre($seo_alias) ?>
 	<script sync>
@@ -368,19 +372,33 @@
 			}).ready(function(e){ $(script).parent().trigger("init"); })
 		})(jQuery, document.currentScript)
 	</script>
+
+		<div id="v6alert" class="modal" tabindex="-1" role="dialog">
+			<script>
+				function v6alert(text, title){
+					var v6alert = $('#v6alert');
+					$(v6alert).find(".modal-body").text(text);
+					$(v6alert).find(".modal-title").text(title ? title : "Уведомление");
+					$(v6alert).modal('show');
+				}
+			</script>
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">{title}</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<p>{text}</p>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
 	<script src="//cdn.006.spb.ru/private/player/video/player.js"></script>
 	<link rel="stylesheet" type="text/css" href="//cdn.006.spb.ru/private/player/video/player.css">
-
-<!--	<script>
-		$(function(){ $('#videoPlayer').videoplayer({}, false); });
-	</script>
-	<style>
-		.v6player {
-			width:800px; height:800px; position:absolute; top:0; z-index:999; border:1px;
-			border:1px solid gray;
-		}
-	</style>
-	<div style="display:none;">
-		<video id="videoPlayer" src="https://erlyvideo.v6.spb.ru:443//BATTLE/2017/12_V1Battle_23_12_2017/09_RAP_BATTLE_1na1/NAREZKA/01.mp4"></video>
-	</div> -->
 <? endif; ?>
