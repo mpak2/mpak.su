@@ -12,6 +12,10 @@
 	div.table.border > div > span { border:1px solid gray; }
 	div.table.border > div.th > span { border:0; }
 	.pager a.active {color:#fe8e23;}
+
+	.right { text-align:right; }
+	.center { text-align:center; }
+	.left { text-align:left; }
 </style>
 
 <? if(!get($conf, 'settings', 'themes_params')):// mpre("Параметры редактора тем не заданы") ?>
@@ -187,7 +191,7 @@
 		}else{ return $seo_index; }
 	}, $seo_location))): mpre("ОШИБКА нахождения внешнего адреса") ?>
 <? else:// mpre($alias, $seo_cat) ?>
-		<div class="themes_header_seo_blocks" style="z-index:9999; border:1px solid #eee; border-radius:7px; position:fixed; background-color:rgba(255,255,255,0.7); color:black; padding:0 5px; left:10px; top:10px; width:auto;">
+		<div class="themes_header_seo_blocks" style="z-index:999999; border:1px solid #eee; border-radius:7px; position:fixed; background-color:rgba(255,255,255,0.7); color:black; padding:0 5px; left:10px; top:10px; width:auto;">
 			<div class="table">
 				<div>
 					<span><a href="/admin" title="Перейти в админраздел"><img src="/themes/theme:zhiraf/null/i/logo.png"></a></span>
@@ -354,10 +358,10 @@
 
 <!-- плайер -->
 <? if(!get($conf, 'settings', 'themes_v6player')):# Таблица микроразметки не создана ?>
-<? elseif(!$seo_alias = seo_alias(get($conf, 'settings', 'canonical'))): mpre("ОШИБКА получения алиаса") ?>
+<?// elseif(!$seo_alias = seo_alias(get($conf, 'settings', 'canonical'))): mpre("ОШИБКА получения алиаса") ?>
 <?// elseif($conf['user']['uid'] <= 0): mpre("Незарегистрировнные пользователи - скрываем") ?>
-<? elseif($seo_alias != "kf:event_index/kf-event"):// mpre("Не совпадает страница") ?>
-<? elseif(615 != get($_GET, 'kf-event')):// mpre("Не совпадает идентификатор события") ?>
+<?// elseif($seo_alias != "kf:event_index/kf-event"):// mpre("Не совпадает страница") ?>
+<?// elseif(615 != get($_GET, 'kf-event')):// mpre("Не совпадает идентификатор события") ?>
 <?// elseif(true): mpre("Плеер выключен") ?>
 <? else:// mpre($seo_alias) ?>
 	<script sync>
@@ -368,19 +372,55 @@
 			}).ready(function(e){ $(script).parent().trigger("init"); })
 		})(jQuery, document.currentScript)
 	</script>
+
+		<div id="v6alert" class="modal" tabindex="-1" role="dialog">
+			<script>
+				function v6alert(html, title){
+					var v6alert = $('#v6alert');
+					$(v6alert).find(".modal-body").html(html);
+					$(v6alert).find(".modal-title").text(title ? title : "Уведомление");
+					$(v6alert).modal('show');
+				}
+				function v6link(href){
+//					$("<div>").css({"position":"fixed", "width":"1150px"}).load(href).appendTo("")
+				}
+			</script>
+			<div class="modal-dialog modal-lg text-center" role="document" style="z-index:100000; top:120px;">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<p>{text}</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
 	<script src="//cdn.006.spb.ru/private/player/video/player.js"></script>
 	<link rel="stylesheet" type="text/css" href="//cdn.006.spb.ru/private/player/video/player.css">
-
-<!--	<script>
-		$(function(){ $('#videoPlayer').videoplayer({}, false); });
+	<script sync>
+		(function($, script){
+			$(script).parent().on("video", function(e, src){// console.log("header", e.currentTarget);
+				$("<div></div>").addClass("video_outer").css({"width":"100%", "height":"100%", "z-index":950})/*.hide()*/.appendTo("body");
+				var div = $("<div></div>").addClass("videobox").hide().css({"width":"60%", "min-height":"50%", "padding":"10px", "position":"fixed", "background-color":"white", "top":"10%", "left":"20%", "margin":"0 auto"}).appendTo(".video_outer");
+				
+				$("<a></a>").addClass("fancybox-item").addClass("fancybox-close").appendTo(".videobox");
+				$("<video>").attr("id", "videoPlayer").attr("src", "/"+src).attr("autoplay", true).appendTo(".videobox");
+				$(div).show().find('video').videoplayer({}, false);
+				var bg = $("<div>").addClass("bg").css({"position":"fixed", "left":0, "top":0, "background-color":"rgba(0, 0, 0, .7)", "width":"100%", "height":"100%", "z-index":999}).appendTo("body").find(".video_outer");
+			}).on("click", "[video]", function(e){
+				if(src = $(e.currentTarget).attr("video")){
+					$(e.delegateTarget).trigger("video", src);
+				}else{ alert("Видео еще не добавлено"); }
+			}).on("click", ".fancybox-close, .bg", function(e){
+				$(e.currentTarget).closest(".videobox", e.delegateTarget).remove();
+				$(".video_outer").remove();
+				$(".bg").remove();
+			}).on("init", function(){
+			}).ready(function(e){ $(script).parent().trigger("init"); })
+		})(jQuery, document.currentScript)
 	</script>
-	<style>
-		.v6player {
-			width:800px; height:800px; position:absolute; top:0; z-index:999; border:1px;
-			border:1px solid gray;
-		}
-	</style>
-	<div style="display:none;">
-		<video id="videoPlayer" src="https://erlyvideo.v6.spb.ru:443//BATTLE/2017/12_V1Battle_23_12_2017/09_RAP_BATTLE_1na1/NAREZKA/01.mp4"></video>
-	</div> -->
 <? endif; ?>
