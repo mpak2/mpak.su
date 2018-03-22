@@ -404,18 +404,18 @@
 	<script sync>
 		(function($, script){
 			$(script).parent().on("video", function(e, src){// console.log("header", e.currentTarget);
-				$("<div></div>").addClass("video_outer").css({"width":"100%", "height":"100%", "z-index":99999})/*.hide()*/.appendTo("body");
-				var div = $("<div></div>").addClass("videobox").hide().css({"width":"60%", "padding":"10px", "position":"fixed", "background-color":"white", "top":"10%", "left":"20%", "margin":"0 auto"}).appendTo(".video_outer");
+				$("<div></div>").addClass("video_outer").css({"width":"100%", "height":"100%", "z-index":950})/*.hide()*/.appendTo("body");
+				var div = $("<div></div>").addClass("videobox").hide().css({"width":"60%", "min-height":"50%", "padding":"10px", "position":"fixed", "background-color":"white", "top":"10%", "left":"20%", "margin":"0 auto"}).appendTo(".video_outer");
 				
 				$("<a></a>").addClass("fancybox-item").addClass("fancybox-close").appendTo(".videobox");
 				$("<video>").attr("id", "videoPlayer").attr("src", "/"+src).attr("autoplay", true).appendTo(".videobox");
 				$(div).show().find('video').videoplayer({}, false);
-				var bg = $("<div>").addClass("bg").css({"position":"fixed", "left":0, "top":0, "background-color":"rgba(0, 0, 0, .7)", "width":"100%", "height":"100%", "z-index":1000}).appendTo("body").find(".video_outer");
+				var bg = $("<div>").addClass("bg").css({"position":"fixed", "left":0, "top":0, "background-color":"rgba(0, 0, 0, .7)", "width":"100%", "height":"100%", "z-index":999}).appendTo("body").find(".video_outer");
 			}).on("click", "[video]", function(e){
 				if(src = $(e.currentTarget).attr("video")){
 					$(e.delegateTarget).trigger("video", src);
 				}else{ alert("Видео еще не добавлено"); }
-			}).on("click", ".fancybox-close", function(e){
+			}).on("click", ".fancybox-close, .bg", function(e){
 				$(e.currentTarget).closest(".videobox", e.delegateTarget).remove();
 				$(".video_outer").remove();
 				$(".bg").remove();

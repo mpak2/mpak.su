@@ -969,7 +969,7 @@ function aedit($href, $echo = true, $title = null){ # Установка на п
 	global $arg, $conf;
 	$append = preg_match("#\?#iu",$href) ? "&" : "?";
 	$go_to_save = $append."go_to_save=".urlencode($_SERVER['REQUEST_URI']);
-	$link = "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:999; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}{$go_to_save}\" title=\"". $title. "\" ><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px; width:10px; height:10px;'></a></span></div>";
+	$link = "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:700; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}{$go_to_save}\" title=\"". $title. "\" ><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px; width:10px; height:10px;'></a></span></div>";
 	if(array_search("Администратор", $conf['user']['gid'])){if((bool)$echo) echo $link; else return $link;}	
 }
 
@@ -1432,7 +1432,7 @@ function mpgt($REQUEST_URI, $get = array()){
 	} if(!empty($get['стр']) && $get['стр']) $get['p'] = $get['стр'];
 	return $get;
 }
-function mpwr($tn, $get = null, $prefix = null){
+function mpwr($tn, $get = null, $prefix = null){ mpre("Устаревшая функция. Если вы ее используете удалите из кода. Скоро она перестанет быть доступной");
 	global $conf;
 	if(empty($prefix)) $where = ' WHERE 1=1';
 	$f = mpqn(mpqw("DESC {$tn}"), 'Field');
@@ -1597,7 +1597,7 @@ function hid($tn, $href, $id = false, $fn = "img", $exts = array('image/png'=>'.
 	if(!$data = file_get_contents($href)){ pre("Ошибка загрузки файла", $href);
 	}elseif(!($ext = '.'. preg_replace("/[\W]+.*/", '', preg_replace("/.*?\./", '', $href))) && (array_search(strtolower($ext), $exts) || isset($exts['*']))){ pre("Запрещенное к загрузке расширение", $ext);
 	}elseif(!$el = fk($tn, $w = ($id ? ["id"=>$id] : null), $w = ['id'=>NULL])){ mpre("Ошибка получения идентификатора элемента {$tn}");
-	}elseif(!$f = "{$tn}_{$fn}_". (int)$el['id']. $ext){ mpre("Ошибка формирования имени файла");
+	}elseif(!$f = "{$tn}-{$fn}_". (int)$el['id']. $ext){ mpre("Ошибка формирования имени файла");
 	}elseif((!$ufn = mpopendir('include/images')) && (!$ufn = realpath('include/images'))){ mpre("Директория с изображениями не определена");
 	}elseif(!file_put_contents("$ufn/$f", $data)){ mpre("Ошибка сохранения файла");
 	}elseif(!$el = fk($tn, array("id"=>$el['id']), null, array($fn=>"images/$f"))){ mpre("Ошибка занесения имени файла в таблицу");
@@ -1611,7 +1611,7 @@ function fid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png
 	}elseif((!$ext = get($exts, $file['type'])) && !get($exts, '*')){ mpre("Тип загрузаемого файла не найден среди разрешенных");
 	}elseif(!strlen($ext) && (!$ext = '.'. last(explode('.', $file['name'])))){ mpre("ОШИБКА расчета расширения");
 	}elseif(!$img = fk($tn, $w = ($id ? ["id"=>$id] : []), $w += ['time'=>time(), 'uid'=>$conf['user']['uid']])){ mpre("ОШИБКА выборки записи по идентификатору");
-	}elseif(!$file_name = "{$tn}_{$fn}_{$img['id']}{$ext}"){ mpre("ОШИБКА расчета имени файла");
+	}elseif(!$file_name = "{$tn}-{$fn}_{$img['id']}{$ext}"){ mpre("ОШИБКА расчета имени файла");
 	}elseif(!$ufn = mpopendir("include/{$folder}")){ mpre("ОШИБКА получения пути к загружаемой директории");
 	}elseif(!move_uploaded_file($file['tmp_name'], "$ufn/$file_name")){ mpre("ОШИБКА перемещения файла с временной директории в директорию системы");
 	}elseif(!$img = fk($tn, $w = ['id'=>$img['id']], $w += [$fn=>"{$folder}/{$file_name}"], $w)){ mpre("ОШИБКА обновления имени файла в записи изображения");
