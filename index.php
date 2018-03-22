@@ -158,8 +158,8 @@ foreach(mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index", "Спи�
   $conf['modules'][ $modules['id'] ] = &$conf['modules'][ $modules['folder'] ];
 }
 
-if(get($conf, 'settings', 'start_mod') && !array_key_exists("m", $_GET)){ # Главная страница
-  if(strpos($conf['settings']['start_mod'], "http://") === 0){
+if(($start_mod = get($conf, 'settings', 'start_mod')) && !array_key_exists("m", $_GET)){ # Главная страница
+ 	if((strpos($start_mod, "http://") === 0) || (strpos($start_mod, "//") === 0)){// mpre("Перенарпавление не другой сайт");
     exit(header("Location: {$conf['settings']['start_mod']}"));
   }elseif(($seo_index = rb("{$conf['db']['prefix']}seo_index", "name", "[/]")) /*&& array_key_exists("themes_index", $redirect)*/){
     if(get($seo_index, "location_id") && ($seo_location = rb("seo-location", "id", $seo_index['location_id']))){

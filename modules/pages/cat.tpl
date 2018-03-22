@@ -1,5 +1,7 @@
 <div>
-	<? if($cat = rb("pages-cat", "id", get($_GET, 'id'))): ?>
+	<? if(!$cat = rb("pages-cat", "id", get($_GET, 'id'))): mpre("Категория не установлена") ?>
+	<? elseif(!$PAGES_INDEX = rb("pages-index", "cat_id", "id", $cat['id'])): mpre("Статей в категории не найдено") ?>
+	<? else: ?>
 		<h1><?=$cat['name']?></h1>
 		<? if(get($cat, 'cat_id')): ?>
 			<div class="bradcrumbs">
@@ -11,13 +13,14 @@
 			</div>
 		<? endif; ?>
 
-		<? if(!$PAGES_INDEX = rb("pages-index", "cat_id", "id", $cat['id'])): mpre("Статей в категории не найдено") ?>
-		<? else: ?>
-			<ul>
-				<? foreach($PAGES_INDEX as $pages_index): ?>
-					<li><a href="/pages:index/<?=$pages_index['id']?>"><?=$pages_index['name']?></a></li>
-				<? endforeach; ?>
-			</ul><br /><br />
-		<? endif; ?>
+		<ul>
+			<? foreach($PAGES_INDEX as $pages_index): ?>
+				<? if(!$href = "/pages:index/{$pages_index['id']}"): mpre("ОШИБКА формирования адреса на категорию") ?>
+				<? elseif(!$seo_cat = seo($href)): mpre("ОШИБКА получения СЕО адреса страницы категории") ?>
+				<? else: ?>
+					<li><a href="<?=$seo_cat?>"><?=$pages_index['name']?></a></li>
+				<? endif; ?>
+			<? endforeach; ?>
+		</ul><br /><br />
 	<? endif; ?>
 </div>
