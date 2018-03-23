@@ -1208,7 +1208,16 @@ function erb($src, $key = null){
 			return call_user_func_array("get", $_VALUES); # Поле по последнему ключу
 		}
 	}elseif(!$SRC = call_user_func(function($SRC, $_FIELDS, $_SRC = []) use($func_get_args){
-			if((1 == count($_FIELDS)) && ("id" == get($_FIELDS, 0))){ return $SRC;
+//			if((1 == count($_FIELDS)) && ("id" == get($_FIELDS, 0))){ return $SRC;
+			if(call_user_func(function($_FIELDS) use($SRC){
+					if(1 != count($_FIELDS)){// mpre("Количество полей не равно одному");
+					}elseif("id" != get($_FIELDS, 0)){// mpre("Первое значение не равно `id`");
+					}elseif(!$src = first($SRC)){// mpre("ОШИБКА получения первого значения списка");
+					}elseif(!$key = first(array_keys($SRC))){// mpre("ОШИБКА получения ключа первого значения");
+					}elseif(get($src, 'id') != $key){ mpre("Ключи не совпадают перебираем весь массив");
+					}else{ return true;
+					}
+				}, $_FIELDS)){ return $SRC;// mpre("Возвращаем значения без обработки");
 			}elseif(array_search("", $_FIELDS)){ exit(mpre("Пустое значение в списке полей", $_FIELDS/*, debug_backtrace()*/));
 			}else{
 				foreach($SRC as $src){
