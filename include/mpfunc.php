@@ -1214,7 +1214,7 @@ function erb($src, $key = null){
 					}elseif("id" != get($_FIELDS, 0)){// mpre("Первое значение не равно `id`");
 					}elseif(!$src = first($SRC)){// mpre("ОШИБКА получения первого значения списка");
 					}elseif(!$key = first(array_keys($SRC))){// mpre("ОШИБКА получения ключа первого значения");
-					}elseif(get($src, 'id') != $key){ mpre("Ключи не совпадают перебираем весь массив");
+					}elseif(get($src, 'id') != $key){// mpre("Ключи не совпадают перебираем весь массив");
 					}else{ return true;
 					}
 				}, $_FIELDS)){ return $SRC;// mpre("Возвращаем значения без обработки");
