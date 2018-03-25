@@ -1,10 +1,10 @@
 <?php
 
-if(!include($f = "../include/mpfunc.php")){ print_r("Не найден файл $f");
+if(!chdir(__DIR__)){ pre("ОШИБКА установки текущей директории");
+}elseif(!include($f = "../include/mpfunc.php")){ print_r("Не найден файл $f");
 }elseif(!$conf['user']['gid'] = array(1=>"Администратор")){ pre("Устанавливаем администратора");
 }elseif(!setlocale(LC_CTYPE, 'ru_RU.utf-8')){ pre("ОШИБКА Установка нужной для сборки локали");
 }elseif(ini_get('phar.readonly') === '1'){ pre("Установите параметр php.ini phar.readonly On");
-}elseif(!chdir(__DIR__)){ pre("ОШИБКА установки текущей директории");
 }elseif(!$phar = "index.phar"){ pre("Ошибка установки имени файла");
 }elseif(file_exists($phar) && !rename($phar, (ini_get('upload_tmp_dir') ?: "/tmp/"). $phar)){ pre("Ошибка переноса старой копии файла во временную директорию");
 }elseif(!$p = new Phar($phar, 0, $phar)){ pre("Ошибка создания архива {$phar}");
