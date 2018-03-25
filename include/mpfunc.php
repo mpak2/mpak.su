@@ -20,27 +20,26 @@ function seo_alias($canonical){// mpre($canonical);
 		}
 }
 
-#Автоподгрузка классов
+# Автоподгрузка классов
 function PHPClassAutoload($CN){
+//	if(!$dirname = __DIR__){ mpre("ОШИБКА установки текущей директории")
+//	mpre(getcwd());
 	foreach(explode("\\",$CN) as $class_name){
 		//For example - include/mail/PHPMailerAutoload.php
-		$file_project = mpopendir("/include/class/$class_name/$class_name.php");
-		$file_single  = mpopendir($file = "/include/class/$class_name.php");
-		$file_mail    = mpopendir("/include/mail/class.".strtolower($class_name).".php");
-		if($file_project){
-			include_once $file_project;
-		}else if($file_single){
-			include_once $file_single;
-		}else if($file_mail ){
-			include_once $file_mail;
-		}else{			
-			if(!in_array($class_name,array('Memcached'))){
-				mpre("Файл класса не найден {$file}");
-			}
+		$file_project = mpopendir("include/class/$class_name/$class_name.php");
+		$file_single  = mpopendir($file = "include/class/$class_name.php");
+		$file_mail    = mpopendir("include/mail/class.".strtolower($class_name).".php");
+		mpre($class_name);
+		if($file_project){ include_once $file_project;
+		}else if($file_single){ include_once $file_single;
+		}elseif($file_mail){ include_once $file_mail;
+		}elseif(in_array($class_name, array('Memcached'))){// mpre("Имя класса в массиве");
+		}else{ mpre("Файл класса не найден {$file}");
 		}
 	}
 }
-//Иницилизация автоподгрузки
+
+# Иницилизация автоподгрузки
 if (version_compare(PHP_VERSION, '5.1.2', '>=')) {
     if (version_compare(PHP_VERSION, '5.3.0', '>=')){
         spl_autoload_register('PHPClassAutoload', true, true);

@@ -2,7 +2,7 @@
 
 // Подключаем консоль
 if(!$DIR = explode("/", __DIR__)){ print_r("Ошибка определения текущей директории");
-}elseif(!$offset = array_search($d = "xn--90aomikyxn--p1ai", $DIR)){ print_r("Директория с проектом не найдена `{$d}`"); print_r($DIR);
+}elseif(!$offset = array_search($d = "html", $DIR)){ print_r("Директория с проектом не найдена `{$d}`"); print_r($DIR);
 }elseif(!$folder = implode("/", array_slice($DIR, 0, $offset+1))){ print_r("Ошибка выборка директории");
 }elseif(!$dir = implode("/", array_slice($DIR, $offset+1))){ print_r("Ошибка выборка директории");
 }elseif(!chdir($folder)){ print_r("Ошибка установки директории `{$dir}`");
@@ -20,6 +20,7 @@ if(!$DIR = explode("/", __DIR__)){ print_r("Ошибка определения 
 }elseif(!$conf['db']['conn'] = conn()){ mpre("Ошибка подключения БД попробуйте установить `apt install php-sqlite3`");
 }elseif(array_search($cmd["webhook"] = "Подключить вебхук", $cmd) == get($argv, 1)){// pre("Метод", get($argv, 1));
 	if(!$telegram_bot = rb("bim-telegram_bot", "name", $w = "[bimorphbot]")){ mpre("Значение по имени не найдено `{$w}`");
+	}else if(!$html = new simple_html_dom()){ mpre("Ошибка создания обьекта парсера");
 	}else{ mpre($telegram_bot);
 	}
 # Запуск файлов
