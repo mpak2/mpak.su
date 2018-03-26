@@ -1307,16 +1307,17 @@ function mpdbf($tn, $post = null, $and = false){
 			} return $sel;*/
 		}
 	}elseif($insert){
-		if($fields = fields($tn)){
-			if($mpdbf = $insert+array("time"=>time(), "uid"=>(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0))){
-				if($values = array_map(function($val){ return mpquot($val); }, array_intersect_key($mpdbf, $fields))){
-					qw("INSERT INTO `". mpquot($tn). "` (`". implode("`, `", array_keys($values)). "`) VALUES (\"". implode("\", \"", array_values($values)). "\")");
-				}
-			}
-		} // qw($sql = "INSERT INTO `". mpquot($tn). "` SET ". mpdbf($tn, $insert+array("time"=>time(), "uid"=>(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0))));
+		if(!$fields = fields($tn)){ mpre("ОШИБКА получения полей таблицы");
+		}elseif(!$mpdbf = $insert+array("time"=>time(), "uid"=>get($conf, 'user', 'uid'), 'sid'=>get($conf, 'user', 'sess', 'id'))){ mpre("ОШИБКА добавления дефолтных значений");
+		}elseif(!$values = array_map(function($val){ return mpquot($val); }, array_intersect_key($mpdbf, $fields))){ mpre("ОШИБКА составления значений запроса");
+		}else{// pre($conf['user']['sess']);
+			qw("INSERT INTO `". mpquot($tn). "` (`". implode("`, `", array_keys($values)). "`) VALUES (\"". implode("\", \"", array_values($values)). "\")");
+		}// qw($sql = "INSERT INTO `". mpquot($tn). "` SET ". mpdbf($tn, $insert+array("time"=>time(), "uid"=>(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0))));
 		return $sel['id'] = $conf['db']['conn']->lastInsertId();
 	}
-} function fdk(&$tn, $find, $insert = array(), $update = array(), $log = false){
+}
+
+function fdk(&$tn, $find, $insert = array(), $update = array(), $log = false){
 	global $conf;
 	if(is_array($tn)){
 		$func_get_args = array_merge([$tn], array_keys($find), ['id'], array_values($find));
