@@ -283,7 +283,7 @@
 							console.error("error:", error);
 							alert(error.responseText);
 						});
-					}).on("click", "[line_id] a.del", function(e){// alert("Удаление");
+					})/*.on("click", "[line_id] a.del", function(e){// alert("Удаление");
 						if(e.ctrlKey || confirm("Удалить элемент?")){
 							var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
 							var fn = $(e.currentTarget).parents("[fn]").attr("fn");
@@ -294,7 +294,7 @@
 								document.location.reload(true);
 							})
 						}
-					}).on("click", "select", function(e){
+					})*/.on("click", "select", function(e){
 						if(e.altKey){
 	//						alert("Сработало");
 							if($(e.currentTarget).is("[multiple]")){
