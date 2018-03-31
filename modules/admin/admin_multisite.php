@@ -7,16 +7,18 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 }elseif(!$http_host = idn_to_utf8($http_host)){ mpre("Руссификация хоста");
 }elseif(!$http_host = preg_replace("/[.]+$/", "", $http_host)){ mpre("Ошибка выризания точек в конце хоста. По стандартам можно ставить точку в конце адреса и это будет работать");
 }else{ global $conf; # Пользовательская страница
+//	mpre($http_host);
 	if($themes_index = rb("themes-index", "name", "[$http_host]")){// mpre("Хост найден в списке хостов");
 		if(!$_themes_index = (get($themes_index, 'index_id') ? rb("themes-index", "id", $themes_index['index_id']) : [])){// mpre("Зеркало сайта не найдено");
 		}elseif($_SERVER['REQUEST_URI'] == "/robots.txt"){// mpre("Обработка страницы робота");
 		}else{ $themes_index = $_themes_index; }
-	}elseif(get($conf, "settings", "themes_index_ignore") && ($themes_index_ignore = rb("themes-index_ignore", "name", "[{$http_host}]"))){ mpre("Хост в списке игнорированных");
+/*	}elseif(get($conf, "settings", "themes_index_ignore") && ($themes_index_ignore = rb("themes-index_ignore", "name", "[{$http_host}]"))){ mpre("Хост в списке игнорированных");
 		if(array_key_exists("count", $themes_index_ignore)){
 			$themes_index_ignore = fk("themes-index_ignore", array("id"=>$themes_index_ignore['id']), null, array("count"=>$themes_index_ignore['count']+1));
 		} exit("Сайт {$http_host} в списке игнорированных");
 	}elseif(get($conf, 'settings', 'themes_index_ignore_host') && ($_hosts = explode(".", $_SERVER['HTTP_HOST'])) && ($themes_index_ignore_host = rb("themes-index_ignore_host", "name", "[". implode(",", $_hosts). "]"))){
-		$themes_index_ignore = fk("themes-index_ignore", $w = ['name'=>$http_host], $w += ['index_ignore_host_id'=>$themes_index_ignore_host['id']], $w);
+		$themes_index_ignore = fk("themes-index_ignore", $w = ['name'=>$http_host], $w += ['index_ignore_host_id'=>$themes_index_ignore_host['id']], $w);*/
+//	}elseif(true){ mpre($http_host);
 	}elseif((gethostbyname($_SERVER['HTTP_HOST']) == $_SERVER['SERVER_ADDR']) || (get($conf, "settings", 'admin_gethostbyname') == gethostbyname($_SERVER['HTTP_HOST']))){ # Хост настроен на сервер или совпадает с указанным в админке ip
 		if(!trim($http_host)){ mpre("Хост пустышка");
 			$http_host = $_SERVER['SERVER_ADDR'];
@@ -37,10 +39,10 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 			$conf['settings']['theme'] = $_GET['theme'];
 		}elseif(get($conf, 'user', 'theme')){ # Изменяем тему, если для пользователя установлен другой шаблон
 			$conf['settings']['theme'] = $conf['user']['theme'];
-		}elseif($themes_index['theme']){ # Тема задана в списке сайтов
+		}elseif(get($themes_index, 'theme')){ # Тема задана в списке сайтов
 			$conf['settings']['theme'] = $themes_index['theme'];
 		}elseif(get($conf, 'settings', 'themes_index_theme') && ($themes_index_theme = rb("themes-index_theme", "id", $themes_index['index_theme_id']))){
-			$conf['settings']['theme'] = $themes_index_theme['path'];
+			$conf['settings']['theme'] = $themes_index_theme['theme'];
 		}
 		$conf['settings']['title'] = get($themes_index, 'title');
 		$conf['settings']['description'] = get($themes_index, 'description');

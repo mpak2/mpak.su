@@ -11,6 +11,7 @@ if(!$_POST){//mpre("Не аякс запрос");
 }elseif(!$grp = get($conf, 'settings', 'user_grp')){ die(!pre("Ошибка определения пользовательской группы"));
 }elseif(!$users_grp = rb("users-grp", "name",$w = "[{$grp}]")){ die(!pre("Ошибка выборки группы {$w}"));
 }elseif(!$users_mem = fk("users-mem", $w = ["uid"=>$users['id'], "grp_id"=>$users_grp['id']], $w)){ die(!pre("Ошибка добавления пользователя `{$users["name"]}` в группу '{$users_grp["name"]}'"));
+}elseif(!$sess = array('id'=>0, 'uid'=>$guest['id'], "refer"=>0, 'last_time'=>time(), 'count'=>0, 'count_time'=>0, 'cnull'=>0, 'sess'=>($_COOKIE["sess"] ?: md5("{$_SERVER['REMOTE_ADDR']}:".microtime())), 'ref'=>mpquot(mpidn(urldecode($_SERVER['HTTP_REFERER']))), 'ip'=>mpquot($_SERVER['REMOTE_ADDR']), 'agent'=>mpquot($_SERVER['HTTP_USER_AGENT']), 'url'=>mpquot(urldecode($_SERVER['REQUEST_URI'])))){ pre("Ошибка создания сессии");
 //}elseif(!$sess = fk("{$conf['db']['prefix']}sess", ["id"=>$sess["id"]], null, ['uid'=>$users["id"]])){ die(!pre("Ошибка обновления сессии пользователя", $sess));
 }else{// pre($sess);
 	mpevent("Регистрация нового пользователя", $name, $users['id'], $_POST);
