@@ -33,7 +33,7 @@ if('sqlite' == get($conf, 'db', 'type')){
 					if($grp = rb("users-grp", "name", "[". get($conf, 'settings', 'admin_grp'). "]")){
 						if($mem = fk("{$conf['db']['prefix']}users_mem", $w = array("uid"=>$users['id'], "grp_id"=>$grp['id']), $w)){
 							if($settings = fk("{$conf['db']['prefix']}settings", $w = array("name"=>"admin_usr"), $w += array("modpath"=>"users", "aid"=>5, "value"=>$users['name'], "description"=>"Корень"), $w)){
-								qw($sql = "UPDATE {$conf['db']['prefix']}sess SET uid=". $users['id']. " WHERE id=". get($conf, 'user', 'sess', 'id'));
+								qw($sql = "UPDATE {$conf['db']['prefix']}users_sess SET uid=". $users['id']. " WHERE id=". get($conf, 'user', 'sess', 'id'));
 								exit(header("Location: /admin"));
 							}else{ pre("Ошибка установки администратора сайта"); }
 						}else{ pre("Ошибка добавления пользователя в группу администраторов"); }
@@ -102,7 +102,7 @@ EOF;
 	</form>
 EOF;
 }elseif(empty($_POST['modules'])){
-	$en = array(3=>'admin', 'modules', 'blocks', 'users', 'settings', 'sess', 'themes', 'menu', 'seo', 'pages', 'tinymce');
+	$en = array(3=>'admin', 'modules', 'blocks', 'users', 'settings', 'themes', 'menu', 'seo', 'pages', 'tinymce');
 	$rec = array(3=>'services', 'develop', 'opros', 'faq', 'news', 'gbook', 'comments', 'poll', 'sqlanaliz', 'search', 'foto', 'messages');
 	if(strpos($conf['db']['open_basedir'], "phar://")){
 		$en += array(1=>"include", "img");
@@ -205,7 +205,6 @@ EOF;
 	mpqw("INSERT INTO {$conf['db']['prefix']}modules_gaccess (`mid`, `gid`, `admin_access`, `description`) VALUE ((SELECT id FROM {$conf['db']['prefix']}modules WHERE folder='admin'), ". (int)$admin_grp_id. ", 1, 'Доступ на чтение модуля админменю группе администраторов')");
 	mpqw("UPDATE `{$conf['db']['prefix']}settings` SET `value`='{$_POST['theme']}' WHERE `name`='theme'");
 	setcookie("{$conf['db']['prefix']}sess", ($sess = md5("{$_SERVER['REMOTE_ADDR']}:".microtime())));
-	mpqw("INSERT INTO `{$conf['db']['prefix']}sess` SET uid=(SELECT id FROM {$conf['db']['prefix']}users WHERE name=\"".mpquot($_POST['user'])."\"), last_time=".time().", ip=\"".mpquot($_SERVER['REMOTE_ADDR'])."\", agent=\"".mpquot($_SERVER['HTTP_USER_AGENT'])."\", sess=\"$sess\"");
+	mpqw("INSERT INTO `{$conf['db']['prefix']}users_sess` SET uid=(SELECT id FROM {$conf['db']['prefix']}users WHERE name=\"".mpquot($_POST['user'])."\"), last_time=".time().", ip=\"".mpquot($_SERVER['REMOTE_ADDR'])."\", agent=\"".mpquot($_SERVER['HTTP_USER_AGENT'])."\", sess=\"$sess\"");
 	echo "<p>Утановка завершена. <a href=/>Перейти на сайт</a></div>";
-}
-echo "</body></html>";
+} echo "</body></html>";
