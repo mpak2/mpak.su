@@ -125,6 +125,7 @@ if(!$sess = call_user_func(function($sess) use($conf, $guest){// pre("Добав
 		}elseif(!is_numeric($uid = get($conf, 'user', 'uid') > 1 ? $conf['user']['uid'] : $guest['id'])){ pre("ОШИБКА установки идентификтаора пользователя");
 		}elseif($sess = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users_sess WHERE `ip`='{$_sess['ip']}' AND last_time>=".(time()-86400)." AND `agent`=\"{$_sess['agent']}\" AND ". ($_COOKIE["sess"] ? "sess=\"{$_sess['sess']}\"" : "uid=". $uid)." ORDER BY id DESC", "Список модулей", function($error) use($conf){
 				if(strpos($error, "doesn't exist")){ qw(pre("ALTER TABLE `{$conf['db']['prefix']}sess` RENAME `{$conf['db']['prefix']}users_sess`"));
+				}elseif(strpos($error, "no such table")){ qw(pre("ALTER TABLE `{$conf['db']['prefix']}sess` RENAME TO `{$conf['db']['prefix']}users_sess`"));
 				}else{ pre("Ошибка обработки ошибки", $error); }
 			}), 0)){ return $sess;// pre("ОШИБКА получения сессии");
 				setcookie("sess", $_sess['sess'], 0, "/");
