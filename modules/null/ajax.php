@@ -4,6 +4,7 @@ if(!get($_REQUEST, 'class')){ exit(mpre("Класс не задан"));
 }elseif(!$class = "{$conf['db']['prefix']}{$arg['modpath']}_". ($t = first(explode(" ", $_REQUEST['class'])))){ exit(mpre("Таблица не указана"));
 }elseif($arg['admin_access'] <= 1){ exit(mpre("Недостаточно прав доступа к разделу"));
 }elseif((!$where = array_diff_key($_GET, array_flip(array("class", "m", "null")))) &0){ exit(mpre("Ошибка установки условий"));
+}elseif(!$where += ['uid'=>$conf['user']['uid'], 'sid'=>get($conf, 'user', 'sess', 'id')]){ mpre("ОШИБКА добавления параметров выборки");
 }elseif((!$w = array_diff_key($_REQUEST, array("id"=>false))) &0){ mpre("Ошибка определения массива изменений");
 }elseif(get($_POST, 'id') < 0){// die(mpre("Удаление"));
 	if($arg['admin_access'] < 2){ die("Прав недостаточно для изменений");
@@ -13,7 +14,7 @@ if(!get($_REQUEST, 'class')){ exit(mpre("Класс не задан"));
 	}elseif(!$response = rb($class, "id", $_GET['id'])){ die("Ошибка выборки удаляемого элемента");
 	}elseif(qw($sql)){ die("Запрос к БД вернул ошибку");
 	}else{ exit(json_encode($response)); }
-}elseif(!$fdk = fdk($class, $where, ['time'=>time()] + ($w = ($where + ($_POST ? $w : []))), $w)){ exit(mpre("Ошибка запроса к БД", $class, $where, $w));
+}elseif(!$fdk = fdk($class, $where, ['time'=>time()] + ($w = ($where + ($_POST ? $w : []))), $w)){ exit(!pre("Ошибка запроса к БД", $class, $where, $w));
 }elseif(array_key_exists("sort", $fdk) && ($fdk['sort'] == 0) && (!$fdk = fdk($class, array("id"=>$fdk['id']), null, array("sort"=>$fdk['id'])))){ mpre("Ошибка установки значения сортировки");
 }elseif($_FILES && !call_user_func(function($FILES){
 		foreach($FILES as $f=>$v){

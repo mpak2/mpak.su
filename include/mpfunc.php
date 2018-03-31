@@ -20,27 +20,26 @@ function seo_alias($canonical){// mpre($canonical);
 		}
 }
 
-#Автоподгрузка классов
+# Автоподгрузка классов
 function PHPClassAutoload($CN){
+//	if(!$dirname = __DIR__){ mpre("ОШИБКА установки текущей директории")
+//	mpre(getcwd());
 	foreach(explode("\\",$CN) as $class_name){
 		//For example - include/mail/PHPMailerAutoload.php
-		$file_project = mpopendir("/include/class/$class_name/$class_name.php");
-		$file_single  = mpopendir($file = "/include/class/$class_name.php");
-		$file_mail    = mpopendir("/include/mail/class.".strtolower($class_name).".php");
-		if($file_project){
-			include_once $file_project;
-		}else if($file_single){
-			include_once $file_single;
-		}else if($file_mail ){
-			include_once $file_mail;
-		}else{			
-			if(!in_array($class_name,array('Memcached'))){
-				mpre("Файл класса не найден {$file}");
-			}
+		$file_project = mpopendir("include/class/$class_name/$class_name.php");
+		$file_single  = mpopendir($file = "include/class/$class_name.php");
+		$file_mail    = mpopendir("include/mail/class.".strtolower($class_name).".php");
+		mpre($class_name);
+		if($file_project){ include_once $file_project;
+		}else if($file_single){ include_once $file_single;
+		}elseif($file_mail){ include_once $file_mail;
+		}elseif(in_array($class_name, array('Memcached'))){// mpre("Имя класса в массиве");
+		}else{ mpre("Файл класса не найден {$file}");
 		}
 	}
 }
-//Иницилизация автоподгрузки
+
+# Иницилизация автоподгрузки
 if (version_compare(PHP_VERSION, '5.1.2', '>=')) {
     if (version_compare(PHP_VERSION, '5.3.0', '>=')){
         spl_autoload_register('PHPClassAutoload', true, true);
@@ -969,7 +968,7 @@ function aedit($href, $echo = true, $title = null){ # Установка на п
 	global $arg, $conf;
 	$append = preg_match("#\?#iu",$href) ? "&" : "?";
 	$go_to_save = $append."go_to_save=".urlencode($_SERVER['REQUEST_URI']);
-	$link = "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:999; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}{$go_to_save}\" title=\"". $title. "\" ><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px; width:10px; height:10px;'></a></span></div>";
+	$link = "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:700; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}{$go_to_save}\" title=\"". $title. "\" ><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px; width:10px; height:10px;'></a></span></div>";
 	if(array_search("Администратор", $conf['user']['gid'])){if((bool)$echo) echo $link; else return $link;}	
 }
 
@@ -1208,7 +1207,16 @@ function erb($src, $key = null){
 			return call_user_func_array("get", $_VALUES); # Поле по последнему ключу
 		}
 	}elseif(!$SRC = call_user_func(function($SRC, $_FIELDS, $_SRC = []) use($func_get_args){
-			if((1 == count($_FIELDS)) && ("id" == get($_FIELDS, 0))){ return $SRC;
+//			if((1 == count($_FIELDS)) && ("id" == get($_FIELDS, 0))){ return $SRC;
+			if(call_user_func(function($_FIELDS) use($SRC){
+					if(1 != count($_FIELDS)){// mpre("Количество полей не равно одному");
+					}elseif("id" != get($_FIELDS, 0)){// mpre("Первое значение не равно `id`");
+					}elseif(!$src = first($SRC)){// mpre("ОШИБКА получения первого значения списка");
+					}elseif(!$key = first(array_keys($SRC))){// mpre("ОШИБКА получения ключа первого значения");
+					}elseif(get($src, 'id') != $key){// mpre("Ключи не совпадают перебираем весь массив");
+					}else{ return true;
+					}
+				}, $_FIELDS)){ return $SRC;// mpre("Возвращаем значения без обработки");
 			}elseif(array_search("", $_FIELDS)){ exit(mpre("Пустое значение в списке полей", $_FIELDS/*, debug_backtrace()*/));
 			}else{
 				foreach($SRC as $src){
@@ -1298,16 +1306,17 @@ function mpdbf($tn, $post = null, $and = false){
 			} return $sel;*/
 		}
 	}elseif($insert){
-		if($fields = fields($tn)){
-			if($mpdbf = $insert+array("time"=>time(), "uid"=>(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0))){
-				if($values = array_map(function($val){ return mpquot($val); }, array_intersect_key($mpdbf, $fields))){
-					qw("INSERT INTO `". mpquot($tn). "` (`". implode("`, `", array_keys($values)). "`) VALUES (\"". implode("\", \"", array_values($values)). "\")");
-				}
-			}
-		} // qw($sql = "INSERT INTO `". mpquot($tn). "` SET ". mpdbf($tn, $insert+array("time"=>time(), "uid"=>(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0))));
+		if(!$fields = fields($tn)){ mpre("ОШИБКА получения полей таблицы");
+		}elseif(!$mpdbf = $insert+array("time"=>time(), "uid"=>get($conf, 'user', 'uid'), 'sid'=>get($conf, 'user', 'sess', 'id'))){ mpre("ОШИБКА добавления дефолтных значений");
+		}elseif(!$values = array_map(function($val){ return mpquot($val); }, array_intersect_key($mpdbf, $fields))){ mpre("ОШИБКА составления значений запроса");
+		}else{// pre($conf['user']['sess']);
+			qw("INSERT INTO `". mpquot($tn). "` (`". implode("`, `", array_keys($values)). "`) VALUES (\"". implode("\", \"", array_values($values)). "\")");
+		}// qw($sql = "INSERT INTO `". mpquot($tn). "` SET ". mpdbf($tn, $insert+array("time"=>time(), "uid"=>(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0))));
 		return $sel['id'] = $conf['db']['conn']->lastInsertId();
 	}
-} function fdk(&$tn, $find, $insert = array(), $update = array(), $log = false){
+}
+
+function fdk(&$tn, $find, $insert = array(), $update = array(), $log = false){
 	global $conf;
 	if(is_array($tn)){
 		$func_get_args = array_merge([$tn], array_keys($find), ['id'], array_values($find));
@@ -1432,7 +1441,7 @@ function mpgt($REQUEST_URI, $get = array()){
 	} if(!empty($get['стр']) && $get['стр']) $get['p'] = $get['стр'];
 	return $get;
 }
-function mpwr($tn, $get = null, $prefix = null){
+function mpwr($tn, $get = null, $prefix = null){ mpre("Устаревшая функция. Если вы ее используете удалите из кода. Скоро она перестанет быть доступной");
 	global $conf;
 	if(empty($prefix)) $where = ' WHERE 1=1';
 	$f = mpqn(mpqw("DESC {$tn}"), 'Field');
@@ -1597,7 +1606,7 @@ function hid($tn, $href, $id = false, $fn = "img", $exts = array('image/png'=>'.
 	if(!$data = file_get_contents($href)){ pre("Ошибка загрузки файла", $href);
 	}elseif(!($ext = '.'. preg_replace("/[\W]+.*/", '', preg_replace("/.*?\./", '', $href))) && (array_search(strtolower($ext), $exts) || isset($exts['*']))){ pre("Запрещенное к загрузке расширение", $ext);
 	}elseif(!$el = fk($tn, $w = ($id ? ["id"=>$id] : null), $w = ['id'=>NULL])){ mpre("Ошибка получения идентификатора элемента {$tn}");
-	}elseif(!$f = "{$tn}_{$fn}_". (int)$el['id']. $ext){ mpre("Ошибка формирования имени файла");
+	}elseif(!$f = "{$tn}-{$fn}_". (int)$el['id']. $ext){ mpre("Ошибка формирования имени файла");
 	}elseif((!$ufn = mpopendir('include/images')) && (!$ufn = realpath('include/images'))){ mpre("Директория с изображениями не определена");
 	}elseif(!file_put_contents("$ufn/$f", $data)){ mpre("Ошибка сохранения файла");
 	}elseif(!$el = fk($tn, array("id"=>$el['id']), null, array($fn=>"images/$f"))){ mpre("Ошибка занесения имени файла в таблицу");
@@ -1611,7 +1620,7 @@ function fid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png
 	}elseif((!$ext = get($exts, $file['type'])) && !get($exts, '*')){ mpre("Тип загрузаемого файла не найден среди разрешенных");
 	}elseif(!strlen($ext) && (!$ext = '.'. last(explode('.', $file['name'])))){ mpre("ОШИБКА расчета расширения");
 	}elseif(!$img = fk($tn, $w = ($id ? ["id"=>$id] : []), $w += ['time'=>time(), 'uid'=>$conf['user']['uid']])){ mpre("ОШИБКА выборки записи по идентификатору");
-	}elseif(!$file_name = "{$tn}_{$fn}_{$img['id']}{$ext}"){ mpre("ОШИБКА расчета имени файла");
+	}elseif(!$file_name = "{$tn}-{$fn}_{$img['id']}{$ext}"){ mpre("ОШИБКА расчета имени файла");
 	}elseif(!$ufn = mpopendir("include/{$folder}")){ mpre("ОШИБКА получения пути к загружаемой директории");
 	}elseif(!move_uploaded_file($file['tmp_name'], "$ufn/$file_name")){ mpre("ОШИБКА перемещения файла с временной директории в директорию системы");
 	}elseif(!$img = fk($tn, $w = ['id'=>$img['id']], $w += [$fn=>"{$folder}/{$file_name}"], $w)){ mpre("ОШИБКА обновления имени файла в записи изображения");

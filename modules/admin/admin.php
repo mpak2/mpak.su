@@ -54,9 +54,18 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 			}elseif(!$tab = substr($field, 0, -3)){ mpre("ОШИБКА определения связанной таблицы таблицы");
 			}elseif(!$TAB = explode("_", $_GET['r'])){ mpre("ОШИБКА парсинга полного адреса текущей таблицы");
 			}elseif(!$table = "{$TAB[1]}-$tab"){ mpre("ОШИБКА получения имени связанной таблицы");
-			}elseif($index = rb($table, "name", "[{$post}]")){ $post = $index['id'];
+			}elseif($index = call_user_func(function($post) use($table, $field){ # Получения записи по значению поля
+					if(!$fields = fields($table)){ mpre("ОШИБКА получения списка полей таблицы");
+					}elseif(!get($fields, "name")){// mpre("Поле name в таблице не найдено");
+					}elseif(!$INDEX = rb($table, "name", "id", "[". mpquot($post). "]")){// mpre("Запись в таблице не найдена");
+					}elseif(!is_numeric($count = count($INDEX))){ mpre("ОШИБКА расчета количества элементов");
+					}elseif($count > 1){ die("Элементов `{$field}` несколько `{$post}` ({$count}). Укажите номер.");
+					}elseif(!$index = last($INDEX)){ mpre("ОШИБКА выборки элемента из списка");
+					}else{ return $index; }
+				}, $post)){ $post = $index['id'];
 			}elseif(is_numeric($post)){// mpre("Ключ связанной таблицы");
 			}elseif(!$index = fk($table, $w = ['name'=>$post], $w)){ mpre("ОШИБКА добавления занчения в связанную таблицу");
+			}elseif(!array_key_exists('sort', $index)){ $post = $index['id']; // return $index; mpre("Нет поля сортировки у записи");
 			}else{// mpre($field, $post);
 				$post = $index['id'];
 			}
