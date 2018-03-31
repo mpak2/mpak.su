@@ -170,7 +170,6 @@
 <? endif; ?>
 
 <? if(!array_search("Администратор", $conf['user']['gid'])): mpre("Раздел предназначен только администраторам") ?>
-<? elseif(($themes_index = get($conf, 'themes', 'index')) &&0):// mpre("Хост сайта не найден") ?>
 <? elseif(($canonical = get($conf, 'settings', 'canonical')) &&0): mpre("Канонический адрес не задан") ?>
 <? elseif(!$alias = seo_alias($canonical)): mpre("ОШИБКА получения алиаса категории адреса") ?>
 <? elseif((!$seo_cat = rb("seo-cat", "id", get($canonical, 'cat_id'))) && (!$seo_cat = rb("seo-cat", "alias", (empty($alias) ? false : "[{$alias}]"))) &0): mpre("Категория не найдена") ?>
@@ -182,16 +181,16 @@
 	}, $canonical))): mpre("ОШИБКА расчета адреса страницы") ?>
 <? elseif(!is_array($seo_location = ($uri ? rb("seo-location", "name", "[{$uri}]") : []))): mpre("ОШИБКА нахождения внутреннего адреса `{$index}`") ?>
 <? elseif(!is_array($themes_index = get($conf, 'themes', 'index') ?: [])): mpre("ОШИБКА выборки хоста сайта") ?>
-<? elseif(!is_array($seo_index_themes = (get($themes_index, 'id') ? rb("seo-index_themes", "themes_index", "location_id", $themes_index['id'], $seo_location['id']) : []))): mpre("Адрес мультисайт режима не найден"); ?>
+<? elseif(!is_array($seo_index_themes = ((get($themes_index, 'id') && get($seo_location, 'id')) ? rb("seo-index_themes", "themes_index", "location_id", $themes_index['id'], $seo_location['id']) : []))): mpre("Адрес мультисайт режима не найден"); ?>
 <? elseif(!is_array($seo_index = call_user_func(function($seo_location) use($conf, $themes_index, $seo_index_themes){
 		if(!$themes_index = get($conf, 'themes', 'index')){// mpre("Односайтовый режим");
 			if(!$seo_index = rb('seo-index', 'location_id', get($seo_location, 'id'))){ return []; mpre("ОШИБКА выборки внешнего адреса страницы");
 			}else{ return $seo_index; }
 		}elseif($seo_index = rb('seo-index', 'id', get($seo_index_themes, 'index_id'))){ return $seo_index; mpre("Внешний адрес мультисайт режима не найден");
-		}elseif(!$uri = get($_SERVER, 'REQUEST_URI')){ mpre("ОШИБКА нахождения внешнего адреса");
-		}elseif(!$seo_index = fk("seo-index", $w = ["name"=>$uri], $w)){ mpre("ОШИБКА добавления внешнего адреса");
-		}else{// mpre($uri, $seo_index);
-			return $seo_index;
+//		}elseif(!$uri = get($_SERVER, 'REQUEST_URI')){ mpre("ОШИБКА нахождения внешнего адреса");
+//		}elseif(!$seo_index = fk("seo-index", $w = ["name"=>$uri], $w)){ mpre("ОШИБКА добавления внешнего адреса");
+		}else{ mpre("ОШИБКА выборки адреса");
+//			return $seo_index;
 		}
 	}, $seo_location))): mpre("ОШИБКА нахождения внешнего адреса") ?>
 <? else:// mpre($alias, $seo_cat) ?>
@@ -210,6 +209,8 @@
 								<a href="/seo:admin/r:seo-index_themes?&where[id]=<?=$seo_index_themes['id']?>"><?=$seo_location['name']?></a>
 							<? elseif(!$seo_index): ?>
 								<span><?=$uri?></span>
+							<? elseif(empty($seo_location)): ?>
+								<span><?=$seo_index['name']?></span>
 							<? else: ?>
 								<a href="/seo:admin/r:seo-index?&where[id]=<?=$seo_index['id']?>"><?=$seo_location['name']?></a>
 							<? endif; ?>

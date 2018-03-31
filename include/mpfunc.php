@@ -29,7 +29,6 @@ function PHPClassAutoload($CN){
 		$file_project = mpopendir("include/class/$class_name/$class_name.php");
 		$file_single  = mpopendir($file = "include/class/$class_name.php");
 		$file_mail    = mpopendir("include/mail/class.".strtolower($class_name).".php");
-		mpre($class_name);
 		if($file_project){ include_once $file_project;
 		}else if($file_single){ include_once $file_single;
 		}elseif($file_mail){ include_once $file_mail;
