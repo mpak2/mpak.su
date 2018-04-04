@@ -54,8 +54,12 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 			}elseif(!$tab = substr($field, 0, -3)){ mpre("ОШИБКА определения связанной таблицы таблицы");
 			}elseif(!$TAB = explode("_", $_GET['r'])){ mpre("ОШИБКА парсинга полного адреса текущей таблицы");
 			}elseif(!$table = "{$TAB[1]}-$tab"){ mpre("ОШИБКА получения имени связанной таблицы");
+//			}elseif(true){ die(mpre($table));
 			}elseif($index = call_user_func(function($post) use($table, $field){ # Получения записи по значению поля
-					if(!$fields = fields($table)){ mpre("ОШИБКА получения списка полей таблицы");
+					if(preg_match("#^(\d+)\.(.*)#", $post, $match)){
+						if(!$index = rb($table, "id", "name", $match[1], "[{$match[2]}]")){ mpre("Не уникальная запись не найдена");
+						}else{ return $index; }
+					}elseif(!$fields = fields($table)){ mpre("ОШИБКА получения списка полей таблицы");
 					}elseif(!get($fields, "name")){// mpre("Поле name в таблице не найдено");
 					}elseif(!$INDEX = rb($table, "name", "id", "[". mpquot($post). "]")){// mpre("Запись в таблице не найдена");
 					}elseif(!is_numeric($count = count($INDEX))){ mpre("ОШИБКА расчета количества элементов");

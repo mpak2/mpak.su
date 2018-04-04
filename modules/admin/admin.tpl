@@ -732,11 +732,27 @@
 												<? if((count($SELECT) > 1000) && !mpre("Огромный список ". count($SELECT). " эл. <b>". substr($name, 0, -3). "</b> <a target='blank' href='/settings:admin/r:mp_settings/?&where[modpath]={$arg['modpath']}&where[name]={$arg['modpath']}_tpl_exceptions&need[value]={$name}'>исключить</a>")); ?>
 											<? elseif(!$tab = substr($name, 0, -3)): mpre("ОШИБКА определения имени таблицы списка") ?>
 											<? elseif(!is_array($LIST = rb("{$arg['modpath']}-{$tab}"))): mpre("ОШИБКА выборки списка для поля") ?>
-											<? elseif((!$list_id = (get($tpl, 'edit', $name) ?: get($_GET, 'where', $name))) && !is_numeric($list_id) && !is_string($list_id) && !is_null($list_id)): mpre("ОШИБКА определения номера списка `{$name}`", get($tpl, 'edit'), $name, gettype($list_id)) ?>
-											<? elseif(!is_array($list = rb($LIST, "id", $list_id))): mpre("ОШИБКА выборки связанной таблицы") ?>
-											<? elseif((!$list_value = get($list, 'name')) && !is_numeric($list_value) && !is_string($list_value) && !is_null($list_value)): mpre("ОШИБКА определения занчения списка", gettype($list_value)) ?>
-											<? else:// mpre(htmlspecialchars($list_value)) ?>
-												<input type="text" name="<?=$name?>" value="<?=(array_key_exists('name', $list) ? htmlspecialchars($list_value) : $list_id)?>" list="<?=$name?>_list" style="background-color:#ddd;">
+											<?// elseif((!$list_id = (get($tpl, 'edit', 'id') ?: get($_GET, 'where', $name))) && !is_numeric($list_id) && !is_string($list_id) && !is_null($list_id)): mpre("ОШИБКА определения номера списка `{$name}`", get($tpl, 'edit'), $name, gettype($list_id)) ?>
+											<? elseif(!is_numeric($list_id = call_user_func(function($tpl) use($name){
+													if($list_id = get($tpl, 'edit', $name)){ return $list_id; mpre("Берем из значения редактируемых данных");
+													}elseif($list_id = get($_GET, 'where', $name)){ return $list_id; mpre("Берем из параметра условия");
+													}else{// mpre("Идентификатор записи не установлен");
+														return 0;
+													}
+												}, $tpl))): mpre("ОШИБКА получения идентификатора записи") ?>
+											<? elseif(!is_array($list = ($list_id ? rb($LIST, 'id', $list_id) : []))): mpre("ОШИБКА выборки элемента по идентификатору `{$list_id}`", $name) ?>
+											<? elseif(!is_array($_LIST = rb($LIST, "name", "id", "[". get($list, 'name'). "]"))): mpre("ОШИБКА выборки связанной таблицы") ?>
+											<?// elseif((!$list_value = get($list, 'name')) && !is_numeric($list_value) && !is_string($list_value) && !is_null($list_value)): mpre("ОШИБКА определения занчения списка", gettype($list_value)) ?>
+											<? //elseif(!is_string($list_value = (get($list, 'name') ?: ""))): mpre("ОШИБКА получения значения поля имени", $list) ?>
+											<? elseif(!is_string($list_value = call_user_func(function($_LIST) use($list, $list_id){
+													if(!$list_id){// mpre("Идентификатор не задан");
+													}elseif(1 < count($_LIST)){ return "{$list['id']}.{$list['name']}"; mpre("Не уникальное значение имени", "{$list['id']}.{$list['name']}");
+													}elseif(!$name = get($list, 'name')){ return $list_id; mpre("Имя элемента не задано");
+													}else{ return $name;
+													} return "";
+												}, $_LIST))): mpre("ОШИБКА определения значения поля", $list) ?>
+											<? else:// mpre($list_value) ?>
+												<input type="text" name="<?=$name?>" value="<?=$list_value?>" list="<?=$name?>_list" style="background-color:#ddd;">
 												<datalist id="<?=$name?>_list">
 													<? foreach($LIST as $list): ?>
 														<option value="<?=htmlspecialchars(get($list, 'name'))?>"><?=$list['id']?></option>
