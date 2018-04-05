@@ -11,38 +11,40 @@
 			box-shadow: 0px 14px 16px 0px rgba(50, 50, 50, 0.45);
 		}
 		ul.tabs li:hover ul li {background-color:white; z-index:999;}
-		ul.tabs > li.sub > a:after {content:'↵';};
+		#content .tabs li.subact > a { background-color:#eaeaea;}
+		/*#content .tabs li.subact a { background-color:#dedede; }*/
+		ul.tabs > li.sub > a:after {content:"↵";};
 	</style>
 	<? foreach(get($tpl, 'menu') ?: array() as $k=>$ar): ?>
-		<li class="<?=($r = $tpl['tables'][$k])?> <?=($_GET['r'] == $r ? "act" : "")?> <?=($ar ? "sub" : "")?>">
-			<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$conf['db']['prefix']?><?=($s = substr($r, strlen($conf['db']['prefix'])))?>">
-				<? if(array_key_exists($s, $conf['settings']) && ($n = $conf['settings'][$s])): ?>
-					<?=$n?>
-				<? else: ?>
-					<? if($i = substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}"))): ?>
-						<?=($i == "_index" ? $conf['modules'][$arg['modpath']]['name'] : $i)?>
-					<? else: ?>_<? endif; ?>
-				<? endif; ?>
-			</a>
-			<? if(!empty($ar)): ?>
+		<? if(!$r = $tpl['tables'][$k]): mpre("ОШИБКА получения полного имени таблицы") ?>
+		<? elseif(!$tab = substr($r, strlen($conf['db']['prefix']))): mpre("ОШИБКА расчета имени таблицы") ?>
+		<? elseif(!is_string($tb = (substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}")) ?: ""))): mpre("ОШИБКА получения короткого имени таблицы `{$r}`", gettype($tb)) ?>
+		<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$conf['db']['prefix']}{$tab}"): mpre("ОШИБКА формирования адреса перехода") ?>
+		<? elseif(!$name = (get($conf, 'settings', $tab) ?: $tb)): mpre("ОШИБКА формирования имени вкладки") ?>
+		<? elseif(!is_array($tables = array_intersect_key($tpl['tables'], array_flip($ar)))): mpre("ОШИБКА выборки списка нижестоящих таблиц") ?>
+		<? elseif(!is_string($act = (($_GET['r'] == $r) ? "act" : ""))): mpre("ОШИБКА определения класса активности вкладки") ?>
+		<? elseif(!is_string($subact = ((array_search(get($_GET, 'r'), $tables)) ? "subact" : ""))): mpre("ОШИБКА формирования класса активности вложенных таблиц") ?>
+		<? elseif(!is_string($sub = ($tables ? "sub" : ""))): mpre("ОШИБКА определения класса вложенных таблиц") ?>
+		<? else:// mpre($act) ?>
+			<li class="<?=$r?> <?=$act?> <?=$subact?> <?=$sub?>">
+				<a href="<?=$href?>"><?=$name?></a>
 				<ul>
 					<? foreach($ar as $n=>$v): ?>
-						<li class="<?=($r = $tpl['tables'][$v])?> <?=($_GET['r'] == $r ? "act" : "")?>" style="display:block; min-width:120px;">
-							<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$conf['db']['prefix']?><?=($s = substr($r, strlen($conf['db']['prefix'])))?>">
-								<? if($n = get($conf, 'settings', $s)): ?>
-									<?=$n?>
-								<? else: ?>
-									<? if($i = substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}"))): ?>
-										<?=($i == "_index" ? $conf['modules'][$arg['modpath']]['name'] : $i)?>
-									<? else: ?>_<? endif; ?>
-								<? endif; ?>
-							</a>
-						</li>
-						
+						<? if(!$r = $tpl['tables'][$v]): mpre("ОШИБКА получения полного имени вложенной таблицы") ?>
+						<? elseif(!$tab = substr($r, strlen($conf['db']['prefix']))): mpre("ОШИБКА формирования имени таблицы") ?>
+						<? elseif(!is_string($tb = (substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}")) ?: ""))): mpre("ОШИБКА получения короткого имени таблицы `{$r}`", gettype($tb)) ?>
+						<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$conf['db']['prefix']}{$tab}"): mpre("ОШИБКА формирования адреса перехода") ?>
+						<? elseif(!$name = (get($conf, 'settings', $tab) ?: substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}")))): mpre("ОШИБКА формирования имени вкладки") ?>
+						<? elseif(!is_string($subact = (($_GET['r'] == $r) ? "subact" : ""))): mpre("ОШИБКА определения класса активности вкладки") ?>
+						<? else: ?>
+							<li class="<?=$r?> <?=$subact?>" style="display:block; min-width:120px;">
+								<a href="<?=$href?>"><?=$name?></a>
+							</li>
+						<? endif; ?>
 					<? endforeach; ?>
 				</ul>
-			<? endif; ?>
-		</li>
+			</li>
+		<? endif; ?>
 	<? endforeach; ?>
 </ul>
 <? if(array_search($_GET['r'], $tpl['tables']) !== false): ?>
