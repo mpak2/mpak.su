@@ -86,8 +86,7 @@ if(!$conf = call_user_func(function($conf){
 }else{
 }
 
-if(!$guest = ['id'=>0, "uname"=>"гость", "pass"=>"nopass", "reg_time"=>0, "last_time"=>time()]){ mpre("Ошибка создания пользователя");
-}elseif(!$conf['db']['conn'] = conn()){ mpre("ОШИБКА подключения к базе данных");
+if(!$conf['db']['conn'] = conn()){ mpre("ОШИБКА подключения к базе данных");
 }elseif((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !tables()){
   exit(inc('include/install.php'));
 } $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']);
@@ -120,23 +119,7 @@ if(!$guest = ['id'=>0, "uname"=>"гость", "pass"=>"nopass", "reg_time"=>0, "
 
 $conf['settings'] += array_column(rb("{$conf['db']['prefix']}settings"), "value", "name");
 
-if(!$sess = call_user_func(function($sess) use($conf, $guest){// pre("Добавляем сессию");
-		if(!$_sess = array('id'=>0, 'uid'=>$guest['id'], "refer"=>0, 'last_time'=>time(), 'count'=>0, 'count_time'=>0, 'cnull'=>0, 'sess'=>($_COOKIE["sess"] ?: md5("{$_SERVER['REMOTE_ADDR']}:".microtime())), 'ref'=>mpquot(mpidn(urldecode($_SERVER['HTTP_REFERER']))), 'ip'=>mpquot($_SERVER['REMOTE_ADDR']), 'agent'=>mpquot($_SERVER['HTTP_USER_AGENT']), 'url'=>mpquot(urldecode($_SERVER['REQUEST_URI'])))){ pre("Ошибка создания сессии");
-		}elseif(!is_numeric($uid = get($conf, 'user', 'uid') > 1 ? $conf['user']['uid'] : $guest['id'])){ pre("ОШИБКА установки идентификтаора пользователя");
-		}elseif($sess = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users_sess WHERE `ip`='{$_sess['ip']}' AND last_time>=".(time()-86400)." AND `agent`=\"{$_sess['agent']}\" AND ". ($_COOKIE["sess"] ? "sess=\"{$_sess['sess']}\"" : "uid=". $uid)." ORDER BY id DESC", "Список модулей", function($error) use($conf){
-				if(strpos($error, "doesn't exist")){ qw(pre("ALTER TABLE `{$conf['db']['prefix']}sess` RENAME `{$conf['db']['prefix']}users_sess`"));
-				}elseif(strpos($error, "no such table")){ qw(pre("ALTER TABLE `{$conf['db']['prefix']}sess` RENAME TO `{$conf['db']['prefix']}users_sess`"));
-				}else{ pre("Ошибка обработки ошибки", $error); }
-			}), 0)){ return $sess;// pre("ОШИБКА получения сессии");
-				setcookie("sess", $_sess['sess'], 0, "/");
-				return $sess;
-    }elseif(qw($sql = "INSERT INTO {$conf['db']['prefix']}users_sess (`". implode("`, `", array_keys(array_diff_key($_sess, array_flip(['id'])))). "`) VALUES ('". implode("', '", array_values(array_diff_key($_sess, array_flip(['id'])))). "')")){ pre("ОШИБКА добавления сессии в базу");
-    }elseif(!$sess['id'] = $conf['db']['conn']->lastInsertId()){ pre("ОШИБКА определения идентификатора сессии", $sql);
-    }elseif(!$sess = rb("users-sess", "id", $sess['id'])){ pre("ОШИБКА выборки установленной сессии");
-		}else{ setcookie("sess", $sess['sess'], 0, "/");
-			return $sess;
-		}
-  })){ pre("Ошибка создания сессии", $sess);
+if(!$sess = users_sess()){// pre("Добавляем сессию");
 }elseif(!is_array($conf['user'] = rb('users-', 'id', $sess['uid']))){ pre("ОШИБКА выборки пользователя");
 }elseif(!$conf['user']['sess'] = $sess){ pre("ОШИБКА сохранения сессии в системных переменных");
 //}elseif(true){ pre($conf['user']);
@@ -164,7 +147,6 @@ if(!$sess = call_user_func(function($sess) use($conf, $guest){// pre("Добав
 }
 
 if($sess['uid'] <= 0){ mpre("Посетитель является гостем");
-//  $conf['user'] = $guest += $conf['user']['sess'];
 }elseif(!$conf['user'] = ql($sql = "SELECT *, id AS uid, name AS uname FROM {$conf['db']['prefix']}users WHERE id=". (int)$sess['uid'], 0)){ mpre("Информация о пользователе не найдена");
 }else{// mpre("Информация о пользователе", $conf['user']);
   if(($conf['settings']['users_uname'] = $conf['user']['uname']) == $conf['settings']['default_usr']){
