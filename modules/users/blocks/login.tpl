@@ -56,7 +56,7 @@ if ($conf['user']['uname'] != $conf['settings']['default_usr']){
 	</div>
 <? endif; ?>
 
-<? if($conf['user']['uname'] != $conf['settings']['default_usr']): ?>
+<? if(0 < $conf['user']['uid']): ?>
 	<div class="user_links">
 		<a href='/?logoff'>Выход</a> <a href="<?=(array_key_exists($n = "{$arg['modpath']}_edit_link", $conf['settings']) && $conf['settings'][$n] ? $conf['settings'][$n] : "/{$arg['modname']}")?>">Кабинет</a>
 		<? if(array_search($conf['settings']['admin_grp'], $conf['user']['gid'])): ?>
