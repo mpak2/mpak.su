@@ -87,35 +87,9 @@ if(!$conf = call_user_func(function($conf){
 }
 
 if(!$conf['db']['conn'] = conn()){ mpre("ОШИБКА подключения к базе данных");
-}elseif((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !tables()){
-  exit(inc('include/install.php'));
+}elseif(($conf['db']['type'] == 'sqlite') && !is_writable($conf['db']['name'])){ die(!pre("ОШИБКА Файл БД `{$conf['db']['name']}` не доступен для записи", "ERROR DB file `{$conf['db']['name']} ' error is not writable"));
+}elseif((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !tables()){ exit(inc('include/install.php'));
 } $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']);
-
-/*if(!$sess = array('id'=>0, 'uid'=>$guest['id'], "refer"=>0, 'last_time'=>time(), 'count'=>0, 'count_time'=>0, 'cnull'=>0, 'sess'=>($_COOKIE["sess"] ?: md5("{$_SERVER['REMOTE_ADDR']}:".microtime())), 'ref'=>mpquot(mpidn(urldecode($_SERVER['HTTP_REFERER']))), 'ip'=>mpquot($_SERVER['REMOTE_ADDR']), 'agent'=>mpquot($_SERVER['HTTP_USER_AGENT']), 'url'=>mpquot(urldecode($_SERVER['REQUEST_URI'])))){ pre("Ошибка создания сессии");
-}elseif(!$_POST && !get($_COOKIE, "sess")){// pre("Сессия выключена");
-}elseif(!$sess = call_user_func(function($sess) use($conf, $guest){// pre("Добавляем сессию");
-		if(!is_numeric($uid = get($conf, 'user', 'uid') > 1 ? $conf['user']['uid'] : $guest['id'])){ pre("ОШИБКА установки идентификтаора пользователя");
-		}elseif($_sess = mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}users_sess WHERE `ip`='{$sess['ip']}' AND last_time>=".(time()-86400)." AND `agent`=\"{$sess['agent']}\" AND ". ($_COOKIE["sess"] ? "sess=\"{$sess['sess']}\"" : "uid=". $uid)." ORDER BY id DESC", "Список модулей", function($error) use($conf){
-				if(strpos($error, "doesn't exist")){ qw(pre("ALTER TABLE `{$conf['db']['prefix']}sess` RENAME `{$conf['db']['prefix']}users_sess`"));
-				}else{ pre("Ошибка обработки ошибки", $error); }
-			}))){// pre("ОШИБКА получения сессии");
-				setcookie("sess", $_sess['sess'], 0, "/");
-				return $_sess; pre("Сессия уже установлена");
-    }elseif(qw($sql = "INSERT INTO {$conf['db']['prefix']}users_sess (`". implode("`, `", array_keys(array_diff_key($sess, array_flip(['id'])))). "`) VALUES ('". implode("', '", array_values(array_diff_key($sess, array_flip(['id'])))). "')")){ pre("ОШИБКА добавления сессии в базу");
-    }elseif(!$sess['id'] = $conf['db']['conn']->lastInsertId()){ pre("ОШИБКА определения идентификатора сессии");
-    }elseif(!$sess = rb("users-sess", "id", $sess['id'])){ pre("ОШИБКА выборки установленной сессии");
-		}else{ setcookie("sess", $sess['sess'], 0, "/");
-			return $sess;
-		}
-  }, $sess)){ pre("Ошибка создания сессии", $sess);
-}elseif(true){ pre($sess);
-//}elseif(qw("DELETE FROM mp_users_sess")){
-//}elseif($USERS_SESS = rb('users-sess')){ pre($USERS_SESS);
-}elseif(!$conf['user']['sess'] = $sess){ mpre("ОШИБКА сохранения сессии");
-}elseif(array_key_exists('null', $_REQUEST)){ mpre("Отключено обновление сессии для ресурсов");
-}else{
-  qw("UPDATE {$conf['db']['prefix']}users_sess SET count_time = count_time+".time()."-last_time, last_time=".time().", ".(isset($_GET['null']) ? 'cnull=cnull' : 'count=count')."+1, sess=\"". mpquot($sess['sess']). "\" WHERE id=". (int)$sess['id']);
-}*/
 
 $conf['settings'] += array_column(rb("{$conf['db']['prefix']}settings"), "value", "name");
 
