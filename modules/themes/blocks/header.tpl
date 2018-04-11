@@ -408,6 +408,7 @@
 				
  				params.width = div.width();
 				params.fullScreen = true;
+//				params.combine = {src: 'линк на видео', startTime: '11:00', endTime: '41:40'};
 				
 				$(div).show().find('video').videoplayer(params, false);
 				var bg = $("<div>").addClass("bg").css({"position":"fixed", "left":0, "top":0, "background-color":"rgba(0, 0, 0, .7)", "width":"100%", "height":"100%", "z-index":999}).appendTo("body").find(".video_outer");
