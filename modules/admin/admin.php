@@ -188,7 +188,8 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		} echo(htmlspecialchars(json_encode($el)));$_RETURN = 556;
 	} /*echo("Аварийный выход");*/$_RETURN = 556;
 }elseif(!$tpl['href'] = get($_GET, 'go_to_save') ?: call_user_func(function() use($arg){
-		if(!$base = "/{$arg["modpath"]}:admin/r:{$_GET["r"]}"){ mpre("Основной адрес страницы");
+		if(!$r = get($_GET, 'r')){ return "/"; mpre("Имя таблицы не установлено");
+		}elseif(!$base = "/{$arg["modpath"]}:admin/r:{$_GET["r"]}"){ mpre("Основной адрес страницы");
 		}elseif(!is_string($pager = (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""))){ mpre("Учитываем страницу на которой находимся в пагинаторе");
 		}elseif(!is_array($where = call_user_func(function(){
 				if(!$where = get($_GET, 'where')){ return [];
@@ -221,9 +222,14 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		}else{ $tpl['menu'][$key] = array(); }
 	} if(empty($_GET['r'])){
 		$modules_index = fk("modules-index", array("folder"=>$arg['modpath']), null, array("priority"=>time()));
-		if($tpl['tables'] && ($table = array_shift($tables = $tpl['tables']))){
+
+		if(!$table = "{$arg['modpath']}-index"){ mpre("ОШИБКА формирования имени дефолтновй таблицы");
+		}elseif(!$tpl['tables']){ mpre("Таблиц в разделе не найдено переходим на основную", $table);
 			header("Location:/{$arg['modpath']}:admin/r:{$table}");$_RETURN = 556;
-		}elseif($table = "{$conf['db']['prefix']}{$arg['modpath']}_index"){
+		}elseif(!$table = array_shift($tables = $tpl['tables'])){ mpre("ОШИБКА получения первой таблицы в списке таблиц раздела");
+		}elseif(!is_string($tb = (substr($tables, strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))){ mpre("ОШИБКА получения короткой записи таблицы `{$table}`");
+		}elseif(!$table = "{$arg['modpath']}-{$tb}"){ mpre("ОШИБКА формирования имени таблицы");
+		}else{ mpre("Переход на страницу таблицы", $table);
 			header("Location:/{$arg['modpath']}:admin/r:{$table}");$_RETURN = 556;
 		}
 	}elseif(array_search($_GET['r'], $tpl['tables']) !== false){
