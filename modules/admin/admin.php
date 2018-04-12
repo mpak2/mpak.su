@@ -226,12 +226,12 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 
 		if(!$table = "{$arg['modpath']}-index"){ mpre("ОШИБКА формирования имени дефолтновй таблицы");
 		}elseif(!$tpl['tables']){ mpre("Таблиц в разделе не найдено переходим на основную", $table);
-			header("Location:/{$arg['modpath']}:admin/r:{$table}");$_RETURN = 556;
+//			header("Location:/{$arg['modpath']}:admin/r:{$table}");$_RETURN = 556;
 		}elseif(!$table = first($tables = $tpl['tables'])){ mpre("ОШИБКА получения первой таблицы в списке таблиц раздела");
 		}elseif(!is_string($tb = (substr($table, strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))){ mpre("ОШИБКА получения короткой записи таблицы `{$table}`");
 		}elseif(!$_table = "{$arg['modpath']}-{$tb}"){ mpre("ОШИБКА формирования имени таблицы");
 		}else{ mpre("Переход на страницу таблицы", $table, $_table);
-			header("Location:/{$arg['modpath']}:admin/r:{$table}");$_RETURN = 556;
+			header("Location:/{$arg['modpath']}:admin/r:{$_table}");$_RETURN = 556;
 		}
 	}elseif(array_search($_GET['r'], $tpl['tables']) !== false){
 		$tpl['fields'] = fields($_GET['r']);
