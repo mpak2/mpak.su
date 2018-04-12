@@ -411,14 +411,14 @@
 //				params.combine = {src: 'линк на видео', startTime: '11:00', endTime: '41:40'};
 				
 				$(div).show().find('video').videoplayer(params, false);
-				var bg = $("<div>").addClass("bg").css({"position":"fixed", "left":0, "top":0, "background-color":"rgba(0, 0, 0, .7)", "width":"100%", "height":"100%", "z-index":999}).appendTo("body").find(".video_outer");
+//				var bg = $("<div>").addClass("bg").css({"position":"fixed", "left":0, "top":0, "background-color":"rgba(0, 0, 0, .7)", "width":"100%", "height":"100%", "z-index":999}).appendTo("body").find(".video_outer");
 			}).on("click", "[video]", function(e){
 				if(src = $(e.currentTarget).attr("video").replace("content/", "//erlyvideo.v6.spb.ru/BATTLE/slalomv1/")){
 					var startTime = $(e.currentTarget).attr("startTime");
 					var endTime = $(e.currentTarget).attr("endTime");
 					var params = ((startTime && endTime) ? {startTime:startTime, endTime:endTime} : {});
 					$(e.delegateTarget).trigger("video", [src, params]);
-				}else{ alert("Видео еще не добавлено"); }
+				}else{ alert("Видео не доступно"); /* Видео еще не добавлено */ }
 			}).on("dblclick", "[dblvideo]", function(e){
 				if(src = $(e.currentTarget).attr("dblvideo").replace("content/", "//erlyvideo.v6.spb.ru/BATTLE/slalomv1/")){
 					var startTime = $(e.currentTarget).attr("startTime");
@@ -426,7 +426,7 @@
 					var params = ((startTime && endTime) ? {startTime:startTime, endTime:endTime} : {});
 //					console.log("startTime:", startTime, "endTime:", endTime, "params:", params);
 					$(e.delegateTarget).trigger("video", [src, params]);
-				}else{ alert("Видео еще не добавлено"); }
+				}else{ alert("Видео не доступно"); /* Видео еще не добавлено */ }
 			}).on("click", "a[load]", function(e){// alert("load");
 				if(!(load = $(e.currentTarget).attr("load"))){ console.log("ОШИБКА элемент загрузки не установлен");
 				}else if(!(href = $(e.currentTarget).attr("_href"))){ console.log("ОШИБКА адрес страницы загрузки не определен");
