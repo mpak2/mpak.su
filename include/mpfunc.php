@@ -10,7 +10,7 @@ function users_sess($sess = null){
 	}elseif(!$_sess = array('id'=>0, 'uid'=>$guest['id'], "refer"=>0, 'last_time'=>time(), 'count'=>0, 'count_time'=>0, 'cnull'=>0, 'sess'=>$hash, 'ref'=>$ref, 'ip'=>mpquot($_SERVER['REMOTE_ADDR']), 'agent'=>mpquot($_SERVER['HTTP_USER_AGENT']), 'url'=>$url)){ pre("Ошибка создания пустой сессии");
 	}elseif(!is_numeric($uid = get($conf, 'user', 'uid') > 1 ? $conf['user']['uid'] : $guest['id'])){ pre("ОШИБКА установки идентификтаора пользователя");
 	}elseif($sess = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users_sess WHERE `ip`='{$_sess['ip']}' AND last_time>=".(time()-86400)." AND `agent`=\"{$_sess['agent']}\" AND ". ($_COOKIE["sess"] ? "sess=\"{$_sess['sess']}\"" : "uid=". $uid)." ORDER BY id DESC"), 0)){ setcookie("sess", $_sess['sess'], 0, "/"); return $sess;// pre("ОШИБКА получения сессии");
-	}elseif(qw($sql = "INSERT INTO {$conf['db']['prefix']}users_sess (`". implode("`, `", array_keys(array_diff_key($_sess, array_flip(['id'])))). "`) VALUES ('". implode("', '", array_values(array_diff_key($_sess, array_flip(['id'])))). "')")){ pre("ОШИБКА добавления сессии в базу");
+	}elseif(!qw($sql = "INSERT INTO {$conf['db']['prefix']}users_sess (`". implode("`, `", array_keys(array_diff_key($_sess, array_flip(['id'])))). "`) VALUES ('". implode("', '", array_values(array_diff_key($_sess, array_flip(['id'])))). "')")){ pre("ОШИБКА добавления сессии в базу");
 	}elseif(!$sess['id'] = $conf['db']['conn']->lastInsertId()){ pre("ОШИБКА определения идентификатора сессии", $sql);
 	}elseif(!$sess = rb("users-sess", "id", $sess['id'])){ pre("ОШИБКА выборки установленной сессии");
 	}else{ setcookie("sess", $sess['sess'], 0, "/");
@@ -1160,11 +1160,8 @@ function erb($src, $key = null){
 	}elseif(!is_numeric($min = min(count($FIELDS), count($VALUES)))){ mpre("Ошибка получения минимального значения");
 	}elseif(!is_array($_FIELDS = array_slice($FIELDS, 0, $min))){ mpre("Ошибка урезание полей до количетсва значений");
 	}elseif(!is_array($_VALUES = array_slice($VALUES, 0, $min))){ mpre("Ошибка выборки значений");
-//	}elseif(mpre($src) &&0){
 	}elseif(!is_array($SRC = (is_array($src) ? array_filter(array_map(function($src) use($min, $conf, $_FIELDS, $_VALUES){
 			if(!$_VALUES){ return $src;
-//			}elseif(!$_VALUES_ = array_combine($_FIELDS, $_VALUES)){ mpre("Ошибка сбора массива по ключам и значениям");
-//			}elseif(!array_diff_assoc($_VALUES_, $src)){ return $src;
 			}else{// mpre($_VALUES, $src, array_diff_assoc($_VALUES_, $src));
 				foreach($_VALUES as $key=>$value){ # Фильтрация массива по условиям
 					if(!$field = get($_FIELDS, $key)){ return null;

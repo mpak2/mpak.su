@@ -748,7 +748,8 @@
 											<? //elseif(!is_string($list_value = (get($list, 'name') ?: ""))): mpre("ОШИБКА получения значения поля имени", $list) ?>
 											<? elseif(!is_string($list_value = call_user_func(function($_LIST) use($list, $list_id){
 													if(!$list_id){// mpre("Идентификатор не задан");
-													}elseif(1 < count($_LIST)){ return "{$list['id']}.{$list['name']}"; mpre("Не уникальное значение имени", "{$list['id']}.{$list['name']}");
+													}elseif(!is_string($name = (($n = get($list, 'name')) ? ".{$n}" : ""))){ mpre("ОШИБКА формирования имени элемента");
+													}elseif(1 < count($_LIST)){ return "{$list['id']}{$name}"; mpre("Не уникальное значение имени", "{$list['id']}.{$list['name']}");
 													}elseif(!$name = get($list, 'name')){ return $list_id; mpre("Имя элемента не задано");
 													}else{ return $name;
 													} return "";
