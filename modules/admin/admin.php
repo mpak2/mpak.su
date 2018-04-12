@@ -12,7 +12,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 				}elseif(!$admin_history = fk("admin-history", null, array("history_type_id"=>$admin_history_type['id'], "name"=>$_GET['id'], "history_tables_id"=>$admin_history_tables['id'], "data"=>json_encode($data)))){ die(mpre("Ошибка сохранения истории действий в админстранице"));
 				}else{ return $data; }
 			})){ mpre("Лог файл отключен");
-		}elseif(qw($sql = "DELETE FROM {$_GET['r']} WHERE id=". (int)abs($_GET['id']))){ mpre("Ошибка удаления записи `{$sql}`");$_RETURN = 556;
+		}elseif(!qw($sql = "DELETE FROM {$_GET['r']} WHERE id=". (int)abs($_GET['id']))){ mpre("Ошибка удаления записи `{$sql}`");$_RETURN = 556;
 		}else{ echo(json_encode([]));$_RETURN = 556; }
 	}elseif(get($_POST, "inc") && ($inc = rb($_GET['r'], "id", $_POST['inc']))){ # Изменение сортировки вверх
 		if(!$list = qn($sql = "SELECT * FROM {$_GET['r']} WHERE ". (mpdbf($_GET['r'], get($_GET, 'where'), true) ?: 1). " ORDER BY ". (get($_GET, 'order') ?: $order). "")){ mpre("Элементы в списке не найдены");

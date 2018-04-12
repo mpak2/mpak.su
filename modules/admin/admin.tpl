@@ -18,25 +18,25 @@
 	<? foreach(get($tpl, 'menu') ?: array() as $k=>$ar): ?>
 		<? if(!$r = $tpl['tables'][$k]): mpre("ОШИБКА получения полного имени таблицы") ?>
 		<? elseif(!$tab = substr($r, strlen($conf['db']['prefix']))): mpre("ОШИБКА расчета имени таблицы") ?>
-		<? elseif(!is_string($tb = (substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}")) ?: ""))): mpre("ОШИБКА получения короткого имени таблицы `{$r}`", gettype($tb)) ?>
-		<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$conf['db']['prefix']}{$tab}"): mpre("ОШИБКА формирования адреса перехода") ?>
+		<? elseif(!is_string($tb = (substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))): mpre("ОШИБКА получения короткого имени таблицы `{$r}`", gettype($tb)) ?>
+		<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$arg['modpath']}-{$tb}"): mpre("ОШИБКА формирования адреса перехода") ?>
 		<? elseif(!$name = (get($conf, 'settings', $tab) ?: $tb)): mpre("ОШИБКА формирования имени вкладки") ?>
 		<? elseif(!is_array($tables = array_intersect_key($tpl['tables'], array_flip($ar)))): mpre("ОШИБКА выборки списка нижестоящих таблиц") ?>
 		<? elseif(!is_string($act = (($_GET['r'] == $r) ? "act" : ""))): mpre("ОШИБКА определения класса активности вкладки") ?>
 		<? elseif(!is_string($subact = ((array_search(get($_GET, 'r'), $tables)) ? "subact" : ""))): mpre("ОШИБКА формирования класса активности вложенных таблиц") ?>
 		<? elseif(!is_string($sub = ($tables ? "sub" : ""))): mpre("ОШИБКА определения класса вложенных таблиц") ?>
-		<? else:// mpre($act) ?>
+		<? else:// mpre($tab) ?>
 			<li class="<?=$r?> <?=$act?> <?=$subact?> <?=$sub?>">
 				<a href="<?=$href?>"><?=$name?></a>
 				<ul>
 					<? foreach($ar as $n=>$v): ?>
 						<? if(!$r = $tpl['tables'][$v]): mpre("ОШИБКА получения полного имени вложенной таблицы") ?>
 						<? elseif(!$tab = substr($r, strlen($conf['db']['prefix']))): mpre("ОШИБКА формирования имени таблицы") ?>
-						<? elseif(!is_string($tb = (substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}")) ?: ""))): mpre("ОШИБКА получения короткого имени таблицы `{$r}`", gettype($tb)) ?>
-						<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$conf['db']['prefix']}{$tab}"): mpre("ОШИБКА формирования адреса перехода") ?>
-						<? elseif(!$name = (get($conf, 'settings', $tab) ?: substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}")))): mpre("ОШИБКА формирования имени вкладки") ?>
+						<? elseif(!is_string($tb = (substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))): mpre("ОШИБКА получения короткого имени таблицы `{$r}`", gettype($tb)) ?>
+						<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$arg['modpath']}-{$tb}"): mpre("ОШИБКА формирования адреса перехода") ?>
+						<? elseif(!$name = (get($conf, 'settings', $tab) ?: $tb)): mpre("ОШИБКА формирования имени вкладки") ?>
 						<? elseif(!is_string($subact = (($_GET['r'] == $r) ? "subact" : ""))): mpre("ОШИБКА определения класса активности вкладки") ?>
-						<? else: ?>
+						<? else:// mpre($tb) ?>
 							<li class="<?=$r?> <?=$subact?>" style="display:block; min-width:120px;">
 								<a href="<?=$href?>"><?=$name?></a>
 							</li>
