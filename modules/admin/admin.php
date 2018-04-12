@@ -205,14 +205,14 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		}
 	})){ mpre("ОШИБКА составления ссылки");
 }else{ # Выборка таблицы
-	if(strpos($_GET['r'], "-") && ($r = explode("-", $_GET['r']))){
-		$_GET['r'] = $conf['db']['prefix']. first($r). "_". last($r);
+	if(strpos($_GET['r'], "-") && ($ex = explode("-", $_GET['r']))){
+		$_GET['r'] = $conf['db']['prefix']. first($ex). (($l = last($ex)) ? "_{$l}" : "");
 	} if($conf['db']['type'] == "sqlite"){
 		$tpl['tables'] = array_column(qn("SELECT * FROM sqlite_master WHERE type='table' AND name LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\"", "name"), "name");
 		sort($tpl['tables']);
 	}else{
 		$tpl['tables'] = array_column(ql("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\""), "Tables_in_{$conf['db']['name']}");
-	}
+	}// mpre($_GET['r']);
 	sort($tpl['tables']);
 	foreach($tpl['tables'] as $key=>$tables){
 		$short = implode("_", array_slice(explode("_", $tables), 0, -1));
