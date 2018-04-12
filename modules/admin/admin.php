@@ -216,17 +216,20 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		$tpl['tables'] = array_column(ql("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\""), "Tables_in_{$conf['db']['name']}");
 	}// mpre($_GET['r']);
 	sort($tpl['tables']);
+
 	foreach($tpl['tables'] as $key=>$tables){
 		$short = implode("_", array_slice(explode("_", $tables), 0, -1));
 		if(($top = array_search($short, $tpl['tables'])) !== false){
 			$tpl['menu'][$top][] = $key;
 		}else{ $tpl['menu'][$key] = array(); }
-	} if(empty($_GET['r'])){
+	}
+	
+	if(empty($_GET['r'])){
 		$modules_index = fk("modules-index", array("folder"=>$arg['modpath']), null, array("priority"=>time()));
 
 		if(!$table = "{$arg['modpath']}-index"){ mpre("ОШИБКА формирования имени дефолтновй таблицы");
 		}elseif(!$tpl['tables']){ mpre("Таблиц в разделе не найдено переходим на основную", $table);
-//			header("Location:/{$arg['modpath']}:admin/r:{$table}");$_RETURN = 556;
+			header("Location:/{$arg['modpath']}:admin/r:{$table}");$_RETURN = 556;
 		}elseif(!$table = first($tables = $tpl['tables'])){ mpre("ОШИБКА получения первой таблицы в списке таблиц раздела");
 		}elseif(!is_string($tb = (substr($table, strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))){ mpre("ОШИБКА получения короткой записи таблицы `{$table}`");
 		}elseif(!$_table = "{$arg['modpath']}-{$tb}"){ mpre("ОШИБКА формирования имени таблицы");
