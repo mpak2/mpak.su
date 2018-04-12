@@ -206,7 +206,8 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		}
 	})){ mpre("ОШИБКА составления ссылки");
 }else{ # Выборка таблицы
-	if(strpos($_GET['r'], "-") && ($ex = explode("-", $_GET['r']))){
+	if(!get($_GET, 'r')){ mpre("Имя таблицы не задано");
+	}elseif(strpos($_GET['r'], "-") && ($ex = explode("-", $_GET['r']))){
 		$_GET['r'] = $conf['db']['prefix']. first($ex). (($l = last($ex)) ? "_{$l}" : "");
 	} if($conf['db']['type'] == "sqlite"){
 		$tpl['tables'] = array_column(qn("SELECT * FROM sqlite_master WHERE type='table' AND name LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\"", "name"), "name");
@@ -226,10 +227,10 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		if(!$table = "{$arg['modpath']}-index"){ mpre("ОШИБКА формирования имени дефолтновй таблицы");
 		}elseif(!$tpl['tables']){ mpre("Таблиц в разделе не найдено переходим на основную", $table);
 			header("Location:/{$arg['modpath']}:admin/r:{$table}");$_RETURN = 556;
-		}elseif(!$table = array_shift($tables = $tpl['tables'])){ mpre("ОШИБКА получения первой таблицы в списке таблиц раздела");
-		}elseif(!is_string($tb = (substr($tables, strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))){ mpre("ОШИБКА получения короткой записи таблицы `{$table}`");
-		}elseif(!$table = "{$arg['modpath']}-{$tb}"){ mpre("ОШИБКА формирования имени таблицы");
-		}else{ mpre("Переход на страницу таблицы", $table);
+		}elseif(!$table = first($tables = $tpl['tables'])){ mpre("ОШИБКА получения первой таблицы в списке таблиц раздела");
+		}elseif(!is_string($tb = (substr($table, strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))){ mpre("ОШИБКА получения короткой записи таблицы `{$table}`");
+		}elseif(!$_table = "{$arg['modpath']}-{$tb}"){ mpre("ОШИБКА формирования имени таблицы");
+		}else{ mpre("Переход на страницу таблицы", $table, $_table);
 			header("Location:/{$arg['modpath']}:admin/r:{$table}");$_RETURN = 556;
 		}
 	}elseif(array_search($_GET['r'], $tpl['tables']) !== false){
