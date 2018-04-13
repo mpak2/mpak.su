@@ -1846,22 +1846,31 @@ function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 	} return $r;
 }
 
-function mpqw($sql){ global $conf; // Аргументы разбиваются по типам
+# Функция выполнения запросов. Определяет параметры по типу. Принимает функцию - обработку ошибки, массив - замены [":name"=>"name"] и строку - описание запроса
+function mpqw($sql){ global $conf; # Остальные аргументы разбираются по типам
 	if(!is_array($ARGS = array_map(function($arg){
-			if(!$type = gettype($arg)){ mpre("ОШИБКА получения типа аргумента");
+			if(!$type = (is_callable($arg) ? "function" : gettype($arg))){ mpre("ОШИБКА получения типа аргумента");
 			}else{ return ['type'=>$type, 'arg'=>$arg]; }
 		}, array_slice(func_get_args(), 1)))){ mpre("ОШИБКА выборки параметров");
+//	}elseif(true){ mpre($ARGS, gettype(function(){}));
 	}elseif(!$mt = microtime(true)){ mpre("ОШИБКА установки времени начала запроса");
 	}elseif(!$conn = (/*(rb($ARGS, 'type', '[object]', 'arg')) ?:*/ $conf['db']['conn'])){ mpre("ОШИБКА определения соединения");
-	}elseif(!$result = call_user_func(function($ARGS) use($sql, $conn){
-			if(!$params = rb($ARGS, 'type', '[array]', 'arg')){ return $conn->query($sql); mpre("Параметры не заданы");
+	}elseif(!$result = call_user_func(function($ARGS) use($sql, $conn){// mpre($ARGS);
+			if(!$params = rb($ARGS, 'type', '[array]', 'arg')){// mpre("Параметры не заданы");
+				if($result = $conn->query($sql)){ return $result;
+				}elseif(!$callback = rb($ARGS, 'type', '[function]', 'arg')){ return $result;
+				}elseif(!$info = $conn->errorInfo()){ mpre("ОШИБКА получения информации о запросе");
+				}elseif(!$error = get($info, 2)){ mpre("Не удалось получить текст ошибки запроса");
+				}elseif(!$result = call_user_func($callback, $error)){ return $result;
+				}else{ mpre("Запрос не дал результата", $error);
+				}
 			}elseif(!$result = $conn->prepare($sql)){ mpre("Подготовка к запросу");
 			}elseif(!array_map(function($name, $value) use(&$result){
 					return $result->bindValue(":{$name}", $value);
 				}, array_keys($params), $params)){ mpre("ОШИБКА устанвоки параметров");
 			}elseif(!is_bool($result->execute())){ mpre("ОШИБКА выбополнения запроса");
 			}else{ return $result; }
-		}, $ARGS)){ mpre("ОШИБКА получения результата выполнения запроса");
+		}, $ARGS)){// mpre("ОШИБКА получения результата выполнения запроса");
 	}elseif(call_user_func(function($mt) use($conf, $sql, $ARGS){
 			if(!get($conf, 'settings', 'analizsql_log')){// mpre("Лог выполнения отключен");
 			}elseif(!$microtime = microtime(true)-$mt){ mpre("ОШИБКА расчета времени выполнения");
@@ -1872,9 +1881,7 @@ function mpqw($sql){ global $conf; // Аргументы разбиваются 
 		}, $mt)){ mpre("ОШИБКА сохранения информации о времени выполнения запроса");
 	}elseif(!is_numeric($count = $result->rowCount())){ mpre("ОШИБКА получения количества изменений");
 	}else{ return $result; }
-}
-
-function qw($sql, $info = null, $callback = null, $params = null, $conn = null){
+} function qw($sql, $info = null, $callback = null, $params = null, $conn = null){
 	return call_user_func("mpqw", $sql, $info, $callback, $params, $conn);
 }
 function mpfile($filename, $description = null){
