@@ -87,8 +87,10 @@ function conn($init = null){
 		}elseif("sqlite" == $type){
 			if(!$realpath = realpath($name)){ mpre("Файл с БД не найден `{$name}`");
 			}else{// mpre("Реальный путь до файла бд", $name);
-				$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:{$realpath}", $options);// $conf['db']['conn']->setAttribute([PDO::ATTR_ERRMODE=>PDO::ERRMODE_SILENT, PDO::ATTR_PERSISTENT => false]);
+				$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:{$realpath}", null, null, $options);
+//				$conf['db']['conn']->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 				$conf['db']['conn']->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
+//				$conf['db']['conn']->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
 			}
 		}else{
 			$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], $options);
@@ -1388,6 +1390,7 @@ function mpevent($name, $description = null, $own = null){
 	if(!$name){ mpre("Имя события не указано");
 	}elseif(!$debug_backtrace = debug_backtrace()){ mpre("Ошибка создания списка вызовов функций");
 	}elseif(!$users_event = fk("{$conf['db']['prefix']}users_event", $w = array("name"=>$name), $w += array("hide"=>1, "up"=>time()))){ mpre("Ошибка добавления события в базу событий");
+	}elseif(get($users_event, 'hide')){ return []; mpre("Событие выключено");
 	}elseif(!call_user_func(function($users_event) use($conf){ # Исправление структуры сайта в старых версиях
 			mpqw("UPDATE {$conf['db']['prefix']}users_event SET count=count+1 WHERE hide=0 AND id=". (int)$users_event, "Увеличиваем счетчик на один", function($error) use($users_event, $conf){
 				if(strpos($error, "Unknown column 'hide'")){
