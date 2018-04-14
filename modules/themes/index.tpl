@@ -1,4 +1,5 @@
-<? if(get($_GET, 'id') && ($themes_index = rb("{$conf['db']['prefix']}themes_index", "id", $_GET['id']))): ?>
+<? if(!get($_GET, 'id')):// mpre("Идентификатор не задан") ?>
+<? elseif($themes_index = rb("{$conf['db']['prefix']}themes_index", "id", $_GET['id'])): ?>
 	<? exit(header("Location: http://{$themes_index['name']}")) ?>
 <? elseif(!array_key_exists("null", $_GET)): ?>
 	<? if($conf['user']['uid'] <= 0): ?>

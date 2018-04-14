@@ -1,5 +1,22 @@
 <?
 
+# Создание пользовательской сессии
+function users_sess($sess = null){
+	global $conf;
+	if(!$guest = ['id'=>0, "uname"=>"гость", "pass"=>"nopass", "reg_time"=>0, "last_time"=>time()]){ pre("Ошибка создания пользователя");
+	}elseif(!$hash = ($_COOKIE["sess"] ?: md5("{$_SERVER['REMOTE_ADDR']}:".microtime()))){ pre("ОШИБКА расчета хеша кукисы");
+	}elseif(!$url = mpquot(urldecode($_SERVER['REQUEST_URI']))){ pre("ОШИБКА расчета адреса текущей страницы");
+	}elseif(!is_string($ref = mpquot(mpidn(urldecode(get($_SERVER, 'HTTP_REFERER')))))){ pre("ОШИБКА расчета реферальной ссылки");
+	}elseif(!$_sess = array('id'=>0, 'uid'=>$guest['id'], "refer"=>0, 'last_time'=>time(), 'count'=>0, 'count_time'=>0, 'cnull'=>0, 'sess'=>$hash, 'ref'=>$ref, 'ip'=>mpquot($_SERVER['REMOTE_ADDR']), 'agent'=>mpquot($_SERVER['HTTP_USER_AGENT']), 'url'=>$url)){ pre("Ошибка создания пустой сессии");
+	}elseif(!is_numeric($uid = get($conf, 'user', 'uid') > 1 ? $conf['user']['uid'] : $guest['id'])){ pre("ОШИБКА установки идентификтаора пользователя");
+	}elseif($sess = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users_sess WHERE `ip`='{$_sess['ip']}' AND last_time>=".(time()-86400)." AND `agent`=\"{$_sess['agent']}\" AND ". ($_COOKIE["sess"] ? "sess=\"{$_sess['sess']}\"" : "uid=". $uid)." ORDER BY id DESC"), 0)){ setcookie("sess", $_sess['sess'], 0, "/"); return $sess;// pre("ОШИБКА получения сессии");
+	}elseif(!qw($sql = "INSERT INTO {$conf['db']['prefix']}users_sess (`". implode("`, `", array_keys(array_diff_key($_sess, array_flip(['id'])))). "`) VALUES ('". implode("', '", array_values(array_diff_key($_sess, array_flip(['id'])))). "')")){ pre("ОШИБКА добавления сессии в базу");
+	}elseif(!$sess['id'] = $conf['db']['conn']->lastInsertId()){ pre("ОШИБКА определения идентификатора сессии", $sql);
+	}elseif(!$sess = rb("users-sess", "id", $sess['id'])){ pre("ОШИБКА выборки установленной сессии");
+	}else{ setcookie("sess", $sess['sess'], 0, "/");
+		return $sess;
+	}
+}
 
 # Получение алиаса страницы сайта (Используется для формирования адресов СЕО модуля)
 function seo_alias($canonical){// mpre($canonical);
@@ -66,15 +83,15 @@ function conn($init = null){
 	try{// die(!pre($conf['db']));
 		if(!$type = ($init ? first(explode(":", $init)) : $conf['db']['type'])){ pre("Тип подключения не определен");
 		}elseif(!$name = ($init ? last(explode(":", $init)) : $conf['db']['name'])){ pre("Файл не установлен");
+		}elseif(!$options = [/*PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,*/PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_PERSISTENT=>false, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>1]){ mpre("ОШИБКА задания опций подключения");
 		}elseif("sqlite" == $type){
 			if(!$realpath = realpath($name)){ mpre("Файл с БД не найден `{$name}`");
 			}else{// mpre("Реальный путь до файла бд", $name);
-				$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:{$realpath}");
-				$conf['db']['conn']->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+				$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:{$realpath}", $options);// $conf['db']['conn']->setAttribute([PDO::ATTR_ERRMODE=>PDO::ERRMODE_SILENT, PDO::ATTR_PERSISTENT => false]);
 				$conf['db']['conn']->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
 			}
 		}else{
-			$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>1));
+			$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], $options);
 			$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
 		}// return $conf['db']['conn'];
 	}catch(Exception $e){ cache(0);
@@ -1143,11 +1160,8 @@ function erb($src, $key = null){
 	}elseif(!is_numeric($min = min(count($FIELDS), count($VALUES)))){ mpre("Ошибка получения минимального значения");
 	}elseif(!is_array($_FIELDS = array_slice($FIELDS, 0, $min))){ mpre("Ошибка урезание полей до количетсва значений");
 	}elseif(!is_array($_VALUES = array_slice($VALUES, 0, $min))){ mpre("Ошибка выборки значений");
-//	}elseif(mpre($src) &&0){
 	}elseif(!is_array($SRC = (is_array($src) ? array_filter(array_map(function($src) use($min, $conf, $_FIELDS, $_VALUES){
 			if(!$_VALUES){ return $src;
-//			}elseif(!$_VALUES_ = array_combine($_FIELDS, $_VALUES)){ mpre("Ошибка сбора массива по ключам и значениям");
-//			}elseif(!array_diff_assoc($_VALUES_, $src)){ return $src;
 			}else{// mpre($_VALUES, $src, array_diff_assoc($_VALUES_, $src));
 				foreach($_VALUES as $key=>$value){ # Фильтрация массива по условиям
 					if(!$field = get($_FIELDS, $key)){ return null;
@@ -1355,7 +1369,7 @@ function fdk(&$tn, $find, $insert = array(), $update = array(), $log = false){
 	}
 	if($index = fdk($t, $find, $insert, $update, $log)){
 		return $key ? $index[$key] : $index;
-	}
+	}else{ return []; }
 }
 function mpdk($tn, $insert, $update = array()){
 	global $conf, $arg;
@@ -1832,44 +1846,43 @@ function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 	} return $r;
 }
 
-function mpqw($sql, $info = null, $callback = null, $params = null, $conn = null){
-	global $conf;
-	$mt = microtime(true);
-	$conn = $conn ?: $conf['db']['conn'];
-	try{
-		if($params){
-			$result = $conn->prepare($sql);
-			foreach($params as $name=>$value){
-//				$result->bindParam(":{$name}", $value);
-				$result->bindValue(":{$name}", $value);
-			} $result->execute();
-		}else{
-//			$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			$result = $conn->query($sql);
-		}
-	}catch(Exception $e){		
-		mpre($sql, $error = $e->getMessage());		
-		ob_start();
-			debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);		
-		mpre(ob_get_clean());
-		if(is_callable($callback)){
-			$callback($error, $conf);
-		} $result = [];
-	} 
-	if(!empty($conf['settings']['analizsql_log'])){
-		$conf['db']['sql'][] = $q = array(
-			'info' => $info ? $info : $conf['db']['info'],
-			'time' => microtime(true)-$mt,
-			'sql' => $sql,
-		);
-		if(!empty($conf['settings']['sqlanaliz_time_log']) && $q['time'] > $conf['settings']['sqlanaliz_time_log']){
-			mpevent("Долгий запрос к базе данных", $sql. " {$q['time']}c.", $conf['user']['uid'], $q);
-		}
-	} 
-	return($result);
-} 
-function qw($sql, $info = null, $callback = null, $params = null, $conn = null){
-	$return = call_user_func("mpqw", $sql, $info, $callback, $params, $conn);
+# Функция выполнения запросов. Определяет параметры по типу. Принимает функцию - обработку ошибки, массив - замены [":name"=>"name"] и строку - описание запроса
+function mpqw($sql){ global $conf; # Остальные аргументы разбираются по типам
+	if(!is_array($ARGS = array_map(function($arg){
+			if(!$type = (is_callable($arg) ? "function" : gettype($arg))){ mpre("ОШИБКА получения типа аргумента");
+			}else{ return ['type'=>$type, 'arg'=>$arg]; }
+		}, array_slice(func_get_args(), 1)))){ mpre("ОШИБКА выборки параметров");
+//	}elseif(true){ mpre($ARGS, gettype(function(){}));
+	}elseif(!$mt = microtime(true)){ mpre("ОШИБКА установки времени начала запроса");
+	}elseif(!$conn = (/*(rb($ARGS, 'type', '[object]', 'arg')) ?:*/ $conf['db']['conn'])){ mpre("ОШИБКА определения соединения");
+	}elseif(!$result = call_user_func(function($ARGS) use($sql, $conn){// mpre($ARGS);
+			if(!$params = rb($ARGS, 'type', '[array]', 'arg')){// mpre("Параметры не заданы");
+				if($result = $conn->query($sql)){ return $result;
+				}elseif(!$callback = rb($ARGS, 'type', '[function]', 'arg')){ return $result;
+				}elseif(!$info = $conn->errorInfo()){ mpre("ОШИБКА получения информации о запросе");
+				}elseif(!$error = get($info, 2)){ mpre("Не удалось получить текст ошибки запроса");
+				}elseif(!$result = call_user_func($callback, $error)){ return $result;
+				}else{ mpre("Запрос не дал результата", $error);
+				}
+			}elseif(!$result = $conn->prepare($sql)){ mpre("Подготовка к запросу");
+			}elseif(!array_map(function($name, $value) use(&$result){
+					return $result->bindValue(":{$name}", $value);
+				}, array_keys($params), $params)){ mpre("ОШИБКА устанвоки параметров");
+			}elseif(!is_bool($result->execute())){ mpre("ОШИБКА выбополнения запроса");
+			}else{ return $result; }
+		}, $ARGS)){// mpre("ОШИБКА получения результата выполнения запроса");
+	}elseif(call_user_func(function($mt) use($conf, $sql, $ARGS){
+			if(!get($conf, 'settings', 'analizsql_log')){// mpre("Лог выполнения отключен");
+			}elseif(!$microtime = microtime(true)-$mt){ mpre("ОШИБКА расчета времени выполнения");
+			}elseif(!$info = (rb($ARGS, 'type', '[string]', 'arg') ?: get($conf, 'db', 'info'))){ mpre("Описание запроса не задано");
+			}elseif(!$conf['db']['sql'][] = $mess = array('info'=>$info, 'time'=>$microtime, 'sql'=>$sql)){ mpre("ОШИБКА добавления информации в лог");
+			}elseif($q['time'] <= $conf['settings']['sqlanaliz_time_log']){// mpre("Время запроса в пределах нормы");
+			}else{ mpre("Долгий запрос к базе данных", $sql, $mess); }
+		}, $mt)){ mpre("ОШИБКА сохранения информации о времени выполнения запроса");
+	}elseif(!is_numeric($count = $result->rowCount())){ mpre("ОШИБКА получения количества изменений");
+	}else{ return $result; }
+} function qw($sql, $info = null, $callback = null, $params = null, $conn = null){
+	return call_user_func("mpqw", $sql, $info, $callback, $params, $conn);
 }
 function mpfile($filename, $description = null){
 //	$file_name = strtr($file_name, array('../'=>'', '/./'=>'/', '//'=>'/'));

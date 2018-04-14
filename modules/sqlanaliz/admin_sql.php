@@ -8,10 +8,7 @@ if($table = get($_GET, 'r')){
 if($dump = get($_REQUEST, 'dump')){
 	if(get($file = get($_FILES, 'file'), 'name')){
 		if($file['error'] == 0){
-//			if(move_uploaded_file($file['tmp_name'], $tmpfile = tempnam(sys_get_temp_dir(), "dump_"))){
-//				$tpl['file'] = `mysql -v -u{$conf['db']['name']} -p{$conf['db']['pass']} {$conf['db']['name']} < {$tmpfile}`;
-				exit(mpre(false, $file['tmp_name'], qw(file_get_contents($file['tmp_name']))));
-//			}else{ mpre("Ошибка создания временного файла"); }
+			exit(mpre(false, $file['tmp_name'], qw(file_get_contents($file['tmp_name']))));
 		}else{ mpre("Ошибка загрузки файла", $file); }
 	}else if(get($_REQUEST, 'upload')){		
 		if($cmd = "mysqldump {$conf['db']['name']} ".implode(" ",array_keys($dump))." -u {$conf['db']['login']} -p{$conf['db']['pass']}"){			
@@ -22,7 +19,8 @@ if($dump = get($_REQUEST, 'dump')){
 		$tpl['dump'] = "mysqldump {$conf['db']['name']} ".implode(" ",array_keys($dump))." -u {$conf['db']['login']} -p{$conf['db']['pass']}";
 	}
 }else if(array_key_exists("null", $_GET)){
-	if($_POST){
+	if(!$_POST){ mpre("Пост запрос не задан");
+	}else{
 		if($foreign = get($_POST, 'foreign')){
 			if($conf['db']['type'] == "sqlite"){// die(!mpre($_GET, $_POST));
 				if(!$table = $_GET['r']){ die(!mpre("Имя таблицы не установлено"));
@@ -39,7 +37,6 @@ if($dump = get($_REQUEST, 'dump')){
 						"BEGIN TRANSACTION;",
 						"DROP TABLE IF EXISTS `backup`;",
 						"CREATE TEMPORARY TABLE `backup` (". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "`{$f['name']}` INTEGER PRIMARY KEY" : "`{$f['name']}` {$f['type']}"); }, $FIELDS))). ");",
-	//					"INSERT INTO backup SELECT ". implode(", ", array_keys(array_diff_key($tpl['fields'], array_flip(array($f))))). ", {$f} FROM ". mpquot($table). ";",
 						"INSERT INTO `backup` SELECT * FROM `". mpquot($table). "`;",
 						"DROP TABLE `". mpquot($table). "`;",
 						"CREATE TABLE `". mpquot($table). "` (". implode(",", (array_map(function($f) use($fntab, $field){ return ($f['name'] == "id" ? " `{$f['name']}` INTEGER PRIMARY KEY" : "`{$f['name']}` {$f['type']}". ($f['dflt_value'] ? " DEFAULT {$f['dflt_value']}" : "")); }, $FIELDS))). ");",
@@ -59,7 +56,6 @@ if($dump = get($_REQUEST, 'dump')){
 						"BEGIN TRANSACTION;",
 						"DROP TABLE IF EXISTS `backup`;",
 						"CREATE TEMPORARY TABLE `backup` (". implode(", ", (array_map(function($f){ return ($f['name'] == "id" ? "`{$f['name']}` INTEGER PRIMARY KEY" : "`{$f['name']}` {$f['type']}"); }, $FIELDS))). ");",
-	//					"INSERT INTO backup SELECT ". implode(", ", array_keys(array_diff_key($tpl['fields'], array_flip(array($f))))). ", {$f} FROM ". mpquot($table). ";",
 						"INSERT INTO `backup` SELECT * FROM `". mpquot($table). "`;",
 						"DROP TABLE `". mpquot($table). "`;",
 						"CREATE TABLE `". mpquot($table). "` (". implode(", ", (array_map(function($f) use($fntab, $field, $on_update, $on_delete){ return ($f['name'] == "id" ? " `{$f['name']}` INTEGER PRIMARY KEY" : "`{$f['name']}` {$f['type']}". ($f['dflt_value'] ? " DEFAULT {$f['dflt_value']}" : ""). (($field == $f['name']) ? " REFERENCES {$fntab}(id) ON {$on_update} ON {$on_delete}" : "")); }, $FIELDS))). ");",
@@ -110,7 +106,10 @@ if($dump = get($_REQUEST, 'dump')){
 			} exit(json_encode(array("table"=>$table)));
 		} exit(mpre("Ошибочный запрос", $_POST));
 	}
-}elseif(($table = get($_GET, 'r')) && ($fields = fields($table)) && array_key_exists('f', $_POST) && is_array($fil = $_POST['f'])){
+}elseif(!$table = get($_GET, 'r')){ mpre("ОШИБКА получения имени таблицы");
+}elseif(!$fields = fields($table)){ mpre("ОШИБКА определения полей таблицы");
+}elseif(!$fil = get($_POST, 'f')){// mpre("ОШИБКА получения списка полей");
+}else{// mpre($tpl['indexes']);
 	foreach($fil as $f=>$fld){ # Поля базы данных
 		if($conf['db']['type'] == 'sqlite'){
 			if(get($fld, 'index')){// mpre("Ключ не отмечен на удаление");
@@ -121,9 +120,7 @@ if($dump = get($_REQUEST, 'dump')){
 				$tpl['indexes'] = indexes($table);
 			}
 
-			/*if(!$fld['name']){ # Удаление ключа
-				qw($sql = "ALTER TABLE `". mpquot($table). "` DROP COLUMN `". mpquot($f). "`"); mpre($sql);
-			}*/ if(!$fld['name']){
+			if(!$fld['name']){ # Удаление поля
 				$FIELDS = array_diff_key($tpl['fields'], array_flip(array($f)));
 				mpre("База данных sqlite не поддерживает удаление полей, поэтому делаем через промежуточную таблицу", $transaction = array(
 					"PRAGMA foreign_keys=OFF;",
@@ -137,17 +134,21 @@ if($dump = get($_REQUEST, 'dump')){
 					"COMMIT;",
 					"PRAGMA foreign_keys=ON;",
 				)); foreach($transaction as $sql){ qw($sql); }
+
+				mpre("Восстановление индекса", array_column($tpl['indexes'], 'sql'));
+				foreach($tpl['indexes'] as $indexes){
+					qw($indexes['sql']);
+				}
 			}elseif(get($fields, $f, 'name') && ((get($fields, $f, 'type') != get($fld, 'type')) || ($fields[$f]['name'] != $fld['name']) || (get($fields, $f, 'dflt_value') != get($fld, 'default')))){
 				if(!$nn = array_search($f, array_keys($tpl['fields']))){ mpre("Номер старого элемента не найден");
 				}elseif(!$NF = array_slice($tpl['fields'], 0, $nn) + [$fld['name']=>($fld+ ['dflt_value'=>$fld['default']])] + array_slice($tpl['fields'], $nn+1)){ mpre("Ошибка формирования нового списка значений");
 				}elseif(!$FF = array_diff_key($tpl['fields'], [$f=>false])){ mpre("Ошибка формирования списка без старого элемента");
 //				}elseif(!($fields[$f]['dflt_value'] = $fld['default']) &0){ mpre("Установка значения по умолчанию");
 				}else{// mpre($nn, $FF, $NF);
-					mpre("База данных sqlite не поддерживает изменение полей, поэтому делаем через промежуточную таблицу", $transaction = array(
+					mpre("База данных sqlite не поддерживает изменение полей, поэтому изменения порядка полей делаем через промежуточную таблицу", $transaction = array(
 						"PRAGMA foreign_keys=OFF;",
 						"BEGIN TRANSACTION;",
 						"CREATE TEMPORARY TABLE backup(". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "{$f['name']} INTEGER PRIMARY KEY" : "`{$f['name']}` {$f['type']}"); }, $tpl['fields']))). ");",
-	//					"INSERT INTO backup SELECT ". implode(", ", array_keys(array_diff_key($tpl['fields'], array_flip(array($f))))). ", {$f} FROM ". mpquot($table). ";",
 						"INSERT INTO backup SELECT * FROM ". mpquot($table). ";",
 						"DROP TABLE ". mpquot($table). ";",
 						"CREATE TABLE ". mpquot($table). "(". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "{$f['name']} INTEGER PRIMARY KEY" : "`{$f['name']}` {$f['type']}". ($f['dflt_value'] ? " DEFAULT {$f['dflt_value']}" : "")); }, $NF))). ");",
@@ -169,7 +170,6 @@ if($dump = get($_REQUEST, 'dump')){
 						"PRAGMA foreign_keys=OFF;",
 						"BEGIN TRANSACTION;",
 						"CREATE TEMPORARY TABLE `backup`(". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "`{$f['name']}` INTEGER PRIMARY KEY" : "`{$f['name']}` {$f['type']}"); }, $tpl['fields']))). ");",
-	//					"INSERT INTO backup SELECT ". implode(", ", array_keys(array_diff_key($tpl['fields'], array_flip(array($f))))). ", {$f} FROM ". mpquot($table). ";",
 						"INSERT INTO `backup` SELECT * FROM `". mpquot($table). "`;",
 						"DROP TABLE `". mpquot($table). "`;",
 						"CREATE TABLE `". mpquot($table). "`(". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "`{$f['name']}` INTEGER PRIMARY KEY" : "`{$f['name']}` {$f['type']}"); }, $NF))). ");",
@@ -215,20 +215,20 @@ if($dump = get($_REQUEST, 'dump')){
 		}
 	}
 
-	if($new = $_POST['$']){ # Новый элемент
-		if($f = $new['name']){
+	if(!$new = $_POST['$']){ # mpre("Не создаем новое поле");
+	}elseif(!$f = $new['name']){ mpre("ОШИБКА получения имени нового поля");
+	}else{
 			if($conf['db']['type'] == 'sqlite'){
 				if(!$sql = "ALTER TABLE `". mpquot($table). "` ADD COLUMN `{$f}` {$new['type']}"){ mpre("Ошибка составления запроса");
 				}elseif(qw($sql)){ mpre("Ошибка запроса к БД");
 				}elseif(($after = get($new, 'after')) && (!get($tpl['fields'] = fields($table), $after))){ mpre("Ошибочное поле после");
-				}else{ mpre($sql);
-				}/*elseif(!$fields = array_map(function($field) use($f){
+				}elseif(!$fields = array_map(function($field) use($f){
 						return "{$field['name']} {$field['type']}";
 					}, $tpl['fields'] = fields($table))){
 				}elseif(!$nn = array_search($after, array_keys($fields))){ mpre("Не найдено поле за которым устанавливаем новое");
 				}elseif(!$NF = array_slice($fields, 0, $nn+1) + [$f=>"`{$f}` {$new['type']}"] + array_slice($fields, $nn+1)){ mpre("Ошибка формирования списка новых полей");
-				}else{// mpre($fields, $NF);
-					mpre("База данных sqlite не поддерживает изменение полей, поэтому делаем через промежуточную таблицу", $transaction = array(
+				}else{
+					mpre("Создание поля", $sql, "База данных sqlite не поддерживает изменение полей, поэтому делаем через промежуточную таблицу", $transaction = array(
 						"BEGIN TRANSACTION;",
 						"CREATE TEMPORARY TABLE backup(". implode(",", (array_map(function($f){ return (first(explode(" ", $f)) == "id" ? "{$f} PRIMARY KEY" : $f); }, $fields))). ")",
 						"INSERT INTO backup SELECT ". implode(", ", array_keys(array_diff_key($tpl['fields'], array_flip(array($f))))). ", {$f} FROM ". mpquot($table). ";",
@@ -237,8 +237,13 @@ if($dump = get($_REQUEST, 'dump')){
 						"INSERT INTO ". mpquot($table). " (". implode(", ", array_keys($NF)). ") SELECT ". implode(", ", array_keys($NF)). " FROM backup;",
 						"DROP TABLE backup;",
 						"COMMIT;",
-					));// foreach($transaction as $sql){ qw($sql); }
-				}*/
+					)); foreach($transaction as $sql){ qw($sql); }
+
+					mpre("Восстановление индекса", array_column($tpl['indexes'], 'sql'));
+					foreach($tpl['indexes'] as $indexes){
+						qw($indexes['sql']);
+					}
+				}
 			}else{
 				qw($sql = "ALTER TABLE `". mpquot($table). "` ADD `". mpquot($f). "` ". mpquot($new['type']). " ". ($new['default'] ? " DEFAULT '". mpquot($new['default']). "'" : ""). " COMMENT '". mpquot($new['comment']). "' AFTER `". mpquot($new['after']). "`"); mpre($sql);
 				$tpl['fields'] = fields($table);
@@ -250,7 +255,6 @@ if($dump = get($_REQUEST, 'dump')){
 					qw("ALTER TABLE `". mpquot($table). "` ADD INDEX (`{$f}`)");
 				}
 			} $tpl['indexes'] = indexes($table);
-		}
 	}
 }
 
