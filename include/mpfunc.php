@@ -1156,14 +1156,17 @@ function erb($src, $key = null){
 	}elseif(!is_numeric($min = min(count($FIELDS), count($VALUES)))){ mpre("Ошибка получения минимального значения");
 	}elseif(!is_array($_FIELDS = array_slice($FIELDS, 0, $min))){ mpre("Ошибка урезание полей до количетсва значений");
 	}elseif(call_user_func(function() use($conf, $_FIELDS, $src){ # Проверка таблицы на существование ключей если нет то добавляем
-			if(!$time = time()){ mpre("ОШИБКА получения микровремени");
-			}elseif($time%100){// mpre("Пропускаем проверку для уменьшения нагрузки");
+			if(gettype($src) != "string"){ mpre("Проверяем ключи только у таблиц физически присутствующих в базе (Сроковой тип имени таблицы)");
+			}elseif(!$time = time()){ mpre("ОШИБКА получения микровремени");
+			}elseif(rand(0, 1000)%10){// mpre("Один из десяти случаев на проверку наличия ключей условия выборки в таблице");
 			}elseif(!$table = call_user_func(function($table_name) use($conf){
-					if(!strpos($table_name, '-')){ return $table_name;
+					if(strpos($table_name, $conf['db']['prefix']) === 0){ return $table_name;
+					}elseif(!strpos($table_name, '-')){ return "{$conf['db']['prefix']}{$table_name}";
 					}elseif(!$EX = explode("-", $table_name)){ mpre("ОШИБКА парсинга составных частей имени таблицы");
 					}elseif(!$table = "{$conf['db']['prefix']}{$EX[0]}_{$EX[1]}"){ mpre("ОШИБКА составления полного имени таблицы");
 					}else{ return $table; }
-				}, $src)){ mpre("ОШИБКА получения имени таблицы");
+				}, $src)){ mpre("ОШИБКА получения имени таблицы `{$table}`");
+			}elseif(true){ $table;
 			}elseif(!is_array($INDEXES = indexes($table))){ mpre("ОШИБКА получения индексов таблицы");
 			}elseif(!is_array($INDEXES = array_map(function($indexes) use($conf){
 					if('mysql' == $conf['db']['type']){ return ($indexes += ['field'=>get($indexes, 'Column_name')]);
@@ -1175,7 +1178,7 @@ function erb($src, $key = null){
 				}, $INDEXES))){ mpre("ОШИБКА получения имен полей индексов из названий");
 			}elseif(!is_array($_indexes = array_flip(array_column($INDEXES, 'field')))){ mpre("ОШИБКА получения массива типов ключей");
 			}elseif(!$_fields = array_flip($_FIELDS)){ mpre("ОШИБКА получения массива с именами в ключах");
-			}elseif(!$keys = array_diff_key($_fields, $_indexes)){ mpre("Ключей для добавления не найдено");
+			}elseif(!$keys = array_diff_key($_fields, $_indexes)){// mpre("Ключей для добавления не найдено");
 			}elseif(!$SQL = array_filter(array_map(function($key) use($table, $conf, $_fields){
 					if(!$tab = substr($table, strlen($conf['db']['prefix']))){ mpre("ОШИБКА формирования префикса таблицы для имени ключа");
 					}elseif(!$name = "{$tab}-{$key}"){ mpre("ОШИБКА формирования имени ключа");
