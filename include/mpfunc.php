@@ -1158,7 +1158,7 @@ function erb($src, $key = null){
 	}elseif(call_user_func(function() use($conf, $_FIELDS, $src){ # Проверка таблицы на существование ключей если нет то добавляем
 			if(gettype($src) != "string"){// mpre("Проверяем ключи только у таблиц физически присутствующих в базе (Сроковой тип имени таблицы)");
 			}elseif(!$_FIELDS){// mpre("Поля не указаны");
-			}elseif(rand(0, 1000)%10){// mpre("Один из десяти случаев на проверку наличия ключей условия выборки в таблице");
+			}elseif(rand(0, 1000)%100){// mpre("Один процент на проверку наличия ключей условия выборки в таблице");
 			}elseif(!$table = call_user_func(function($table_name) use($conf){
 					if(strpos($table_name, $conf['db']['prefix']) === 0){ return $table_name;
 					}elseif(!strpos($table_name, '-')){ return "{$conf['db']['prefix']}{$table_name}";
