@@ -646,7 +646,7 @@ function indexes($table_name){
 //		mpre($sql = "SELECT * FROM sqlite_master WHERE type='index' AND tbl_name='". mpquot($table). "'", qn($sql));
 		return qn("SELECT * FROM sqlite_master WHERE type='index' AND tbl_name='". mpquot($table). "'", "name");
 	}else if($conf['db']['type'] == "mysql"){
-		return qn("SHOW INDEXES IN {$_GET['r']}", "Column_name");
+		return qn("SHOW INDEXES IN {$table}", "Column_name");
 	}
 }
 # Подключение страницы
@@ -1115,19 +1115,6 @@ function mpmc($key, $data = null, $compress = 1, $limit = 1000, $event = false){
 	}else{ return false; }
 }
 
-function rb($src, $key = 'id'){
-	global $conf, $arg, $tpl;
-	$func_get_args = func_get_args();
-//	echo "<pre>"; print_r($func_get_args); echo "</pre>"; exit;
-	if(is_string($src)){
-		if(strpos($func_get_args[0], '-')){ # Разделитель  - (тире) считается разделителем для раздела
-			$func_get_args[0] = $conf['db']['prefix']. implode("_", array_filter(explode("-", $func_get_args[0])));
-		}else if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$func_get_args[0])){ # Если имя таблицы начинается с префика
-			$func_get_args[0] = "{$conf['db']['prefix']}{$arg['modpath']}_{$func_get_args[0]}";
-		} //проверка полное или коротное название таблицы
-	} return call_user_func_array('erb', $func_get_args);
-}
-
 # Пересборка данных массива. Исходный массив должен находится в первой форме
 #	[0]  = (array)|(string)			массив|название тавлицы
 #	[1] ?= (int) \d+				пагинатор
@@ -1170,39 +1157,41 @@ function erb($src, $key = null){
 	}elseif(!is_array($_FIELDS = array_slice($FIELDS, 0, $min))){ mpre("Ошибка урезание полей до количетсва значений");
 	}elseif(call_user_func(function() use($conf, $_FIELDS, $src){ # Проверка таблицы на существование ключей если нет то добавляем
 			if(!$time = time()){ mpre("ОШИБКА получения микровремени");
-			}elseif($time%1000){// mpre("Пропускаем проверку для уменьшения нагрузки");
-			}elseif(!is_array($INDEXEX = indexes($src))){ mpre("ОШИБКА получения индексов таблицы");
-			}elseif(!is_array($INDEXEX = array_map(function($indexex){
-					if(!$name = get($indexex, 'name')){ mpre("ОШИБКА получения имени индекса");
-					}elseif(!$explode = explode('-', $name)){ mpre("ОШИБКА разбивки имени индекса на составляющие");
-					}elseif(!$field = last($explode)){ mpre("ОШИБКА получения имени поля");
-					}elseif(!$indexex += ['field'=>$field]){ mpre("ОШИБКА добавления имени поля к данным об индекса");
-					}else{ return $indexex; }
-				}, $INDEXEX))){ mpre("ОШИБКА получения имен полей индексов из названий");
-			}elseif(!is_array($_indexes = array_column($INDEXEX, 'type', 'field'))){ mpre("ОШИБКА получения массива типов ключей");
-			}elseif(!$_fields = array_flip($_FIELDS)){ mpre("ОШИБКА получения массива с именами в ключах");
-			}elseif(!$keys = array_diff_key($_fields, $_indexes)){// mpre("Ключей для добавления не найдено");
+			}elseif($time%100){// mpre("Пропускаем проверку для уменьшения нагрузки");
 			}elseif(!$table = call_user_func(function($table_name) use($conf){
 					if(!strpos($table_name, '-')){ return $table_name;
 					}elseif(!$EX = explode("-", $table_name)){ mpre("ОШИБКА парсинга составных частей имени таблицы");
 					}elseif(!$table = "{$conf['db']['prefix']}{$EX[0]}_{$EX[1]}"){ mpre("ОШИБКА составления полного имени таблицы");
 					}else{ return $table; }
 				}, $src)){ mpre("ОШИБКА получения имени таблицы");
-			}elseif(!$SQL = array_filter(array_map(function($key) use($table, $conf){
+			}elseif(!is_array($INDEXES = indexes($table))){ mpre("ОШИБКА получения индексов таблицы");
+			}elseif(!is_array($INDEXES = array_map(function($indexes) use($conf){
+					if('mysql' == $conf['db']['type']){ return ($indexes += ['field'=>get($indexes, 'Column_name')]);
+					}elseif(!$name = get($indexes, 'name')){ mpre("ОШИБКА получения имени индекса", $indexes);
+					}elseif(!$explode = explode('-', $name)){ mpre("ОШИБКА разбивки имени индекса на составляющие");
+					}elseif(!$field = last($explode)){ mpre("ОШИБКА получения имени поля");
+					}elseif(!$indexes += ['field'=>$field]){ mpre("ОШИБКА добавления имени поля к данным об индекса");
+					}else{ return $indexes; }
+				}, $INDEXES))){ mpre("ОШИБКА получения имен полей индексов из названий");
+			}elseif(!is_array($_indexes = array_flip(array_column($INDEXES, 'field')))){ mpre("ОШИБКА получения массива типов ключей");
+			}elseif(!$_fields = array_flip($_FIELDS)){ mpre("ОШИБКА получения массива с именами в ключах");
+			}elseif(!$keys = array_diff_key($_fields, $_indexes)){ mpre("Ключей для добавления не найдено");
+			}elseif(!$SQL = array_filter(array_map(function($key) use($table, $conf, $_fields){
 					if(!$tab = substr($table, strlen($conf['db']['prefix']))){ mpre("ОШИБКА формирования префикса таблицы для имени ключа");
 					}elseif(!$name = "{$tab}-{$key}"){ mpre("ОШИБКА формирования имени ключа");
-					}elseif("sqlite" == $conf['db']['type']){
+					}elseif("sqlite" == $conf['db']['type']){// mpre("Запрос для создания ключа БД sqlite");
 						return "CREATE INDEX `{$name}` ON `{$table}` (`name`);";
-					}else{ mpre("ОШИБКА создания ключа"); }
-				}, array_keys($keys)))){ mpre("ОШИБКА получения списка запросов для добавления ключей");
+					}elseif("mysql" == $conf['db']['type']){// mpre("Запрос для создания ключа БД mysql");
+						return "ALTER TABLE `{$table}` ADD INDEX (`{$key}`)";
+					}else{ mpre("ОШИБКА создания ключа (База данных не определена)"); }
+				}, array_keys($keys)))){ mpre("Список запросов на добавление ключа - пуст (уже устанволены)");
 			}elseif(!$RESULT = array_map(function($sql){
 					if(!$result = qw($sql)){ mpre("ОШИБКА выполнения запроса добавления ключа поиска");
 					}else{ mpevent("Добавление ключа к таблице", $sql);
 						return $result;
 					}
 				}, $SQL)){ mpre("ОШИБКА запуска запросов на создание ключей", $SQL);
-			}else{ mpre("Добавление ключей таблицы");
-			}
+			}else{ mpre("Добавление ключей таблицы", $SQL); }
 		})){ mpre("ОШИБКА проверки наличия ключа в таблице");
 	}elseif(!is_array($_VALUES = array_slice($VALUES, 0, $min))){ mpre("Ошибка выборки значений");
 	}elseif(!is_array($SRC = (is_array($src) ? array_filter(array_map(function($src) use($min, $conf, $_FIELDS, $_VALUES){
@@ -1293,6 +1282,17 @@ function erb($src, $key = null){
 		}, ($limit ? array_slice($SRC, 0, $limit, true) : $SRC), $_FIELDS)){// mpre("Ошибка формирования ключей по дополнительным полям");
 		return [];
 	}else{ return $SRC; }
+} function rb($src, $key = 'id'){
+	global $conf, $arg, $tpl;
+	$func_get_args = func_get_args();
+//	echo "<pre>"; print_r($func_get_args); echo "</pre>"; exit;
+	if(is_string($src)){
+		if(strpos($func_get_args[0], '-')){ # Разделитель  - (тире) считается разделителем для раздела
+			$func_get_args[0] = $conf['db']['prefix']. implode("_", array_filter(explode("-", $func_get_args[0])));
+		}else if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$func_get_args[0])){ # Если имя таблицы начинается с префика
+			$func_get_args[0] = "{$conf['db']['prefix']}{$arg['modpath']}_{$func_get_args[0]}";
+		} //проверка полное или коротное название таблицы
+	} return call_user_func_array('erb', $func_get_args);
 }
 
 function arb($index,$params,$return=null){
