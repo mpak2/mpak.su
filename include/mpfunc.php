@@ -1847,14 +1847,13 @@ function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 }
 
 # Функция выполнения запросов. Определяет параметры по типу. Принимает функцию - обработку ошибки, массив - замены [":name"=>"name"] и строку - описание запроса
-function mpqw($sql){ global $conf; # Остальные аргументы разбираются по типам
+function mpqw($sql){ global $conf; # Все аргументы разбираются по типам
 	if(!is_array($ARGS = array_map(function($arg){
 			if(!$type = (is_callable($arg) ? "function" : gettype($arg))){ mpre("ОШИБКА получения типа аргумента");
 			}else{ return ['type'=>$type, 'arg'=>$arg]; }
 		}, array_slice(func_get_args(), 1)))){ mpre("ОШИБКА выборки параметров");
-//	}elseif(true){ mpre($ARGS, gettype(function(){}));
 	}elseif(!$mt = microtime(true)){ mpre("ОШИБКА установки времени начала запроса");
-	}elseif(!$conn = (/*(rb($ARGS, 'type', '[object]', 'arg')) ?:*/ $conf['db']['conn'])){ mpre("ОШИБКА определения соединения");
+	}elseif(!$conn = ((rb($ARGS, 'type', '[object]', 'arg')) ?: $conf['db']['conn'])){ mpre("ОШИБКА определения соединения");
 	}elseif(!$result = call_user_func(function($ARGS) use($sql, $conn){// mpre($ARGS);
 			if(!$params = rb($ARGS, 'type', '[array]', 'arg')){// mpre("Параметры не заданы");
 				if($result = $conn->query($sql)){ return $result;
