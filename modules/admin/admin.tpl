@@ -676,6 +676,13 @@
 											<? elseif($k == "name"): ?>
 												<a href="/<?=$arg['modpath']?>:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/<?=$lines['id']?>"><?=htmlspecialchars($v)?>
 												</a>
+											<? elseif($k == "href"): ?>
+												<? if(!$href = $v): ?>
+												<? elseif(!parse_url($href)): mpre("ОШИБКА парсинга адреса") ?>
+													<?=htmlspecialchars(strip_tags($v))?>
+												<? else: ?>
+													<a href="<?=$href?>"><?=$href?></a>
+												<? endif; ?>
 											<? else: ?>
 												<?=htmlspecialchars(strip_tags($v))?>
 											<? endif; ?>

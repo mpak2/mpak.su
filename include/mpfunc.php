@@ -87,8 +87,10 @@ function conn($init = null){
 		}elseif("sqlite" == $type){
 			if(!$realpath = realpath($name)){ mpre("Файл с БД не найден `{$name}`");
 			}else{// mpre("Реальный путь до файла бд", $name);
-				$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:{$realpath}", $options);// $conf['db']['conn']->setAttribute([PDO::ATTR_ERRMODE=>PDO::ERRMODE_SILENT, PDO::ATTR_PERSISTENT => false]);
+				$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:{$realpath}", null, null, $options);
+//				$conf['db']['conn']->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 				$conf['db']['conn']->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
+//				$conf['db']['conn']->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
 			}
 		}else{
 			$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], $options);
@@ -634,8 +636,15 @@ function tables($table = null){
 
 function indexes($table_name){
 	global $conf;
-	if($conf['db']['type'] == "sqlite"){
-		return qn("SELECT * FROM sqlite_master WHERE type='index' AND tbl_name='". mpquot($table_name). "'", "name");
+	if(!$table = call_user_func(function($table_name) use($conf){
+			if(!strpos($table_name, '-')){ return $table_name;
+			}elseif(!$EX = explode("-", $table_name)){ mpre("ОШИБКА парсинга составных частей имени таблицы");
+			}elseif(!$table = "{$conf['db']['prefix']}{$EX[0]}_{$EX[1]}"){ mpre("ОШИБКА составления полного имени таблицы");
+			}else{ return $table; }
+		}, $table_name)){ mpre("ОШИБКА получения имени таблицы");
+	}else if($conf['db']['type'] == "sqlite"){
+//		mpre($sql = "SELECT * FROM sqlite_master WHERE type='index' AND tbl_name='". mpquot($table). "'", qn($sql));
+		return qn("SELECT * FROM sqlite_master WHERE type='index' AND tbl_name='". mpquot($table). "'", "name");
 	}else if($conf['db']['type'] == "mysql"){
 		return qn("SHOW INDEXES IN {$_GET['r']}", "Column_name");
 	}
@@ -1159,6 +1168,42 @@ function erb($src, $key = null){
 		}, $VALUE)) &0){ mpre("Ошибка определения списка значений");
 	}elseif(!is_numeric($min = min(count($FIELDS), count($VALUES)))){ mpre("Ошибка получения минимального значения");
 	}elseif(!is_array($_FIELDS = array_slice($FIELDS, 0, $min))){ mpre("Ошибка урезание полей до количетсва значений");
+	}elseif(call_user_func(function() use($conf, $_FIELDS, $src){ # Проверка таблицы на существование ключей если нет то добавляем
+			if(!$time = time()){ mpre("ОШИБКА получения микровремени");
+			}elseif($time%1000){// mpre("Пропускаем проверку для уменьшения нагрузки");
+			}elseif(!is_array($INDEXEX = indexes($src))){ mpre("ОШИБКА получения индексов таблицы");
+			}elseif(!is_array($INDEXEX = array_map(function($indexex){
+					if(!$name = get($indexex, 'name')){ mpre("ОШИБКА получения имени индекса");
+					}elseif(!$explode = explode('-', $name)){ mpre("ОШИБКА разбивки имени индекса на составляющие");
+					}elseif(!$field = last($explode)){ mpre("ОШИБКА получения имени поля");
+					}elseif(!$indexex += ['field'=>$field]){ mpre("ОШИБКА добавления имени поля к данным об индекса");
+					}else{ return $indexex; }
+				}, $INDEXEX))){ mpre("ОШИБКА получения имен полей индексов из названий");
+			}elseif(!is_array($_indexes = array_column($INDEXEX, 'type', 'field'))){ mpre("ОШИБКА получения массива типов ключей");
+			}elseif(!$_fields = array_flip($_FIELDS)){ mpre("ОШИБКА получения массива с именами в ключах");
+			}elseif(!$keys = array_diff_key($_fields, $_indexes)){// mpre("Ключей для добавления не найдено");
+			}elseif(!$table = call_user_func(function($table_name) use($conf){
+					if(!strpos($table_name, '-')){ return $table_name;
+					}elseif(!$EX = explode("-", $table_name)){ mpre("ОШИБКА парсинга составных частей имени таблицы");
+					}elseif(!$table = "{$conf['db']['prefix']}{$EX[0]}_{$EX[1]}"){ mpre("ОШИБКА составления полного имени таблицы");
+					}else{ return $table; }
+				}, $src)){ mpre("ОШИБКА получения имени таблицы");
+			}elseif(!$SQL = array_filter(array_map(function($key) use($table, $conf){
+					if(!$tab = substr($table, strlen($conf['db']['prefix']))){ mpre("ОШИБКА формирования префикса таблицы для имени ключа");
+					}elseif(!$name = "{$tab}-{$key}"){ mpre("ОШИБКА формирования имени ключа");
+					}elseif("sqlite" == $conf['db']['type']){
+						return "CREATE INDEX `{$name}` ON `{$table}` (`name`);";
+					}else{ mpre("ОШИБКА создания ключа"); }
+				}, array_keys($keys)))){ mpre("ОШИБКА получения списка запросов для добавления ключей");
+			}elseif(!$RESULT = array_map(function($sql){
+					if(!$result = qw($sql)){ mpre("ОШИБКА выполнения запроса добавления ключа поиска");
+					}else{ mpevent("Добавление ключа к таблице", $sql);
+						return $result;
+					}
+				}, $SQL)){ mpre("ОШИБКА запуска запросов на создание ключей", $SQL);
+			}else{ mpre("Добавление ключей таблицы");
+			}
+		})){ mpre("ОШИБКА проверки наличия ключа в таблице");
 	}elseif(!is_array($_VALUES = array_slice($VALUES, 0, $min))){ mpre("Ошибка выборки значений");
 	}elseif(!is_array($SRC = (is_array($src) ? array_filter(array_map(function($src) use($min, $conf, $_FIELDS, $_VALUES){
 			if(!$_VALUES){ return $src;
@@ -1196,6 +1241,7 @@ function erb($src, $key = null){
 					}elseif(!$IN){ return null;
 					}else{ return "(". implode(" OR ", $IN). ")"; }
 				}, $_FIELDS, $_VALUES)))){ mpre("Получения условий WHERE");
+//			}elseif(true){ mpre($WHERE);
 			}elseif(!is_string($where = implode(" AND ", $WHERE))){ mpre("Ошибка составления всех условий в строку");
 			}elseif(!$tab = call_user_func(function($src) use($conf, $arg){
 					if($conf['db']['prefix'] == substr($src, 0, strlen($conf['db']['prefix']))){// mpre("Полное имя таблицы вместе с префиксом");
@@ -1388,6 +1434,7 @@ function mpevent($name, $description = null, $own = null){
 	if(!$name){ mpre("Имя события не указано");
 	}elseif(!$debug_backtrace = debug_backtrace()){ mpre("Ошибка создания списка вызовов функций");
 	}elseif(!$users_event = fk("{$conf['db']['prefix']}users_event", $w = array("name"=>$name), $w += array("hide"=>1, "up"=>time()))){ mpre("Ошибка добавления события в базу событий");
+	}elseif(get($users_event, 'hide')){ return []; mpre("Событие выключено");
 	}elseif(!call_user_func(function($users_event) use($conf){ # Исправление структуры сайта в старых версиях
 			mpqw("UPDATE {$conf['db']['prefix']}users_event SET count=count+1 WHERE hide=0 AND id=". (int)$users_event, "Увеличиваем счетчик на один", function($error) use($users_event, $conf){
 				if(strpos($error, "Unknown column 'hide'")){

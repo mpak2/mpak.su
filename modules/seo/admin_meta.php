@@ -89,7 +89,8 @@ if($canonical){// mpre("Каноническая ссылка не устано�
 			);
 		}
 	}, $seo_cat)){// mpre("Прерывание формирование адреса");
-}elseif(!$location = meta(array(urldecode($_SERVER['REQUEST_URI']), $href = preg_replace('|\s+|', '', strtr($href, $CHARACTERS))), $meta += array("cat_id"=>$seo_cat['id']))){ mpre("Ошибка установки мета информации", $seo_cat);
+}elseif(!$location = meta(array(urldecode($_SERVER['REQUEST_URI']), $href = preg_replace('|\s+|', '', strtr($href, $CHARACTERS))), $meta += array("cat_id"=>$seo_cat['id'], 'alias'=>$seo_cat['alias']))){ mpre("Ошибка установки мета информации", $seo_cat);
 }elseif(get($conf, 'settings', 'seo_meta_hidden')){// mpre("Запрет отображения формирования адресов");
-}else{ mpre("Установлен новый адрес <a href='{$location[1]}'>{$location[1]}</a>", $meta);
+}elseif(array_search("Администратор", $conf['user']['gid'])){ mpre("Установлен новый адрес <a href='{$location[1]}'>{$location[1]}</a>", $meta);
+}else{ exit(!header("Location: {$location[1]}"));
 }

@@ -182,12 +182,12 @@
 	}, $canonical))): mpre("ОШИБКА расчета адреса страницы") ?>
 <? elseif(!is_array($seo_location = ($uri ? rb("seo-location", "name", "[{$uri}]") : []))): mpre("ОШИБКА нахождения внутреннего адреса `{$index}`") ?>
 <? elseif(!is_array($themes_index = get($conf, 'themes', 'index') ?: [])): mpre("ОШИБКА выборки хоста сайта") ?>
-<? elseif(!is_array($seo_index_themes = (get($themes_index, 'id') ? rb("seo-index_themes", "theme_index", "location_id", $themes_index['id'], $seo_location['id']) : []))): mpre("Адрес мультисайт режима не найден"); ?>
+<? elseif(!is_array($seo_index_themes = (get($themes_index, 'id') ? rb("seo-index_themes", "themes_index", "location_id", get($themes_index, 'id'), get($seo_location, 'id')) : []))): mpre("Адрес мультисайт режима не найден"); ?>
 <? elseif(!is_array($seo_index = call_user_func(function($seo_location) use($conf, $themes_index, $seo_index_themes){
 		if(!$themes_index = get($conf, 'themes', 'index')){// mpre("Односайтовый режим");
 			if(!$seo_index = rb('seo-index', 'location_id', get($seo_location, 'id'))){ return []; mpre("ОШИБКА выборки внешнего адреса страницы");
 			}else{ return $seo_index; }
-		}elseif(!$seo_index = rb('seo-index', 'id', $seo_index_themes['index_id'])){ mpre("Внешний адрес мультисайт режима не найден");
+		}elseif(!$seo_index = rb('seo-index', 'id', get($seo_index_themes, 'index_id'))){ return []; mpre("Внешний адрес мультисайт режима не найден");
 		}else{ return $seo_index; }
 	}, $seo_location))): mpre("ОШИБКА нахождения внешнего адреса") ?>
 <? else:// mpre($alias, $seo_cat) ?>
