@@ -406,7 +406,7 @@
 							<span style="width:15%;">Поле</span>
 							<span>Значение</span>
 						</div>
-						<? foreach($tpl['fields'] as $name=>$field): ?>
+						<? foreach($tpl['fields'] as $name=>$field):// mpre($name, $field) ?>
 							<div>
 								<span style="text-align:right;">
 									<? if($comment = get($field, 'Comment')): ?>
@@ -415,7 +415,7 @@
 									<? if($etitle = get($tpl, 'etitle', $name)): ?>
 										<?=$etitle?>
 									<? elseif(substr($name, -3) == "_id"): ?>
-										<?=(get($conf, 'settings', "{$arg['modpath']}_". substr($name, 0, -3)) ?: substr($name, 0, -3))?>
+										<span title="<?=$name?>"><?=(get($conf, 'settings', "{$arg['modpath']}_". substr($name, 0, -3)) ?: substr($name, 0, -3))?></span>
 									<? else: ?>
 										<?=htmlspecialchars($name)?>
 									<? endif; ?>
@@ -484,8 +484,7 @@
 										<? elseif(!is_array($LIST = rb("{$arg['modpath']}-{$tab}"))): mpre("ОШИБКА выборки списка для поля") ?>
 										<? elseif((!$list_id = (get($tpl, 'edit', $name) ?: get($_GET, 'where', $name))) && !is_numeric($list_id) && !is_string($list_id) && !is_null($list_id)): mpre("ОШИБКА определения номера списка `{$name}`", get($tpl, 'edit'), $name, gettype($list_id)) ?>
 										<? elseif(!is_array($list = rb($LIST, "id", $list_id))): mpre("ОШИБКА выборки связанной таблицы") ?>
-										<? elseif((!$list_value = get($list, 'name')) && !is_numeric($list_value) && !is_string($list_value) && !is_null($list_value)): mpre("ОШИБКА
- определения занчения списка", gettype($list_value)) ?>
+										<? elseif((!$list_value = get($list, 'name')) && !is_numeric($list_value) && !is_string($list_value) && !is_null($list_value)): mpre("ОШИБКА определения занчения списка", gettype($list_value)) ?>
 										<? else:// mpre(htmlspecialchars($list_value)) ?>
 											<input type="text" name="<?=$name?>" value="<?=($list ? htmlspecialchars($list_value) : ($list_id ?: ""))?>" list="<?=$name?>_list" style="background-color:#ddd;">
 											<datalist id="<?=$name?>_list">
@@ -560,7 +559,8 @@
 								<div line_id="<?=$lines['id']?>">
 									<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($lines, array_flip($tpl['title'])) : $lines), get($tpl, 'counter') ?: array(), get($tpl, 'ecounter') ?: array()) as $k=>$v): ?>
 										<span>
-											<? if(substr($k, 0, 2) == "__"): // $tpl['ecounter'] ?>
+											<? if(!$tb = implode("_", array_filter(explode("_", $k)))): mpre("ОШИБКА получения короткого имени таблицы") ?>
+											<? elseif(substr($k, 0, 2) == "__"): // $tpl['ecounter'] ?>
 												<? if(!$tab = substr($k, 2)): mpre("Ошибка поиска названия таблицы в адресе") ?>
 												<? elseif(!$m = first(explode('_', first(explode("-", $tab))))): mpre("Ошибка определения модуля таблицы для подсчета") ?>
 												<? elseif(!$field = call_user_func(function($tab, $table) use($conf){
@@ -573,14 +573,14 @@
 														}elseif(array_key_exists($fields2, $FIELDS)){ return $fields2; mpre("В таблица используется дополнительное название поля");
 														}else{ mpre("Свзанное поле счетчика [{$fields1},{$fields2}] с текущей таблицей `{$curtab}` в удаленной таблице `{$tab}` не найдено", $FIELDS); }
 													}, $tab, $_GET['r'])): mpre("Ошибка нахождения имени поля") ?>
-												<? elseif(!$href = "/{$m}:admin/r:". (strpos($tab, '-') ? "" : $conf['db']['prefix']). "{$tab}?&where[{$field}]={$lines['id']}"): mpre("Ошибка генерации ссылки на связанную таблицу") ?>
-												<? else:// mpre($m, $field) ?>
+												<? elseif(!$href = "/{$m}:admin/r:{$arg['modpath']}-{$tb}?&where[{$field}]={$lines['id']}"): mpre("Ошибка генерации ссылки на связанную таблицу") ?>
+												<? else:// mpre($tab) ?>
 													<a href="<?=$href?>">
 														<?=(($cnt = get($v, $lines['id'], 'cnt')) ? "{$cnt}&nbspшт" : "Нет")?>
 													</a>
 												<? endif; ?>
-											<? elseif(substr($k, 0, 1) == "_"): // $tpl['counter'] ?>
-												<a href="/<?=$arg['modpath']?>:admin/r:<?="{$conf['db']['prefix']}{$arg['modpath']}{$k}?&where[". (($_GET['r'] == "{$conf['db']['prefix']}users") && ($k == "_mem") ? "uid" : substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "_id"). "]={$lines['id']}"?>">
+											<? elseif(substr($k, 0, 1) == "_"):// mpre($tab) ?>
+												<a href="/<?=$arg['modpath']?>:admin/r:<?="{$arg['modpath']}-{$tb}?&where[". (($_GET['r'] == "{$conf['db']['prefix']}users") && ($k == "_mem") ? "uid" : substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "_id"). "]={$lines['id']}"?>">
 													<?=(($cnt = get($tpl, 'counter', $k, $lines['id'])) ? "{$cnt}&nbspшт" : "Нет")?>
 												</a>
 											<? elseif($k == "id"): ?>

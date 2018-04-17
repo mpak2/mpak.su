@@ -89,10 +89,15 @@ html, body{
 
 #main .left-menu{
 	display:table-cell;
-	width: 220px;
+	max-width: 220px;
 	border-right: 1px solid #dedede;
 	height:100%;
 }
+
+#main .left-menu select{
+	max-width:210px;	
+}
+
 #main .left-menu .block{
 	display:block; 
 	width: 100%;
