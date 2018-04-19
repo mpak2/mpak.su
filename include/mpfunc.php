@@ -1167,7 +1167,7 @@ function erb($src, $key = null){
 					}else{ return $table; }
 				}, $src)){ mpre("ОШИБКА получения имени таблицы `{$table}`");
 			}elseif(!is_array($INDEXES = indexes($table))){ mpre("ОШИБКА получения индексов таблицы");
-			}elseif(!is_array($INDEXES = array_map(function($indexes) use($conf){
+			}elseif(!is_array($INDEXES = array_map(function($indexes) use($conf, $INDEXES, $table){
 					if('mysql' == $conf['db']['type']){ return ($indexes += ['field'=>get($indexes, 'Column_name')]);
 					}elseif(!$name = get($indexes, 'name')){ mpre("ОШИБКА получения имени индекса", $indexes);
 					}elseif(!$explode = explode('-', $name)){ mpre("ОШИБКА разбивки имени индекса на составляющие");
@@ -1178,15 +1178,19 @@ function erb($src, $key = null){
 			}elseif(!is_array($_indexes = array_flip(array_column($INDEXES, 'field')))){ mpre("ОШИБКА получения массива типов ключей");
 			}elseif(!$_fields = array_flip($_FIELDS)){ mpre("ОШИБКА получения массива с именами в ключах", $_FIELDS);
 			}elseif(!$keys = array_diff_key($_fields, $_indexes)){// mpre("Ключей для добавления не найдено");
-			}elseif(!$SQL = array_filter(array_map(function($key) use($table, $conf, $_fields){
+			}elseif(!$FIELDS = fields($table)){ mpre("ОШИБКА получения списка полей таблицы");
+			}elseif(!$SQL = array_filter(array_map(function($key) use($table, $conf, $_fields, $FIELDS){
 					if(!$tab = substr($table, strlen($conf['db']['prefix']))){ mpre("ОШИБКА формирования префикса таблицы для имени ключа");
 					}elseif(!$name = "{$tab}-{$key}"){ mpre("ОШИБКА формирования имени ключа");
 					}elseif("sqlite" == $conf['db']['type']){// mpre("Запрос для создания ключа БД sqlite");
 						return "CREATE INDEX `{$name}` ON `{$table}` (`name`);";
+//					}elseif(true){ mpre($key, $FIELDS);
+					}elseif(!$field = get($FIELDS, $key)){ mpre("ОШИБКА поулчения параметров поля");
+					}elseif("text" == get($field, 'Type')){// mpre("Запрещенный для индексирования тип поля");
 					}elseif("mysql" == $conf['db']['type']){// mpre("Запрос для создания ключа БД mysql");
 						return "ALTER TABLE `{$table}` ADD INDEX (`{$key}`)";
 					}else{ mpre("ОШИБКА создания ключа (База данных не определена)"); }
-				}, array_keys($keys)))){ mpre("Список запросов на добавление ключа - пуст (уже устанволены)");
+				}, array_keys($keys)))){// mpre("Список запросов на добавление ключа - пуст (уже устанволены)");
 			}elseif(!$RESULT = array_map(function($sql){
 					if(!$result = qw($sql)){ mpre("ОШИБКА выполнения запроса добавления ключа поиска");
 					}else{ mpevent("Добавление ключа к таблице", $sql);
