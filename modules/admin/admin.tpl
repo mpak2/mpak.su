@@ -658,7 +658,7 @@
 												<? elseif(!$tb = substr($k, 0, -3)): mpre("ОШИБКА получения короткого имени таблицы") ?>
 												<? elseif(!$href_key = "/{$arg['modpath']}:{$arg['fn']}/r:{$conf['db']['prefix']}{$arg['modpath']}_{$tb}?&where[id]={$v}"): mpre("ОШИБКА формирования адреса перехода по ключу") ?>
 												<? elseif(!is_array($_where = array_filter(array_map(function($key) use($k){ return ($k == $key ? "" : "where[{$key}]=". get($_GET, 'where', $key)); }, array_keys(get($_GET, 'where') ?: []))))): mpre("ОШИБКА получения параметров условий фильтра") ?>
-												<? elseif(!$href_where = "/{$arg['modpath']}:{$arg['fn']}/r:{$_GET['r']}?&". ($_where ? implode("&", $_where) : ""). "where[{$k}]={$v}"): mpre("ОШИБКА получения строки условий") ?>
+												<? elseif(!$href_where = "/{$arg['modpath']}:{$arg['fn']}/r:{$_GET['r']}?". ($_where ? "&". implode("&", $_where) : ""). "&where[{$k}]={$v}"): mpre("ОШИБКА получения строки условий") ?>
 												<? else:// mpre($href_where) ?>
 													<span style="white-space:nowrap;">
 														<a class="key" href="<?=$href_key?>" href_where="<?=$href_where?>" title="<?=$v?>">
