@@ -326,6 +326,14 @@
 						}// console.log("is:", $(e.currentTarget).is("[multiple]"), $(e));
 					}).on('click', '[line_id]', function(e){
 						$(e.currentTarget).toggleClass('active');
+					}).on("click", "a[href_where]", function(e){
+						if(!e.metaKey){// console.log("Мета клавиша отжата");
+						}else if(!(href_where = $(e.currentTarget).attr("href_where"))){ console.log("ОШИБКА получения условной ссылки");
+						}else if(!($(e.currentTarget).attr("href", href_where))){ console.log("ОШИБКА установки адреса условного перехода");
+						}else{// console.log("where_href", href_where);
+							return true;
+						}
+//						alert(href_where);
 					}).one("init", function(e){
 						setTimeout(function(){
 							var th = $(e.delegateTarget).find(".table .th");
@@ -517,15 +525,21 @@
 						<div class="th">
 							<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($tpl['fields'], array_flip($tpl['title'])) : $tpl['fields']), (get($tpl, 'counter') ?: array()), (get($tpl, 'ecounter') ?: array())) as $name=>$field):// mpre($name, $field) ?>
 								<span>
-									<? if(get($field, 'Comment')): ?>
+									<? if(!is_array($href_where = array_map(function($key){ return "where[{$key}]=". get($_GET, 'where', $key); }, array_keys(get($_GET, 'where') ?: [])))): mpre("ОШИБКА получения параметров условий фильтра") ?>
+									<? elseif(!$sort = "&order=". (get($_GET, "order") == $name ? "{$name}%20DESC" : $name )): mpre("ОШИБКА получения строки сортировки") ?>
+									<? elseif(!$href_sort = "/{$arg['modpath']}:{$arg['fn']}/r:{$_GET['r']}". ($href_where ? "?&". implode("&", $href_where) : ""). $sort): mpre("ОШИБКА получения строки условий") ?>
+									<? elseif(get($field, 'Comment')): ?>
 										<span class="info" title="<?=$field['Comment']?>">?</span>
 									<? endif; ?>
+
 									<? if(substr($name, 0, 2) == "__"): ?>
 										<span title="<?=substr($name, 2)?>">_<?=(get($conf, 'settings', substr($name, 2)) ?: substr($name, 2))?></span>
 									<? elseif(substr($name, 0, 1) == "_"): ?>
 										<span title="<?=substr($name, 1)?>"><?=(get($conf, 'settings', "{$arg['modpath']}_". substr($name, 1)) ?: substr($name, 1))?></span>
+									<? elseif(substr($name, -3) == "_id"): ?>
+										<a href="<?=$href_sort?>" title="<?=$name?>"><?=(get($conf, 'settings', "{$arg['modpath']}_". substr($name, 0, -3)) ?: substr($name, 0, -3))?></a>
 									<? elseif(get($tpl, 'etitle')): ?>
-										<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>&order=<?=(get($_GET, "order") == $name ? "{$name} DESC" : $name )?>" title="<?=$name?>">
+										<a href="<?=$href_sort?>" title="<?=$name?>">
 											<?=(get($tpl, 'etitle', $name) ?: $name)?>
 										</a>
 										<? if("id" == $name): ?>
@@ -534,12 +548,8 @@
 												<a class="del" href="javascript:" style="display:none;"></a>
 											</span>
 										<? endif; ?>
-									<? elseif(substr($name, -3) == "_id"): ?>
-										<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>&order=<?=(get($_GET, "order") == $name ? "{$name} DESC" : $name )?>" title="<?=$name?>"><?=(get($conf, 'settings', "{$arg['modpath']}_". substr($name, 0, -3)) ?: substr($name, 0, -3))?></a>
 									<? else: ?>
-										<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?>&order=<?=(get($_GET, "order") == $name ? "{$name} DESC" : $name )?>" title="<?=$name?>">
-											<?=$name?>
-										</a>
+										<a href="<?=$href_sort?>" title="<?=$name?>"><?=$name?></a>
 									<? endif; ?>
 								</span>
 							<? endforeach; ?>
@@ -643,15 +653,17 @@
 													<?=($v > 86400 ? date("Y-m-d H:i:s", $v) : $v)?>
 												</span>
 											<? elseif(substr($k, -3) == "_id"): ?>
-												<? if($el = rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($k, 0, -3), "id", $v)): ?>
-	<!--												<span style="color:#ccc;"><?=$el['id']?></span>-->
+												<? if(!$el = rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($k, 0, -3), "id", $v)):// mpre("Элемент в смежной таблице не найден") ?>
+													<span style="color:red;"><?=$v?></span>
+												<? elseif(!$tb = substr($k, 0, -3)): mpre("ОШИБКА получения короткого имени таблицы") ?>
+												<? elseif(!$href_key = "/{$arg['modpath']}:{$arg['fn']}/r:{$conf['db']['prefix']}{$arg['modpath']}_{$tb}?&where[id]={$v}"): mpre("ОШИБКА формирования адреса перехода по ключу") ?>
+												<? elseif(!is_array($_where = array_filter(array_map(function($key) use($k){ return ($k == $key ? "" : "where[{$key}]=". get($_GET, 'where', $key)); }, array_keys(get($_GET, 'where') ?: []))))): mpre("ОШИБКА получения параметров условий фильтра") ?>
+												<? elseif(!$href_where = "/{$arg['modpath']}:{$arg['fn']}/r:{$_GET['r']}?&". ($_where ? implode("&", $_where) : ""). "where[{$k}]={$v}"): mpre("ОШИБКА получения строки условий") ?>
+												<? else:// mpre($href_where) ?>
 													<span style="white-space:nowrap;">
-														<a class="key" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?="{$conf['db']['prefix']}{$arg['modpath']}_"?>
-															<?=substr($k, 0, -3)?>?&where[id]=<?=$v?>" title="<?=$v?>">
+														<a class="key" href="<?=$href_key?>" href_where="<?=$href_where?>" title="<?=$v?>">
 														</a>&nbsp;<?=(isset($el['name']) ? htmlspecialchars($el['name']) : "<span style='color:#777'>[ ".get($el,'id')." ]</span>")?>
 													</span>
-												<? elseif($v): ?>
-													<span style="color:red;"><?=$v?></span>
 												<? endif; ?>
 											<? elseif(get($tpl, 'espisok', $k)): ?>
 												<? if(empty($v)):// mpre("Значение ключа списка не указано") ?>
