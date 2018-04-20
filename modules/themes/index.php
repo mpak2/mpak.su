@@ -18,7 +18,7 @@ if(!$file = call_user_func(function(){
 }elseif(!$type = (get($conf['defaultmimes'], $ext) ?: "text/$ext")){ mpre("ОШИБКА подулючения типа файла по расширению `{$ext}`");
 }elseif(!$res = mpopendir($res_name)){ mpre("ОШИБКА файл не найден <b>{$res_name}</b>", $_GET);
 	header("HTTP/1.0 404 Not Found");
-}elseif($f = fopen($res, "rb")){ mpre("ОШИБКА открытия файла на чтение `{$res}`");
+}elseif(!$f = fopen($res, "rb")){ mpre("ОШИБКА открытия файла на чтение `{$res}`");
 	header("HTTP/1.0 404 Not Found");
 }else{ header("Content-type: {$type}");
 	while(!feof($f)){ echo fread($f, 256); }
