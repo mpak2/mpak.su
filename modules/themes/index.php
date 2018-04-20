@@ -22,5 +22,5 @@ if(!$file = call_user_func(function(){
 	header("HTTP/1.0 404 Not Found");
 }else{ header("Content-type: {$type}");
 	while(!feof($f)){ echo fread($f, 256); }
-	exit(fclose($f));
+	fclose($f); exit();
 }
