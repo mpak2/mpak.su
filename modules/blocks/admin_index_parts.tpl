@@ -45,6 +45,19 @@
 			}}, "json").fail(function(error) {if(typeof(rollback) == "function"){
 					rollback.call(e.currentTarget, error);
 			} alert(error.responseText) });
+		}).on("reload", function(e, selector){
+			if(!selector){ console.log("<?=__LINE__?>.ОШИБКА не задан элемент для перезагрузки");
+			}else if(!(href = document.location.href)){ console.log("<?=__LINE__?>.ОШИБКА получения адреса страницы");
+			}else{// console.log("<?=__LINE__?>.href:", href);
+				var html = $("<div>").load(href, function(response){
+					if(!(node = $(response).find("string" == typeof(selector) ? selector : selector.selector)).length){ console.log("<?=__LINE__?>.ОШИБКА в загруженном документе элемент не найден");
+					}else if(!(html = $(node).get(0).innerHTML)){ console.log("<?=__LINE__?>.ОШИБКА определения HTML кода элемента");
+					}else if(!(node = ("string" == typeof(selector) ? $(response).find(selector) : selector)).length){ console.log("<?=__LINE__?>.ОШИБКА элемент цель не найден");
+					}else if(!$(node).html(html)){ console.log("<?=__LINE__?>.ОШИБКА добавления хтмл кода в элемент");
+					}else{ console.log("<?=__LINE__?>.reload:", href);
+					}
+				})
+			}
 		})
 	})(jQuery, document.currentScript)
 &lt;/script&gt;

@@ -170,6 +170,7 @@
 <? endif; ?>
 
 <? if(!array_search("Администратор", $conf['user']['gid'])): mpre("Раздел предназначен только администраторам") ?>
+<? elseif(($themes_index = get($conf, 'themes', 'index')) &&0):// mpre("Хост сайта не найден") ?>
 <? elseif(($canonical = get($conf, 'settings', 'canonical')) &&0): mpre("Канонический адрес не задан") ?>
 <? elseif(!$alias = seo_alias($canonical)): mpre("ОШИБКА получения алиаса категории адреса") ?>
 <? elseif((!$seo_cat = rb("seo-cat", "id", get($canonical, 'cat_id'))) && (!$seo_cat = rb("seo-cat", "alias", (empty($alias) ? false : "[{$alias}]"))) &0): mpre("Категория не найдена") ?>
@@ -181,17 +182,13 @@
 	}, $canonical))): mpre("ОШИБКА расчета адреса страницы") ?>
 <? elseif(!is_array($seo_location = ($uri ? rb("seo-location", "name", "[{$uri}]") : []))): mpre("ОШИБКА нахождения внутреннего адреса `{$index}`") ?>
 <? elseif(!is_array($themes_index = get($conf, 'themes', 'index') ?: [])): mpre("ОШИБКА выборки хоста сайта") ?>
-<? elseif(!is_array($seo_index_themes = ((get($themes_index, 'id') && get($seo_location, 'id')) ? rb("seo-index_themes", "themes_index", "location_id", $themes_index['id'], $seo_location['id']) : []))): mpre("Адрес мультисайт режима не найден"); ?>
+<? elseif(!is_array($seo_index_themes = (get($themes_index, 'id') ? rb("seo-index_themes", "themes_index", "location_id", get($themes_index, 'id'), get($seo_location, 'id')) : []))): mpre("Адрес мультисайт режима не найден"); ?>
 <? elseif(!is_array($seo_index = call_user_func(function($seo_location) use($conf, $themes_index, $seo_index_themes){
 		if(!$themes_index = get($conf, 'themes', 'index')){// mpre("Односайтовый режим");
 			if(!$seo_index = rb('seo-index', 'location_id', get($seo_location, 'id'))){ return []; mpre("ОШИБКА выборки внешнего адреса страницы");
 			}else{ return $seo_index; }
-		}elseif($seo_index = rb('seo-index', 'id', get($seo_index_themes, 'index_id'))){ return $seo_index; mpre("Внешний адрес мультисайт режима не найден");
-//		}elseif(!$uri = get($_SERVER, 'REQUEST_URI')){ mpre("ОШИБКА нахождения внешнего адреса");
-//		}elseif(!$seo_index = fk("seo-index", $w = ["name"=>$uri], $w)){ mpre("ОШИБКА добавления внешнего адреса");
-		}else{ mpre("ОШИБКА выборки адреса");
-//			return $seo_index;
-		}
+		}elseif(!$seo_index = rb('seo-index', 'id', get($seo_index_themes, 'index_id'))){ return []; mpre("Внешний адрес мультисайт режима не найден");
+		}else{ return $seo_index; }
 	}, $seo_location))): mpre("ОШИБКА нахождения внешнего адреса") ?>
 <? else:// mpre($alias, $seo_cat) ?>
 		<div class="themes_header_seo_blocks" style="z-index:999999; border:1px solid #eee; border-radius:7px; position:fixed; background-color:rgba(255,255,255,0.7); color:black; padding:0 5px; left:10px; top:10px; width:auto;">
@@ -209,8 +206,6 @@
 								<a href="/seo:admin/r:seo-index_themes?&where[id]=<?=$seo_index_themes['id']?>"><?=$seo_location['name']?></a>
 							<? elseif(!$seo_index): ?>
 								<span><?=$uri?></span>
-							<? elseif(empty($seo_location)): ?>
-								<span><?=$seo_index['name']?></span>
 							<? else: ?>
 								<a href="/seo:admin/r:seo-index?&where[id]=<?=$seo_index['id']?>"><?=$seo_location['name']?></a>
 							<? endif; ?>
@@ -363,11 +358,6 @@
 
 <!-- плайер -->
 <? if(!get($conf, 'settings', 'themes_v6player')):# Таблица микроразметки не создана ?>
-<?// elseif(!$seo_alias = seo_alias(get($conf, 'settings', 'canonical'))): mpre("ОШИБКА получения алиаса") ?>
-<?// elseif($conf['user']['uid'] <= 0): mpre("Незарегистрировнные пользователи - скрываем") ?>
-<?// elseif($seo_alias != "kf:event_index/kf-event"):// mpre("Не совпадает страница") ?>
-<?// elseif(615 != get($_GET, 'kf-event')):// mpre("Не совпадает идентификатор события") ?>
-<?// elseif(true): mpre("Плеер выключен") ?>
 <? else:// mpre($seo_alias) ?>
 	<script sync>
 		(function($, script){
@@ -397,7 +387,7 @@
 							<span aria-hidden="true">&times;</span>
 						</button>
 					</div>
-					<div class="modal-body">
+					<div class="modal-body" style="min-height:95px;">
 						<p>{text}</p>
 					</div>
 				</div>
@@ -408,18 +398,50 @@
 	<link rel="stylesheet" type="text/css" href="//cdn.006.spb.ru/private/player/video/player.css">
 	<script sync>
 		(function($, script){
-			$(script).parent().on("video", function(e, src){// console.log("header", e.currentTarget);
+			$(script).parent().on("video", function(e, src, params){// console.log("header", e.currentTarget);
+				params = (typeof(params) == "undefined" ? {} : params);
 				$("<div></div>").addClass("video_outer").css({"width":"100%", "height":"100%", "z-index":950})/*.hide()*/.appendTo("body");
-				var div = $("<div></div>").addClass("videobox").hide().css({"width":"60%", "min-height":"50%", "padding":"10px", "position":"fixed", "background-color":"white", "top":"10%", "left":"20%", "margin":"0 auto"}).appendTo(".video_outer");
-				
+				var div = $("<div></div>").addClass("videobox").hide().css({"width":"60%", "min-height":"50%", "padding":"10px", "position":"fixed", "background-color":"white", "top":"10%", "left":"20%", "margin":"0 auto", "z-index":1000}).appendTo(".video_outer");
+
 				$("<a></a>").addClass("fancybox-item").addClass("fancybox-close").appendTo(".videobox");
 				$("<video>").attr("id", "videoPlayer").attr("src", "/"+src).attr("autoplay", true).appendTo(".videobox");
-				$(div).show().find('video').videoplayer({}, false);
-				var bg = $("<div>").addClass("bg").css({"position":"fixed", "left":0, "top":0, "background-color":"rgba(0, 0, 0, .7)", "width":"100%", "height":"100%", "z-index":999}).appendTo("body").find(".video_outer");
+				
+ 				params.width = div.width();
+				params.fullScreen = true;
+//				params.combine = {src: 'линк на видео', startTime: '11:00', endTime: '41:40'};
+				
+				$(div).show().find('video').videoplayer(params, false);
+//				var bg = $("<div>").addClass("bg").css({"position":"fixed", "left":0, "top":0, "background-color":"rgba(0, 0, 0, .7)", "width":"100%", "height":"100%", "z-index":999}).appendTo("body").find(".video_outer");
 			}).on("click", "[video]", function(e){
-				if(src = $(e.currentTarget).attr("video")){
-					$(e.delegateTarget).trigger("video", src);
-				}else{ alert("Видео еще не добавлено"); }
+				if(src = $(e.currentTarget).attr("video").replace("content/", "//erlyvideo.v6.spb.ru/BATTLE/slalomv1/")){
+					var startTime = $(e.currentTarget).attr("startTime");
+					var endTime = $(e.currentTarget).attr("endTime");
+					var params = ((startTime && endTime) ? {startTime:startTime, endTime:endTime} : {});
+					$(e.delegateTarget).trigger("video", [src, params]);
+				}else{ alert("Видео не доступно"); /* Видео еще не добавлено */ }
+			}).on("dblclick", "[dblvideo]", function(e){
+				if(src = $(e.currentTarget).attr("dblvideo").replace("content/", "//erlyvideo.v6.spb.ru/BATTLE/slalomv1/")){
+					var startTime = $(e.currentTarget).attr("startTime");
+					var endTime = $(e.currentTarget).attr("endTime");
+					var params = ((startTime && endTime) ? {startTime:startTime, endTime:endTime} : {});
+//					console.log("startTime:", startTime, "endTime:", endTime, "params:", params);
+					$(e.delegateTarget).trigger("video", [src, params]);
+				}else{ alert("Видео не доступно"); /* Видео еще не добавлено */ }
+			}).on("click", "a[load]", function(e){// alert("load");
+				if(!(load = $(e.currentTarget).attr("load"))){ console.log("ОШИБКА элемент загрузки не установлен");
+				}else if(!(href = $(e.currentTarget).attr("_href"))){ console.log("ОШИБКА адрес страницы загрузки не определен");
+				}else if(!(html = $("<div>").load(href, function(request){
+						var html = $(request).find(load).get(0).innerHTML;
+						$(load).html(html);
+						return false;
+					}))){ console.log("ОШИБКА выборки содержимого указанного элемента", href, load);
+				}else if(history.pushState(null, null, href)){ console.log("ОШИБКА установки адреса страницы в браузере "+ href);
+				}else{ console.log("Загрузка", load, href);
+					window.addEventListener('popstate', function(e){
+						window.location.reload(true);
+					});
+//					e.stopPropagation();
+				}
 			}).on("click", ".fancybox-close, .bg", function(e){
 				$(e.currentTarget).closest(".videobox", e.delegateTarget).remove();
 				$(".video_outer").remove();

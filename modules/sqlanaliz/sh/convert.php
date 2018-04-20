@@ -55,11 +55,14 @@ if(empty($conf) && !($include = call_user_func(function(){
 				}// exit(mpre($INDEXES));
 			}
 
+				# Добавить на случае создания sqlite
+//			CREATE UNIQUE INDEX alias ON mp_seo_cat(alias)
+//			CREATE UNIQUE INDEX events ON mp_users_events(name)
+
 			foreach(rb($tab) as $t){
 				$t = array_map(function($val){
 					return strtr(SQLite3::escapeString($val), array("?"=>"??", "'"=>"''", "\""=>"\"\"", "\n"=>"\\n"));
 				}, $t);
-
 
 				if(($tab == "mp_users") || ($tab == "mp_users_mem")){ mpre("Не добавляем пользователей", $t);
 				}elseif(($tab == "mp_settings") && ($t['name'] == "admin_usr")){ mpre("Пропускаем администратора", $t);

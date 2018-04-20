@@ -12,7 +12,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 				}elseif(!$admin_history = fk("admin-history", null, array("history_type_id"=>$admin_history_type['id'], "name"=>$_GET['id'], "history_tables_id"=>$admin_history_tables['id'], "data"=>json_encode($data)))){ die(mpre("Ошибка сохранения истории действий в админстранице"));
 				}else{ return $data; }
 			})){ mpre("Лог файл отключен");
-		}elseif(qw($sql = "DELETE FROM {$_GET['r']} WHERE id=". (int)abs($_GET['id']))){ mpre("Ошибка удаления записи `{$sql}`");$_RETURN = 556;
+		}elseif(!qw($sql = "DELETE FROM {$_GET['r']} WHERE id=". (int)abs($_GET['id']))){ mpre("Ошибка удаления записи `{$sql}`");$_RETURN = 556;
 		}else{ echo(json_encode([]));$_RETURN = 556; }
 	}elseif(get($_POST, "inc") && ($inc = rb($_GET['r'], "id", $_POST['inc']))){ # Изменение сортировки вверх
 		if(!$list = qn($sql = "SELECT * FROM {$_GET['r']} WHERE ". (mpdbf($_GET['r'], get($_GET, 'where'), true) ?: 1). " ORDER BY ". (get($_GET, 'order') ?: $order). "")){ mpre("Элементы в списке не найдены");
@@ -47,7 +47,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		}else{ mpre($sql); }/* mpre($_inc, $_dec);*/ echo(json_encode(array($_inc['id']=>$_inc, $_dec['id']=>$_dec)));$_RETURN = 556;
 	}elseif(!array_walk($_POST, function(&$post, $field) use($conf){
 			if(!preg_match("#_id$#ui",$field) AND preg_match("#(^|.+_)(time|last_time|reg_time|up|down)(\d+|_.+|$)#ui",$field)){ $post = strtotime($post);
-			}elseif(($_GET['r'] == "{$conf['db']['prefix']}users") && ($field == "pass") && (strlen($_POST['pass']) != 32) && (substr($_POST['pass'], 0, 1) != "!")){ $post = mphash($_POST['name'], $_POST['pass']);
+			}elseif(($_GET['r'] == "{$conf['db']['prefix']}users") && ($field == "pass") && $_POST['pass'] && (strlen($_POST['pass']) != 32) && (substr($_POST['pass'], 0, 1) != "!")){ $post = mphash($_POST['name'], $_POST['pass']);
 			}elseif("_id" != substr($field, -3)){ return $post; // return $post;
 			}elseif(empty($post)){ return $post = "NULL";
 			}elseif($post == "NULL"){// mpre("Пустое значение от формы");
@@ -188,7 +188,8 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		} echo(htmlspecialchars(json_encode($el)));$_RETURN = 556;
 	} /*echo("Аварийный выход");*/$_RETURN = 556;
 }elseif(!$tpl['href'] = get($_GET, 'go_to_save') ?: call_user_func(function() use($arg){
-		if(!$base = "/{$arg["modpath"]}:admin/r:{$_GET["r"]}"){ mpre("Основной адрес страницы");
+		if(!$r = get($_GET, 'r')){ return "/"; mpre("Имя таблицы не установлено");
+		}elseif(!$base = "/{$arg["modpath"]}:admin/r:{$_GET["r"]}"){ mpre("Основной адрес страницы");
 		}elseif(!is_string($pager = (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""))){ mpre("Учитываем страницу на которой находимся в пагинаторе");
 		}elseif(!is_array($where = call_user_func(function(){
 				if(!$where = get($_GET, 'where')){ return [];
@@ -205,26 +206,35 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		}
 	})){ mpre("ОШИБКА составления ссылки");
 }else{ # Выборка таблицы
-	if(strpos($_GET['r'], "-") && ($r = explode("-", $_GET['r']))){
-		$_GET['r'] = $conf['db']['prefix']. first($r). "_". last($r);
+	if(!get($_GET, 'r')){ mpre("Имя таблицы не задано");
+	}elseif(strpos($_GET['r'], "-") && ($ex = explode("-", $_GET['r']))){
+		$_GET['r'] = $conf['db']['prefix']. first($ex). (($l = last($ex)) ? "_{$l}" : "");
 	} if($conf['db']['type'] == "sqlite"){
 		$tpl['tables'] = array_column(qn("SELECT * FROM sqlite_master WHERE type='table' AND name LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\"", "name"), "name");
 		sort($tpl['tables']);
 	}else{
 		$tpl['tables'] = array_column(ql("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\""), "Tables_in_{$conf['db']['name']}");
-	}
+	}// mpre($_GET['r']);
 	sort($tpl['tables']);
+
 	foreach($tpl['tables'] as $key=>$tables){
 		$short = implode("_", array_slice(explode("_", $tables), 0, -1));
 		if(($top = array_search($short, $tpl['tables'])) !== false){
 			$tpl['menu'][$top][] = $key;
 		}else{ $tpl['menu'][$key] = array(); }
-	} if(empty($_GET['r'])){
+	}
+	
+	if(empty($_GET['r'])){
 		$modules_index = fk("modules-index", array("folder"=>$arg['modpath']), null, array("priority"=>time()));
-		if($tpl['tables'] && ($table = array_shift($tables = $tpl['tables']))){
+
+		if(!$table = "{$arg['modpath']}-index"){ mpre("ОШИБКА формирования имени дефолтновй таблицы");
+		}elseif(!$tpl['tables']){ mpre("Таблиц в разделе не найдено переходим на основную", $table);
 			header("Location:/{$arg['modpath']}:admin/r:{$table}");$_RETURN = 556;
-		}elseif($table = "{$conf['db']['prefix']}{$arg['modpath']}_index"){
-			header("Location:/{$arg['modpath']}:admin/r:{$table}");$_RETURN = 556;
+		}elseif(!$table = first($tables = $tpl['tables'])){ mpre("ОШИБКА получения первой таблицы в списке таблиц раздела");
+		}elseif(!is_string($tb = (substr($table, strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))){ mpre("ОШИБКА получения короткой записи таблицы `{$table}`");
+		}elseif(!$_table = "{$arg['modpath']}-{$tb}"){ mpre("ОШИБКА формирования имени таблицы");
+		}else{ mpre("Переход на страницу таблицы", $table, $_table);
+			header("Location:/{$arg['modpath']}:admin/r:{$_table}");$_RETURN = 556;
 		}
 	}elseif(array_search($_GET['r'], $tpl['tables']) !== false){
 		$tpl['fields'] = fields($_GET['r']);
@@ -287,7 +297,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 				}else{ mpre("Поля таблицы $tables не определены"); }
 			}
 
-			$tpl['etitle'] = array("id"=>"Номер", 'time'=>'Время', 'up'=>'Обновление', 'down'=>'Окончание', 'uid'=>'Пользователь', 'count'=>'Количество', 'level'=>'Уровень', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'img2'=>'Изображение2', 'img3'=>'Изображение3', 'file'=>'Файл', 'hide'=>'Видим', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'duration'=>'Длительность', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'value'=>'Значение', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', "article"=>"Артикул", 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', "users_sity"=>'Город', 'log'=>'Лог', 'min'=>'Мин', 'max'=>'Макс', 'own'=>'Владелец', 'period'=>'Период', "from"=>"Откуда", "to"=>"Куда", "percentage"=>"Процент", 'description'=>'Описание', 'text'=>'Текст');
+			$tpl['etitle'] = array("id"=>"Номер", 'time'=>'Время', 'up'=>'Обновление', 'down'=>'Окончание', 'uid'=>'Пользователь', 'count'=>'Количество', 'level'=>'Уровень', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'img2'=>'Изображение2', 'img3'=>'Изображение3', 'file'=>'Файл', 'hide'=>'Видим', 'sum'=>'Сумма', 'fm'=>'Фамилия', 'im'=>'Имя', 'ot'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'duration'=>'Длительность', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'value'=>'Значение', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', "article"=>"Артикул", 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', "users_sity"=>'Город', 'log'=>'Лог', 'min'=>'Мин', 'max'=>'Макс', 'own'=>'Владелец', 'period'=>'Период', "from"=>"Откуда", "to"=>"Куда", "percentage"=>"Процент", 'description'=>'Описание', 'text'=>'Текст', 'result'=>"Результат", "place"=>"Место", "num"=>"Номер");
 			if($title = get($conf, 'settings', "{$arg['modpath']}_{$tab}=>title")){
 				$tpl['title'] = array_merge(array("id"), explode(",", $title));
 			}elseif(get($tpl, 'fields', "text")){

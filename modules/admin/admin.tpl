@@ -18,25 +18,25 @@
 	<? foreach(get($tpl, 'menu') ?: array() as $k=>$ar): ?>
 		<? if(!$r = $tpl['tables'][$k]): mpre("ОШИБКА получения полного имени таблицы") ?>
 		<? elseif(!$tab = substr($r, strlen($conf['db']['prefix']))): mpre("ОШИБКА расчета имени таблицы") ?>
-		<? elseif(!is_string($tb = (substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}")) ?: ""))): mpre("ОШИБКА получения короткого имени таблицы `{$r}`", gettype($tb)) ?>
-		<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$conf['db']['prefix']}{$tab}"): mpre("ОШИБКА формирования адреса перехода") ?>
+		<? elseif(!is_string($tb = (substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))): mpre("ОШИБКА получения короткого имени таблицы `{$r}`", gettype($tb)) ?>
+		<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$arg['modpath']}-{$tb}"): mpre("ОШИБКА формирования адреса перехода") ?>
 		<? elseif(!$name = (get($conf, 'settings', $tab) ?: $tb)): mpre("ОШИБКА формирования имени вкладки") ?>
 		<? elseif(!is_array($tables = array_intersect_key($tpl['tables'], array_flip($ar)))): mpre("ОШИБКА выборки списка нижестоящих таблиц") ?>
 		<? elseif(!is_string($act = (($_GET['r'] == $r) ? "act" : ""))): mpre("ОШИБКА определения класса активности вкладки") ?>
 		<? elseif(!is_string($subact = ((array_search(get($_GET, 'r'), $tables)) ? "subact" : ""))): mpre("ОШИБКА формирования класса активности вложенных таблиц") ?>
 		<? elseif(!is_string($sub = ($tables ? "sub" : ""))): mpre("ОШИБКА определения класса вложенных таблиц") ?>
-		<? else:// mpre($act) ?>
+		<? else:// mpre($tab) ?>
 			<li class="<?=$r?> <?=$act?> <?=$subact?> <?=$sub?>">
 				<a href="<?=$href?>"><?=$name?></a>
 				<ul>
 					<? foreach($ar as $n=>$v): ?>
 						<? if(!$r = $tpl['tables'][$v]): mpre("ОШИБКА получения полного имени вложенной таблицы") ?>
 						<? elseif(!$tab = substr($r, strlen($conf['db']['prefix']))): mpre("ОШИБКА формирования имени таблицы") ?>
-						<? elseif(!is_string($tb = (substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}")) ?: ""))): mpre("ОШИБКА получения короткого имени таблицы `{$r}`", gettype($tb)) ?>
-						<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$conf['db']['prefix']}{$tab}"): mpre("ОШИБКА формирования адреса перехода") ?>
-						<? elseif(!$name = (get($conf, 'settings', $tab) ?: substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}")))): mpre("ОШИБКА формирования имени вкладки") ?>
+						<? elseif(!is_string($tb = (substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))): mpre("ОШИБКА получения короткого имени таблицы `{$r}`", gettype($tb)) ?>
+						<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$arg['modpath']}-{$tb}"): mpre("ОШИБКА формирования адреса перехода") ?>
+						<? elseif(!$name = (get($conf, 'settings', $tab) ?: $tb)): mpre("ОШИБКА формирования имени вкладки") ?>
 						<? elseif(!is_string($subact = (($_GET['r'] == $r) ? "subact" : ""))): mpre("ОШИБКА определения класса активности вкладки") ?>
-						<? else: ?>
+						<? else:// mpre($tb) ?>
 							<li class="<?=$r?> <?=$subact?>" style="display:block; min-width:120px;">
 								<a href="<?=$href?>"><?=$name?></a>
 							</li>
@@ -136,7 +136,30 @@
 <? endif; ?>
 <div class="lines">
 	<div class="inner">
-		<? if(array_search($_GET['r'], $tpl['tables']) !== false): ?>
+		<? if(array_search($_GET['r'], $tpl['tables']) === false): ?>
+			<div style="margin:10px;">
+				<script>
+					(function($, script){
+						$(script).parent().on("click", "button.table", function(e){
+							if(value = prompt("Название таблицы")){
+								$.post("/sqlanaliz:admin_sql/null", {table:"<?=$_GET['r']?>"}, function(data){
+									$.post("/settings:admin/r:mp_settings/null", {modpath:"<?=$arg['modpath']?>", name:"<?=substr($_GET['r'], strlen($conf['db']['prefix']))?>", value:value, aid:4}, function(data){
+										console.log("post:", data);
+										document.location.reload(true);
+									});
+								}, "json").fail(function(error){
+									console.log("error:", error);
+									alert(error.responseText);
+								});
+							}
+						})
+					})(jQuery, document.scripts[document.scripts.length-1])
+				</script> Таблица не найдена
+				<? if($conf['modules']['sqlanaliz']['admin_access'] > 4): ?>
+					<button class="table">Создать</button>
+				<? endif; ?>
+			</div>
+		<? else: ?>
 			<style>
 				.lines, .lines .inner {
 					-moz-transform: scaleY(-1); /* Переворачивает элемент со скролом (чтобы поставить его сверху) */
@@ -145,7 +168,7 @@
 				.lines { position:relative; }
 				.lines .inner { /*position:absolute;*/ bottom:0; width:100%;}
 
-.table > .th > span:first-child,
+				.table > .th > span:first-child,
 				.table [line_id] >span:first-child{
 						background-color:#fff;
 						position: absolute;
@@ -163,7 +186,7 @@
 				.table > div.active {background-color:#d4d4d4;}
 				.table > div >span:hover {background-color:#eee;}
 				.lines .pager {margin:10px;}
-				.table .th > span {font-weight:bold; background:url(i/gradients.gif) repeat-x 0 -57px; border-top: 1px solid #dbdbdd; border-bottom: 1px solid #dbdbdd; line-height: 27px; white-space:nowrap;}
+				.lines .table div.th > span {font-weight:bold; background:url(i/gradients.gif) repeat-x 0 -57px; border-top: 1px solid #dbdbdd; border-bottom: 1px solid #dbdbdd; line-height: 27px; white-space:nowrap; color:gray; }
 				.table .info {background-color:blue; color:white; border-radius:8px;   padding: 0 4px; width:12px; height:12px; text-align:center; cursor:pointer; font-weight:bolder;}
 				.table input[type="text"], .table select {width:100%;}
 				.table textarea {width:100%; height:150px;}
@@ -179,20 +202,19 @@
 					var ch = $('input[type=checkbox][name="id"]');	
 					var lastChecked = null;
 					ch.on("click",function(e) {
-							console.log(lastChecked);
-							if(!lastChecked) {
-								lastChecked = this;
-								return;
-							}
-							if(e.shiftKey) {
-								var start = ch.index(this);
-								var end = ch.index(lastChecked);
-								ch.slice(Math.min(start,end), Math.max(start,end)+ 1).prop('checked', lastChecked.checked);
-							}
+						console.log(lastChecked);
+						if(!lastChecked) {
 							lastChecked = this;
-							console.log(lastChecked);
-						});
-					
+							return;
+						}
+						if(e.shiftKey) {
+							var start = ch.index(this);
+							var end = ch.index(lastChecked);
+							ch.slice(Math.min(start,end), Math.max(start,end)+ 1).prop('checked', lastChecked.checked);
+						}
+						lastChecked = this;
+						console.log(lastChecked);
+					});
 				});
 				(function($, script){
 					$('#content >.lines').on('scroll', function () {console.log(44);
@@ -200,7 +222,6 @@
 					});
 					
 					$(script).parent().on("click", ".control a.del", function(del){
-	//					var all = $(del.currentTarget).parents(".th").length;
 						var checkbox = $(del.currentTarget).parents("[line_id]").find("input[type=checkbox]");
 						var checked = $(checkbox).is(":checked");
 						console.log("checkbox:", checkbox, "checked:", checked);
@@ -285,20 +306,8 @@
 							console.error("error:", error);
 							alert(error.responseText);
 						});
-					})/*.on("click", "[line_id] a.del", function(e){// alert("Удаление");
-						if(e.ctrlKey || confirm("Удалить элемент?")){
-							var line_id = $(e.currentTarget).parents("[line_id]").attr("line_id");
-							var fn = $(e.currentTarget).parents("[fn]").attr("fn");
-							var post = {}; post[fn] = "";
-							$(e.currentTarget).find("img").css("opacity", 0.3);
-							$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/"+ line_id+ "/null", post, function(response){
-								console.log("line_id:", line_id, "response:", response);
-								document.location.reload(true);
-							})
-						}
-					})*/.on("click", "select", function(e){
+					}).on("click", "select", function(e){
 						if(e.altKey){
-	//						alert("Сработало");
 							if($(e.currentTarget).is("[multiple]")){
 								$(e.currentTarget).removeAttr("multiple");
 								$(e.currentTarget).css({height:"", position:"inherit", top:""});
@@ -359,7 +368,6 @@
 								try{if(json = JSON.parse(data)){
 									console.log("json:", json);
 									var button = $(e.delegateTarget).find("button[type=submit]:focus");
-	//								console.log("button:", button, "content:", $(button).text());
 									if("Дублировать" == $(button).text()){
 										document.location.href = '<?="/{$arg["modpath"]}:admin/r:{$_GET["r"]}". (get($_GET, "p") ? "/p:{$_GET["p"]}" : ""). "?&edit="?>'+ json.id+ '<?=(get($_GET, "where") ? "&". implode("&", array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($where = $_GET["where"]), $where)) : "")?><?=(($limit = get($_GET, "limit")) ? "/limit:{$limit}" : "")?>';
 									}else{
@@ -374,21 +382,22 @@
 				</script>
 				
 				<div class="table">
-					<? if(get($tpl, 'title') && array_key_exists("edit", $_GET)): ?>
+					<? if(!is_array($edit = (get($_GET, 'where', 'id') ? rb($_GET['r'], "id", get($_GET, 'where', 'id')) : []))): mpre("ОШИБКА выборки редактируемого элемента") ?>
+					<? elseif(get($tpl, 'title') && (array_key_exists("edit", $_GET) || ($tpl['edit'] = $edit))): ?>
 						<div class="th">
-							<span style="width:15%;">Поле</span>
+							<span style="width:15%; text-align:right;">Поле</span>
 							<span>Значение</span>
 						</div>
-						<? foreach($tpl['fields'] as $name=>$field): ?>
+						<? foreach($tpl['fields'] as $name=>$field):// mpre($name, $field) ?>
 							<div>
 								<span style="text-align:right;">
 									<? if($comment = get($field, 'Comment')): ?>
 										<span class="info" title="<?=$comment?>">?</span>
 									<? endif; ?>
 									<? if($etitle = get($tpl, 'etitle', $name)): ?>
-										<?=$etitle?>
+										<span title="<?=$name?>"><?=$etitle?></span>
 									<? elseif(substr($name, -3) == "_id"): ?>
-										<?=(get($conf, 'settings', "{$arg['modpath']}_". substr($name, 0, -3)) ?: substr($name, 0, -3))?>
+										<span title="<?=$name?>"><?=(get($conf, 'settings', "{$arg['modpath']}_". substr($name, 0, -3)) ?: substr($name, 0, -3))?></span>
 									<? else: ?>
 										<?=htmlspecialchars($name)?>
 									<? endif; ?>
@@ -397,7 +406,7 @@
 									<? if($name == "id"): # Вертикальное отображение ?>
 										<?=(get($tpl, 'edit', "id") ?: "Номер записи назначаеся ситемой")?>
 									<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#^img(\d*|_.+)?#iu",$name)): ?>
-										<input type="file" name="<?=$name?>[]" multiple="true">
+										<input type="file" name="<?=$name?>[]" multiple="true" <?=(array_key_exists("edit", $_GET) ? "" : "disabled")?>>
 										<span class="info_comm">
 											<a href="/<?=$arg['modpath']?>:img/<?=get($tpl, 'lines', get($tpl, 'edit', "id"))['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$name?>/w:109/h:109/null/img.png" target="_blank"><?=get($tpl,'edit',$name);?></a>
 										</span>
@@ -405,27 +414,27 @@
 										<input type="file" name="<?=$name?>[]" multiple="true">
 										<span class="info_comm"><?=get($tpl,'edit',$name);?></span>
 									<? elseif($name == "hide"): ?>
-										<select name="hide">
+										<select name="hide" <?=(array_key_exists("edit", $_GET) ? "" : "disabled")?>>
 											<? foreach(get($tpl, 'spisok', 'hide') as $k=>$v): ?>
 												<option value="<?=$k?>" <?=((!get($tpl, 'edit') && (get($field, 'Default') == $k)) || ($k == get($tpl, 'edit', 'hide')) ? "selected" : "")?>><?=$v?></option>
 											<? endforeach; ?>
 										</select>
 									<? elseif($name == "uid"): ?>
-										<select name="<?=$name?>">
+										<select name="<?=$name?>" <?=(array_key_exists("edit", $_GET) ? "" : "disabled")?>>
 											<option value="NULL"></option>
 											<? foreach(rb("{$conf['db']['prefix']}users") as $uid): ?>
 												<option value="<?=$uid['id']?>" <?=((get($tpl, 'edit', $name) == $uid['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $uid['id'])) || (get($_GET, 'where', 'uid') && $_GET['where']['uid'] == $uid['id']) ? "selected" : "")?>><?=$uid['name']?></option>
 											<? endforeach; ?>
 										</select>
 									<? elseif($name == "gid"): ?>
-										<select name="<?=$name?>">
+										<select name="<?=$name?>" <?=(array_key_exists("edit", $_GET) ? "" : "disabled")?>>
 											<option value="NULL"></option>
 											<? foreach(rb("{$conf['db']['prefix']}users_grp") as $gid): ?>
 												<option value="<?=$gid['id']?>" <?=((get($tpl, 'edit', $name) == $gid['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $uid['id'])) ? "selected" : "")?>><?=$uid['name']?></option>
 											<? endforeach; ?>
 										</select>
 									<? elseif($name == "mid"): ?>
-										<select name="<?=$name?>">
+										<select name="<?=$name?>" <?=(array_key_exists("edit", $_GET) ? "" : "disabled")?>>
 											<option value="NULL"></option>
 											<? foreach(rb("{$conf['db']['prefix']}modules_index") as $modules): ?>
 												<option value="<?=$mid['id']?>" <?=((get($tpl, 'edit', $name) == $modules['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $modules['id'])) ? "selected" : "")?>><?=$modules['name']?></option>
@@ -438,7 +447,7 @@
 												}else{ return time(); }
 											}, $name))): mpre("ОШИБКА расчета текущего времени") ?>
 										<? else: ?>
-											<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", $time)?>" placeholder="<?=($tpl['etitle'][get($match,2)] ?: $name)?>">
+											<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", $time)?>" <?=(array_key_exists("edit", $_GET) ? "" : "disabled")?> placeholder="<?=($tpl['etitle'][get($match,2)] ?: $name)?>">
 										<? endif; ?>
 									<? elseif((substr($name, -3) == "_id") && (false === array_search(substr($name, 0, -3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
 										<? if(!get($conf, 'settings', 'admin_datalist')): ?>
@@ -457,10 +466,9 @@
 										<? elseif(!is_array($LIST = rb("{$arg['modpath']}-{$tab}"))): mpre("ОШИБКА выборки списка для поля") ?>
 										<? elseif((!$list_id = (get($tpl, 'edit', $name) ?: get($_GET, 'where', $name))) && !is_numeric($list_id) && !is_string($list_id) && !is_null($list_id)): mpre("ОШИБКА определения номера списка `{$name}`", get($tpl, 'edit'), $name, gettype($list_id)) ?>
 										<? elseif(!is_array($list = rb($LIST, "id", $list_id))): mpre("ОШИБКА выборки связанной таблицы") ?>
-										<? elseif((!$list_value = get($list, 'name')) && !is_numeric($list_value) && !is_string($list_value) && !is_null($list_value)): mpre("ОШИБКА
- определения занчения списка", gettype($list_value)) ?>
+										<? elseif((!$list_value = get($list, 'name')) && !is_numeric($list_value) && !is_string($list_value) && !is_null($list_value)): mpre("ОШИБКА определения занчения списка", gettype($list_value)) ?>
 										<? else:// mpre(htmlspecialchars($list_value)) ?>
-											<input type="text" name="<?=$name?>" value="<?=($list ? htmlspecialchars($list_value) : ($list_id ?: ""))?>" list="<?=$name?>_list" style="background-color:#ddd;">
+											<input type="text" name="<?=$name?>" value="<?=($list ? htmlspecialchars($list_value) : ($list_id ?: ""))?>" <?=(array_key_exists("edit", $_GET) ? "" : "disabled")?> list="<?=$name?>_list" style="background-color:#ddd;">
 											<datalist id="<?=$name?>_list">
 												<? foreach($LIST as $list): ?>
 													<option value="<?=htmlspecialchars(array_key_exists('name', $list) ? get($list, 'name') : $list_id)?>"><?=$list['id']?></option>
@@ -468,7 +476,11 @@
 											</datalist>
 										<? endif; ?>
 									<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#(^|.+_)(text)(\d+|_.+|$)#iu",$name)): ?>
-										<?=mpwysiwyg($name, get($tpl, 'edit', $name) ?: "")?>
+										<? if(array_key_exists("edit", $_GET)): ?>
+											<?=mpwysiwyg($name, get($tpl, 'edit', $name) ?: "")?>
+										<? else: ?>
+											<div style="width:100%; height:200px; border:1px solid #ccc;"><?=get($tpl['edit'], $name)?></div>
+										<? endif; ?>
 									<?// elseif($tpl_espisok = get($tpl, 'espisok', $name)): ?>
 									<?// elseif(array_key_exists($name, $tpl['espisok'])): ?>
 									<? elseif(get($tpl, 'espisok') && array_key_exists($name, $tpl['espisok'])): ?>
@@ -485,7 +497,7 @@
 											<? endforeach; ?>
 										</select>
 									<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>
-										<input type="text" name="<?=$name?>" value="<?=htmlspecialchars(get($tpl, 'edit') ? rb($_GET['r'], "id", get($_GET, 'edit'), $name) : get($field, 'Default'))?>" placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
+										<input type="text" name="<?=$name?>" value="<?=htmlspecialchars(get($tpl, 'edit') ? get($tpl['edit'], $name) : get($field, 'Default'))?>" <?=(array_key_exists("edit", $_GET) ? "" : "disabled")?> placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
 									<? endif; ?>
 								</span>
 							</div>
@@ -493,8 +505,12 @@
 						<div>
 							<span></span>
 							<span>
-								<button type="submit">Сохранить</button>
-								<button type="submit" name="_id" value="NULL">Дублировать</button>
+								<? if(array_key_exists("edit", $_GET)): ?>
+									<button type="submit">Сохранить</button>
+									<button type="submit" name="_id" value="NULL">Дублировать</button>
+								<? else: ?>
+									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=get($_GET, 'r')?>?&edit=<?=get($_GET, 'where', 'id')?>&where[id]=<?=get($_GET, 'where', 'id')?>">Редактировать</a>
+								<? endif; ?>
 							</span>
 						</div>
 					<? else: # Горизонтальный вариант таблицы ?>
@@ -533,7 +549,8 @@
 								<div line_id="<?=$lines['id']?>">
 									<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($lines, array_flip($tpl['title'])) : $lines), get($tpl, 'counter') ?: array(), get($tpl, 'ecounter') ?: array()) as $k=>$v): ?>
 										<span>
-											<? if(substr($k, 0, 2) == "__"): // $tpl['ecounter'] ?>
+											<? if(!$tb = implode("_", array_filter(explode("_", $k)))): mpre("ОШИБКА получения короткого имени таблицы") ?>
+											<? elseif(substr($k, 0, 2) == "__"): // $tpl['ecounter'] ?>
 												<? if(!$tab = substr($k, 2)): mpre("Ошибка поиска названия таблицы в адресе") ?>
 												<? elseif(!$m = first(explode('_', first(explode("-", $tab))))): mpre("Ошибка определения модуля таблицы для подсчета") ?>
 												<? elseif(!$field = call_user_func(function($tab, $table) use($conf){
@@ -546,23 +563,27 @@
 														}elseif(array_key_exists($fields2, $FIELDS)){ return $fields2; mpre("В таблица используется дополнительное название поля");
 														}else{ mpre("Свзанное поле счетчика [{$fields1},{$fields2}] с текущей таблицей `{$curtab}` в удаленной таблице `{$tab}` не найдено", $FIELDS); }
 													}, $tab, $_GET['r'])): mpre("Ошибка нахождения имени поля") ?>
-												<? elseif(!$href = "/{$m}:admin/r:". (strpos($tab, '-') ? "" : $conf['db']['prefix']). "{$tab}?&where[{$field}]={$lines['id']}"): mpre("Ошибка генерации ссылки на связанную таблицу") ?>
-												<? else:// mpre($m, $field) ?>
+												<? elseif(!$href = "/{$m}:admin/r:{$arg['modpath']}-{$tb}?&where[{$field}]={$lines['id']}"): mpre("Ошибка генерации ссылки на связанную таблицу") ?>
+												<? else:// mpre($tab) ?>
 													<a href="<?=$href?>">
 														<?=(($cnt = get($v, $lines['id'], 'cnt')) ? "{$cnt}&nbspшт" : "Нет")?>
 													</a>
 												<? endif; ?>
-											<? elseif(substr($k, 0, 1) == "_"): // $tpl['counter'] ?>
-												<a href="/<?=$arg['modpath']?>:admin/r:<?="{$conf['db']['prefix']}{$arg['modpath']}{$k}?&where[". (($_GET['r'] == "{$conf['db']['prefix']}users") && ($k == "_mem") ? "uid" : substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "_id"). "]={$lines['id']}"?>">
+											<? elseif(substr($k, 0, 1) == "_"):// mpre($tab) ?>
+												<a href="/<?=$arg['modpath']?>:admin/r:<?="{$arg['modpath']}-{$tb}?&where[". (($_GET['r'] == "{$conf['db']['prefix']}users") && ($k == "_mem") ? "uid" : substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "_id"). "]={$lines['id']}"?>">
 													<?=(($cnt = get($tpl, 'counter', $k, $lines['id'])) ? "{$cnt}&nbspшт" : "Нет")?>
 												</a>
 											<? elseif($k == "id"): ?>
-												<span class="control" style="white-space:nowrap;">
-													<a class="del" href="javascript:"></a>
-													<a class="edit" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&edit=<?=$v?><? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'order') ? "&order={$_GET['order']}" : "")?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : "")?>"></a>
-													<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&where[id]=<?=$v?>"><?=$v?></a>
-													<input type="checkbox" name="id" value="<?=$v?>" style="display:none;">
-												</span>
+												<? if(!is_string($tb = (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))): mpre("ОШИБКА получения короткого имени таблицы") ?>
+												<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$arg['modpath']}-{$tb}?&where[id]={$v}"): mpre("ОШИБКА формирования адреса фильтра по записи") ?>
+												<? else: ?>
+													<span class="control" style="white-space:nowrap;">
+														<a class="del" href="javascript:"></a>
+														<a class="edit" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&edit=<?=$v?><? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'order') ? "&order={$_GET['order']}" : "")?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : "")?>"></a>
+														<a href="<?=$href?>"><?=$v?></a>
+														<input type="checkbox" name="id" value="<?=$v?>" style="display:none;">
+													</span>
+												<? endif; ?>
 											<? elseif(!preg_match("#_id$#ui",$k) AND preg_match("#^img(\d*|_.+)?#iu",$k)): ?>
 												<div class="imgs" fn="<?=$k?>" style="position:relative; height:14px;">
 													<a class="del <?=($lines[$k]?"":"disabled")?>" href="javascript:void(0)" title="Удалить изображение"><img src="/img/del.png"></a>
@@ -645,6 +666,13 @@
 											<? elseif($k == "name"): ?>
 												<a href="/<?=$arg['modpath']?>:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/<?=$lines['id']?>"><?=htmlspecialchars($v)?>
 												</a>
+											<? elseif($k == "href"): ?>
+												<? if(!$href = $v): ?>
+												<? elseif(!parse_url($href)): mpre("ОШИБКА парсинга адреса") ?>
+													<?=htmlspecialchars(strip_tags($v))?>
+												<? else: ?>
+													<a href="<?=$href?>"><?=$href?></a>
+												<? endif; ?>
 											<? else: ?>
 												<?=htmlspecialchars(strip_tags($v))?>
 											<? endif; ?>
@@ -748,7 +776,8 @@
 											<? //elseif(!is_string($list_value = (get($list, 'name') ?: ""))): mpre("ОШИБКА получения значения поля имени", $list) ?>
 											<? elseif(!is_string($list_value = call_user_func(function($_LIST) use($list, $list_id){
 													if(!$list_id){// mpre("Идентификатор не задан");
-													}elseif(1 < count($_LIST)){ return "{$list['id']}.{$list['name']}"; mpre("Не уникальное значение имени", "{$list['id']}.{$list['name']}");
+													}elseif(!is_string($name = (($n = get($list, 'name')) ? ".{$n}" : ""))){ mpre("ОШИБКА формирования имени элемента");
+													}elseif(1 < count($_LIST)){ return "{$list['id']}{$name}"; mpre("Не уникальное значение имени", "{$list['id']}.{$list['name']}");
 													}elseif(!$name = get($list, 'name')){ return $list_id; mpre("Имя элемента не задано");
 													}else{ return $name;
 													} return "";
@@ -781,33 +810,6 @@
 					<? endif; ?>
 				</div>
 			</form>
-		<? else: ?>
-			<div style="margin:10px;">
-				<script>
-					(function($, script){
-						$(script).parent().on("click", "button.table", function(e){
-							if(value = prompt("Название таблицы")){
-								$.post("/sqlanaliz:admin_sql/null", {table:"<?=$_GET['r']?>"}, function(data){
-									$.post("/settings:admin/r:mp_settings/null", {modpath:"<?=$arg['modpath']?>", name:"<?=substr($_GET['r'], strlen($conf['db']['prefix']))?>", value:value, aid:4}, function(data){
-										console.log("post:", data);
-										document.location.reload(true);
-									}/*, "json").fail(function(error){
-										console.log("error:", error);
-										alert(error.responseText);
-									}*/);
-								}, "json").fail(function(error){
-									console.log("error:", error);
-									alert(error.responseText);
-								});
-							}
-						})
-					})(jQuery, document.scripts[document.scripts.length-1])
-				</script>
-				Таблица не найдена
-				<? if($conf['modules']['sqlanaliz']['admin_access'] > 4): ?>
-					<button class="table">Создать</button>
-				<? endif; ?>
-			</div>
 		<? endif; ?>
 	</div>
 </div>
