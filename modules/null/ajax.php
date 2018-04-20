@@ -14,6 +14,14 @@ if(!get($_REQUEST, 'class')){ exit(mpre("Класс не задан"));
 	}elseif(!$response = rb($class, "id", $_GET['id'])){ die("Ошибка выборки удаляемого элемента");
 	}elseif(qw($sql)){ die("Запрос к БД вернул ошибку");
 	}else{ exit(json_encode($response)); }
+}elseif(!call_user_func(function($class){// mpre($fdk);
+		if($class != "mp_pages_voting_voice"){ return true;
+		}elseif(!$email = get($_REQUEST, 'email')){ pre("Адрес почты для отправки подтверждения не указан", $_REQUEST);
+		}elseif(!$pages_voting = rb($class, 'email', "[{$email}]")){ return true; pre("ОШИБКА выборки голоса `{$email}`");
+		}else{// mpre($pages_voting);
+			die("Мы рады что вы снова с нами, но вы уже голосовали на нашем сайте.");
+		}
+	}, $class)){ die(pre("ОШИБКА отправки сообщения для проверки электронной почты"));
 }elseif(!$fdk = fdk($class, $where, ['time'=>time()] + ($w = ($where + ($_POST ? $w : []))), $w)){ exit(!pre("Ошибка запроса к БД", $class, $where, $w));
 }elseif(array_key_exists("sort", $fdk) && ($fdk['sort'] == 0) && (!$fdk = fdk($class, array("id"=>$fdk['id']), null, array("sort"=>$fdk['id'])))){ mpre("Ошибка установки значения сортировки");
 }elseif($_FILES && !call_user_func(function($FILES){

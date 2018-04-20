@@ -4,7 +4,7 @@ if(!$_POST){//mpre("Не аякс запрос");
 }elseif(!$name = mpquot(get($_POST, 'name'))){ die(!pre("Регистрационное имя не указано"));
 }elseif(!$pass = get($_POST, 'pass')){ die(!pre("Пароль для регистрации не указан"));
 }elseif(get($_POST, 'pass') != get($_POST, 'pass2')){ die(!pre("Пароли не совпадают"));
-}elseif($users = rb("{$conf['db']['prefix']}users","name","[{$name}]")){ die(!pre("Пользователь уже зарегистрирован"));
+}elseif($users = rb("{$conf['db']['prefix']}users","name","[{$name}]")){ die("Пользователь уже зарегистрирован");
 }elseif(!$sess = get($conf, 'user', 'sess')){ die(!pre("Ошибка полученя сессии текущего пользователя"));
 }elseif(!$mphash = mphash($name, $pass)){ die(!pre("Ошибка генерации пароля"));
 }elseif(!$users = fk("{$conf['db']['prefix']}users", $w = array("name"=>$name), $w += array("type_id"=>1, "pass"=>$mphash, "reg_time"=>time(), "last_time"=>time(), "email"=>get($_POST, 'email'), "ref"=>get($conf, 'user', 'sess', 'ref'), "refer"=>get($conf, 'user', 'sess', 'refer')))){ die(!pre("Ошибка регистрации пользователя"));
