@@ -1191,7 +1191,7 @@ function erb($src, $key = null){
 						return "ALTER TABLE `{$table}` ADD INDEX (`{$key}`)";
 					}else{ mpre("ОШИБКА создания ключа (База данных не определена)"); }
 				}, array_keys($keys)))){// mpre("Список запросов на добавление ключа - пуст (уже устанволены)");
-			}elseif(!$RESULT = array_map(function($sql){
+			}elseif(!$RESULT = array_map(function($sql) use($table){
 					if(!$result = qw($sql)){ mpre("ОШИБКА выполнения запроса добавления ключа поиска");
 					}else{ mpevent("Добавление ключа к таблице `{$table}` для полей выборки", $sql);
 						return $result;
