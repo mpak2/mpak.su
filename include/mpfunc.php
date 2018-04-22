@@ -1185,7 +1185,6 @@ function erb($src, $key = null){
 					}elseif(!$field = get($FIELDS, $key)){ mpre("ОШИБКА поулчения параметров поля");
 					}elseif("sqlite" == $conf['db']['type']){// mpre("Запрос для создания ключа БД sqlite");
 						return "CREATE INDEX `{$name}` ON `{$table}` (`{$key}`);";
-//					}elseif(true){ mpre($key, $FIELDS);
 					}elseif("text" == get($field, 'Type')){// mpre("Запрещенный для индексирования тип поля");
 					}elseif("mysql" == $conf['db']['type']){// mpre("Запрос для создания ключа БД mysql");
 						return "ALTER TABLE `{$table}` ADD INDEX (`{$key}`)";
@@ -1193,7 +1192,7 @@ function erb($src, $key = null){
 				}, array_keys($keys)))){// mpre("Список запросов на добавление ключа - пуст (уже устанволены)");
 			}elseif(!$RESULT = array_map(function($sql) use($table){
 					if(!$result = qw($sql)){ mpre("ОШИБКА выполнения запроса добавления ключа поиска");
-					}else{ mpevent("Добавление ключа к таблице `{$table}` для полей выборки", $sql);
+					}else{ mpevent("Добавление ключа к таблице", $sql);
 						return $result;
 					}
 				}, $SQL)){ mpre("ОШИБКА запуска запросов на создание ключей", $SQL);
