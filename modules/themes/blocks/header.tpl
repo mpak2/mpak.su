@@ -463,11 +463,14 @@
 			<? elseif(!$types = ['ttf'=>'truetype', 'woff'=>'woff', 'svg'=>'svg']): mpre("ОШИБКА задания типов шрифтов") ?>
 			<? elseif(!$ext = last(explode(".", $fonts['file']))): mpre("ОШИБКА определения расширения файла шрифта") ?>
 			<? elseif(!$type = get($types, $ext)): mpre("ОШИБКА определения типа шрифта") ?>
-			<? else: ?>
+			<? elseif(!is_string($size = (get($fonts_selector, 'size') ?: ""))): mpre("ОШИБКА получения размера") ?>
+			<? elseif(!is_string($size = (is_numeric($size) ? "{$size}px" : $size))): mpre("ОШИБКА определения значения размера") ?>
+			<? else:// mpre($size) ?>
 				@font-face{
 					font-family: "<?=$fonts['name']?>";
 					src: url("/include/<?=$fonts['file']?>") format("<?=$type?>")
-				} <?=$fonts_selector['selector']?> { font-family: "<?=$fonts['name']?>"; }
+				}
+				<?=$fonts_selector['selector']?> { font-family: "<?=$fonts['name']?>"; font-size:<?=($size ?: "inherit")?>; }
 			<? endif; ?>
 		<? endforeach; ?>
 	</style>
