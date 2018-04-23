@@ -451,3 +451,27 @@
 		})(jQuery, document.currentScript)
 	</script>
 <? endif; ?>
+
+<? if(!get($conf, 'settings', 'themes_fonts')):// mpre("Таблица шрифтов не создана") ?>
+<? elseif(!get($conf, 'settings', 'themes_fonts_selector')):// mpre("Таблица элементов шрифтов не создана") ?>
+<? elseif(!$FONTS_SELECTOR = rb('themes-fonts_selector', 'hide', 'id', 0)): mpre("ОШИБКА получения списка элементов шрифтов") ?>
+<? elseif(!$FONTS = rb('themes-fonts', 'id', 'id', rb($FONTS_SELECTOR, 'fonts_id'))): mpre("ОШИБКА получения списка шрифтов") ?>
+<? else:// mpre("ШРИФТЫ") ?>
+	<style>
+		<? foreach($FONTS_SELECTOR as $fonts_selector): ?>
+			<? if(!$fonts = rb($FONTS, 'id', $fonts_selector['fonts_id'])): mpre("ОШИБКА определения шрифта селектора") ?>
+			<? elseif(!$types = ['ttf'=>'truetype', 'woff'=>'woff', 'svg'=>'svg']): mpre("ОШИБКА задания типов шрифтов") ?>
+			<? elseif(!$ext = last(explode(".", $fonts['file']))): mpre("ОШИБКА определения расширения файла шрифта") ?>
+			<? elseif(!$type = get($types, $ext)): mpre("ОШИБКА определения типа шрифта") ?>
+			<? elseif(!is_string($size = (get($fonts_selector, 'size') ?: ""))): mpre("ОШИБКА получения размера") ?>
+			<? elseif(!is_string($size = (is_numeric($size) ? "{$size}px" : $size))): mpre("ОШИБКА определения значения размера") ?>
+			<? else:// mpre($size) ?>
+				@font-face{
+					font-family: "<?=$fonts['name']?>";
+					src: url("/include/<?=$fonts['file']?>") format("<?=$type?>")
+				}
+				<?=$fonts_selector['selector']?> { font-family: "<?=$fonts['name']?>"; font-size:<?=($size ?: "inherit")?>; }
+			<? endif; ?>
+		<? endforeach; ?>
+	</style>
+<? endif; ?>

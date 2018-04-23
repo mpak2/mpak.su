@@ -501,7 +501,7 @@
 											<? endif; ?>
 											<option value="NULL"></option>
 											<? foreach($tpl['espisok'][$name] as $espisok): ?>
-												<option value="<?=$espisok['id']?>" <?=(((!get($tpl, 'edit') && ($field['Default'] == $espisok['id'])) || ($espisok['id'] == get($tpl, 'edit', $name)) || (array_key_exists('edit', $_GET) && (get($_GET, 'where', $name) == $espisok['id']))) ? "selected" : "")?>><?=$espisok['id']?> <?=$espisok['name']?></option>
+												<option value="<?=$espisok['id']?>" <?=(((!get($tpl, 'edit') && ($field['Default'] == $espisok['id'])) || ($espisok['id'] == get($tpl, 'edit', $name)) || (array_key_exists('edit', $_GET) && (get($_GET, 'where', $name) == $espisok['id']))) ? "selected" : "")?>><?=$espisok['id']?> <?=get($espisok, 'name')?></option>
 											<? endforeach; ?>
 										</select>
 									<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>
@@ -776,7 +776,7 @@
 											<? elseif(!is_array($LIST = rb("{$arg['modpath']}-{$tab}"))): mpre("ОШИБКА выборки списка для поля") ?>
 											<?// elseif((!$list_id = (get($tpl, 'edit', 'id') ?: get($_GET, 'where', $name))) && !is_numeric($list_id) && !is_string($list_id) && !is_null($list_id)): mpre("ОШИБКА определения номера списка `{$name}`", get($tpl, 'edit'), $name, gettype($list_id)) ?>
 											<? elseif(!is_numeric($list_id = call_user_func(function($tpl) use($name){
-													if($list_id = get($tpl, 'edit', $name)){ return $list_id; mpre("Берем из значения редактируемых данных");
+													if($list_id = get($tpl, 'edit', $name)){ return (int)$list_id; mpre("Берем из значения редактируемых данных");
 													}elseif($list_id = get($_GET, 'where', $name)){ return $list_id; mpre("Берем из параметра условия");
 													}else{// mpre("Идентификатор записи не установлен");
 														return 0;
