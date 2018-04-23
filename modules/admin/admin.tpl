@@ -391,7 +391,7 @@
 				
 				<div class="table">
 					<? if(!is_array($edit = (get($_GET, 'where', 'id') ? rb($_GET['r'], "id", get($_GET, 'where', 'id')) : []))): mpre("ОШИБКА выборки редактируемого элемента") ?>
-					<? elseif(get($tpl, 'title') && (array_key_exists("edit", $_GET) || ($tpl['edit'] = $edit))): ?>
+					<? elseif(get($tpl, 'title') && array_key_exists("edit", $_GET) && ($tpl['edit'] = $edit)): ?>
 						<div class="th">
 							<span style="width:15%; text-align:right;">Поле</span>
 							<span>Значение</span>
@@ -412,9 +412,13 @@
 								</span>
 								<span>
 									<? if($name == "id"): # Вертикальное отображение ?>
-										<?=(get($tpl, 'edit', "id") ?: "Номер записи назначаеся ситемой")?>
+										<? if(get($tpl, 'edit', "id")): ?>
+											<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=get($_GET, 'r')?>?&where[id]=<?=get($_GET, 'where', 'id')?>"><?=$tpl['edit']['id']?></a>
+										<? else: ?>
+										Номер записи назначаеся ситемой
+										<? endif; ?>
 									<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#^img(\d*|_.+)?#iu",$name)): ?>
-										<input type="file" name="<?=$name?>[]" multiple="true" <?=(array_key_exists("edit", $_GET) ? "" : "disabled")?>>
+										<input type="file" name="<?=$name?>[]" multiple="true" <?=(get($_GET, "edit") ? "" : "disabled")?>>
 										<span class="info_comm">
 											<a href="/<?=$arg['modpath']?>:img/<?=get($tpl, 'lines', get($tpl, 'edit', "id"))['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$name?>/w:109/h:109/null/img.png" target="_blank"><?=get($tpl,'edit',$name);?></a>
 										</span>
@@ -422,27 +426,27 @@
 										<input type="file" name="<?=$name?>[]" multiple="true">
 										<span class="info_comm"><?=get($tpl,'edit',$name);?></span>
 									<? elseif($name == "hide"): ?>
-										<select name="hide" <?=(array_key_exists("edit", $_GET) ? "" : "disabled")?>>
+										<select name="hide" <?=(get($_GET, "edit") ? "" : "disabled")?>>
 											<? foreach(get($tpl, 'spisok', 'hide') as $k=>$v): ?>
 												<option value="<?=$k?>" <?=((!get($tpl, 'edit') && (get($field, 'Default') == $k)) || ($k == get($tpl, 'edit', 'hide')) ? "selected" : "")?>><?=$v?></option>
 											<? endforeach; ?>
 										</select>
 									<? elseif($name == "uid"): ?>
-										<select name="<?=$name?>" <?=(array_key_exists("edit", $_GET) ? "" : "disabled")?>>
+										<select name="<?=$name?>" <?=(get($_GET, "edit") ? "" : "disabled")?>>
 											<option value="NULL"></option>
 											<? foreach(rb("{$conf['db']['prefix']}users") as $uid): ?>
 												<option value="<?=$uid['id']?>" <?=((get($tpl, 'edit', $name) == $uid['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $uid['id'])) || (get($_GET, 'where', 'uid') && $_GET['where']['uid'] == $uid['id']) ? "selected" : "")?>><?=$uid['name']?></option>
 											<? endforeach; ?>
 										</select>
 									<? elseif($name == "gid"): ?>
-										<select name="<?=$name?>" <?=(array_key_exists("edit", $_GET) ? "" : "disabled")?>>
+										<select name="<?=$name?>" <?=(get($_GET, "edit") ? "" : "disabled")?>>
 											<option value="NULL"></option>
 											<? foreach(rb("{$conf['db']['prefix']}users_grp") as $gid): ?>
 												<option value="<?=$gid['id']?>" <?=((get($tpl, 'edit', $name) == $gid['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $uid['id'])) ? "selected" : "")?>><?=$uid['name']?></option>
 											<? endforeach; ?>
 										</select>
 									<? elseif($name == "mid"): ?>
-										<select name="<?=$name?>" <?=(array_key_exists("edit", $_GET) ? "" : "disabled")?>>
+										<select name="<?=$name?>" <?=(get($_GET, "edit") ? "" : "disabled")?>>
 											<option value="NULL"></option>
 											<? foreach(rb("{$conf['db']['prefix']}modules_index") as $modules): ?>
 												<option value="<?=$mid['id']?>" <?=((get($tpl, 'edit', $name) == $modules['id']) || (!get($tpl, "edit") && ($conf['user']['uid'] == $modules['id'])) ? "selected" : "")?>><?=$modules['name']?></option>
@@ -455,7 +459,7 @@
 												}else{ return time(); }
 											}, $name))): mpre("ОШИБКА расчета текущего времени") ?>
 										<? else: ?>
-											<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", $time)?>" <?=(array_key_exists("edit", $_GET) ? "" : "disabled")?> placeholder="<?=($tpl['etitle'][get($match,2)] ?: $name)?>">
+											<input type="text" name="<?=$name?>" value="<?=date("Y-m-d H:i:s", $time)?>" <?=(get($_GET, "edit") ? "" : "disabled")?> placeholder="<?=($tpl['etitle'][get($match,2)] ?: $name)?>">
 										<? endif; ?>
 									<? elseif((substr($name, -3) == "_id") && (false === array_search(substr($name, 0, -3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
 										<? if(!get($conf, 'settings', 'admin_datalist')): ?>
@@ -474,9 +478,9 @@
 										<? elseif(!is_array($LIST = rb("{$arg['modpath']}-{$tab}"))): mpre("ОШИБКА выборки списка для поля") ?>
 										<? elseif((!$list_id = (get($tpl, 'edit', $name) ?: get($_GET, 'where', $name))) && !is_numeric($list_id) && !is_string($list_id) && !is_null($list_id)): mpre("ОШИБКА определения номера списка `{$name}`", get($tpl, 'edit'), $name, gettype($list_id)) ?>
 										<? elseif(!is_array($list = rb($LIST, "id", $list_id))): mpre("ОШИБКА выборки связанной таблицы") ?>
-										<? elseif((!$list_value = get($list, 'name')) && !is_numeric($list_value) && !is_string($list_value) && !is_null($list_value)): mpre("ОШИБКА определения занчения списка", gettype($list_value)) ?>
-										<? else:// mpre(htmlspecialchars($list_value)) ?>
-											<input type="text" name="<?=$name?>" value="<?=($list ? htmlspecialchars($list_value) : ($list_id ?: ""))?>" <?=(array_key_exists("edit", $_GET) ? "" : "disabled")?> list="<?=$name?>_list" style="background-color:#ddd;">
+										<? elseif((!$list_value = (get($list, 'name') ?: get($list, 'id'))) && !is_numeric($list_value) && !is_string($list_value) && !is_null($list_value)): mpre("ОШИБКА определения занчения списка", gettype($list_value)) ?>
+										<? else:// mpre($edit, $name, $list) ?>
+											<input type="text" name="<?=$name?>" value="<?=($list ? htmlspecialchars($list_value) : ($list_id ?: get($edit, $name)))?>" <?=(get($_GET, "edit") ? "" : "disabled")?> list="<?=$name?>_list" style="background-color:#ddd;">
 											<datalist id="<?=$name?>_list">
 												<? foreach($LIST as $list): ?>
 													<option value="<?=htmlspecialchars(array_key_exists('name', $list) ? get($list, 'name') : $list_id)?>"><?=$list['id']?></option>
@@ -484,7 +488,7 @@
 											</datalist>
 										<? endif; ?>
 									<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#(^|.+_)(text)(\d+|_.+|$)#iu",$name)): ?>
-										<? if(array_key_exists("edit", $_GET)): ?>
+										<? if(get($_GET, "edit")): ?>
 											<?=mpwysiwyg($name, get($tpl, 'edit', $name) ?: "")?>
 										<? else: ?>
 											<div style="width:100%; height:200px; border:1px solid #ccc;"><?=get($tpl['edit'], $name)?></div>
@@ -492,7 +496,7 @@
 									<?// elseif($tpl_espisok = get($tpl, 'espisok', $name)): ?>
 									<?// elseif(array_key_exists($name, $tpl['espisok'])): ?>
 									<? elseif(get($tpl, 'espisok') && array_key_exists($name, $tpl['espisok'])): ?>
-										<select name="<?=$name?>">
+										<select name="<?=$name?>" <?=(get($_GET, "edit") ? "" : "disabled")?>>
 											<? if(!get($tpl, 'edit', $name)):// mpre("Значение не задано") ?>
 											<? elseif($val = get('espisok', $name, get($tpl, 'edit', $name))):// mpre("Значение найдено") ?>
 												<option value="<?=$value?>"><?=$value?></option>
@@ -505,7 +509,17 @@
 											<? endforeach; ?>
 										</select>
 									<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>
-										<input type="text" name="<?=$name?>" value="<?=htmlspecialchars(get($tpl, 'edit') ? get($tpl['edit'], $name) : get($field, 'Default'))?>" <?=(array_key_exists("edit", $_GET) ? "" : "disabled")?> placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
+										<? if(!is_string($value = call_user_func(function($edit) use($name, $field){
+												if($edit && ($value = get($edit, $name))){ return $value;
+												}elseif($value = get($field, 'Default')){ return $value;
+												}elseif($value = get($_GET, 'where', $name)){ return $value;
+												}else{// mpre(get($_GET, 'where', $name));
+													return "";
+												}
+											}, get($tpl, 'edit')))): mpre("ОШИБКА расчета значения поля") ?>
+										<? else: ?>
+											<input type="text" name="<?=$name?>" value="<?=htmlspecialchars($value)?>" <?=(get($_GET, "edit") ? "" : "disabled")?> placeholder="<?=(get($tpl, 'etitle', $name) ?: $name)?>">
+										<? endif; ?>
 									<? endif; ?>
 								</span>
 							</div>
@@ -513,7 +527,7 @@
 						<div>
 							<span></span>
 							<span>
-								<? if(array_key_exists("edit", $_GET)): ?>
+								<? if(get($_GET, "edit")): ?>
 									<button type="submit">Сохранить</button>
 									<button type="submit" name="_id" value="NULL">Дублировать</button>
 								<? else: ?>
@@ -527,7 +541,7 @@
 								<span>
 									<? if(!is_array($href_where = array_map(function($key){ return "where[{$key}]=". get($_GET, 'where', $key); }, array_keys(get($_GET, 'where') ?: [])))): mpre("ОШИБКА получения параметров условий фильтра") ?>
 									<? elseif(!$sort = "&order=". (get($_GET, "order") == $name ? "{$name}%20DESC" : $name )): mpre("ОШИБКА получения строки сортировки") ?>
-									<? elseif(!$href_sort = "/{$arg['modpath']}:{$arg['fn']}/r:{$_GET['r']}". ($href_where ? "?&". implode("&", $href_where) : ""). $sort): mpre("ОШИБКА получения строки условий") ?>
+									<? elseif(!$href_sort = "/{$arg['modpath']}:{$arg['fn']}/r:{$_GET['r']}?". ($href_where ? "&". implode("&", $href_where) : ""). $sort): mpre("ОШИБКА получения строки условий") ?>
 									<? elseif(get($field, 'Comment')): ?>
 										<span class="info" title="<?=$field['Comment']?>">?</span>
 									<? endif; ?>
@@ -585,7 +599,7 @@
 												</a>
 											<? elseif($k == "id"): ?>
 												<? if(!is_string($tb = (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))): mpre("ОШИБКА получения короткого имени таблицы") ?>
-												<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$arg['modpath']}-{$tb}?&where[id]={$v}"): mpre("ОШИБКА формирования адреса фильтра по записи") ?>
+												<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$arg['modpath']}-{$tb}?edit&where[id]={$v}"): mpre("ОШИБКА формирования адреса фильтра по записи") ?>
 												<? else: ?>
 													<span class="control" style="white-space:nowrap;">
 														<a class="del" href="javascript:"></a>
