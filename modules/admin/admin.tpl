@@ -391,7 +391,7 @@
 				
 				<div class="table">
 					<? if(!is_array($edit = (get($_GET, 'where', 'id') ? rb($_GET['r'], "id", get($_GET, 'where', 'id')) : []))): mpre("ОШИБКА выборки редактируемого элемента") ?>
-					<? elseif(get($tpl, 'title') && array_key_exists("edit", $_GET) && ($tpl['edit'] = $edit)): ?>
+					<? elseif(get($tpl, 'title') && array_key_exists("edit", $_GET) && $edit): ?>
 						<div class="th">
 							<span style="width:15%; text-align:right;">Поле</span>
 							<span>Значение</span>
@@ -535,7 +535,7 @@
 								<? endif; ?>
 							</span>
 						</div>
-					<? else: # Горизонтальный вариант таблицы ?>
+					<? else:// mpre($_GET, $tpl['edit']); # Горизонтальный вариант таблицы ?>
 						<div class="th">
 							<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($tpl['fields'], array_flip($tpl['title'])) : $tpl['fields']), (get($tpl, 'counter') ?: array()), (get($tpl, 'ecounter') ?: array())) as $name=>$field):// mpre($name, $field) ?>
 								<span>
@@ -568,7 +568,7 @@
 								</span>
 							<? endforeach; ?>
 						</div>
-						<? if(!get($_GET, "edit")): ?>
+						<?// if(!get($_GET, "edit")): ?>
 							<? foreach($tpl['lines'] as $lines): ?>
 								<div line_id="<?=$lines['id']?>">
 									<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($lines, array_flip($tpl['title'])) : $lines), get($tpl, 'counter') ?: array(), get($tpl, 'ecounter') ?: array()) as $k=>$v): ?>
@@ -603,7 +603,7 @@
 												<? else: ?>
 													<span class="control" style="white-space:nowrap;">
 														<a class="del" href="javascript:"></a>
-														<a class="edit" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&edit=<?=$v?><? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'order') ? "&order={$_GET['order']}" : "")?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : "")?>"></a>
+														<a class="edit" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&edit=<?=$v?>&where[id]=<?=$v?><? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'order') ? "&order={$_GET['order']}" : "")?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : "")?>"></a>
 														<a href="<?=$href?>"><?=$v?></a>
 														<input type="checkbox" name="id" value="<?=$v?>" style="display:none;">
 													</span>
@@ -706,7 +706,7 @@
 									<? endforeach; ?>
 								</div>
 							<? endforeach; ?>
-						<? endif; ?>
+						<?// endif; ?>
 						<? if(empty($tpl['title'])): ?>
 							<div>
 								<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($tpl['fields'], array_flip($tpl['title'])) : $tpl['fields']), (get($tpl, 'counter') ?: array()), get($tpl, 'ecounter') ?: array()) as $name=>$field): ?>
