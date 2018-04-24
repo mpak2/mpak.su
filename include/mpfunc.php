@@ -1183,7 +1183,7 @@ function erb($src, $key = null){
 					if(!$tab = substr($table, strlen($conf['db']['prefix']))){ mpre("ОШИБКА формирования префикса таблицы для имени ключа");
 					}elseif(!$name = "{$tab}-{$key}"){ mpre("ОШИБКА формирования имени ключа");
 					}elseif("sqlite" == $conf['db']['type']){// mpre("Запрос для создания ключа БД sqlite");
-						return "CREATE INDEX `{$name}` ON `{$table}` (`name`);";
+						return "CREATE INDEX `{$name}` ON `{$table}` (`{$key}`);";
 //					}elseif(true){ mpre($key, $FIELDS);
 					}elseif(!$field = get($FIELDS, $key)){ mpre("ОШИБКА поулчения параметров поля");
 					}elseif("text" == get($field, 'Type')){// mpre("Запрещенный для индексирования тип поля");
