@@ -574,6 +574,7 @@
 									<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($lines, array_flip($tpl['title'])) : $lines), get($tpl, 'counter') ?: array(), get($tpl, 'ecounter') ?: array()) as $k=>$v): ?>
 										<span>
 											<? if(!$tb = implode("_", array_filter(explode("_", $k)))): mpre("ОШИБКА получения короткого имени таблицы") ?>
+											<?// elseif(true): mpre($tb) ?>
 											<? elseif(substr($k, 0, 2) == "__"): // $tpl['ecounter'] ?>
 												<? if(!$tab = substr($k, 2)): mpre("Ошибка поиска названия таблицы в адресе") ?>
 												<? elseif(!$m = first(explode('_', first(explode("-", $tab))))): mpre("Ошибка определения модуля таблицы для подсчета") ?>
@@ -670,7 +671,7 @@
 												<? if(!$el = rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($k, 0, -3), "id", $v)):// mpre("Элемент в смежной таблице не найден") ?>
 													<span style="color:red;"><?=$v?></span>
 												<? elseif(!$tb = substr($k, 0, -3)): mpre("ОШИБКА получения короткого имени таблицы") ?>
-												<? elseif(!$href_key = "/{$arg['modpath']}:{$arg['fn']}/r:{$conf['db']['prefix']}{$arg['modpath']}_{$tb}?&where[id]={$v}"): mpre("ОШИБКА формирования адреса перехода по ключу") ?>
+												<? elseif(!$href_key = "/{$arg['modpath']}:{$arg['fn']}/r:{$arg['modpath']}-{$tb}?&where[id]={$v}"): mpre("ОШИБКА формирования адреса перехода по ключу") ?>
 												<? elseif(!is_array($_where = array_filter(array_map(function($key) use($k){ return ($k == $key ? "" : "where[{$key}]=". get($_GET, 'where', $key)); }, array_keys(get($_GET, 'where') ?: []))))): mpre("ОШИБКА получения параметров условий фильтра") ?>
 												<? elseif(!$href_where = "/{$arg['modpath']}:{$arg['fn']}/r:{$_GET['r']}?". ($_where ? "&". implode("&", $_where) : ""). "&where[{$k}]={$v}"): mpre("ОШИБКА получения строки условий") ?>
 												<? else:// mpre($href_where) ?>
