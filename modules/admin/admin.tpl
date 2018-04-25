@@ -568,7 +568,7 @@
 								</span>
 							<? endforeach; ?>
 						</div>
-						<?// if(!get($_GET, "edit")): ?>
+						<? if(!get($_GET, "edit")): ?>
 							<? foreach($tpl['lines'] as $lines): ?>
 								<div line_id="<?=$lines['id']?>">
 									<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($lines, array_flip($tpl['title'])) : $lines), get($tpl, 'counter') ?: array(), get($tpl, 'ecounter') ?: array()) as $k=>$v): ?>
@@ -600,11 +600,15 @@
 												</a>
 											<? elseif($k == "id"): ?>
 												<? if(!is_string($tb = (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))): mpre("ОШИБКА получения короткого имени таблицы") ?>
+												<? elseif(!is_array($href_where = array_filter(array_map(function($key){ return ($key == "id" ? null : "where[{$key}]=". get($_GET, 'where', $key)); }, array_keys(get($_GET, 'where') ?: []))))): mpre("ОШИБКА получения параметров условий фильтра") ?>
 												<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$arg['modpath']}-{$tb}?edit&where[id]={$v}"): mpre("ОШИБКА формирования адреса фильтра по записи") ?>
-												<? else: ?>
+												<? elseif(!is_string($order = (get($_GET, 'order') ? "&order={$_GET['order']}" : ""))): mpre("ОШИБКА получения ссылки сортировки") ?>
+												<? elseif(!is_string($p = (get($_GET, 'p') ? "&p={$_GET['p']}" : ""))): mpre("ОШИБКА получения ссылки на страницу") ?>
+												<? elseif(!$href_edit = "/{$arg['modpath']}:{$arg['fn']}/r:{$_GET['r']}?&edit={$v}&where[id]={$v}". implode("&", $href_where). "{$order}{$p}"): mpre("ОШИБКА формирования ссылки для редактирования") ?>
+												<? else:// mpre($href_edit) ?>
 													<span class="control" style="white-space:nowrap;">
 														<a class="del" href="javascript:"></a>
-														<a class="edit" href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>?&edit=<?=$v?>&where[id]=<?=$v?><? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'order') ? "&order={$_GET['order']}" : "")?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : "")?>"></a>
+														<a class="edit" href="<?=$href_edit?>"></a>
 														<a href="<?=$href?>"><?=$v?></a>
 														<input type="checkbox" name="id" value="<?=$v?>" style="display:none;">
 													</span>
@@ -707,7 +711,7 @@
 									<? endforeach; ?>
 								</div>
 							<? endforeach; ?>
-						<?// endif; ?>
+						<? endif; ?>
 						<? if(empty($tpl['title'])): ?>
 							<div>
 								<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($tpl['fields'], array_flip($tpl['title'])) : $tpl['fields']), (get($tpl, 'counter') ?: array()), get($tpl, 'ecounter') ?: array()) as $name=>$field): ?>
