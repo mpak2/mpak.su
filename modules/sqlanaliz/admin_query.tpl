@@ -49,7 +49,10 @@
 			</select>
 			
 			<label>
-				<input type="radio" name="act" value="edit" <?=(("save" == get($_POST, 'act')) ? "" : "checked")?>> Просмотр
+				<input type="radio" name="act" value="verbose" <?=(("verbose" == get($_POST, 'act')) ? "checked" : "")?>> Подробно
+			</label>
+			<label>
+				<input type="radio" name="act" value="edit" <?=((!array_key_exists("act", $_POST) || ("edit" == get($_POST, 'act'))) ? "checked" : "")?>> Просмотр
 			</label>
 			<label>
 				<input type="radio" name="act" value="save" <?=(("save" == get($_POST, 'act')) ? "checked" : "")?>> Сохранение
@@ -124,7 +127,9 @@
 	<? elseif(!$_LIST = explode("\n", $LIST)): mpre("Ошибка получения списка элементов") ?>
 	<? else:// mpre($_LIST) ?>
 		<? foreach($_LIST as $list): mpre("Исходная строка", htmlspecialchars($list)); ?>
-			<? if(!($values = array_filter($field_name ? [$field_name=>$list] :array_map(function($field) use($list){
+			<? if(!$_list = trim($list)): mpre("Строка после удаления закрывающих пробелов оказалась пуста") ?>
+			<? elseif(!is_array($field_list = ($_list ? [$field_name=>$_list] : []))): mpre("ОШИБКА формирования одиночного массиива") ?>
+			<? elseif(!is_array($values = array_filter($field_name ? $field_list : array_map(function($field) use($list){
 					if(!$field_name = get($field, 'Field')){ mpre("ОШИБКА получения имени поля");
 					}elseif(!$preg = get($_POST, "preg", $field_name)){// mpre("ОШИБКА регулярное выражение для поля `{$field_name}` не задано");
 					}elseif(!preg_match("#{$preg}#", $list, $match)){// mpre("Cовпадения не установлены в поле `{$field_name}`");
@@ -133,8 +138,8 @@
 					}elseif(!$value = (get($_POST, "chars", $field_name) ? htmlspecialchars($value) : $value)){ mpre("ОШИБКА удаления спецсимволов");
 					}elseif(!$value = trim($value)){ mpre("ОШИБКА удслаения завершающих пробелов");
 					}elseif(!$act = get($_POST, 'act')){ mpre("Действие не задано", $where, $values);
-					}elseif("save" == $act){ return $value;// mpre("Убираем подробности при сохранении");
-					}else{ mpre("Поле `{$field_name}`", $match);
+					}elseif("verbose" != $act){ return $value;// mpre("Убираем подробности при сохранении");
+					}else{ mpre("Поле `{$field_name}`", "Регулярное вывражение #". htmlspecialchars($preg). "#", $match);
 						return $value;
 					}
 				}, $FIELDS)))): mpre("Значения сохранения не заданы", htmlspecialchars($list)) ?>
@@ -142,9 +147,9 @@
 			<? elseif(($unique = (get($_POST, 'unique')) ?: []) && ($unique != array_intersect_key($unique, $values))): mpre("Не заданы уникальные поля", array_keys($unique)) ?>
 			<? elseif(!is_array($where = array_intersect_key($values, $unique))): mpre("ОШИБКА расчета условных полей") ?>
 			<? elseif(!$act = get($_POST, 'act')): mpre("Действие не задано", $where, $values) ?>
-			<? elseif("save" != $act): mpre("Просмотр", "Условия обновления", $where, "Найденные значения", $values) ?>
+			<? elseif("save" != $act): mpre("<b>Просмотр</b>", "Условия обновления (уникальные поля)", $where, "Найденные значения (регулярные выражения)", $values) ?>
 			<? elseif(!$index = fk($table_name, $where, $values, $values)): mpre("ОШИБКА изменения базы данных") ?>
-			<? else: mpre("Сохранение `{$table_name}`", $index) ?>
+			<? else: mpre("<b>Сохранение</b> `{$table_name}`", $index) ?>
 			<? endif; ?>
 			<? /*if(!$index = fk($table_name, null, $w = [$field_name=>trim($list)], $w)): mpre("Ошибка установки значения поля") ?>
 			<? else: mpre("{$table_name}", $w); endif;*/ ?>
