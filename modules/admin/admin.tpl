@@ -78,9 +78,15 @@
 		<div>
 			<? if(get($tpl, 'title') && !get($_GET, "edit")): ?>
 				<span style="width:60px; padding-left:20px;vertical-align:middle;">
-					<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/edit?<? foreach(get($_GET, 'where') ?: array() as $f=>$w): ?>&where[<?=$f?>]=<?=$w?><? endforeach; ?><?=(get($_GET, 'p') ? "&p={$_GET['p']}" : "")?>">
-						<button type="button" <?=(get($_GET, 'where', 'id') ? "disabled" : "")?>>Добавить</button>
-					</a>
+					<? if(!is_array($href_where = array_map(function($key){ return "where[{$key}]=". get($_GET, 'where', $key); }, array_keys(get($_GET, 'where') ?: [])))): mpre("ОШИБКА получения параметров условий фильтра") ?>
+					<? elseif(!is_string($page = (get($_GET, 'p') ? "/p:{$_GET['p']}" : ""))): mpre("ОШИБКА формирования ссылки на страницу") ?>
+					<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$_GET['r']}{$page}/?edit". (get($_GET, 'where', 'id') ? "={$_GET['where']['id']}" : ""). "&". implode("&", $href_where)): mpre("ОШИБКА формирования ссылки на добавление") ?>
+					<? elseif(!$name = (get($_GET, 'where', 'id') == get($_GET, 'edit') ? "Сохранить" : "Править")): mpre("ОШИБКА выбора заговка кнопки") ?>
+					<? else:// mpre($href) ?>
+						<a href="<?=$href?>">
+							<button type="button"><?=$name?></button>
+						</a>
+					<? endif; ?>
 				</span>
 			<? endif; ?>
 			<? if(!get($tpl, 'edit')): ?>
@@ -477,7 +483,7 @@
 											</select>
 										<? elseif(!$tab = substr($name, 0, -3)): mpre("ОШИБКА определения имени таблицы списка") ?>
 										<? elseif(!is_array($LIST = rb("{$arg['modpath']}-{$tab}"))): mpre("ОШИБКА выборки списка для поля") ?>
-										<? elseif((!$list_id = (get($tpl, 'edit', $name) ?: get($_GET, 'where', $name))) && !is_numeric($list_id) && !is_string($list_id) && !is_null($list_id)): mpre("ОШИБКА определения номера списка `{$name}`", get($tpl, 'edit'), $name, gettype($list_id)) ?>
+										<? elseif((!$list_id = (get($edit, $name) ?: get($_GET, 'where', $name))) && !is_numeric($list_id) && !is_string($list_id) && !is_null($list_id)): mpre("ОШИБКА определения номера списка `{$name}`", get($tpl, 'edit'), $name, gettype($list_id)) ?>
 										<? elseif(!is_array($list = rb($LIST, "id", $list_id))): mpre("ОШИБКА выборки связанной таблицы") ?>
 										<? elseif((!$list_value = (get($list, 'name') ?: get($list, 'id'))) && !is_numeric($list_value) && !is_string($list_value) && !is_null($list_value)): mpre("ОШИБКА определения занчения списка", gettype($list_value)) ?>
 										<? else:// mpre($edit, $name, $list) ?>
@@ -532,7 +538,7 @@
 									<button type="submit">Сохранить</button>
 									<button type="submit" name="_id" value="NULL">Дублировать</button>
 								<? else: ?>
-									<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=get($_GET, 'r')?>?&edit=<?=get($_GET, 'where', 'id')?>&where[id]=<?=get($_GET, 'where', 'id')?>">Редактировать</a>
+									<!-- <a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=get($_GET, 'r')?>?&edit=<?=get($_GET, 'where', 'id')?>&where[id]=<?=get($_GET, 'where', 'id')?>">Редактировать</a> -->
 								<? endif; ?>
 							</span>
 						</div>
