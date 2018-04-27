@@ -420,8 +420,10 @@
 								</span>
 								<span>
 									<? if($name == "id"): # Вертикальное отображение ?>
-										<? if(get($_GET, 'where', "id")): ?>
-											<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=get($_GET, 'r')?>?&where[id]=<?=get($_GET, 'where', 'id')?>"><?=$_GET['where']['id']?></a>
+										<? if(!is_string($tb = (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))): mpre("ОШИБКА получения короткого имени таблицы") ?>
+										<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$arg['modpath']}-{$tb}?&where[id]={$_GET['where']['id']}"): mpre("ОШИБКА получения адреса редактирования записи") ?>
+										<? elseif(get($_GET, 'where', "id")): ?>
+											<a href="<?=$href?>"><?=$_GET['where']['id']?></a>
 										<? else: ?>
 										<span class="<?=$disabled?>">Номер записи назначаеся ситемой</span>
 										<? endif; ?>
