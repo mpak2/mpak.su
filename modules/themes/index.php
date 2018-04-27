@@ -22,7 +22,7 @@ if(!is_string($folder = call_user_func(function(){
 				<? elseif(!$ext = last(explode('.', $file))): pre("ОШИБКА определения расширения файла") ?>
 				<? elseif(call_user_func(function($imgs) use($ext, $dir, $folder, $file){ ?>
 						<? if(false === array_search($ext, $imgs)):// mpre("Не отображаем `{$ext}`", $imgs) ?>
-						<? elseif(!$path = "/{$dir}/". "w:50/h:50/c:1/null/". ($folder ? "{$folder}/" : ""). "{$file}"): mpre("ОШИБКА получения пути до файла") ?>
+						<? elseif(!$path = "/{$dir}/w:50/h:50/c:1/null/". ($folder ? "{$folder}/" : ""). "{$file}"): mpre("ОШИБКА получения пути до файла") ?>
 						<? else: ?>
 							<img src="<?=$path?>">
 						<? endif; ?>
@@ -44,8 +44,8 @@ if(!is_string($folder = call_user_func(function(){
 }elseif(!$image = call_user_func(function($res) use($ext, $type, $imgs){
 		if(false === array_search($ext, $imgs)){ return true; // mpre("Расширение файла не изображение");
 		}elseif(!array_key_exists('null', $_GET)){ return true; // mpre("У файла не найден признак выключения шаблона");
-		}elseif(!$width = get($_GET, 'w')){ mpre("ОШИБКА ширина изображения не установлена");
-		}elseif(!$height = get($_GET, 'h')){ mpre("ОШИБКА ширина изображения не установлена");
+		}elseif(!$width = get($_GET, 'w')){ return true; mpre("ОШИБКА ширина изображения не установлена");
+		}elseif(!$height = get($_GET, 'h')){ return true; mpre("ОШИБКА ширина изображения не установлена");
 		}elseif(!is_numeric($crop = get($_GET, 'c') ? 1 : 0)){ mpre("ОШИБКА определения кропа картинки");
 		}elseif(!$image = mprs($res, $width, $height, $crop)){ mpre("ОШИБКА получения измененного размера изображения");
 		}else{ header("Content-type: {$type}");
