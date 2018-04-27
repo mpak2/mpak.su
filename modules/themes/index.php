@@ -1,18 +1,30 @@
 <?
 
-if(!$file = call_user_func(function(){
+if(!is_string($folder = call_user_func(function(){
 		if($file = get($_GET, 'q')){ return $file;
 		}elseif($file = get($_GET, '')){ return $file;
 		}elseif(!$get = array_diff_key($_GET, array_flip(['m']))){ mpre("ОШИБКА исключения адресации системы");
 		}elseif(first($get)){ mpre("Ожидается первым параметром тема");
 		}elseif(!$theme = first(array_keys($get))){ mpre("ОШИБКА получения темы");
-		}elseif(!$file = implode('/', array_keys(array_slice($get, 1)))){ mpre("ОШИБКА формирования части пути до файла");
-		}else{ return $file; }
-	})){ mpre("ОШИБКА получения пути к фалу");
+		}elseif(!$file = implode('/', array_keys(array_slice($get, 1)))){// mpre("ОШИБКА формирования части пути до файла");
+		}else{ return $file;
+		} return "";
+	}))){ mpre("ОШИБКА получения пути к фалу");
 }elseif(!is_string($theme = (array_search('', array_diff_key($_GET, array_flip(['null']))) ?: get($_GET, 'theme')))){ pre("ОШИБКА расчета темы");
 }elseif(!$dir = "themes/".basename($theme ?: get($conf, 'settings', 'theme'))){ pre("ОШИБКА определения директории темы");
-}elseif(!$res_name = $dir ."/".strtr($file, array('..'=>''))){ pre("ОШИБКА расчета пути до файла");
-}elseif(!$_GET += ['null'=>false]){ mpre("Выключаем шаблона сайта");
+}elseif(!$res_name = $dir. "/". strtr($folder, array('..'=>''))){ pre("ОШИБКА расчета пути до файла");
+}elseif(is_dir($res_name) && !call_user_func(function($res_name) use($folder){ # Отображение структуры директории ?>
+		<strong><?=$res_name?></strong>
+		<ul>
+			<? foreach(mpreaddir($res_name) as $file): ?>
+				<? if(!$path = ($folder ? "{$folder}/" : ""). "{$file}"): mpre("ОШИБКА получения пути до файла") ?>
+				<? else: ?>
+					<li><a href="<?=$path?>"><?=$file?></a></li>
+				<? endif; ?>
+			<? endforeach; ?>
+		</ul>
+	<? }, $res_name)){// mpre($res_name, is_file($res_name));
+}elseif((!$_GET += ['null'=>false])){ mpre("Выключаем шаблона сайта");
 }elseif(!$ext = last(explode('.', $file))){ pre("ОШИБКА определения расширения файла");
 }elseif(!include_once(mpopendir('modules/files/defaultmimes.php'))){ mpre("ОШИБКА подключения списка типов файлов");
 }elseif(!$type = (get($conf['defaultmimes'], $ext) ?: "text/$ext")){ mpre("ОШИБКА подулючения типа файла по расширению `{$ext}`");
