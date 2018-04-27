@@ -42,7 +42,8 @@ if(!is_string($folder = call_user_func(function(){
 }elseif(!$res = mpopendir($res_name)){ mpre("ОШИБКА файл не найден <b>{$res_name}</b>", $_GET);
 	header("HTTP/1.0 404 Not Found");
 }elseif(!$image = call_user_func(function($res) use($ext, $type, $imgs){
-		if(false === array_search($ext, $imgs)){// mpre("Расширение файла не изображение");
+		if(false === array_search($ext, $imgs)){ return true; // mpre("Расширение файла не изображение");
+		}elseif(array_key_exists('null', $_GET)){ return true; // mpre("У файла не найден признак выключения шаблона");
 		}elseif(!$width = get($_GET, 'w')){ mpre("ОШИБКА ширина изображения не установлена");
 		}elseif(!$height = get($_GET, 'h')){ mpre("ОШИБКА ширина изображения не установлена");
 		}elseif(!is_numeric($crop = get($_GET, 'c') ? 1 : 0)){ mpre("ОШИБКА определения кропа картинки");
