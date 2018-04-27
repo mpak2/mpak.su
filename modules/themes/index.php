@@ -43,7 +43,7 @@ if(!is_string($folder = call_user_func(function(){
 	header("HTTP/1.0 404 Not Found");
 }elseif(!$image = call_user_func(function($res) use($ext, $type, $imgs){
 		if(false === array_search($ext, $imgs)){ return true; // mpre("Расширение файла не изображение");
-		}elseif(array_key_exists('null', $_GET)){ return true; // mpre("У файла не найден признак выключения шаблона");
+		}elseif(!array_key_exists('null', $_GET)){ return true; // mpre("У файла не найден признак выключения шаблона");
 		}elseif(!$width = get($_GET, 'w')){ mpre("ОШИБКА ширина изображения не установлена");
 		}elseif(!$height = get($_GET, 'h')){ mpre("ОШИБКА ширина изображения не установлена");
 		}elseif(!is_numeric($crop = get($_GET, 'c') ? 1 : 0)){ mpre("ОШИБКА определения кропа картинки");
