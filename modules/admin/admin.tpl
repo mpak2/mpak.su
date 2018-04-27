@@ -80,8 +80,9 @@
 				<span style="width:60px; padding-left:20px;vertical-align:middle;">
 					<? if(!is_array($href_where = array_map(function($key){ return "where[{$key}]=". get($_GET, 'where', $key); }, array_keys(get($_GET, 'where') ?: [])))): mpre("ОШИБКА получения параметров условий фильтра") ?>
 					<? elseif(!is_string($page = (get($_GET, 'p') ? "/p:{$_GET['p']}" : ""))): mpre("ОШИБКА формирования ссылки на страницу") ?>
-					<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$_GET['r']}{$page}/?edit". (get($_GET, 'where', 'id') ? "={$_GET['where']['id']}" : ""). "&". implode("&", $href_where)): mpre("ОШИБКА формирования ссылки на добавление") ?>
-					<? elseif(!$name = (get($_GET, 'where', 'id') == get($_GET, 'edit') ? "Сохранить" : "Править")): mpre("ОШИБКА выбора заговка кнопки") ?>
+					<? elseif(!is_bool($_edit = (get($_GET, 'where', 'id') ? true : false))): mpre("ОШИБКА получения флага редактирования") ?>
+					<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$_GET['r']}{$page}/?edit". ($_edit ? "={$_GET['where']['id']}" : ""). "&". implode("&", $href_where)): mpre("ОШИБКА формирования ссылки на добавление") ?>
+					<? elseif(!$name = ($_edit ? "Править" : "Добавить")): mpre("ОШИБКА выбора заговка кнопки") ?>
 					<? else:// mpre($href) ?>
 						<a href="<?=$href?>">
 							<button type="button"><?=$name?></button>
@@ -419,8 +420,8 @@
 								</span>
 								<span>
 									<? if($name == "id"): # Вертикальное отображение ?>
-										<? if(get($tpl, 'edit', "id")): ?>
-											<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=get($_GET, 'r')?>?&where[id]=<?=get($_GET, 'where', 'id')?>"><?=$tpl['edit']['id']?></a>
+										<? if(get($_GET, 'where', "id")): ?>
+											<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=get($_GET, 'r')?>?&where[id]=<?=get($_GET, 'where', 'id')?>"><?=$_GET['where']['id']?></a>
 										<? else: ?>
 										<span class="<?=$disabled?>">Номер записи назначаеся ситемой</span>
 										<? endif; ?>
