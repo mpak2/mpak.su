@@ -416,7 +416,7 @@
 										<? if(get($tpl, 'edit', "id")): ?>
 											<a href="/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=get($_GET, 'r')?>?&where[id]=<?=get($_GET, 'where', 'id')?>"><?=$tpl['edit']['id']?></a>
 										<? else: ?>
-										Номер записи назначаеся ситемой
+										<span class="<?=$disabled?>">Номер записи назначаеся ситемой</span>
 										<? endif; ?>
 									<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#^img(\d*|_.+)?#iu",$name)): ?>
 										<input type="file" name="<?=$name?>[]" multiple="true" <?=$disabled?>>
@@ -424,7 +424,7 @@
 											<a href="/<?=$arg['modpath']?>:img/<?=get($tpl, 'lines', get($tpl, 'edit', "id"))['id']?>/tn:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/fn:<?=$name?>/w:109/h:109/null/img.png" target="_blank"><?=get($tpl,'edit',$name);?></a>
 										</span>
 									<? elseif(!preg_match("#_id$#ui",$name) AND preg_match("#^file(\d*|_.+)?#iu",$name)): ?>
-										<input type="file" name="<?=$name?>[]" multiple="true">
+										<input type="file" name="<?=$name?>[]" multiple="true" <?=$disabled?>>
 										<span class="info_comm"><?=get($tpl,'edit',$name);?></span>
 									<? elseif($name == "hide"): ?>
 										<select name="hide" <?=$disabled?>>
