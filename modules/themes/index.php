@@ -13,11 +13,11 @@ if(!is_string($folder = call_user_func(function(){
 }elseif(!is_string($theme = (array_search('', array_diff_key($_GET, array_flip(['null']))) ?: get($_GET, 'theme')))){ pre("ОШИБКА расчета темы");
 }elseif(!$dir = "themes/".basename($theme ?: get($conf, 'settings', 'theme'))){ pre("ОШИБКА определения директории темы");
 }elseif(!$res_name = $dir. "/". strtr($folder, array('..'=>''))){ pre("ОШИБКА расчета пути до файла");
-}elseif(is_dir($res_name) && !call_user_func(function($res_name) use($folder){ # Отображение структуры директории ?>
+}elseif(is_dir($res_name) && !call_user_func(function($res_name) use($dir, $folder){// mpre("Директория", $res_name); # Отображение структуры директории ?>
 		<strong><?=$res_name?></strong>
 		<ul>
 			<? foreach(mpreaddir($res_name) as $file): ?>
-				<? if(!$path = ($folder ? "{$folder}/" : ""). "{$file}"): mpre("ОШИБКА получения пути до файла") ?>
+				<? if(!$path = "/{$dir}/". ($folder ? "{$folder}/" : ""). "{$file}"): mpre("ОШИБКА получения пути до файла") ?>
 				<? else: ?>
 					<li><a href="<?=$path?>"><?=$file?></a></li>
 				<? endif; ?>
