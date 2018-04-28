@@ -1,4 +1,8 @@
-<? if(!$ADMIN = rb("{$conf['db']['prefix']}admin")): mpre("Админразделы не заданы") ?>
+<? if(!$ADMIN = mpqn(qw("SELECT * FROM {$conf['db']['prefix']}admin_index", function($error){
+		if(strpos($error, "doesn't exist")){ mpre("Неустановленная ошибка при запросе к таблице администраторов");
+		}elseif(('mysql' == $conf['db']['type']) && (!qw("ALTER TABLE `{$conf['db']['prefix']}admin` RENAME `{$conf['db']['prefix']}admin_index`"))){ mpre("ОШИБКА переименования таблицы админразделов");
+		}else{ mpre("ОШИБКА переименования таблицы админразделов для БД `{$conf['db']['type']}`"); }
+	}))): mpre("Админразделы не заданы") ?>
 <? elseif(!$MODULES_INDEX = rb("modules-index")): mpre("Список модейлей пуст") ?>
 <? elseif(!$modpath = (array_search('admin', $_GET['m']) ?: first(array_flip($_GET['m'])))): mpre("Ошибка определения имени раздела") ?>
 <? else: ?>

@@ -952,7 +952,7 @@ function mp_array_format($array,$array_format){
 
 set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 	global $conf;
-    $errortype = array (
+	if(!$errortype = array (
 		1   =>  "Ошибка",
 		2   =>  "Предупреждение",
 		4   =>  "Ошибка синтаксического анализа",
@@ -965,7 +965,17 @@ set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 		512 =>  "Предупреждение пользователя",
 		1024=>  "Замечание пользователя",
 		2048=> "Обратная совместимость",
-	); mpre(get($errortype, $errno). " ($errno)", $errmsg, $filename/*, get($conf, 'settings', 'data-file')*/, $linenum/*, debug_backtrace()*/);
+		)){ mpre("ОШИБКА установки массива ошибок");
+	}elseif(!$file_info = "{$filename}:{$linenum}"){ mpre("ОШИБКА получения информаци о файле и строке");
+	}elseif(!$type = get($errortype, $errno)){ mpre("Тип ошибки не установлен");
+	}elseif(!$pdo = (0 === strpos($errmsg, 'PDO::query():'))){ mpre($type, $errmsg, $file_info);
+		mpevent($type, "{$error} - {$info['sql']}");
+	}elseif(!$conn = $conf['db']['conn']){ mpre("ОШИБКА определения соединения с базой данных");
+	}elseif(!$info = last($conf['db']['sql'])){ mpre("ОШИБКА получения запроса", $conf['db']);
+	}elseif(!$error = last($conn->errorInfo())){ mpre("Текст ошибки не установлен");
+	}else{ mpre(get($errortype, $errno). "{$type} ($errno)", $error, $file_info, $info['sql']);
+		mpevent($type, $error, "{$file_info}: {$info['sql']}");
+	}
 });
 function mpzam($ar, $name = null, $prefix = "{", $postfix = "}", $separator = ":"){ # Создание из много мерного массиива - одномерного. Применяется для подставки в текстах отправляемых писем данных из массивов
 	$f = function($ar, $prx = "") use(&$f, $prefix, $postfix, $separator, $name){
@@ -1435,7 +1445,7 @@ function mpdk($tn, $insert, $update = array()){
 		} return $conf['db']['conn']->lastInsertId();
 	}
 }
-function mpevent($name, $description = null, $own = null){
+function mpevent($name, $description = null, $return = null){
 	global $conf, $argv;
 	if(!$name){ mpre("Имя события не указано");
 	}elseif(!$debug_backtrace = debug_backtrace()){ mpre("Ошибка создания списка вызовов функций");
@@ -1907,9 +1917,10 @@ function mpqw($sql){ global $conf; # Все аргументы разбираю�
 		}, array_slice(func_get_args(), 1)))){ mpre("ОШИБКА выборки параметров");
 	}elseif(!$mt = microtime(true)){ mpre("ОШИБКА установки времени начала запроса");
 	}elseif(!$conn = ((rb($ARGS, 'type', '[object]', 'arg')) ?: $conf['db']['conn'])){ mpre("ОШИБКА определения соединения");
-	}elseif(!$result = call_user_func(function($ARGS) use($sql, $conn){// mpre($ARGS);
+	}elseif(!$result = call_user_func(function($ARGS) use($sql, $conn, &$conf){// mpre($ARGS);
 			if(!$params = rb($ARGS, 'type', '[array]', 'arg')){// mpre("Параметры не заданы");
-				if($result = $conn->query($sql)){ return $result;
+				if(!$conf['db']['sql'][] = array('info'=>'', 'time'=>0, 'sql'=>$sql)){ mpre("ОШИБКА добавления информации о запросе");
+				}elseif($result = $conn->query($sql)){ return $result;
 				}elseif(!$callback = rb($ARGS, 'type', '[function]', 'arg')){ return $result;
 				}elseif(!$info = $conn->errorInfo()){ mpre("ОШИБКА получения информации о запросе");
 				}elseif(!$error = get($info, 2)){ mpre("Не удалось получить текст ошибки запроса");
