@@ -56,17 +56,17 @@ function PHPClassAutoload($CN){
 }
 
 # Иницилизация автоподгрузки
-if (version_compare(PHP_VERSION, '5.1.2', '>=')) {
+//if (version_compare(PHP_VERSION, '5.1.2', '>=')) {
     if (version_compare(PHP_VERSION, '5.3.0', '>=')){
         spl_autoload_register('PHPClassAutoload', true, true);
     } else {
         spl_autoload_register('PHPClassAutoload');
     }
-} else {
-    function __autoload($classname){
-        PHPClassAutoload($classname);
-    }
-}
+//} else {
+//    function __autoload($classname){
+//        PHPClassAutoload($classname);
+//    }
+//}
 
 # Генерация base64 последовательности изображения из картинги
 function base64($img, $w, $h, $c = 0){
