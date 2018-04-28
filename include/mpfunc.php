@@ -63,11 +63,9 @@ if (version_compare(PHP_VERSION, '5.1.2', '>=')) {
         spl_autoload_register('PHPClassAutoload');
     }
 } else {
-// Deprecated: __autoload() is deprecated, use spl_autoload_register() instead in phar:///var/www/html/index.phar/include/mpfunc.php on line 66
-
-/*    function __autoload($classname){ 
+    function __autoload($classname){
         PHPClassAutoload($classname);
-    }*/
+    }
 }
 
 # Генерация base64 последовательности изображения из картинги
@@ -971,7 +969,7 @@ set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 	}elseif(!$file_info = "{$filename}:{$linenum}"){ mpre("ОШИБКА получения информаци о файле и строке");
 	}elseif(!$type = get($errortype, $errno)){ mpre("Тип ошибки не установлен");
 	}elseif(!$pdo = (0 === strpos($errmsg, 'PDO::query():'))){ mpre($type, $errmsg, $file_info);
-		mpevent($type, "{$error} - {$info['sql']}");
+		mpevent($type, $errmsg, $file_info);
 	}elseif(!$conn = $conf['db']['conn']){ mpre("ОШИБКА определения соединения с базой данных");
 	}elseif(!$info = last($conf['db']['sql'])){ mpre("ОШИБКА получения запроса", $conf['db']);
 	}elseif(!$error = last($conn->errorInfo())){ mpre("Текст ошибки не установлен");
@@ -1032,16 +1030,11 @@ function mptс($time = null, $format = 0){ # Приведение временн
 				($minutes ? " ". ($minutes%60). " ". mpfm($minutes, "минута", "минуты", "минут")  : "");
 	}
 }
-
-if(!function_exists('mb_ord')){ # Появилась в 7.2
-	function mb_ord($char){
-			list(, $ord) = unpack('N', mb_convert_encoding($char, 'UCS-4BE', 'UTF-8'));
-			return $ord;
-	}
-} if(!function_exists('mb_chr')){ # Появилась в 7.2
-	function mb_chr($string){
-			return html_entity_decode('&#' . intval($string) . ';', ENT_COMPAT, 'UTF-8');
-	}
+function mb_ord($char){
+		list(, $ord) = unpack('N', mb_convert_encoding($char, 'UCS-4BE', 'UTF-8'));
+		return $ord;
+} function mb_chr($string){
+    return html_entity_decode('&#' . intval($string) . ';', ENT_COMPAT, 'UTF-8');
 }
 # Вызов библиотеки curl Для хранения файла кукисов используется текущая директория. Первым параметром передается адрес запрос, вторым пост если требуется
 function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $headers = array(), $proxy = null){
@@ -1459,7 +1452,7 @@ function mpevent($name, $description = null, $return = null){
 	}elseif(!$users_event = fk("{$conf['db']['prefix']}users_event", $w = array("name"=>$name), $w += array("hide"=>1, "up"=>time()))){ mpre("Ошибка добавления события в базу событий");
 	}elseif(get($users_event, 'hide')){ return []; mpre("Событие выключено");
 	}elseif(!call_user_func(function($users_event) use($conf){ # Исправление структуры сайта в старых версиях
-			mpqw("UPDATE {$conf['db']['prefix']}users_event SET count=count+1 WHERE hide=0 AND id=". (int)$users_event, "Увеличиваем счетчик на один", function($error) use($users_event, $conf){
+			qw("UPDATE {$conf['db']['prefix']}users_event SET count=count+1 WHERE hide=0 AND id=". (int)$users_event, "Увеличиваем счетчик на один", function($error) use($users_event, $conf){
 				if(strpos($error, "Unknown column 'hide'")){
 					qw("ALTER TABLE `{$conf['db']['prefix']}users_event` CHANGE `log` `hide` smallint(6) NOT NULL COMMENT 'Сохранение информации о событиях'");
 					qw("UPDATE `{$conf['db']['prefix']}users_event` SET hide=1 WHERE id=". (int)$users_event['id']);
@@ -1467,16 +1460,14 @@ function mpevent($name, $description = null, $return = null){
 				}
 			});
 			if(!$users_event['hide']){
-				mpqw("UPDATE {$conf['db']['prefix']}users_event SET up=". time(). ", count=count+1, uid=". (int)get($conf, 'user', 'uid'). " WHERE id=". (int)$users_event['id'], "Обновляем время ", function($error){
+				qw("UPDATE {$conf['db']['prefix']}users_event SET up=". time(). ", count=count+1, uid=". (int)get($conf, 'user', 'uid'). " WHERE id=". (int)$users_event['id'], "Обновляем время ", function($error){
 					qw("ALTER TABLE `mp_users_event` ADD `up` int(11) NOT NULL  COMMENT 'Последнее обновление события' AFTER `time`");
 				});
 			}; return $users_event;
 		}, $users_event)){ mpre("Ошибка корректировки таблицы");
 	}elseif(!is_string($referer = (get($_SERVER, 'HTTP_REFERER') ?: ""))){ mpre("Реферер не установлен");
-	}elseif(!$users_event_logs = fk("{$conf['db']['prefix']}users_event_logs", null, $w = array("event_id"=>$users_event['id'], 'refer'=>$referer, "themes-index"=>get($conf, "themes", "index", "id"), "description"=>$description), $w)){ mpre("Добавление события");
-	}else{// mpre($users_event_logs);
-		return $users_event_logs;
-	}
+	}elseif(!$users_event_logs = fk("users-event_logs", null, $w = ["event_id"=>$users_event['id'], 'refer'=>$referer, "themes-index"=>get($conf, "themes", "index", "id"), 'own'=>get($conf, 'user', 'uid'), "description"=>$description, "return"=>$return])){ mpre("ОШИБКА Добавления события");
+	}else{ return $users_event_logs; }
 }
 function mpidn($value, $enc = 0){
 	if(!class_exists('idna_convert') && require_once(mpopendir('include/idna_convert.class.inc'))){ mpre("Ошибка подключения класса");
