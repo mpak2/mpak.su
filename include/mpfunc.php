@@ -63,9 +63,11 @@ if (version_compare(PHP_VERSION, '5.1.2', '>=')) {
         spl_autoload_register('PHPClassAutoload');
     }
 } else {
-    function __autoload($classname){
+// Deprecated: __autoload() is deprecated, use spl_autoload_register() instead in phar:///var/www/html/index.phar/include/mpfunc.php on line 66
+
+/*    function __autoload($classname){ 
         PHPClassAutoload($classname);
-    }
+    }*/
 }
 
 # Генерация base64 последовательности изображения из картинги
@@ -1030,11 +1032,16 @@ function mptс($time = null, $format = 0){ # Приведение временн
 				($minutes ? " ". ($minutes%60). " ". mpfm($minutes, "минута", "минуты", "минут")  : "");
 	}
 }
-function mb_ord($char){
-		list(, $ord) = unpack('N', mb_convert_encoding($char, 'UCS-4BE', 'UTF-8'));
-		return $ord;
-} function mb_chr($string){
-    return html_entity_decode('&#' . intval($string) . ';', ENT_COMPAT, 'UTF-8');
+
+if(!function_exists('mb_ord')){
+	function mb_ord($char){
+			list(, $ord) = unpack('N', mb_convert_encoding($char, 'UCS-4BE', 'UTF-8'));
+			return $ord;
+	}
+} if(!function_exists('mb_chr')){
+	function mb_chr($string){
+			return html_entity_decode('&#' . intval($string) . ';', ENT_COMPAT, 'UTF-8');
+	}
 }
 # Вызов библиотеки curl Для хранения файла кукисов используется текущая директория. Первым параметром передается адрес запрос, вторым пост если требуется
 function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $headers = array(), $proxy = null){
