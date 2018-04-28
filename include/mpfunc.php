@@ -1033,12 +1033,12 @@ function mptс($time = null, $format = 0){ # Приведение временн
 	}
 }
 
-if(!function_exists('mb_ord')){
+if(!function_exists('mb_ord')){ # Появилась в 7.2
 	function mb_ord($char){
 			list(, $ord) = unpack('N', mb_convert_encoding($char, 'UCS-4BE', 'UTF-8'));
 			return $ord;
 	}
-} if(!function_exists('mb_chr')){
+} if(!function_exists('mb_chr')){ # Появилась в 7.2
 	function mb_chr($string){
 			return html_entity_decode('&#' . intval($string) . ';', ENT_COMPAT, 'UTF-8');
 	}
