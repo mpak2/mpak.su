@@ -242,9 +242,8 @@ foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_gaccess OR
 }
 
 foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_uaccess ORDER BY uid", 'Права доступа пользователя к модулю', function($error) use($conf){
-  if(strpos($error, "doesn't exist")){
-    qw(mpre("ALTER TABLE {$conf['db']['prefix']}modules_uaccess RENAME {$conf['db']['prefix']}modules_index_uaccess"));
-  }
+  if(strpos($error, "doesn't exist")){ qw(mpre("ALTER TABLE {$conf['db']['prefix']}modules_uaccess RENAME {$conf['db']['prefix']}modules_index_uaccess"));
+	}else{ pre("Неустановленная ошибка при выборки прав доступа пользователей"); }
 })) as $k=>$v){
   if ($conf['user']['uid'] == $v['uid'] && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false)
     $conf['modules'][ $v['mid'] ]['admin_access'] = $v['admin_access'];
@@ -256,7 +255,7 @@ if(!is_array($zblocks = call_user_func(function() use(&$conf){
 		if(array_key_exists('blocks', $_GET['m']) && ($_GET['m']['blocks'] == "index") && !get($_GET, 'id')){// pre($_GET);
 			$conf["content"] = modules($conf["content"]);
 			$zblocks = [];
-		}elseif(isset($_GET['m']['sqlanaliz'])){
+		}elseif(isset($_GET['m']['sql'])){
 			$zblocks = blocks();
 			$conf["content"] = modules($conf["content"]);
 		}else{

@@ -182,12 +182,13 @@
 	}, $canonical))): mpre("ОШИБКА расчета адреса страницы") ?>
 <? elseif(!is_array($seo_location = ($uri ? rb("seo-location", "name", "[{$uri}]") : []))): mpre("ОШИБКА нахождения внутреннего адреса `{$index}`") ?>
 <? elseif(!is_array($themes_index = get($conf, 'themes', 'index') ?: [])): mpre("ОШИБКА выборки хоста сайта") ?>
-<? elseif(!is_array($seo_index_themes = (get($themes_index, 'id') ? rb("seo-index_themes", "themes_index", "location_id", get($themes_index, 'id'), get($seo_location, 'id')) : []))): mpre("Адрес мультисайт режима не найден"); ?>
+<? elseif(!is_array($seo_index_themes = (($themes_index && $seo_location) ? rb("seo-index_themes", "themes_index", "location_id", $themes_index['id'], $seo_location['id']) : []))): mpre("Адрес мультисайт режима не найден"); ?>
 <? elseif(!is_array($seo_index = call_user_func(function($seo_location) use($conf, $themes_index, $seo_index_themes){
-		if(!$themes_index = get($conf, 'themes', 'index')){// mpre("Односайтовый режим");
+		if(!$seo_index_themes){ return $seo_index_themes;
+		}elseif(!$themes_index = get($conf, 'themes', 'index')){// mpre("Односайтовый режим");
 			if(!$seo_index = rb('seo-index', 'location_id', get($seo_location, 'id'))){ return []; mpre("ОШИБКА выборки внешнего адреса страницы");
 			}else{ return $seo_index; }
-		}elseif(!$seo_index = rb('seo-index', 'id', get($seo_index_themes, 'index_id'))){ return []; mpre("Внешний адрес мультисайт режима не найден");
+		}elseif(!$seo_index = rb('seo-index', 'id', $seo_index_themes['index_id'])){ return []; mpre("Внешний адрес мультисайт режима не найден");
 		}else{ return $seo_index; }
 	}, $seo_location))): mpre("ОШИБКА нахождения внешнего адреса") ?>
 <? else:// mpre($alias, $seo_cat) ?>
@@ -401,7 +402,7 @@
 			$(script).parent().on("video", function(e, src, params){// console.log("header", e.currentTarget);
 				params = (typeof(params) == "undefined" ? {} : params);
 				$("<div></div>").addClass("video_outer").css({"width":"100%", "height":"100%", "z-index":950})/*.hide()*/.appendTo("body");
-				var div = $("<div></div>").addClass("videobox").hide().css({"width":"60%", "min-height":"50%", "padding":"10px", "position":"fixed", "background-color":"white", "top":"10%", "left":"20%", "margin":"0 auto", "z-index":1000}).appendTo(".video_outer");
+				var div = $("<div></div>").addClass("videobox").hide().css({"border":"1px solid #bbb", "width":"60%", "min-height":"50%", "padding":"10px", "position":"fixed", "background-color":"white", "top":"10%", "left":"20%", "margin":"0 auto", "z-index":1000}).appendTo(".video_outer");
 
 				$("<a></a>").addClass("fancybox-item").addClass("fancybox-close").appendTo(".videobox");
 				$("<video>").attr("id", "videoPlayer").attr("src", "/"+src).attr("autoplay", true).appendTo(".videobox");
@@ -418,7 +419,8 @@
 					var endTime = $(e.currentTarget).attr("endTime");
 					var params = ((startTime && endTime) ? {startTime:startTime, endTime:endTime} : {});
 					$(e.delegateTarget).trigger("video", [src, params]);
-				}else{ alert("Видео не доступно"); /* Видео еще не добавлено */ }
+				}else{// v6alert("Видео не доступно"); /* Видео еще не добавлено */
+				}
 			}).on("dblclick", "[dblvideo]", function(e){
 				if(src = $(e.currentTarget).attr("dblvideo").replace("content/", "//erlyvideo.v6.spb.ru/BATTLE/slalomv1/")){
 					var startTime = $(e.currentTarget).attr("startTime");
@@ -426,7 +428,8 @@
 					var params = ((startTime && endTime) ? {startTime:startTime, endTime:endTime} : {});
 //					console.log("startTime:", startTime, "endTime:", endTime, "params:", params);
 					$(e.delegateTarget).trigger("video", [src, params]);
-				}else{ alert("Видео не доступно"); /* Видео еще не добавлено */ }
+				}else{// v6alert("Видео не доступно"); /* Видео еще не добавлено */
+				}
 			}).on("click", "a[load]", function(e){// alert("load");
 				if(!(load = $(e.currentTarget).attr("load"))){ console.log("ОШИБКА элемент загрузки не установлен");
 				}else if(!(href = $(e.currentTarget).attr("_href"))){ console.log("ОШИБКА адрес страницы загрузки не определен");
@@ -450,28 +453,4 @@
 			}).ready(function(e){ $(script).parent().trigger("init"); })
 		})(jQuery, document.currentScript)
 	</script>
-<? endif; ?>
-
-<? if(!get($conf, 'settings', 'themes_fonts')):// mpre("Таблица шрифтов не создана") ?>
-<? elseif(!get($conf, 'settings', 'themes_fonts_selector')):// mpre("Таблица элементов шрифтов не создана") ?>
-<? elseif(!$FONTS_SELECTOR = rb('themes-fonts_selector', 'hide', 'id', 0)): mpre("ОШИБКА получения списка элементов шрифтов") ?>
-<? elseif(!$FONTS = rb('themes-fonts', 'id', 'id', rb($FONTS_SELECTOR, 'fonts_id'))): mpre("ОШИБКА получения списка шрифтов") ?>
-<? else:// mpre("ШРИФТЫ") ?>
-	<style>
-		<? foreach($FONTS_SELECTOR as $fonts_selector): ?>
-			<? if(!$fonts = rb($FONTS, 'id', $fonts_selector['fonts_id'])): mpre("ОШИБКА определения шрифта селектора") ?>
-			<? elseif(!$types = ['ttf'=>'truetype', 'woff'=>'woff', 'svg'=>'svg']): mpre("ОШИБКА задания типов шрифтов") ?>
-			<? elseif(!$ext = last(explode(".", $fonts['file']))): mpre("ОШИБКА определения расширения файла шрифта") ?>
-			<? elseif(!$type = get($types, $ext)): mpre("ОШИБКА определения типа шрифта") ?>
-			<? elseif(!is_string($size = (get($fonts_selector, 'size') ?: ""))): mpre("ОШИБКА получения размера") ?>
-			<? elseif(!is_string($size = (is_numeric($size) ? "{$size}px" : $size))): mpre("ОШИБКА определения значения размера") ?>
-			<? else:// mpre($size) ?>
-				@font-face{
-					font-family: "<?=$fonts['name']?>";
-					src: url("/include/<?=$fonts['file']?>") format("<?=$type?>")
-				}
-				<?=$fonts_selector['selector']?> { font-family: "<?=$fonts['name']?>"; font-size:<?=($size ?: "inherit")?>; }
-			<? endif; ?>
-		<? endforeach; ?>
-	</style>
 <? endif; ?>

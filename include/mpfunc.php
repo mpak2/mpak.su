@@ -56,17 +56,17 @@ function PHPClassAutoload($CN){
 }
 
 # Иницилизация автоподгрузки
-if (version_compare(PHP_VERSION, '5.1.2', '>=')) {
+//if (version_compare(PHP_VERSION, '5.1.2', '>=')) {
     if (version_compare(PHP_VERSION, '5.3.0', '>=')){
         spl_autoload_register('PHPClassAutoload', true, true);
     } else {
         spl_autoload_register('PHPClassAutoload');
     }
-} else {
-    function __autoload($classname){
-        PHPClassAutoload($classname);
-    }
-}
+//} else {
+//    function __autoload($classname){
+//        PHPClassAutoload($classname);
+//    }
+//}
 
 # Генерация base64 последовательности изображения из картинги
 function base64($img, $w, $h, $c = 0){
@@ -952,7 +952,7 @@ function mp_array_format($array,$array_format){
 
 set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 	global $conf;
-    $errortype = array (
+	if(!$errortype = array (
 		1   =>  "Ошибка",
 		2   =>  "Предупреждение",
 		4   =>  "Ошибка синтаксического анализа",
@@ -965,7 +965,16 @@ set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 		512 =>  "Предупреждение пользователя",
 		1024=>  "Замечание пользователя",
 		2048=> "Обратная совместимость",
-	); mpre(get($errortype, $errno). " ($errno)", $errmsg, $filename/*, get($conf, 'settings', 'data-file')*/, $linenum/*, debug_backtrace()*/);
+		)){ mpre("ОШИБКА установки массива ошибок");
+	}elseif(!$file_info = "{$filename}:{$linenum}"){ mpre("ОШИБКА получения информаци о файле и строке");
+	}elseif(!$type = (get($errortype, $errno) ?: "ОШИБКА")){ mpre("Тип ошибки не установлен");
+	}elseif(!is_bool($pdo = (0 === strpos($errmsg, 'PDO::query():')))){// mpre($type, $errmsg, $file_info);
+	}elseif(!$conn = $conf['db']['conn']){ mpre("ОШИБКА определения соединения с базой данных");
+	}elseif(!$info = last($conf['db']['sql'])){ mpre("ОШИБКА получения запроса", $conf['db']);
+	}elseif(!$error = (last($conn->errorInfo()) ?: $errmsg)){ mpre("Текст ошибки не установлен", $info['sql']);
+	}else{ mpre("{$type} ($errno)", $error, $file_info, $info['sql']);
+		mpevent($type, $error, "{$file_info}: {$info['sql']}");
+	}
 });
 function mpzam($ar, $name = null, $prefix = "{", $postfix = "}", $separator = ":"){ # Создание из много мерного массиива - одномерного. Применяется для подставки в текстах отправляемых писем данных из массивов
 	$f = function($ar, $prx = "") use(&$f, $prefix, $postfix, $separator, $name){
@@ -1020,11 +1029,15 @@ function mptс($time = null, $format = 0){ # Приведение временн
 				($minutes ? " ". ($minutes%60). " ". mpfm($minutes, "минута", "минуты", "минут")  : "");
 	}
 }
-function mb_ord($char){
-		list(, $ord) = unpack('N', mb_convert_encoding($char, 'UCS-4BE', 'UTF-8'));
-		return $ord;
-} function mb_chr($string){
-    return html_entity_decode('&#' . intval($string) . ';', ENT_COMPAT, 'UTF-8');
+if(!function_exists("mb_ord")){
+	function mb_ord($char){
+			list(, $ord) = unpack('N', mb_convert_encoding($char, 'UCS-4BE', 'UTF-8'));
+			return $ord;
+	}
+} if(!function_exists("mb_ord")){
+	function mb_chr($string){
+			return html_entity_decode('&#' . intval($string) . ';', ENT_COMPAT, 'UTF-8');
+	}
 }
 # Вызов библиотеки curl Для хранения файла кукисов используется текущая директория. Первым параметром передается адрес запрос, вторым пост если требуется
 function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $headers = array(), $proxy = null){
@@ -1182,15 +1195,16 @@ function erb($src, $key = null){
 			}elseif(!$SQL = array_filter(array_map(function($key) use($table, $conf, $_fields, $FIELDS){
 					if(!$tab = substr($table, strlen($conf['db']['prefix']))){ mpre("ОШИБКА формирования префикса таблицы для имени ключа");
 					}elseif(!$name = "{$tab}-{$key}"){ mpre("ОШИБКА формирования имени ключа");
-					}elseif(!$field = get($FIELDS, $key)){ mpre("ОШИБКА поулчения параметров поля");
 					}elseif("sqlite" == $conf['db']['type']){// mpre("Запрос для создания ключа БД sqlite");
 						return "CREATE INDEX `{$name}` ON `{$table}` (`{$key}`);";
+//					}elseif(true){ mpre($key, $FIELDS);
+					}elseif(!$field = get($FIELDS, $key)){ mpre("ОШИБКА поулчения параметров поля");
 					}elseif("text" == get($field, 'Type')){// mpre("Запрещенный для индексирования тип поля");
 					}elseif("mysql" == $conf['db']['type']){// mpre("Запрос для создания ключа БД mysql");
 						return "ALTER TABLE `{$table}` ADD INDEX (`{$key}`)";
 					}else{ mpre("ОШИБКА создания ключа (База данных не определена)"); }
 				}, array_keys($keys)))){// mpre("Список запросов на добавление ключа - пуст (уже устанволены)");
-			}elseif(!$RESULT = array_map(function($sql) use($table){
+			}elseif(!$RESULT = array_map(function($sql){
 					if(!$result = qw($sql)){ mpre("ОШИБКА выполнения запроса добавления ключа поиска");
 					}else{ mpevent("Добавление ключа к таблице", $sql);
 						return $result;
@@ -1278,8 +1292,8 @@ function erb($src, $key = null){
 				foreach($SRC as $src){
 					$TMP = &$_SRC;
 					foreach($_FIELDS as $_fields){
-						if(!array_key_exists($src[$_fields], $TMP)){
-							$TMP[ $src[$_fields] ] = [];
+						if(!array_key_exists($_fields, $src)){ mpre("Значение поля `{$_fields}` не установлено", $src);
+						}elseif(!array_key_exists($src[$_fields], $TMP)){ $TMP[ $src[$_fields] ] = [];
 						} $TMP = &$TMP[ $src[$_fields] ];
 					} $TMP = $src;
 				} return $_SRC;
@@ -1378,8 +1392,8 @@ function mpdbf($tn, $post = null, $and = false){
 		}elseif(!$values = array_map(function($val){ return mpquot($val); }, array_intersect_key($mpdbf, $fields))){ mpre("ОШИБКА составления значений запроса");
 		}else{// pre($conf['user']['sess']);
 			qw("INSERT INTO `". mpquot($tn). "` (`". implode("`, `", array_keys($values)). "`) VALUES (\"". implode("\", \"", array_values($values)). "\")");
+			return $sel['id'] = $conf['db']['conn']->lastInsertId();
 		}// qw($sql = "INSERT INTO `". mpquot($tn). "` SET ". mpdbf($tn, $insert+array("time"=>time(), "uid"=>(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0))));
-		return $sel['id'] = $conf['db']['conn']->lastInsertId();
 	}
 }
 
@@ -1434,14 +1448,14 @@ function mpdk($tn, $insert, $update = array()){
 		} return $conf['db']['conn']->lastInsertId();
 	}
 }
-function mpevent($name, $description = null, $own = null){
+function mpevent($name, $description = null, $return = null){
 	global $conf, $argv;
 	if(!$name){ mpre("Имя события не указано");
 	}elseif(!$debug_backtrace = debug_backtrace()){ mpre("Ошибка создания списка вызовов функций");
 	}elseif(!$users_event = fk("{$conf['db']['prefix']}users_event", $w = array("name"=>$name), $w += array("hide"=>1, "up"=>time()))){ mpre("Ошибка добавления события в базу событий");
 	}elseif(get($users_event, 'hide')){ return []; mpre("Событие выключено");
 	}elseif(!call_user_func(function($users_event) use($conf){ # Исправление структуры сайта в старых версиях
-			mpqw("UPDATE {$conf['db']['prefix']}users_event SET count=count+1 WHERE hide=0 AND id=". (int)$users_event, "Увеличиваем счетчик на один", function($error) use($users_event, $conf){
+			qw("UPDATE {$conf['db']['prefix']}users_event SET count=count+1 WHERE hide=0 AND id=". (int)$users_event, "Увеличиваем счетчик на один", function($error) use($users_event, $conf){
 				if(strpos($error, "Unknown column 'hide'")){
 					qw("ALTER TABLE `{$conf['db']['prefix']}users_event` CHANGE `log` `hide` smallint(6) NOT NULL COMMENT 'Сохранение информации о событиях'");
 					qw("UPDATE `{$conf['db']['prefix']}users_event` SET hide=1 WHERE id=". (int)$users_event['id']);
@@ -1449,16 +1463,14 @@ function mpevent($name, $description = null, $own = null){
 				}
 			});
 			if(!$users_event['hide']){
-				mpqw("UPDATE {$conf['db']['prefix']}users_event SET up=". time(). ", count=count+1, uid=". (int)get($conf, 'user', 'uid'). " WHERE id=". (int)$users_event['id'], "Обновляем время ", function($error){
+				qw("UPDATE {$conf['db']['prefix']}users_event SET up=". time(). ", count=count+1, uid=". (int)get($conf, 'user', 'uid'). " WHERE id=". (int)$users_event['id'], "Обновляем время ", function($error){
 					qw("ALTER TABLE `mp_users_event` ADD `up` int(11) NOT NULL  COMMENT 'Последнее обновление события' AFTER `time`");
 				});
 			}; return $users_event;
 		}, $users_event)){ mpre("Ошибка корректировки таблицы");
 	}elseif(!is_string($referer = (get($_SERVER, 'HTTP_REFERER') ?: ""))){ mpre("Реферер не установлен");
-	}elseif(!$users_event_logs = fk("{$conf['db']['prefix']}users_event_logs", null, $w = array("event_id"=>$users_event['id'], 'refer'=>$referer, "themes-index"=>get($conf, "themes", "index", "id"), "description"=>$description), $w)){ mpre("Добавление события");
-	}else{// mpre($users_event_logs);
-		return $users_event_logs;
-	}
+	}elseif(!$users_event_logs = fk("users-event_logs", null, $w = ["event_id"=>$users_event['id'], 'refer'=>$referer, "themes-index"=>get($conf, "themes", "index", "id"), 'own'=>get($conf, 'user', 'uid'), "description"=>$description, "return"=>$return])){ mpre("ОШИБКА Добавления события");
+	}else{ return $users_event_logs; }
 }
 function mpidn($value, $enc = 0){
 	if(!class_exists('idna_convert') && require_once(mpopendir('include/idna_convert.class.inc'))){ mpre("Ошибка подключения класса");
@@ -1681,22 +1693,15 @@ function hid($tn, $href, $id = false, $fn = "img", $exts = array('image/png'=>'.
 	}else{ return $el; }
 }
 function fid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
-	global $conf, $arg;	
+	global $conf;	
 	$file = get(normalize_files_array(),$fn,intval($prefix));
 	$folder = preg_match_all("#^image/\w+$#iu",$file['type']) ? 'images' : 'files';
 	if($file['error'] != 0){ mpre("ОШИБКА загрузки файла");
 	}elseif((!$ext = get($exts, $file['type'])) && !get($exts, '*')){ mpre("Тип загрузаемого файла не найден среди разрешенных");
 	}elseif(!strlen($ext) && (!$ext = '.'. last(explode('.', $file['name'])))){ mpre("ОШИБКА расчета расширения");
 	}elseif(!$img = fk($tn, $w = ($id ? ["id"=>$id] : []), $w += ['time'=>time(), 'uid'=>$conf['user']['uid']])){ mpre("ОШИБКА выборки записи по идентификатору");
-	}elseif(!$table = call_user_func(function($tn) use($conf, $arg){ # Получение имени таблицы в формате `mod-table`
-			if(strpos($tn, '-')){ return $tn;
-			}elseif(!$ex = explode("_", $tn)){ mpre("ОШИБКА получения составных частей имени таблицы");
-			}elseif(0 === strpos($tn, $conf['db']['prefix'])){ return $ex[1]. "-". implode("_", array_slice($ex, 2));
-			}else{ mpre("Неформатное имя таблицы `$tn` требуется формат `mod-table`");
-			} return $tn;
-		}, $tn)){ mpre("ОШИБКА получения форматированного имени таблицы");
-	}elseif(!$file_name = "{$table}-{$fn}_{$img['id']}{$ext}"){ mpre("ОШИБКА расчета имени файла");
-	}elseif(!$ufn = mpopendir($d = "include/{$folder}")){ mpre("ОШИБКА получения пути к загружаемой директории `{$d}` файл `{$file_name}`");
+	}elseif(!$file_name = "{$tn}-{$fn}_{$img['id']}{$ext}"){ mpre("ОШИБКА расчета имени файла");
+	}elseif(!$ufn = mpopendir("include/{$folder}")){ mpre("ОШИБКА получения пути к загружаемой директории");
 	}elseif(!move_uploaded_file($file['tmp_name'], "$ufn/$file_name")){ mpre("ОШИБКА перемещения файла с временной директории в директорию системы");
 	}elseif(!$img = fk($tn, $w = ['id'=>$img['id']], $w += [$fn=>"{$folder}/{$file_name}"], $w)){ mpre("ОШИБКА обновления имени файла в записи изображения");
 //	}elseif(($img['id'] != $id) && mpqw("DELETE FROM {$tn} WHERE id=". (int)$img_id)){ mpre("ОШИБКА удаления файла если загрузка не удалась");
@@ -1913,9 +1918,10 @@ function mpqw($sql){ global $conf; # Все аргументы разбираю�
 		}, array_slice(func_get_args(), 1)))){ mpre("ОШИБКА выборки параметров");
 	}elseif(!$mt = microtime(true)){ mpre("ОШИБКА установки времени начала запроса");
 	}elseif(!$conn = ((rb($ARGS, 'type', '[object]', 'arg')) ?: $conf['db']['conn'])){ mpre("ОШИБКА определения соединения");
-	}elseif(!$result = call_user_func(function($ARGS) use($sql, $conn){// mpre($ARGS);
+	}elseif(!$result = call_user_func(function($ARGS) use($sql, $conn, &$conf){// mpre($ARGS);
 			if(!$params = rb($ARGS, 'type', '[array]', 'arg')){// mpre("Параметры не заданы");
-				if($result = $conn->query($sql)){ return $result;
+				if(!$conf['db']['sql'][] = array('info'=>'', 'time'=>0, 'sql'=>$sql)){ mpre("ОШИБКА добавления информации о запросе");
+				}elseif($result = $conn->query($sql)){ return $result;
 				}elseif(!$callback = rb($ARGS, 'type', '[function]', 'arg')){ return $result;
 				}elseif(!$info = $conn->errorInfo()){ mpre("ОШИБКА получения информации о запросе");
 				}elseif(!$error = get($info, 2)){ mpre("Не удалось получить текст ошибки запроса");

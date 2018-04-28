@@ -4,7 +4,7 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 	$conf['settings']['theme'] = "zhiraf";
 }elseif(!$http_host = mb_strtolower($_SERVER['HTTP_HOST'], 'UTF-8')){ mpre("Ошибка определения хоста");
 }elseif(!$http_host = (strpos($http_host, "www.") === 0 ? substr($http_host, 4) : $http_host)){ mpre("Удаление www из начала страницы");
-}elseif(!$http_host = idn_to_utf8($http_host)){ mpre("Руссификация хоста");
+}elseif(!$http_host = idn_to_utf8($http_host, IDNA_NONTRANSITIONAL_TO_ASCII, INTL_IDNA_VARIANT_UTS46)){ mpre("Руссификация хоста");
 }elseif(!$http_host = preg_replace("/[.]+$/", "", $http_host)){ mpre("Ошибка выризания точек в конце хоста. По стандартам можно ставить точку в конце адреса и это будет работать");
 }else{ global $conf; # Пользовательская страница
 //	mpre($http_host);

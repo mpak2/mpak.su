@@ -304,6 +304,13 @@ input[type="submit"]{
 */
 				margin-bottom: -16px;
 			}
+			
+			#content >.lines .table input:disabled {
+				color:gray;
+			}
+			#content >.lines .table .disabled {
+				color:gray;
+			}
 #footer{
 	clear:both;
 	border-top:1px solid #dbdbdd;
