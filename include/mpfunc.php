@@ -967,7 +967,7 @@ set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 		2048=> "Обратная совместимость",
 		)){ mpre("ОШИБКА установки массива ошибок");
 	}elseif(!$file_info = "{$filename}:{$linenum}"){ mpre("ОШИБКА получения информаци о файле и строке");
-	}elseif(!$type = get($errortype, $errno)){ mpre("Тип ошибки не установлен");
+	}elseif(!$type = (get($errortype, $errno) ?: "ОШИБКА")){ mpre("Тип ошибки не установлен");
 	}elseif(!$pdo = (0 === strpos($errmsg, 'PDO::query():'))){ mpre($type, $errmsg, $file_info);
 		mpevent($type, $errmsg, $file_info);
 	}elseif(!$conn = $conf['db']['conn']){ mpre("ОШИБКА определения соединения с базой данных");
@@ -1030,11 +1030,15 @@ function mptс($time = null, $format = 0){ # Приведение временн
 				($minutes ? " ". ($minutes%60). " ". mpfm($minutes, "минута", "минуты", "минут")  : "");
 	}
 }
-function mb_ord($char){
-		list(, $ord) = unpack('N', mb_convert_encoding($char, 'UCS-4BE', 'UTF-8'));
-		return $ord;
-} function mb_chr($string){
-    return html_entity_decode('&#' . intval($string) . ';', ENT_COMPAT, 'UTF-8');
+if(!function_exists("mb_ord")){
+	function mb_ord($char){
+			list(, $ord) = unpack('N', mb_convert_encoding($char, 'UCS-4BE', 'UTF-8'));
+			return $ord;
+	}
+} if(!function_exists("mb_ord")){
+	function mb_chr($string){
+			return html_entity_decode('&#' . intval($string) . ';', ENT_COMPAT, 'UTF-8');
+	}
 }
 # Вызов библиотеки curl Для хранения файла кукисов используется текущая директория. Первым параметром передается адрес запрос, вторым пост если требуется
 function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $headers = array(), $proxy = null){
@@ -1389,8 +1393,8 @@ function mpdbf($tn, $post = null, $and = false){
 		}elseif(!$values = array_map(function($val){ return mpquot($val); }, array_intersect_key($mpdbf, $fields))){ mpre("ОШИБКА составления значений запроса");
 		}else{// pre($conf['user']['sess']);
 			qw("INSERT INTO `". mpquot($tn). "` (`". implode("`, `", array_keys($values)). "`) VALUES (\"". implode("\", \"", array_values($values)). "\")");
+			return $sel['id'] = $conf['db']['conn']->lastInsertId();
 		}// qw($sql = "INSERT INTO `". mpquot($tn). "` SET ". mpdbf($tn, $insert+array("time"=>time(), "uid"=>(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0))));
-		return $sel['id'] = $conf['db']['conn']->lastInsertId();
 	}
 }
 
