@@ -1,4 +1,4 @@
-<? if(!$admin = rb("{$conf['db']['prefix']}admin", "id", (get($_GET, 'id') ?: 3))): mpre("Ошибка выборки админ раздела для отображения на главной админки") ?>
+<? if(!$admin = rb("{$conf['db']['prefix']}admin_index", "id", (get($_GET, 'id') ?: 3))): mpre("Ошибка выборки админ раздела для отображения на главной админки") ?>
 <? elseif(!$MODULES_INDEX = rb('modules-index', 'admin', 'id', $admin['id'])): mpre("Ошибка выборки списка модулей") ?>
 <? elseif(!is_array($MODULES_INDEX_UACCESS = rb("modules-index_uaccess"))): mpre("ОШИБКА выборки списка разрешения пользователй") ?>
 <? elseif(!is_array($MODULES_INDEX_GACCESS = rb("modules-index_gaccess"))): mpre("ОШИБКА выборки списка разрешений для группы") ?>
