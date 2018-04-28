@@ -112,7 +112,7 @@
 								<li title="<?=$title?>"><a href="<?=$href?>" style="font-weight:<?=$bold?>;"><?=$st?></a></li>
 							<? endif; ?>
 						<? endforeach; ?>
-						<li><b><a href="/sqlanaliz:admin_sql/r:<?=$_GET['r']?>">БД</a></b></li>
+						<li><b><a href="/sql:admin_sql/r:<?=$_GET['r']?>">БД</a></b></li>
 						<li class="settings" style="position:relative; z-index:10;">
 							<div class="settings">
 								<h2>Свойства</h2>
@@ -150,7 +150,7 @@
 					(function($, script){
 						$(script).parent().on("click", "button.table", function(e){
 							if(value = prompt("Название таблицы")){
-								$.post("/sqlanaliz:admin_sql/null", {table:"<?=$_GET['r']?>"}, function(data){
+								$.post("/sql:admin_sql/null", {table:"<?=$_GET['r']?>"}, function(data){
 									$.post("/settings:admin/r:mp_settings/null", {modpath:"<?=$arg['modpath']?>", name:"<?=substr($_GET['r'], strlen($conf['db']['prefix']))?>", value:value, aid:4}, function(data){
 										console.log("post:", data);
 										document.location.reload(true);
@@ -163,7 +163,7 @@
 						})
 					})(jQuery, document.scripts[document.scripts.length-1])
 				</script> Таблица не найдена
-				<? if($conf['modules']['sqlanaliz']['admin_access'] > 4): ?>
+				<? if($conf['modules']['sql']['admin_access'] > 4): ?>
 					<button class="table">Создать</button>
 				<? endif; ?>
 			</div>
