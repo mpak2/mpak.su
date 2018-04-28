@@ -1,7 +1,7 @@
 <?
 
 $conf['modversion']=array(
-	'name'=>'Анализ SQL',
+	'name'=>'Хранилище',
 	'author'=>'mpak',
 	'contact'=>'mpak@surguttel.ru',
 	'version'=>'1.0022',

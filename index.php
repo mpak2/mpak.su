@@ -256,7 +256,7 @@ if(!is_array($zblocks = call_user_func(function() use(&$conf){
 		if(array_key_exists('blocks', $_GET['m']) && ($_GET['m']['blocks'] == "index") && !get($_GET, 'id')){// pre($_GET);
 			$conf["content"] = modules($conf["content"]);
 			$zblocks = [];
-		}elseif(isset($_GET['m']['sqlanaliz'])){
+		}elseif(isset($_GET['m']['sql'])){
 			$zblocks = blocks();
 			$conf["content"] = modules($conf["content"]);
 		}else{
