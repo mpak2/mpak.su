@@ -5,11 +5,17 @@ RUN apt-get update && apt-get -y upgrade
 RUN apt install -y vim
 RUN apt install -y wget
 
+ENV TZ=Europe/Moscow
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 RUN apt install -y apache2
-RUN apt install -y php7.0 php7.0-mysql libapache2-mod-php7.0 curl
+RUN apt install -y php7.0
+RUN apt install -y php7.2-mysql
+RUN apt install -y libapache2-mod-php7.2
+RUN apt install -y curl
 RUN apt install -y php-mbstring
 RUN apt install -y php-mysql
-RUN apt install -y php7.0-sqlite
+RUN apt install -y php7.2-sqlite
 RUN apt install -y php-gd
 RUN apt install -y php-intl
 RUN apt install -y php-xml
@@ -17,18 +23,18 @@ RUN apt install -y php-curl
 
 #RUN apt install -y php7.0-ffmpeg
 
-RUN sed -i "s/short_open_tag = Off/short_open_tag = On/" /etc/php/7.0/apache2/php.ini
+RUN sed -i "s/short_open_tag = Off/short_open_tag = On/" /etc/php/7.2/apache2/php.ini
 RUN sed -i "s/short_open_tag = Off/short_open_tag = On/" /etc/php/7.2/cli/php.ini
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
-
+#RUN sed -i "s/<\/VirtualHost>/Проверка\n<\/VirtualHost>" /etc/apache2/apache2.conf
 RUN sed -i "s/<\/VirtualHost>/\n\t<Directory \/var\/www\/html>\n\t<\/Directory>\n<\/VirtualHost>/g" /etc/apache2/sites-available/000-default.conf
 RUN sed -i "s/<\/Directory>/\tOptions Indexes FollowSymLinks MultiViews\n\t<\/Directory>/g" /etc/apache2/sites-enabled/000-default.conf
 RUN sed -i "s/<\/Directory>/\tAllowOverride All\n\t<\/Directory>/g" /etc/apache2/sites-enabled/000-default.conf
 RUN sed -i "s/<\/Directory>/\tOrder allow,deny\n\t<\/Directory>/g" /etc/apache2/sites-enabled/000-default.conf
 RUN sed -i "s/<\/Directory>/\tAllow from all\n\t<\/Directory>/g" /etc/apache2/sites-enabled/000-default.conf
 RUN sed -i "s/<\/Directory>/\tRequire all granted\n\t<\/Directory>/g" /etc/apache2/sites-enabled/000-default.conf
-RUN a2enmod php7.0
+RUN a2enmod php7.2
 RUN a2enmod rewrite
 EXPOSE 80
 

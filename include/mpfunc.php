@@ -83,7 +83,7 @@ function conn($init = null){
 	try{// die(!pre($conf['db']));
 		if(!$type = ($init ? first(explode(":", $init)) : $conf['db']['type'])){ pre("Тип подключения не определен");
 		}elseif(!$name = ($init ? last(explode(":", $init)) : $conf['db']['name'])){ pre("Файл не установлен");
-		}elseif(!$options = [/*PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,*/PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_PERSISTENT=>false, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>1]){ mpre("ОШИБКА задания опций подключения");
+		}elseif(!$options = [/*PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,*/PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_PERSISTENT=>false, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>1/*, PDO::SQLITE_MAX_EXPR_DEPTH=>0*/]){ mpre("ОШИБКА задания опций подключения");
 		}elseif("sqlite" == $type){
 			if(!$realpath = realpath($name)){ mpre("Файл с БД не найден `{$name}`");
 			}else{// mpre("Реальный путь до файла бд", $name);
