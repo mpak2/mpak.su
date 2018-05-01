@@ -967,13 +967,13 @@ set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 		2048=> "Обратная совместимость",
 		)){ mpre("ОШИБКА установки массива ошибок");
 	}elseif(!$file_info = "{$filename}:{$linenum}"){ mpre("ОШИБКА получения информаци о файле и строке");
-	}elseif(!$type = (get($errortype, $errno) ?: "ОШИБКА")){ mpre("Тип ошибки не установлен");
-	}elseif(!is_bool($pdo = (0 === strpos($errmsg, 'PDO::query():')))){// mpre($type, $errmsg, $file_info);
+	}elseif(!$type_num = (($type = get($errortype, $errno)) ? "{$type} ({$errno})" : "Неустановленный тип ошибки ({$errno})")){ mpre("Тип ошибки не установлен");
+	}elseif(!$pdo = (0 === strpos($errmsg, 'PDO::query():'))){ mpre($file_info, $type_num, $errmsg);
 	}elseif(!$conn = $conf['db']['conn']){ mpre("ОШИБКА определения соединения с базой данных");
 	}elseif(!$info = last($conf['db']['sql'])){ mpre("ОШИБКА получения запроса", $conf['db']);
 	}elseif(!$error = (last($conn->errorInfo()) ?: $errmsg)){ mpre("Текст ошибки не установлен", $info['sql']);
-	}else{ mpre("{$type} ($errno)", $error, $file_info, $info['sql']);
-		mpevent($type, $error, "{$file_info}: {$info['sql']}");
+	}else{ mpre($type_num, $error, $file_info, $info['sql']);
+		mpevent($file_info, $type_num, $error, $info['sql']);
 	}
 });
 function mpzam($ar, $name = null, $prefix = "{", $postfix = "}", $separator = ":"){ # Создание из много мерного массиива - одномерного. Применяется для подставки в текстах отправляемых писем данных из массивов
