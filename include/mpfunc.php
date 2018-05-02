@@ -972,7 +972,7 @@ set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 	}elseif(!$conn = $conf['db']['conn']){ mpre("ОШИБКА определения соединения с базой данных");
 	}elseif(!$info = last($conf['db']['sql'])){ mpre("ОШИБКА получения запроса", $conf['db']);
 	}elseif(!$error = (last($conn->errorInfo()) ?: $errmsg)){ mpre("Текст ошибки не установлен", $info['sql']);
-	}else{ mpre($type_num, $error, $file_info, $info['sql']);
+	}else{ mpre($file_info, $type_num, $error, $info['sql']);
 		mpevent($file_info, $type_num, $error, $info['sql']);
 	}
 });
@@ -1171,7 +1171,7 @@ function erb($src, $key = null){
 	}elseif(call_user_func(function() use($conf, $_FIELDS, $src){ # Проверка таблицы на существование ключей если нет то добавляем
 			if(gettype($src) != "string"){// mpre("Проверяем ключи только у таблиц физически присутствующих в базе (Сроковой тип имени таблицы)");
 			}elseif(!$_FIELDS){// mpre("Поля не указаны");
-			}elseif(rand(0, 1000)%100){// mpre("Один процент на проверку наличия ключей условия выборки в таблице");
+			}elseif(rand(0, 1000)%10){// mpre("Один процент на проверку наличия ключей условия выборки в таблице");
 			}elseif(!$table = call_user_func(function($table_name) use($conf){
 					if(strpos($table_name, $conf['db']['prefix']) === 0){ return $table_name;
 					}elseif(!strpos($table_name, '-')){ return "{$conf['db']['prefix']}{$table_name}";
@@ -1184,13 +1184,14 @@ function erb($src, $key = null){
 					if('mysql' == $conf['db']['type']){ return ($indexes += ['field'=>get($indexes, 'Column_name')]);
 					}elseif(!$name = get($indexes, 'name')){ mpre("ОШИБКА получения имени индекса", $indexes);
 					}elseif(!$explode = explode('-', $name)){ mpre("ОШИБКА разбивки имени индекса на составляющие");
-					}elseif(!$field = last($explode)){ mpre("ОШИБКА получения имени поля");
+					}elseif(!$field = ((1 == count($explode)) ? $name : implode('-', array_slice($explode, 1)))){ mpre("ОШИБКА получения имени поля `{$name}`");
 					}elseif(!$indexes += ['field'=>$field]){ mpre("ОШИБКА добавления имени поля к данным об индекса");
 					}else{ return $indexes; }
 				}, $INDEXES))){ mpre("ОШИБКА получения имен полей индексов из названий");
 			}elseif(!is_array($_indexes = array_flip(array_column($INDEXES, 'field')))){ mpre("ОШИБКА получения массива типов ключей");
 			}elseif(!$_fields = array_flip($_FIELDS)){ mpre("ОШИБКА получения массива с именами в ключах", $_FIELDS);
 			}elseif(!$keys = array_diff_key($_fields, $_indexes)){// mpre("Ключей для добавления не найдено");
+//			}elseif(true){ mpre($table, $_fields, $_indexes, $INDEXES);
 			}elseif(!$FIELDS = fields($table)){ mpre("ОШИБКА получения списка полей таблицы");
 			}elseif(!$SQL = array_filter(array_map(function($key) use($table, $conf, $_fields, $FIELDS){
 					if(!$tab = substr($table, strlen($conf['db']['prefix']))){ mpre("ОШИБКА формирования префикса таблицы для имени ключа");
@@ -1387,7 +1388,7 @@ function mpdbf($tn, $post = null, $and = false){
 			} return $sel;*/
 		}
 	}elseif($insert){
-		if(!$fields = fields($tn)){ mpre("ОШИБКА получения полей таблицы");
+		if(!$fields = fields($tn)){ mpre("ОШИБКА получения полей таблицы `{$tn}`");
 		}elseif(!$mpdbf = $insert+array("time"=>time(), "uid"=>get($conf, 'user', 'uid'), 'sid'=>get($conf, 'user', 'sess', 'id'))){ mpre("ОШИБКА добавления дефолтных значений");
 		}elseif(!$values = array_map(function($val){ return mpquot($val); }, array_intersect_key($mpdbf, $fields))){ mpre("ОШИБКА составления значений запроса");
 		}else{// pre($conf['user']['sess']);
