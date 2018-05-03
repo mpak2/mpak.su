@@ -251,11 +251,11 @@ function cache($content = false){
 				}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Ошибка определения адреса");
 //				}elseif(!($TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name"))){ pre("Параметры таблицы не определены");
 				}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ pre("Ошибка создания запроса");
-				}elseif(!$row = mpql($RES, 0)){ pre("Кеш страницы не найден");
+/*				}elseif(!$row = mpql($RES, 0)){ pre("Кеш страницы не найден");
 					error_log(implode("/", $sys_getloadavg). " --! 503 http://{$HTTP_HOST}{$REQUEST_URI}\n", 3, $cache_log);
 					header('HTTP/1.1 503 Service Temporarily Unavailable');
 					header('Status: 503 Service Temporarily Unavailable');
-					exit(header('Retry-After: '. array_rand(60, 600)));//random() Почторить через небольшой период времени
+					exit(header('Retry-After: '. array_rand(60, 600)));//random() Почторить через небольшой период времени*/
 				}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])*/){ // mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
 				}else{
 					error_log(implode("/", $sys_getloadavg). " <<! http://{$HTTP_HOST}{$REQUEST_URI}\n", 3, $cache_log);
@@ -269,11 +269,11 @@ function cache($content = false){
 			}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])*/){
  // mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
 //			}elseif(pre($sys_getloadavg)){
-			}elseif($sys_getloadavg[0] >= 50){ # Очередь процессов на выполнение больше критического предела - отдаем ошибку
+/*			}elseif($sys_getloadavg[0] >= 50){ # Очередь процессов на выполнение больше критического предела - отдаем ошибку
 				error_log(implode("/", $sys_getloadavg). " --- 503 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 				header('HTTP/1.1 503 Service Temporarily Unavailable');
 				header('Status: 503 Service Temporarily Unavailable');
-				exit(header('Retry-After: '. array_rand(60, 600)));//random() Почторить через небольшой период времени
+				exit(header('Retry-After: '. array_rand(60, 600)));//random() Почторить через небольшой период времени*/
 //			}elseif(pre($sys_getloadavg, time())){
 			}elseif(($sys_getloadavg[0] < 1) && (1 <= rand(0, $sys_getloadavg[0]))){// mpre("Чем меньше нагрузка, тем более вероятно обновление");
 			}elseif(!call_user_func(function($age){
