@@ -132,7 +132,7 @@
 								<div class="content">
 									<h4>Свойства таблицы</h4>
 									<div class="table" style="width:100%;">
-										<? foreach(["{$arg['modpath']}"=>["Список"=>"=>espisok", "Исключения"=>"_tpl_exceptions"], "{$t}"=>["Название"=>"", "Заголовки"=>"=>title", "Сортировка"=>"=>order", "Счетчик"=>"=>ecounter"]] as $prx=>$params): ?>
+										<? foreach(["{$arg['modpath']}"=>["Список"=>"=>espisok", "Исключения"=>"_tpl_exceptions"], "{$tb}"=>["Название"=>"", "Заголовки"=>"=>title", "Сортировка"=>"=>order", "Счетчик"=>"=>ecounter"]] as $prx=>$params): ?>
 											<? foreach($params as $name=>$uri): ?>
 												<div>
 													<span style="font-weight:<?=($prx == $arg['modpath'] ? "bold" : "inherit")?>;"><?=$name?></span>
