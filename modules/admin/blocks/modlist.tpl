@@ -6,7 +6,11 @@
 <? elseif(!$MODULES_INDEX = rb("modules-index")): mpre("Список модейлей пуст") ?>
 <? elseif(!$modpath = (array_search('admin', $_GET['m']) ?: first(array_flip($_GET['m'])))): mpre("Ошибка определения имени раздела") ?>
 <? else: ?>
-	<div>
+	<div class="modlist">
+		<style>
+			.modlist a.del { opacity:0; }
+			.modlist a:hover.del { opacity:1; }
+		</style>
 		<script sync>
 			(function($, script){
 				$(script).parent().on("click", "a.del", function(e){

@@ -9,10 +9,10 @@
 		}elseif(!is_array($files = array_filter(array_map(function($file) use($folder, $readdir, $path, $conf){ # Получения списка файлов поддиректорий;
 				if("." == substr($file, 0, 1)){// mpre("Файл начинается с точки");
 				}elseif(!$file_name = ($path ? "{$path}/" : ""). "{$file}"){ mpre("ОШИБКА получения полного пути до файла");
-				}elseif(!$intersect = fk('intersect', $w = ['href'=>$file_name], $w += ['hide'=>1, 'admin-access'=>1])){ mpre("ОШИБКА добавления файла в таблицу `{$file_name}`");
+				}elseif(!is_array($intersect = rb('intersect', 'href', array_flip([$file_name])))){ mpre("ОШИБКА добавления файла в таблицу `{$file_name}`");
 				}elseif(!$dir_name = "{$folder}/{$file_name}"){ mpre("ОШИБКА получения имени директории");
 				}elseif(is_dir($dir_name)){
-					if(!get($intersect, 'admin-access')){ return [$file]; // mpre("Доступ запрещен `{$dir_name}`");
+					if($intersect && !get($intersect, 'admin-access')){ return [$file]; // mpre("Доступ запрещен `{$dir_name}`");
 					}else{ return $readdir($file_name, $folder); }
 				}elseif(!get($conf, 'settings', 'themes_intersect')){ return $file;
 				}else{ return $file; }
@@ -33,21 +33,18 @@
 	}): mpre("ОШИБКА получения списка файлов") ?>
 <?// elseif(!$files = $readdir("", $folder)): mpre("ОШИБКА получения списка файлов директории `{$folder}`") ?>
 <? elseif(!$_files = $readdir("", ".")): mpre("ОШИБКА получения списка файлов директории `{$folder}`") ?>
-<? elseif(!$tree = function($files, $path = "") use(&$tree, $folder){ ?>
+<? elseif(!$tree = function($files, $path = "") use(&$tree, $folder, $arg){ ?>
 		<? if(!$file = (get($files, 0) ?: $folder)): mpre("ОШИБКА поулчения имени директории") ?>
 		<?// elseif(!$dir_name = ($path ? "{$path}/" : ""). $file): mpre("ОШИБКА расчета пути до файла относительно корня сайта") ?>
 		<? elseif(!is_array($list = array_slice($files, 1))): mpre("ОШИБКА получения списка файлов директории") ?>
-		<? elseif(!is_array($intersect = rb("intersect", 'href', "[{$path}]"))): mpre("ОШИБКА выборки данных о файле") ?>
-		<? else:// mpre($path, $intersect) ?>
+		<?// elseif(!$_path = ($path ? "{$path}/" : ""). $file): mpre("ОШИБКА получения пути к файлу") ?>
+		<?// elseif(!is_array($intersect = rb("intersect", 'href', "[{$dir_name}]"))): mpre("ОШИБКА выборки данных о файле") ?>
+		<? else:// mpre($path) ?>
 			<ul>
 				<li>
-					<? if($intersect): ?>
-						<a href="/themes:admin/r:intersect?edit&where[id]=<?=get($intersect, 'id')?>" style="inline-block;" title="<?=$path?>">
-							<?=$file?>
-						</a>
-					<? else: ?>
-						<strong title="<?=$path?>"><?=$file?></strong>
-					<? endif; ?>
+					<a href="/themes:admin/r:<?=$arg['modpath']?>-intersect?edit&where[href]=<?=$path?>" style="inline-block; font-weight:bold;" title="<?=$path?>">
+						<?=$file?>
+					</a>
 				</li>
 				<? foreach($list as $file): ?>
 					<? if(is_array($file)):// mpre("Директория") ?>
@@ -60,8 +57,9 @@
 						<? elseif(!is_array($intersect = rb("intersect", 'href', "[{$file_name}]"))): mpre("ОШИБКА выборки данных о файле") ?>
 						<? elseif(!list($color, $title) = call_user_func(function($intersect) use($file_name){
 								if(!$file_phar = "phar://index.phar/{$file_name}"){ mpre("ОШИБКА расчета пхар файла");
-								}elseif(!get($intersect, 'hide')){ return ["black", "{$file_name} (Отмечен как видим)"];
+								}elseif($intersect && !get($intersect, 'hide')){ return ["black", "{$file_name} (Отмечен как видим)"];
 								}elseif(!file_exists($file_phar)){ return ["gray", "{$file_name} (Локальный)"];
+								}elseif(!file_exists($file_name)){ return ["gray", "{$file_name} (Только в архиве)"];
 								}elseif(!$md5_file = md5_file($file_name)){ mpre("ОШИБКА расчета md5 файла `{$file_name}`");
 								}elseif(!$md5_phar = md5_file($file_phar)){ mpre("ОШИБКА расчета md5 файла `{$file_phar}`");
 								}elseif($md5_phar == $md5_file){ return ["orange", "{$file_name} (Не изменен)"];
@@ -71,7 +69,7 @@
 						<? else:// mpre($intersect) ?>
 							<li style="display:inline-block; margin:0 10px;">
 								<?//=aedit("/themes:admin/r:themes-intersect?edit&where[id]={$intersect['id']}")?>
-								<a href="/themes:admin/r:themes-intersect?edit&where[id]=<?=get($intersect, 'id')?>" style="padding-right:20px; color:<?=$color?>;" title="<?=$title?>">
+								<a href="/themes:admin/r:themes-intersect?&where[href]=<?=$file_name?>" style="padding-right:20px; color:<?=$color?>;" title="<?=$title?>">
 									<?=$file?> <?=(get($intersect, 'name') ? "({$intersect['name']})" : "")?>
 								</a>
 							</li>
