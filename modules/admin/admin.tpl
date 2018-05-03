@@ -95,21 +95,34 @@
 				<span style="width:430px;"><?=$tpl['pager']?></span>
 			<? endif; ?>
 			<span style="padding-right:20px; text-align:right; overflow:visible; white-space:normal;">
-				<? if($t = implode("_", array_slice(explode("_", $_GET['r']), 1))): # Короткое имя текущей таблицы ?>
+				<? if(!$tb = implode("_", array_slice(explode("_", $_GET['r']), 1))): mpre("ОШИБКА формирования короткого имени таблицы") ?>
+				<? elseif(!$list = mpreaddir("/modules/{$arg['modpath']}", 1)): mpre("ОШИБКА получения списка файлов раздела") ?>
+				<? elseif(!$list = array_map(function($f){ return first(explode('.', $f)); }, $list)): mpre("ОШИБКА избавления от расширений") ?>
+				<? elseif(!$list = array_unique($list)): mpre("ОШИБКА удаления уникальных адресов") ?>
+				<?// elseif(!$list = array_unique(array_map(function($f){ return first(explode('.', $f)); }, $mpreaddir))): mpre("ОШИБКА получения списка админстраниц") ?>
+				<? else:// mpre($list) ?>
 					<ul class="admin">
-						<? foreach(array_unique(array_map(function($f){ return first(explode('.', $f)); }, mpreaddir("/modules/{$arg['modpath']}", 1))) as $f): ?>
+						<? foreach($list as $f):// mpre($n, $f) ?>
 							<? if(strpos($f, "admin_") === false):// mpre("Имя файла не админ_") ?>
 							<? elseif(!$fl = implode('_', array_slice(explode('_', $f), 1))): mpre("Ошибка формирования алиаса файла") ?>
-							<? elseif(!($ft = implode('_', array_slice(explode('_', $t), 1))) &0): mpre("Ошибка формирования внутреннего имени таблицы") ?>
+							<? elseif(!($ft = implode('_', array_slice(explode('_', $tb), 1))) &0): mpre("Ошибка формирования внутреннего имени таблицы") ?>
 							<? elseif(!$ft || (strpos($fl, $ft) !== 0)):// mpre("Имя не соответствует формату страницы") ?>
 							<? elseif(!$href = "/{$arg['modpath']}:{$f}". (($id = get($_GET, 'where', 'id')) ? "/{$id}" : ""). ""): mpre("Ошибка формирования адреса страницы") ?>
 							<?// elseif(!$dir = mpopendir($od = $fl)): mpre("Имя файла в файловой системе не найдено {$od}") ?>
 							<? elseif(!($title = mpopendir("modules/{$arg['modpath']}/{$f}.tpl")) && !($title = mpopendir("modules/{$arg['modpath']}/{$f}.php"))): mpre("Имя файла в файловой системе не найдено"); ?>
 							<? elseif(!$bold = (strpos($title, "phar://") === 0 ? "inherit" : "bold")): mpre("Ошибка вычисления толщины текста"); ?>
-							<? elseif(!$st = get($conf, 'settings', ($af = "{$arg['modpath']}_{$f}"))):// mpre("Имя страница в свойствах раздела не установлено") ?>
-								<li title="<?=$title?>"><a href="<?=$href?>" style="font-weight:<?=$bold?>; color:#bbb;"><?=$af?></a></li>
-							<? else: ?>
-								<li title="<?=$title?>"><a href="<?=$href?>" style="font-weight:<?=$bold?>;"><?=$st?></a></li>
+							<? elseif(!$af = "{$arg['modpath']}_{$f}"): mpre("ОШИБКА расчета короткого имени таблицы") ?>
+							<? elseif(!is_string($st = (get($conf, 'settings', $af) ?: ""))): mpre("ОШИБКА получения имени страницы") ?>
+							<? //elseif(!is_string($name = (($st = get($conf, 'settings', $af)) ?: $af))): mpre("Имя страница в свойствах раздела не установлено") ?>
+							<? elseif(!$name = call_user_func(function($af) use($conf, $fl, $arg){
+									if($name = get($conf, 'settings', $af)){ return $name;
+									}elseif(!$_af = "{$arg['modpath']}_{$fl}"){ mpre("ОШИБКА формирования имени параметра таблицы");
+									}elseif($name = get($conf, 'settings', $_af)){ return $name;
+									}else{ return $af; }
+								}, $af)): mpre("ОШИБКА получения имени вкладки") ?>
+							<? elseif(!$color = ($st ? "gray" : "#bbb")): mpre("ОШИБКА получения цвета админссылки") ?>
+							<? else:// mpre($st, $af, $fl) ?>
+								<li title="<?=$title?>"><a href="<?=$href?>" style="font-weight:<?=$bold?>; color:<?=$color?>;"><?=$name?></a></li>
 							<? endif; ?>
 						<? endforeach; ?>
 						<li><b><a href="/sql:admin_sql/r:<?=$_GET['r']?>">БД</a></b></li>

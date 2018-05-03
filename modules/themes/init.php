@@ -1,4 +1,19 @@
-<?
+<? # modules/themes/init.php
+
+if(mpsettings($t = "themes_intersect", "Пересечения") && !tables($table = ("{$conf['db']['prefix']}{$t}"))){
+qw("CREATE TABLE `{$table}` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` int(11) DEFAULT NULL,
+  `uid` int(11) DEFAULT NULL,
+  `hide` smallint(6) DEFAULT NULL,
+  `admin-access` int(11) DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `href` varchar(255) DEFAULT NULL COMMENT 'Путь до файла',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `href_2` (`href`),
+  KEY `href` (`href`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+} 
 
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('themes', 'theme', 'mpak.su', '1', 'Текущая тема')");
 mpqw("INSERT INTO `{$conf['db']['prefix']}settings` (`modpath`, `name`, `value`, `aid`, `description`) VALUES ('themes', 'title', 'Создание сайтов', '1', 'Заголовок страницы')");
