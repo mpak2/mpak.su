@@ -1,7 +1,7 @@
 <div class="error" style="text-align:center;">
-	<? if('/phpinfo.php' == $_SERVER['REQUEST_URI']): phpinfo(); ?>
-	<? elseif(call_user_func(function($tpl) use($conf, $arg){ # Вывод элементов для создания новой страницы с текущим адресом ?>
+	<? if(call_user_func(function($tpl) use($conf, $arg){ # Вывод элементов для создания новой страницы с текущим адресом ?>
 			<? if(get($conf, 'modules', first(explode(":", get($tpl, 'link'))), 'admin_access') < 4): mpre("Прав доступа не достаточно для создания страницы") ?>
+			<? elseif('/phpinfo.php' == $_SERVER['REQUEST_URI']): phpinfo(); ?>
 			<? else: ?>
 				<span style="float:right;">
 					<script>

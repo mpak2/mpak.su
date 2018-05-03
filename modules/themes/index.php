@@ -22,7 +22,8 @@ if(!is_string($folder = call_user_func(function(){
 				<? elseif(!$ext = last(explode('.', $file))): pre("ОШИБКА определения расширения файла") ?>
 				<? elseif(call_user_func(function($imgs) use($ext, $dir, $folder, $file){ ?>
 						<? if(false === array_search($ext, $imgs)):// mpre("Не отображаем `{$ext}`", $imgs) ?>
-						<? elseif(!$path = "/{$dir}/w:50/h:50/c:1/null/". ($folder ? "{$folder}/" : ""). "{$file}"): mpre("ОШИБКА получения пути до файла") ?>
+						<? elseif(!$file_path = ($folder ? "{$folder}/" : ""). "{$file}"): mpre("ОШИБКА формирования пути до файла") ?>
+						<? elseif(!$path = "/{$dir}/w:50/h:50/c:1/null/{$file_path}"): mpre("ОШИБКА получения пути до файла") ?>
 						<? else: ?>
 							<img src="<?=$path?>">
 						<? endif; ?>
