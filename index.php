@@ -47,7 +47,7 @@ if(!$conf = call_user_func(function($conf){
     } return $file_name;
   }){ mpre("Функция подключения ресурсов");
 }elseif(!$mp_require_once("include/config.php")){ mpre("ОШИБКА подключения файла конфигурации");
-}elseif(!$mp_require_once("include/mpfunc.php")){ mpre("ОШИБКА подключения функций системы");
+}elseif(!$mp_require_once("include/func.php")){ mpre("ОШИБКА подключения функций системы");
 }elseif(!empty($argv) && count($argv)>1 && !call_user_func(function($argv) use(&$conf){
     /* Запуск скрипта из консоли php -f index.php /pages:index/2 - Путь до скрипта в файловой системе */
     if(!$conf['user']['gid'] = array(1=>"Администратор")){ mpre("Установка прав администратора");

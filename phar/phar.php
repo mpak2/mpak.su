@@ -1,7 +1,7 @@
 <?php
 
 if(!chdir(__DIR__)){ pre("ОШИБКА установки текущей директории");
-}elseif(!include($f = "../include/mpfunc.php")){ print_r("Не найден файл $f");
+}elseif(!include($f = "../include/func.php")){ print_r("Не найден файл $f");
 }elseif(!$conf['user']['gid'] = array(1=>"Администратор")){ pre("Устанавливаем администратора");
 }elseif(!setlocale(LC_CTYPE, 'ru_RU.utf-8')){ pre("ОШИБКА Установка нужной для сборки локали");
 }elseif(ini_get('phar.readonly') === '1'){ pre("Установите параметр php.ini phar.readonly On");
@@ -28,7 +28,7 @@ if(!chdir(__DIR__)){ pre("ОШИБКА установки текущей дир�
 }elseif(!$dolders = array( # Список файлов для загрузки в архив
 		'index.php',
 		'include/config.php',
-		'include/mpfunc.php',
+		'include/func.php',
 		'include/install.php',
 		'include/mail', # Отправка почты на smtp
 		'include/class/simple_html_dom.php',
@@ -45,7 +45,7 @@ if(!chdir(__DIR__)){ pre("ОШИБКА установки текущей дир�
 		'include/mail',
 		'include/jquery/tiny_mce',
 		'include/jquery/inputmask', # <!-- [settings:inputmask] --> Скрипты для маск ввода в формы, в разделе тема создана переменная для ввода всех скриптов
-		'include/dhonishow',
+//		'include/dhonishow',
 		'include/jquery-lightbox-0.5',
 	)){ pre("ОШИБКА сохдания списка загружаемы файлов");
 }elseif(array_key_exists(1, $argv) && (!$dolders = [$argv[1]])){ print_r("ОШИБКА добавления дополнительного файла в архив");
