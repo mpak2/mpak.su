@@ -318,11 +318,11 @@ function cache($content = false){
 			}else{ foreach(explode("\n", $row['headers']) as $header){ header($header); } }
 			
 			if(empty($sys_getloadavg)){// mpre("Нагрузка процессора не известна");
-			}elseif($sys_getloadavg[0] >= 20){
+/*		}elseif($sys_getloadavg[0] >= 20){
 				error_log(implode("/", $sys_getloadavg). " >-< 503 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 				header('HTTP/1.1 503 Service Temporarily Unavailable');
 				header('Status: 503 Service Temporarily Unavailable');
-				exit(header('Retry-After: '. array_rand(60, 3600)));//random() Повторить через большой период времени
+				exit(header('Retry-After: '. array_rand(60, 3600)));//random() Повторить через большой период времени*/
 			}elseif(empty($row)){ # Пустой результат
 			}elseif(($sys_getloadavg[0] < 10) && !empty($sys_getloadavg) && (rand(0, $sys_getloadavg[0]) < 1)){ # При небольшой загрузке процессора обновляем содержомое страницы в отдельном от пользователя потоке
 				# TODO Реализовать отдачу готового кеша и продолжить формировать новый в отдельном процессе уже независимо от потока пользователя. Время затраченное на формирование нового кеша уже не будет включено во время отдачи страницы
