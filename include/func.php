@@ -62,7 +62,7 @@ function PHPClassAutoload($CN){
     } else {
         spl_autoload_register('PHPClassAutoload');
     }
-//} else {
+//} else { # Функция устарела в версии 7.2
 //    function __autoload($classname){
 //        PHPClassAutoload($classname);
 //    }
@@ -1474,8 +1474,8 @@ function mpevent($name, $description = null, $return = null){
 	}else{ return $users_event_logs; }
 }
 function mpidn($value, $enc = 0){
-	if(!class_exists('idna_convert') && require_once(mpopendir('include/idna_convert.class.inc'))){ mpre("Ошибка подключения класса");
-	}elseif(!$IDN = new idna_convert()){ mpre("Ошибка создания экземпляра класса");
+	/*if(!class_exists('idna_convert') && require_once(mpopendir('include/idna_convert.class.inc'))){ mpre("Ошибка подключения класса");
+	}else*/if(!$IDN = new idna_convert()){ mpre("Ошибка создания экземпляра класса");
 	}elseif($enc){ return $IDN->encode($value);
 	}else{ return $IDN->decode($value); }
 }

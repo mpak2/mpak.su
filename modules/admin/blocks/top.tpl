@@ -1,6 +1,6 @@
 <? # АдминШапка
 
-include_once mpopendir('include/idna_convert.class.inc');
+//include_once mpopendir('include/idna_convert.class.inc');
 $http_host = (new idna_convert())->decode($_SERVER['HTTP_HOST']);
 
 ?>

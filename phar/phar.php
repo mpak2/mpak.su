@@ -32,7 +32,7 @@ if(!chdir(__DIR__)){ pre("ОШИБКА установки текущей дир�
 		'include/install.php',
 		'include/mail', # Отправка почты на smtp
 		'include/class/simple_html_dom.php',
-		'include/idna_convert.class.inc',
+//		'include/idna_convert.class.inc',
 
 		'include/jquery/jquery.iframe-post-form.js',
 		'include/jquery/jquery.selection.js',
