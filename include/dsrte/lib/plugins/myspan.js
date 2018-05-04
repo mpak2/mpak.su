@@ -1,1 +1,0 @@
-var dsRTE_mySpan=function(){this.ExecuteCommand=function(a){var b=a.GetSelection();if(b!='')a.PasteHTML('<span style="color:green" class="myspanclass">'+b+'</span>');return true}};dsRTE.RegisterPlugin(new dsRTE_mySpan(),'myspan');

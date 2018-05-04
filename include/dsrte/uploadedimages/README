@@ -1,3 +1,0 @@
-This directory exists for the upload image plugin to save it's files into.
-If you wish to use another directory for storing uploaded images, please modify the uploadhandler.php file.
-
