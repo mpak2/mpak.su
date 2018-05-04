@@ -9,10 +9,14 @@ function users_sess($sess = null){
 	}elseif(!is_string($ref = mpquot(mpidn(urldecode(get($_SERVER, 'HTTP_REFERER')))))){ pre("ОШИБКА расчета реферальной ссылки");
 	}elseif(!$_sess = array('id'=>0, 'uid'=>$guest['id'], "refer"=>0, 'last_time'=>time(), 'count'=>0, 'count_time'=>0, 'cnull'=>0, 'sess'=>$hash, 'ref'=>$ref, 'ip'=>mpquot($_SERVER['REMOTE_ADDR']), 'agent'=>mpquot($_SERVER['HTTP_USER_AGENT']), 'url'=>$url)){ pre("Ошибка создания пустой сессии");
 	}elseif(!is_numeric($uid = get($conf, 'user', 'uid') > 1 ? $conf['user']['uid'] : $guest['id'])){ pre("ОШИБКА установки идентификтаора пользователя");
-	}elseif($sess = mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}users_sess WHERE `ip`='{$_sess['ip']}' AND last_time>=".(time()-86400)." AND `agent`=\"{$_sess['agent']}\" AND ". ($_COOKIE["sess"] ? "sess=\"{$_sess['sess']}\"" : "uid=". $uid)." ORDER BY id DESC"), 0)){ setcookie("sess", $_sess['sess'], 0, "/"); return $sess;// pre("ОШИБКА получения сессии");
+	}elseif(!$sql = "SELECT * FROM {$conf['db']['prefix']}users_sess WHERE `ip`='{$_sess['ip']}' AND last_time>=".(time()-86400)." AND `agent`=\"{$_sess['agent']}\" AND ". ($_COOKIE["sess"] ? "sess=\"{$_sess['sess']}\"" : "uid=". $uid)." ORDER BY id DESC"){ mpre("ОШИБКА составления запроса поиска сессии");
+	}elseif($sess = (get($_COOKIE, "sess") ? mpql(mpqw($sql), 0) : [])){ return $sess;// pre("ОШИБКА получения сессии");
+	}elseif(empty($_POST) && !get($_SERVER, 'HTTP_PRAGMA')){ return $_sess; pre("Пропускаем гостей так как нет запросов и обновлений");
+//	}elseif()
 	}elseif(!qw($sql = "INSERT INTO {$conf['db']['prefix']}users_sess (`". implode("`, `", array_keys(array_diff_key($_sess, array_flip(['id'])))). "`) VALUES ('". implode("', '", array_values(array_diff_key($_sess, array_flip(['id'])))). "')")){ pre("ОШИБКА добавления сессии в базу");
 	}elseif(!$sess['id'] = $conf['db']['conn']->lastInsertId()){ pre("ОШИБКА определения идентификатора сессии", $sql);
 	}elseif(!$sess = rb("users-sess", "id", $sess['id'])){ pre("ОШИБКА выборки установленной сессии");
+	
 	}else{ setcookie("sess", $sess['sess'], 0, "/");
 		return $sess;
 	}
@@ -953,18 +957,18 @@ function mp_array_format($array,$array_format){
 set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 	global $conf;
 	if(!$errortype = array (
-		1   =>  "Ошибка",
-		2   =>  "Предупреждение",
-		4   =>  "Ошибка синтаксического анализа",
-		8   =>  "Замечание",
-		16  =>  "Ошибка ядра",
-		32  =>  "Предупреждение ядра",
-		64  =>  "Ошибка компиляции",
-		128 =>  "Предупреждение компиляции",
-		256 =>  "Ошибка пользователя",
-		512 =>  "Предупреждение пользователя",
-		1024=>  "Замечание пользователя",
-		2048=> "Обратная совместимость",
+			1   =>  "Ошибка",
+			2   =>  "Предупреждение",
+			4   =>  "Ошибка синтаксического анализа",
+			8   =>  "Замечание",
+			16  =>  "Ошибка ядра",
+			32  =>  "Предупреждение ядра",
+			64  =>  "Ошибка компиляции",
+			128 =>  "Предупреждение компиляции",
+			256 =>  "Ошибка пользователя",
+			512 =>  "Предупреждение пользователя",
+			1024=>  "Замечание пользователя",
+			2048=> "Обратная совместимость",
 		)){ mpre("ОШИБКА установки массива ошибок");
 	}elseif(!$file_info = "{$filename}:{$linenum}"){ mpre("ОШИБКА получения информаци о файле и строке");
 	}elseif(!$type_num = (($type = get($errortype, $errno)) ? "{$type} ({$errno})" : "Неустановленный тип ошибки ({$errno})")){ mpre("Тип ошибки не установлен");
@@ -973,7 +977,7 @@ set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
 	}elseif(!$info = last($conf['db']['sql'])){ mpre("ОШИБКА получения запроса", $conf['db']);
 	}elseif(!$error = (last($conn->errorInfo()) ?: $errmsg)){ mpre("Текст ошибки не установлен", $info['sql']);
 	}else{ mpre($file_info, $type_num, $error, $info['sql']);
-		mpevent($file_info, $type_num, $error, $info['sql']);
+		mpevent($type, $error, ["Файл"=>$file_info, "Номер ошибки"=>$type_num, "Ошибка"=>$error, "Запрос"=>$info['sql']]);
 	}
 });
 function mpzam($ar, $name = null, $prefix = "{", $postfix = "}", $separator = ":"){ # Создание из много мерного массиива - одномерного. Применяется для подставки в текстах отправляемых писем данных из массивов
@@ -1449,30 +1453,49 @@ function mpdk($tn, $insert, $update = array()){
 		} return $conf['db']['conn']->lastInsertId();
 	}
 }
-function mpevent($name, $description = null, $return = null){
+function mpevent($name, $description = null){ # Сохранение информации о событии
 	global $conf, $argv;
 	if(!$name){ mpre("Имя события не указано");
 	}elseif(!$debug_backtrace = debug_backtrace()){ mpre("Ошибка создания списка вызовов функций");
-	}elseif(!$users_event = fk("{$conf['db']['prefix']}users_event", $w = array("name"=>$name), $w += array("hide"=>1, "up"=>time()))){ mpre("Ошибка добавления события в базу событий");
+	}elseif(!$users_event = fk("users-event", $w = array("name"=>$name), $w += array("hide"=>1, "up"=>time()))){ mpre("Ошибка добавления события в базу событий");
 	}elseif(get($users_event, 'hide')){ return []; mpre("Событие выключено");
-	}elseif(!call_user_func(function($users_event) use($conf){ # Исправление структуры сайта в старых версиях
-			qw("UPDATE {$conf['db']['prefix']}users_event SET count=count+1 WHERE hide=0 AND id=". (int)$users_event, "Увеличиваем счетчик на один", function($error) use($users_event, $conf){
-				if(strpos($error, "Unknown column 'hide'")){
-					qw("ALTER TABLE `{$conf['db']['prefix']}users_event` CHANGE `log` `hide` smallint(6) NOT NULL COMMENT 'Сохранение информации о событиях'");
-					qw("UPDATE `{$conf['db']['prefix']}users_event` SET hide=1 WHERE id=". (int)$users_event['id']);
-					qw("ALTER TABLE `{$conf['db']['prefix']}users_event` ADD INDEX (`hide`)");
+	}elseif(!$event_logs = fk("users-event_logs", null, ["event_id"=>$users_event['id'], "themes-index"=>get($conf, "themes", "index", "id"), 'description'=>(is_string($description) ? $description : "")])){ mpre("ОШИБКА добавления события");
+	}elseif(!get($conf, 'settings', 'users_event_values')){ mpre("Создание таблиц событий");
+		if("mysql" == $conf['db']['type']){ mpre("Создаем таблицы событий для {$conf['db']['type']}");
+			qw("CREATE TABLE `{$conf['db']['prefix']}users_event_params` (`id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) DEFAULT NULL, `uid` int(11) DEFAULT NULL, `name` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+			qw("CREATE TABLE `{$conf['db']['prefix']}users_event_value` (`id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) DEFAULT NULL, `uid` int(11) DEFAULT NULL, `name` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+			qw("CREATE TABLE `{$conf['db']['prefix']}users_event_values` (`id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) DEFAULT NULL, `uid` int(11) DEFAULT NULL, `event_logs_id` int(11) DEFAULT NULL, `event_params_id` int(11) DEFAULT NULL, `event_value_id` int(11) DEFAULT NULL, PRIMARY KEY (`id`), KEY `event_params_id` (`event_params_id`), KEY `event_value_id` (`event_value_id`), KEY `event_logs_id` (`event_logs_id`), CONSTRAINT `mp_users_event_values_ibfk_1` FOREIGN KEY (`event_logs_id`) REFERENCES `mp_users_event_logs` (`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+		}elseif("sqlite" == $conf['db']['type']){ mpre("Создаем таблицы событий для {$conf['db']['type']}");
+			qw("CREATE TABLE `{$conf['db']['prefix']}users_event_params`(`id` INTEGER PRIMARY KEY,`time` INTEGER,`uid` INTEGER,`name` TEXT)");
+			qw("CREATE TABLE `{$conf['db']['prefix']}users_event_value`(`id` INTEGER PRIMARY KEY,`time` INTEGER,`uid` INTEGER,`name` TEXT)");
+			qw("CREATE TABLE `{$conf['db']['prefix']}users_event_values`(`id` INTEGER PRIMARY KEY,`time` INTEGER,`uid` INTEGER,`hide` INTEGER,`event_logs_id` INTEGER,`event_params_id` INTEGER,`event_value_id` INTEGER)");
+		}else{ mpre("База данных не установлена"); }
+	}elseif(!$values = ['Источник'=>get($_SERVER, 'HTTP_REFERER'), 'Адрес'=>$_SERVER['REQUEST_URI']]){ mpre("ОШИБКА получения параметров события");
+	}elseif(!is_array($func_get_args = func_get_args())){ mpre("ОШИБКА получения списка параметров");
+	}elseif(!$_VALUES = array_filter(array_map(function($nn, $args){ # Все принятые функцией массивы
+			if(!is_array($args)){// mpre("Только массивы");
+			}else{ return $args; }
+		}, array_keys($func_get_args), $func_get_args))){ mpre("ОШИБКА получения пассивов параметра");
+	}elseif(!is_array($_values = array_filter(array_map(function($args){ # Список строковых входящих значений
+			if(!is_string($args)){// mpre("ОШИБКА ожидается строка");
+			}else{ return $args; }
+		}, array_slice($func_get_args, 2))))){ mpre("ОШИБКА получения строковых значений");
+	}elseif(!$VALUES = array_merge([$values, $_values]+ $_VALUES)){
+	}elseif(!$EVENT_VALUES = array_map(function($array, $EVENT_VALUES = []) use($event_logs){
+			foreach($array as $param=>$value){
+				if(!$event_params = fk('users-event_params', $w = ['name'=>$param], $w)){ mpre("ОШИБКА добалвения параметра события");
+				}elseif(!is_array($event_value = ($value ? fk('users-event_value', $w = ['name'=>$value], $w) : []))){ mpre("ОШИБКА добавления нового значения");
+				}elseif(!$event_values = fk('users-event_values', $w = ['event_logs_id'=>$event_logs['id'], 'event_params_id'=>$event_params['id'], 'event_value_id'=>get($event_value, 'id')], $w)){ mpre("ОШИБКА добавления значения запроса");
+				}elseif(!$EVENT_VALUES[$event_values['id']] = $event_values){ mpre("Формирование списка значений");
+				}else{// mpre($event_values);
 				}
-			});
-			if(!$users_event['hide']){
-				qw("UPDATE {$conf['db']['prefix']}users_event SET up=". time(). ", count=count+1, uid=". (int)get($conf, 'user', 'uid'). " WHERE id=". (int)$users_event['id'], "Обновляем время ", function($error){
-					qw("ALTER TABLE `mp_users_event` ADD `up` int(11) NOT NULL  COMMENT 'Последнее обновление события' AFTER `time`");
-				});
-			}; return $users_event;
-		}, $users_event)){ mpre("Ошибка корректировки таблицы");
-	}elseif(!is_string($referer = (get($_SERVER, 'HTTP_REFERER') ?: ""))){ mpre("Реферер не установлен");
-	}elseif(!$users_event_logs = fk("users-event_logs", null, $w = ["event_id"=>$users_event['id'], 'refer'=>$referer, "themes-index"=>get($conf, "themes", "index", "id"), 'own'=>get($conf, 'user', 'uid'), "description"=>$description, "return"=>$return])){ mpre("ОШИБКА Добавления события");
-	}else{ return $users_event_logs; }
+			} return $EVENT_VALUES;
+		}, $VALUES)){ mpre("ОШИБКА сохранения значений");
+	}else{// mpre($values, $_values, $_VALUES, $VALUES, $event_logs);
+		return $event_logs;
+	}
 }
+
 function mpidn($value, $enc = 0){
 	/*if(!class_exists('idna_convert') && require_once(mpopendir('include/idna_convert.class.inc'))){ mpre("Ошибка подключения класса");
 	}else*/if(!$IDN = new idna_convert()){ mpre("Ошибка создания экземпляра класса");
