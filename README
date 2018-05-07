@@ -1,11 +1,3 @@
-Портальная система Жираф.
-лицензий GPL
-
-Контакты +79119842884
-icq: 264723755
-
-Сайт cms: http://mpak.su/
-
 For quick installation use Dothalo https://github.com/mpak2/mpak.su/blob/master/phar/docker/README
 
 The following options should be supported on the hosting: work with phar archives, PDO driver should be available to work with sqlite3 database
@@ -24,6 +16,14 @@ For direct links to the file from a template src="img/name.png " in the site cod
 <base href= " /themes/<!-- [settings:theme] -- > / " > (address to the resources of the current site template)
 In the Central part of the add the place where will be displayed the page template <!-- [modules] -->
 In the header site are installing connect the styles and libraries <!-- [block header] --> (In the <header>tag)
+
+Портальная система Жираф.
+лицензий GPL
+
+Контакты +79119842884
+icq: 264723755
+
+Сайт cms: http://mpak.su/
 
 Для быстрой установки воспользуйтесь Докерфайлом https://github.com/mpak2/mpak.su/blob/master/phar/docker/README
 
