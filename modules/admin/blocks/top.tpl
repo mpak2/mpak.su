@@ -10,7 +10,7 @@ $http_host = (new idna_convert())->decode($_SERVER['HTTP_HOST']);
 				<a href="/" class="logo"><img src="i/logo.png"></a>
 				<span style="vertical-align:bottom;">
 					<? if($version = mpopendir("version.txt")): ?>
-						<div><b>Собрано</b>: <?=file_get_contents($version)?></div>
+						<div><b>Версия</b>: <?=file_get_contents($version)?></div>
 					<? endif; ?>
 					<div>
 						<a href="/" class="SiteName">http://<?=$http_host?>/</a>
