@@ -114,7 +114,7 @@ if(!$sess = users_sess()){// pre("Добавляем сессию");
 }elseif(!$sess = fk("users-sess", ['id'=>$sess['id']], null, ['uid'=>$user['id']])){ pre("Ошибка редактирования сессии", $sess);
 }elseif(!$conf['user']['sess'] = $sess){ pre("ОШИБКА сохранения сессии в системных переменных");
 }elseif(!$user = fk("users-", ['id'=>$user['id']], null, ['last_time'=>time()])){ pre("Ошибка установки времени входа пользователю");
-}else{// pre($conf['user']['sess']);
+}else{ // pre($conf['user']['sess']);
   /*if(get($_POST, 'HTTP_REFERER')){
     exit(header("Location: {$_POST['HTTP_REFERER']}"));
   } setcookie("{$conf['db']['prefix']}modified_since", "1", 0, "/");*/
