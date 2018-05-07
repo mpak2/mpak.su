@@ -96,9 +96,9 @@
 			<? endif; ?>
 			<span style="padding-right:20px; text-align:right; overflow:visible; white-space:normal;">
 				<? if(!$tb = implode("_", array_slice(explode("_", $_GET['r']), 1))): mpre("ОШИБКА формирования короткого имени таблицы") ?>
-				<? elseif(!$list = mpreaddir("/modules/{$arg['modpath']}", 1)): mpre("ОШИБКА получения списка файлов раздела") ?>
-				<? elseif(!$list = array_map(function($f){ return first(explode('.', $f)); }, $list)): mpre("ОШИБКА избавления от расширений") ?>
-				<? elseif(!$list = array_unique($list)): mpre("ОШИБКА удаления уникальных адресов") ?>
+				<? elseif(!is_array($list = mpreaddir("/modules/{$arg['modpath']}", 1))): mpre("ОШИБКА получения списка файлов раздела") ?>
+				<? elseif(!is_array($list = array_map(function($f){ return first(explode('.', $f)); }, $list))): mpre("ОШИБКА избавления от расширений") ?>
+				<? elseif(!is_array($list = array_unique($list))): mpre("ОШИБКА удаления уникальных адресов") ?>
 				<?// elseif(!$list = array_unique(array_map(function($f){ return first(explode('.', $f)); }, $mpreaddir))): mpre("ОШИБКА получения списка админстраниц") ?>
 				<? else:// mpre($list) ?>
 					<ul class="admin">

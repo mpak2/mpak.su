@@ -23,7 +23,7 @@
 	</script>
 	
 	<div style="width:80%; margin-left:20px;">
-		<? $tpl['admin'] = rb("{$conf['db']['prefix']}admin") ?>
+		<? $tpl['admin'] = rb("admin-index") ?>
 		<h1>Разделы установленные на сайте</h1>
 		<div class="table brd">
 			<div class="th">
