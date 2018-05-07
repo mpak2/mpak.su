@@ -838,7 +838,7 @@ if (!function_exists('modules')){
 if(!function_exists('blocks')){
 	function blocks($bid = null){# Загружаем список блоков и прав доступа
 		global $conf, $arg;
-		$result = [];
+		$result = [];// mpre($bid);
 		if(!$conf['db']['info'] = "Выборка шаблонов блоков"){ pre("Установка описания запросам");
 		}elseif(!$BLOCKS = mpql(mpqw($sql = "SELECT *, `admin_access` as admin_access FROM {$conf['db']['prefix']}blocks_index WHERE hide=0". ($bid ? " AND id=". (int)$bid : " ORDER BY sort"), "Запрос списка блоков", function($error) use($conf){
 				if(strpos($error, "Unknown column 'admin_access'")){
@@ -849,6 +849,7 @@ if(!function_exists('blocks')){
 					qw("UPDATE {$conf['db']['prefix']}blocks_index SET hide=-1 WHERE hide=1; UPDATE {$conf['db']['prefix']}blocks_index SET hide=1 WHERE hide=0; UPDATE {$conf['db']['prefix']}blocks_index SET hide=0 WHERE hide=-1");
 				}
 			}))){ pre("Список блоков не найден");
+//		}elseif(true){ mpre($BLOCKS);
 		}elseif(!$BLOCKS_REG = mpqn(mpqw("SELECT *, `name` as name FROM {$conf['db']['prefix']}blocks_reg", "Запрос списка регионов", function($error, $conf){
 				if(strpos($error, "Unknown column 'name' in 'field list'")){
 					qw(pre("ALTER TABLE {$conf['db']['prefix']}blocks_reg CHANGE `description` `name` varchar(255)", $error));
@@ -862,10 +863,9 @@ if(!function_exists('blocks')){
 				if(!strpos($error, "Unknown column 'admin_access'")){ pre("Неопределенная ошибка", $error);
 				}else{ qw(mpre("ALTER TABLE `{$conf['db']['prefix']}blocks_index_gaccess` CHANGE `access` `admin_access` int(11) NOT NULL")); }
 		}))) &0){ mpre("Разрешения для группы");
-		}else{
+		}else{// mpre($BLOCKS);
 			foreach($BLOCKS as $k=>$block){
 				if(!$theme = ((substr($block['theme'], 0, 1) == "!") && ($conf['settings']['theme'] != substr($block['theme'], 1)) ? $conf['settings']['theme'] : $block['theme'])){ mpre("Ошибка расчета темы с учетом отрицания {$block['theme']}");
-//				if(!$theme = ()){ mpre("Ошибка расчета темы с учетом отрицания {$block['theme']}");
 				}elseif(($conf['settings']['theme'] != $block['theme']) && ($conf['settings']['theme'] != $theme)){// mpre("У блока отмечен другой шаблон", $theme);
 				}elseif(!$conf['db']['info'] = "Блок '{$block['name']}'"){ pre("Описание к запросам блока");
 				}elseif(!$mod = get($conf, 'modules', basename(dirname(dirname($block['src'])))) ?: array("folder"=>'')){ mpre("Ошибка определения модуля");
@@ -877,35 +877,42 @@ if(!function_exists('blocks')){
 				}elseif(!is_numeric($umax = ($_BLOCKS_INDEX_UACCESS ? max(array_column($_BLOCKS_INDEX_UACCESS, 'admin_access')) : $access))){ mpre("Ошибка максимального разрешения для пользователя");
 				}elseif(!is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < 1)){// mpre("Недостаточно прав доступа к разделу");
 				}elseif($conf["settings"]["bid"] = $bid){ pre("Блок к которому мы обращаемся в параметрах блока");// $result = $cb;
-				}else{
-					ob_start();
-						inc("modules/{$block['src']}", array('arg'=>$arg));						
-					$cb = ob_get_contents(); ob_end_clean();
-
-					if(!is_numeric($block['shablon']) && file_exists($file_name = mpopendir("themes/{$conf['settings']['theme']}/". ($block['shablon'] ?: "block.html")))){
-						$shablon[ $block['shablon'] ] = file_get_contents($file_name);
-					}else{ $shablon[ $block['shablon'] ] = "<!-- [block:content] -->"; }
-
-					$cb = strtr($shablon[ $block['shablon'] ], $w = array(
+				}elseif(!is_string($cb = call_user_func(function($block) use($arg){ # Получения содержимого блока
+						ob_start();
+							if(inc("modules/{$block['src']}", array('arg'=>$arg))){ mpre("ОШИБКА подключения блока `{$block['src']}`");
+							}else{// mpre(123);
+							} $cb = ob_get_contents();
+						ob_end_clean();
+						return $cb;
+					}, $block))){ mpre("ОШИБКА получения содержимого блока", $block);
+				}elseif(!$shablon[ $block['shablon'] ] = call_user_func(function($block) use($conf){ # Получение шаблона блока
+						if(is_numeric($block['shablon'])){// mpre("Номер в имени файла шаблона блока");
+						}elseif(!get($block, 'shablon')){// mpre("ШАБЛОН НЕ задан");
+						}elseif(!$file = "themes/{$conf['settings']['theme']}/{$block['shablon']}"){ mpre("ОШИБКА получения короткого пути до файла шаблона блока");
+						}elseif(!$file_name = mpopendir($file)){ mpre("Полный путь до шаблона указанного в блоке не найден `{$file}` блок `{$block['name']}`");
+						}else{ return $file_name;
+						} return "<!-- [block:content] -->";
+					}, $block)){ mpre("ОШИБКА получения шаблона блока");
+				}elseif(!is_string($cb = strtr($shablon[ $block['shablon'] ], $w = array( # Замена элементов в шаблоне
 						'<!-- [block:content] -->'=>$cb,
 						'<!-- [block:id] -->'=>$block['id'],
 						'<!-- [block:name] -->'=>$block['name'],
 						'<!-- [block:modpath] -->'=>$arg['modpath'],
 						'<!-- [block:fn] -->'=>$arg['fn'],
 						'<!-- [block:title] -->'=>$block['name']
-					));
-					
-					if(!$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$block['name'], "{fn}"=>$arg['fn'], "{id}"=>$block['id'])){ print_r("Ошибка создания массива замены");
-					}elseif(($blocks_start = get($conf, 'settings', 'blocks_start')) &&0){ print_r("Начальна строка замены не найдена");
-					}elseif(($blocks_stop = get($conf, 'settings', 'blocks_stop')) &&0){ print_r("Конечная строка замены не установлена");
-					}elseif(!$key = "<!-- [block:{$block['id']}] -->"){ print_r("Ошибка вычисления троки замены блока");
-					}elseif(!$block_text = "{$blocks_start}{$cb}{$blocks_stop}"){// print_r("Ошибка расчета содержимого блока");
-					}elseif(!$result[$key] = strtr($block_text, $section)){ print_r("Ошибка установки содержимого блока");
-					}elseif(get($block, 'alias') && ($n = "<!-- [block:{$block['alias']}] -->") && (!$result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"])){ # Ошибка установки содержимого по алиасу
-					}elseif(($n = "<!-- [blocks:". $block['reg_id'] . "] -->") && (!$result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"])){ mpre("Ошибка добавления блока по номеру группы");
-					}else{// mpre($section);
-						$result[$key] = strtr(get($conf, 'settings', 'blocks_start'), $section). $cb. strtr(get($conf, 'settings', 'blocks_stop'), $section);
-					}
+					)))){ mpre("ОШИБКА получения обработанного блока", $w);
+				}elseif(!$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$block['name'], "{fn}"=>$arg['fn'], "{id}"=>$block['id'])){ print_r("Ошибка создания массива замены");
+				}elseif(($blocks_start = get($conf, 'settings', 'blocks_start')) &&0){ print_r("Начальна строка замены не найдена");
+				}elseif(($blocks_stop = get($conf, 'settings', 'blocks_stop')) &&0){ print_r("Конечная строка замены не установлена");
+				}elseif(!$key = "<!-- [block:{$block['id']}] -->"){ print_r("Ошибка вычисления троки замены блока");
+				}elseif(!$block_text = "{$blocks_start}{$cb}{$blocks_stop}"){// print_r("Ошибка расчета содержимого блока");
+				}elseif(!$result[$key] = strtr($block_text, $section)){ print_r("Ошибка установки содержимого блока");
+				}elseif(get($block, 'alias') && ($n = "<!-- [block:{$block['alias']}] -->") && (!$result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"])){ # Ошибка установки содержимого по алиасу
+				}elseif(($n = "<!-- [blocks:". $block['reg_id'] . "] -->") && (!$result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"])){ mpre("Ошибка добавления блока по номеру группы");
+				}elseif(!is_string($section_start = strtr(get($conf, 'settings', $t = 'blocks_start'), $section))){ mpre("ОШИБКА замены тега `{$t}`");
+				}elseif(!is_string($section_stop = strtr(get($conf, 'settings', $t = 'blocks_stop'), $section))){ mpre("ОШИБКА замены тега `{$t}`");
+				}else{// mpre($section);
+					$result[$key] = $section_start. $cb. $section_stop;
 				}
 			} return $result;
 		}
