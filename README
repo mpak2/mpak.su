@@ -1,4 +1,4 @@
-For quick installation use Dothalo https://github.com/mpak2/mpak.su/blob/master/phar/docker/README
+For quick installation use Dockerfile https://github.com/mpak2/mpak.su/blob/master/phar/docker/README
 
 The following options should be supported on the hosting: work with phar archives, PDO driver should be available to work with sqlite3 database
 To install on the hosting, copy three files to the file system
