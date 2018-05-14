@@ -13,7 +13,7 @@ index.phar (Portal system)
 When you log in, you will be prompted to enter the username and password of the user who will become an administrator.
 The template is added to the modules/pattern_name/index directory.html
 For direct links to the file from a template src="img/name.png " in the site code, specify the tag
-<base href= " /themes/<!-- [settings:theme] -- >/" > (address to the resources of the current site template)
+<base href="/themes/<!-- [settings:theme] -- >/"> (address to the resources of the current site template)
 In the Central part of the add the place where will be displayed the page template <!-- [modules] -->
 In the header site are installing connect the styles and libraries <!-- [block header] --> (In the <header> tag)
 
