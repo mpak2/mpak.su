@@ -1932,7 +1932,7 @@ function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 	$microtime = microtime(true);
 	if(!($r = mpmc($key = "qn:". md5($sql)))){
 		$func_get_args = func_get_args();
-		$func_get_args[0] = mpqw($sql);
+		$func_get_args[0] = qw($sql);
 		$r = call_user_func_array('mpqn', $func_get_args);
 		if(($mt = microtime(true) - $microtime) > .3){
 //			mpevent("Кеширование нумерованного списка", $sql);
