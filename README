@@ -3,21 +3,16 @@ For quick installation use Dockerfile https://github.com/mpak2/mpak.su/blob/mast
 The following options should be supported on the hosting: work with phar archives, PDO driver should be available to work with sqlite3 database
 To install on the hosting, copy three files to the file system
 
-Make sure that php version is the latest (preferably 7.0 or higher)
-On version 5 may not work because of poor quality support phar archives
+Make sure that php version is the latest (preferably 7.0 or higher) On version 5 may not work because of poor quality support phar archives
 
 .htaccess (prvila run archive portal system index.phar)
 .htdb (Database. Full access)
 index.phar (Portal system)
 
 When you log in, you will be prompted to enter the username and password of the user who will become an administrator.
-The template is added to the modules/pattern_name/index directory.html
-For direct links to the file from a template src="img/name.png " in the site code, specify the tag
-<base href="/themes/<!-- [settings:theme] -- >/"> (address to the resources of the current site template)
-In the Central part of the add the place where will be displayed the page template <!-- [modules] -->
-In the header site are installing connect the styles and libraries <!-- [block header] --> (In the <header> tag)
-
-Портальная система Жираф.
+The template is added to the modules/pattern_name/index directory.html For direct links to the file from a template src="img/name.png " in the site code, specify the tag
+<base href="/themes/<!-- [settings:theme] -- >/"> (address to the resources of the current site template) In the Central part of the add the place where will be displayed the page template <!-- [modules] -->
+In the header site are installing connect the styles and libraries <!-- [block header] --> (In the <header> tag) Портальная система Жираф.
 лицензий GPL
 
 Контакты +79119842884
