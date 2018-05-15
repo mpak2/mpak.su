@@ -1,4 +1,4 @@
 {
-	'less_compile' : false,
-	'js_auto_mini' : false
+  "less_compile": false,
+  "js_auto_mini": false
 }
