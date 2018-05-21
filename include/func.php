@@ -12,8 +12,10 @@ function users_sess($sess = null){
 	}elseif(!$sql = "SELECT * FROM {$conf['db']['prefix']}users_sess WHERE `ip`='{$_sess['ip']}' AND last_time>=".(time()-86400)." AND `agent`=\"{$_sess['agent']}\" AND ". ($_COOKIE["sess"] ? "sess=\"{$_sess['sess']}\"" : "uid=". $uid)." ORDER BY id DESC"){ mpre("ОШИБКА составления запроса поиска сессии");
 	}elseif($sess = (get($_COOKIE, "sess") ? mpql(mpqw($sql), 0) : [])){ return $sess;// pre("ОШИБКА получения сессии");
 	}elseif(empty($_POST) && !get($_SERVER, 'HTTP_PRAGMA')){ return $_sess; pre("Пропускаем гостей так как нет запросов и обновлений");
-//	}elseif()
-	}elseif(!qw($sql = "INSERT INTO {$conf['db']['prefix']}users_sess (`". implode("`, `", array_keys(array_diff_key($_sess, array_flip(['id'])))). "`) VALUES ('". implode("', '", array_values(array_diff_key($_sess, array_flip(['id'])))). "')")){ pre("ОШИБКА добавления сессии в базу");
+	}elseif(!qw($sql = "INSERT INTO {$conf['db']['prefix']}users_sess (`". implode("`, `", array_keys(array_diff_key($_sess, array_flip(['id'])))). "`) VALUES ('". implode("', '", array_values(array_diff_key($_sess, array_flip(['id'])))). "')", function($error){
+			if(strpos($error, "doesn't exist")){ qw("ALTER TABLE mp_sess RENAME mp_users_sess");
+			}else{ pre("ОШИБКА не обработана"); }
+		})){ pre("ОШИБКА добавления сессии в базу");
 	}elseif(!$sess['id'] = $conf['db']['conn']->lastInsertId()){ pre("ОШИБКА определения идентификатора сессии", $sql);
 	}elseif(!$sess = rb("users-sess", "id", $sess['id'])){ pre("ОШИБКА выборки установленной сессии");
 	
@@ -84,7 +86,7 @@ function base64($img, $w, $h, $c = 0){
 # Подключение хранилища по параметрам указанным в конфигурационном файле
 function conn($init = null){
 	global $conf;
-	try{// die(!pre($conf['db']));
+//	try{// die(!pre($conf['db']));
 		if(!$type = ($init ? first(explode(":", $init)) : $conf['db']['type'])){ pre("Тип подключения не определен");
 		}elseif(!$name = ($init ? last(explode(":", $init)) : $conf['db']['name'])){ pre("Файл не установлен");
 		}elseif(!$options = [/*PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,*/PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_PERSISTENT=>false, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>1/*, PDO::SQLITE_MAX_EXPR_DEPTH=>0*/]){ mpre("ОШИБКА задания опций подключения");
@@ -92,17 +94,25 @@ function conn($init = null){
 			if(!$realpath = realpath($name)){ mpre("Файл с БД не найден `{$name}`");
 			}else{// mpre("Реальный путь до файла бд", $name);
 				$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:{$realpath}", null, null, $options);
-//				$conf['db']['conn']->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 				$conf['db']['conn']->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
-//				$conf['db']['conn']->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
 			}
-		}else{
-			$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:host={$conf['db']['host']};dbname={$conf['db']['name']};charset=UTF8", $conf['db']['login'], $conf['db']['pass'], $options);
-			$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
+		}else{// pre($conf['db']);
+			if(!is_string($host = (get($conf, 'db', 'host') ? "host={$conf['db']['host']}" : ""))){ pre("ОШИБКА получения хоста из конфигурации");
+			}elseif(!is_string($unix_socket = (get($conf, 'db', 'unix_socket') ? "unix_socket={$conf['db']['unix_socket']}" : ""))){ pre("ОШИБКА получения хоста из конфигурации");
+			}elseif(!is_string($addr_conf = ($unix_socket ?: $host))){ pre("ОШИБКА получения адреса подключения host/unix_socket");
+			}elseif(!$addr_def = (($default_socket = ini_get("pdo_mysql.default_socket")) ? "unix_socket={$default_socket}" : "host=localhost")){ pre("ОШИБКА получения конфигурационного адреса для подключения");
+			}elseif(!$addr = $addr_conf ?: $addr_def){ pre("ОШИБКА установки адреса если не указан локальный");
+			}elseif(!$init = ($init ?: "{$conf['db']['type']}:{$addr};dbname={$conf['db']['name']};charset=UTF8")){ pre("ОШИБКА составления строки подключения к БД");
+			}elseif(!$conf['db']['conn'] = new PDO($init, $conf['db']['login'], $conf['db']['pass'])){ pre("ОШИБКА подключения к базе данных");
+			}elseif(!$TABLES = tables()){ pre("ОШИБКА получения списка таблиц");
+			}else{// pre($init, $conf['db']['login'], $TABLES);
+				$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
+			}
 		}// return $conf['db']['conn'];
-	}catch(Exception $e){ cache(0);
-		die(pre("Ошибка подключения к базе данных {$init}"));
-	} return $conf['db']['conn'];
+//	}catch(Exception $e){ cache(0);
+//		die(!pre("Ошибка подключения к базе данных {$init}", $conf['db']['login'], $conf['db']['pass']));
+//	} 
+	return $conf['db']['conn'];
 }
 //компиляция less в css и сжатие css
 function MpLessCompile($teme_folder){
@@ -110,7 +120,7 @@ function MpLessCompile($teme_folder){
 	
 	$files = getDirContents($teme_folder.'styles/less',"#\.less$#iu");
 	if(substr(sprintf('%o', fileperms($teme_folder.'styles/css')), -4)!=='0777')
-		die("Please set writing permission (0777) o the following folder: [{$teme_folder}styles/css]!");				
+		die("Please set writing permission (0777) o the following folder: [{$teme_folder}styles/css]!");
 	foreach($files as $file){
 		$path = preg_replace("#styles/less#iu","styles/css",pathinfo($file,PATHINFO_DIRNAME));
 		$name = pathinfo($file,PATHINFO_FILENAME);
@@ -250,7 +260,7 @@ function cache($content = false){
 			}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
 			}elseif(is_numeric($content)){ # mpre("Ошибка подключения баз данных");
 				if(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ pre("Ошибка составления имени файла");
-				}elseif(!$conn = conn("sqlite:{$conn_file}")){ pre("Ошибка сохдания подключения sqlite");
+				}elseif(!$conn = conn("sqlite:{$conn_file}")){// pre("Ошибка создания подключения sqlite");
 				}elseif(!$HTTP_HOST = idn_to_utf8($_SERVER['HTTP_HOST'])){ pre("Ошибка определения русскоязычного имени домена");
 				}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Ошибка определения адреса");
 //				}elseif(!($TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name"))){ pre("Параметры таблицы не определены");
@@ -1466,7 +1476,7 @@ function mpevent($name, $description = null){ # Сохранение инфор�
 	}elseif(!$debug_backtrace = debug_backtrace()){ mpre("Ошибка создания списка вызовов функций");
 	}elseif(!$users_event = fk("users-event", $w = array("name"=>$name), $w += array("hide"=>1, "up"=>time()))){ mpre("Ошибка добавления события в базу событий");
 	}elseif(get($users_event, 'hide')){ return []; mpre("Событие выключено");
-	}elseif(!$event_logs = fk("users-event_logs", null, ["event_id"=>$users_event['id'], "themes-index"=>get($conf, "themes", "index", "id"), 'description'=>(is_string($description) ? $description : "")])){ mpre("ОШИБКА добавления события");
+	}elseif(!$event_logs = fk("users-event_logs", null, ["event_id"=>$users_event['id'], "themes-index"=>get($conf, "themes", "index", "id"), 'description'=>(is_string($description) ? $description : "")])){// mpre("ОШИБКА добавления события");
 	}elseif(!get($conf, 'settings', 'users_event_values')){ mpre("Создание таблиц событий");
 		if("mysql" == $conf['db']['type']){ mpre("Создаем таблицы событий для {$conf['db']['type']}");
 			qw("CREATE TABLE `{$conf['db']['prefix']}users_event_params` (`id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) DEFAULT NULL, `uid` int(11) DEFAULT NULL, `name` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
@@ -1971,7 +1981,8 @@ function mpqw($sql){ global $conf; # Все аргументы разбираю�
 			}elseif(!$microtime = microtime(true)-$mt){ mpre("ОШИБКА расчета времени выполнения");
 			}elseif(!$info = (rb($ARGS, 'type', '[string]', 'arg') ?: get($conf, 'db', 'info'))){ mpre("Описание запроса не задано");
 			}elseif(!$conf['db']['sql'][] = $mess = array('info'=>$info, 'time'=>$microtime, 'sql'=>$sql)){ mpre("ОШИБКА добавления информации в лог");
-			}elseif($q['time'] <= $conf['settings']['sqlanaliz_time_log']){// mpre("Время запроса в пределах нормы");
+			}elseif(!get($conf, 'settings', 'sqlanaliz_time_log')){// pre("Лимиты выполнения запроса не заданы");
+			}elseif($microtime <= $conf['settings']['sqlanaliz_time_log']){// mpre("Время запроса в пределах нормы");
 			}else{ mpre("Долгий запрос к базе данных", $sql, $mess); }
 		}, $mt)){ mpre("ОШИБКА сохранения информации о времени выполнения запроса");
 	}elseif(!is_numeric($count = $result->rowCount())){ mpre("ОШИБКА получения количества изменений");

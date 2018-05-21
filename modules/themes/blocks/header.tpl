@@ -144,7 +144,7 @@
 	<!-- /Yandex.Metrika counter -->
 
 	<? foreach($THEMES_YANDEX_METRIKA as $themes_yandex_metrika): ?>
-		<? if(!is_numeric($mtid = ($themes_yandex_metrika['mtid'] ?: $themes_yandex_metrika['id']))): mpre("Ошибка определения кода счетчика") ?>
+		<? if(!is_numeric($mtid = (get($themes_yandex_metrika, 'mtid') ?: $themes_yandex_metrika['id']))): mpre("Ошибка определения кода счетчика") ?>
 		<? else:// mpre($mtid) ?>
 			<? foreach($THEMES_YANDEX_METRIKA_GOAL as $themes_yandex_metrika_goal): ?>
 				<script sync>

@@ -3,7 +3,8 @@
 $conf['db']['conn'] = null;
 $conf['db']['type'] = 'sqlite';//mysql:sqlite
 $conf['db']['prefix'] = 'mp_';
-$conf['db']['host'] = 'localhost';
+//$conf['db']['unix_socket'] = "/var/run/mysqld/mysqld.sock";
+//$conf['db']['host'] = 'localhost';
 $conf['db']['login'] = '';
 $conf['db']['pass'] = '';
 $conf['db']['name'] = '.htdb';

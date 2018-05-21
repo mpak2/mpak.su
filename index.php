@@ -86,9 +86,13 @@ if(!$conf = call_user_func(function($conf){
 }else{
 }
 
-if(!$conf['db']['conn'] = conn()){ mpre("ОШИБКА подключения к базе данных");
+if(!$conf['db']['conn'] = conn()){ pre("ОШИБКА подключения к базе данных");
 }elseif(($conf['db']['type'] == 'sqlite') && !is_writable($conf['db']['name'])){ die(!pre("ОШИБКА Файл БД `{$conf['db']['name']}` не доступен для записи", "ERROR DB file `{$conf['db']['name']} ' error is not writable"));
-}elseif((!array_key_exists('null', $_GET) && !empty($conf['db']['error'])) || !tables()){ exit(inc('include/install.php'));
+}elseif(!empty($conf['db']['error'])){ pre("ОШИБКА подключения к базе данных", $conf['db']['error']);
+}elseif(!array_key_exists('null', $_GET)){// pre("Список параметров");
+}elseif(tables()){ pre("Установка уже завершена");
+}else{ pre("Установка");
+	exit(inc('include/install.php'));
 } $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']);
 
 $conf['settings'] += array_column(rb("{$conf['db']['prefix']}settings"), "value", "name");
@@ -130,9 +134,9 @@ if($sess['uid'] <= 0){ mpre("Посетитель является гостем"
   $conf['db']['info'] = 'Получаем информацию о группах в которые входит пользователь';
   $conf['user']['gid'] = array_column(qn("SELECT g.id, g.name FROM {$conf['db']['prefix']}users_grp as g, {$conf['db']['prefix']}users_mem as m WHERE (g.id=m.grp_id) AND m.uid=". (int)$sess['uid']), "name", "id");
   $conf['user']['sess'] = $sess;
-} if(!get($conf, 'settings', 'admin_usr')){
-  exit(inc('include/install.php'/*, array('conf'=>$conf)*/));
-}
+} /*if(!get($conf, 'settings', 'admin_usr')){
+  exit(inc('include/install.php')); // , array('conf'=>$conf)
+}*/
 
 foreach(mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index", "Список модулей", function($error) use($conf){
   if(strpos($error, "doesn't exist")){
@@ -203,7 +207,7 @@ if(call_user_func(function($conf){ # Если прописана внутрен�
     if(!$seo_location = rb("{$conf['db']['prefix']}seo_location", "name", "[{$_SERVER['REQUEST_URI']}]")){// mpre("Адрес внутренней страници в админке не задан");
     }elseif(!$seo_location['location_status_id']){ mpre("Статус перенаправления не установлен");
     }elseif(!$seo_location_status = rb("{$conf['db']['prefix']}seo_location_status", "id", $seo_location['location_status_id'])){ mpre("ОШИБКА выборки статуса перенаправления");
-    }elseif(!get($seo_location, "index_id")){ mpre("Внешний адрес для перенаправления не установлен");
+    }elseif(!get($seo_location, "index_id")){// mpre("Внешний адрес для перенаправления не установлен");
     }elseif(get($conf, 'settings', 'seo_meta_hidden')){// mpre("Скрываем сообщения для администраторов");
     }elseif(!$seo_index = rb("{$conf['db']['prefix']}seo_index", "id", $seo_location['index_id'])){ mpre("ОШИБКА выборки адреса для перенаправления");
     }elseif(empty(get($conf, 'settings', 'seo_meta_hidden')) && ($gid = get($conf, 'user', 'gid')) && array_search("Администратор", $gid)){ mpre("Перенаправляем страницу на внешний адрес <a href='{$seo_index['name']}'>{$seo_index['name']}</a>");
@@ -225,6 +229,7 @@ if(call_user_func(function($conf){ # Если прописана внутрен�
 }elseif(((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]) && (!$conf['settings']['theme'] = $conf['settings']["theme/*:admin"])){ mpre("Ошибка установки темы админ страницы");
 }elseif(inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($conf["content"] = "")))){ mpre("Ошибка подключения файла инициализации");
 }elseif(get($conf, "settings", "themes_index") && inc("modules/admin/admin_multisite.php", array("content"=>($conf["content"] = "")))){ mpre("Ошибка включения режима мультисайта");
+//}elseif(true){ die(!pre(get($conf, "settings", "themes_index")));
 }else{
 }
 
