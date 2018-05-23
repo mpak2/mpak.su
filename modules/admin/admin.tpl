@@ -435,7 +435,8 @@
 								<span>
 									<? if($name == "id"): # Вертикальное отображение ?>
 										<? if(!is_string($tb = (substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))): mpre("ОШИБКА получения короткого имени таблицы") ?>
-										<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$arg['modpath']}-{$tb}?&where[id]={$_GET['where']['id']}"): mpre("ОШИБКА получения адреса редактирования записи") ?>
+										<? elseif(!is_string($where = (get($_GET,'where', 'id')) ? "&where[id]={$_GET['where']['id']}" : "")): mpre("Ошибка формирования ключа параметра") ?>
+										<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$arg['modpath']}-{$tb}?{$where}"): mpre("ОШИБКА получения адреса редактирования записи") ?>
 										<? elseif(get($_GET, 'where', "id")): ?>
 											<a href="<?=$href?>"><?=$_GET['where']['id']?></a>
 										<? else: ?>

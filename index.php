@@ -134,9 +134,9 @@ if($sess['uid'] <= 0){ mpre("Посетитель является гостем"
   $conf['db']['info'] = 'Получаем информацию о группах в которые входит пользователь';
   $conf['user']['gid'] = array_column(qn("SELECT g.id, g.name FROM {$conf['db']['prefix']}users_grp as g, {$conf['db']['prefix']}users_mem as m WHERE (g.id=m.grp_id) AND m.uid=". (int)$sess['uid']), "name", "id");
   $conf['user']['sess'] = $sess;
-} /*if(!get($conf, 'settings', 'admin_usr')){
+} if(!get($conf, 'settings', 'admin_usr')){
   exit(inc('include/install.php')); // , array('conf'=>$conf)
-}*/
+}
 
 foreach(mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index", "Список модулей", function($error) use($conf){
   if(strpos($error, "doesn't exist")){
