@@ -35,24 +35,15 @@ if(!chdir(__DIR__)){ pre("ОШИБКА установки текущей дир�
 		'include/config.php',
 		'include/func.php',
 		'include/install.php',
-//		'include/mail', # Отправка почты на smtp
 		'include/class/simple_html_dom.php',
-//		'include/idna_convert.class.inc',
 
-		'include/jquery/jquery.iframe-post-form.js',
-		'include/jquery/jquery.selection.js',
-
-		'img',
-		'modules',
-		'themes/zhiraf', 'themes/bootstrap3', 'themes/vk',
-//		'include/blocks',
-		'include/class',
-//		'include/mail',
-		'include/jquery/tiny_mce',
+		'img',# Список системных изображений
+		'modules',# Модули
+		'themes/zhiraf', 'themes/bootstrap3', 'themes/vk',# Темы админки и дефолтная тема при установке
+		'include/class', # Файлы классов
+		'include/jquery/tiny_mce', # Визуальный редактор
 		'include/jquery/inputmask', # <!-- [settings:inputmask] --> Скрипты для маск ввода в формы, в разделе тема создана переменная для ввода всех скриптов
-//		'include/dhonishow',
-//		'include/dhonishow',
-		'include/jquery/jquery-lightbox-0.5',
+		'include/jquery/jquery-lightbox-0.5', # фотогалерея
 	)){ pre("ОШИБКА сохдания списка загружаемы файлов");
 }elseif(array_key_exists(1, $argv) && (!$dolders = [$argv[1]])){ print_r("ОШИБКА добавления дополнительного файла в архив");
 }elseif(!array_map(function($file) use($apr, $phar, $p){
