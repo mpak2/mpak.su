@@ -17,6 +17,7 @@ $http_host = (new idna_convert())->decode($_SERVER['HTTP_HOST']);
 						<? if(get($conf, 'settings', 'admin_multisite') && ($themes_index = rb("themes-index", "name", "[{$http_host}]"))): ?>
 							<a href="/themes:admin/r:<?=$conf['db']['prefix']?>themes_index?&where[id]=<?=$themes_index['id']?>" title="Переход к хосту"><img src="/img/host.png"></a>
 							<a href="<?=$_SERVER['REQUEST_URI']?><?=(strpos($_SERVER['REQUEST_URI'], "?") ? "" : "?")?><?=(get($_GET, 'where', 'themes_index') ? "" : "&where[themes_index]={$themes_index['id']}")?>" title="Фильтровать по хосту"><img src="/img/filter.png"></a>
+							<a href="<?=$_SERVER['REQUEST_URI']?><?=(strpos($_SERVER['REQUEST_URI'], "?") ? "" : "?")?><?=(get($_GET, 'limit') ? "" : "&limit=1000")?>" title="Лимит строк 1000"><img src="/img/limit.png"></a>
 						<? endif; ?>
 					</div>
 				</span>
