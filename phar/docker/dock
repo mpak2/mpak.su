@@ -12,7 +12,7 @@ elif [ $1 = "run" ]; then
 	echo "==> Удаление контейнера $name <=="
 	sudo docker rm $name;
 	echo "==> Сборка образа $name <=="
-	sudo docker build -t $name .
+	sudo docker build --no-cache -t $name .
 	sudo docker run -d --name $name -P -it $name /usr/sbin/apache2ctl -D FOREGROUND
 	sudo docker ps;
 	sudo docker logs $name;

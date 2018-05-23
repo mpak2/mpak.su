@@ -86,7 +86,7 @@ function base64($img, $w, $h, $c = 0){
 # Подключение хранилища по параметрам указанным в конфигурационном файле
 function conn($init = null){
 	global $conf;
-//	try{// die(!pre($conf['db']));
+	try{// die(!pre($conf['db']));
 		if(!$type = ($init ? first(explode(":", $init)) : $conf['db']['type'])){ pre("Тип подключения не определен");
 		}elseif(!$name = ($init ? last(explode(":", $init)) : $conf['db']['name'])){ pre("Файл не установлен");
 		}elseif(!$options = [/*PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,*/PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_PERSISTENT=>false, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>1/*, PDO::SQLITE_MAX_EXPR_DEPTH=>0*/]){ mpre("ОШИБКА задания опций подключения");
@@ -109,9 +109,9 @@ function conn($init = null){
 				$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
 			}
 		}// return $conf['db']['conn'];
-//	}catch(Exception $e){ cache(0);
-//		die(!pre("Ошибка подключения к базе данных {$init}", $conf['db']['login'], $conf['db']['pass']));
-//	} 
+	}catch(Exception $e){ cache(0);
+		die(!pre("Ошибка подключения к базе данных {$init}", $conf['db']['login'], $conf['db']['pass']));
+	} 
 	return $conf['db']['conn'];
 }
 //компиляция less в css и сжатие css
