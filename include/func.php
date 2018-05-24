@@ -51,7 +51,7 @@ function PHPClassAutoload($CN){
 		//For example - include/mail/PHPMailerAutoload.php
 		$file_project = mpopendir("include/class/$class_name/$class_name.php");
 		$file_single  = mpopendir($file = "include/class/$class_name.php");
-		$file_mail    = mpopendir("include/mail/class.".strtolower($class_name).".php");
+		$file_mail    = mpopendir("include/class/mail/class.".strtolower($class_name).".php");
 		if($file_project){ include_once $file_project;
 		}else if($file_single){ include_once $file_single;
 		}elseif($file_mail){ include_once $file_mail;
@@ -110,7 +110,7 @@ function conn($init = null){
 			}
 		}// return $conf['db']['conn'];
 	}catch(Exception $e){ cache(0);
-		die(!pre("Ошибка подключения к базе данных {$init}", $conf['db']['login'], $conf['db']['pass']));
+		die(!pre("Ошибка подключения к базе данных {$init}", $conf['db']['login'], str_repeat('*',strlen($conf['db']['pass']))));
 	} 
 	return $conf['db']['conn'];
 }

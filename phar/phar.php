@@ -36,8 +36,8 @@ if(!chdir(__DIR__)){ pre("ОШИБКА установки текущей дир�
 		'include/config.php',
 		'include/func.php',
 		'include/install.php',
-		'include/class/simple_html_dom.php',
-
+//		'include/class/simple_html_dom.php',
+//		'include/class/phpmailer', # Отправка почты на smtp
 		'img',# Список системных изображений
 		'modules',# Модули
 		'themes/zhiraf', 'themes/bootstrap3', 'themes/vk',# Темы админки и дефолтная тема при установке
