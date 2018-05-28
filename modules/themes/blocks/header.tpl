@@ -55,13 +55,13 @@
 	<!-- {/literal} -->
 <? endif; ?>
 
-<? if(!$themes_index = get($conf, 'themes', 'index')):// mpre("Ошибка расчета текущего хоста") ?>
+<?/* if(!$themes_index = get($conf, 'themes', 'index')):// mpre("Ошибка расчета текущего хоста") ?>
 <? elseif(!array_key_exists('callback', $themes_index)):// mpre("Параметр обратного вызова не задан в свойствах сайта") ?>
 <? elseif(!$callback = get($themes_index, 'callback')): mpre("Форма обратной связи eyenewton.ru <a href='/themes:admin/r:themes-index?&where[id]={$themes_index['id']}'>не задана</a>") ?>
-<? else: ?>
-	<script type="text/javascript" src="//eyenewton.ru/scripts/callback.min.js" charset="UTF-8"></script>
-	<script type="text/javascript">/*<![CDATA[*/var newton_callback_id="<?=$callback?>";/*]]>*/</script>
-<? endif; ?>
+<? else: */?>
+	<!--script type="text/javascript" src="//eyenewton.ru/scripts/callback.min.js" charset="UTF-8"></script>
+	<script type="text/javascript">/*<![CDATA[*/var newton_callback_id="<?//=$callback?>";/*]]>*/</script-->
+<?/* endif; */?>
 
 <? if($themes_index = get($conf, 'user', 'sess', 'themes_index')): ?> 
 <? elseif(!get($themes_index, 'index_cat_id') || !($themes_cat = rb("{$conf['db']['prefix']}themes_index_cat", "id", $themes_index['index_cat_id']))): ?> 
@@ -292,7 +292,7 @@
 	</script>
 <? endif;*/ ?>
 
-<? if(!get($conf, 'settings', 'themes_params')):// mpre("Таблица параметров не найдена") ?>
+<?/* if(!get($conf, 'settings', 'themes_params')):// mpre("Таблица параметров не найдена") ?>
 <? elseif(!$themes_params = rb("themes-params", "name", $p = "[Hotjar Tracking Code]")):// mpre("Параметр не найден {$p}") ?>
 <? elseif(!$themes_index = $conf['themes']['index']): mpre("Ошибка установки хоста сайта") ?>
 <? elseif(!$THEMES_PARAMS_INDEX = rb("themes-params_index", "params_id", "index_id", "id", $themes_params['id'], "[{$themes_index['id']},0,NULL]")):// mpre("Изменений стилей для данного сайта не требуется") ?>
@@ -310,7 +310,7 @@
 			})(window,document,'//static.hotjar.com/c/hotjar-','.js?sv=');
 		</script>
 	<? endforeach; ?>
-<? endif; ?>
+<? endif; */?>
 
 <? if(!get($conf, 'settings', 'seo_data')):# Таблица микроразметки не создана ?>
 <? elseif(!$themes_index = $conf['themes']['index']): mpre("Хост не установлен") ?>
