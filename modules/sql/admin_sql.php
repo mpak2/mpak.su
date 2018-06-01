@@ -88,7 +88,8 @@ if($dump = get($_REQUEST, 'dump')){
 		}else if($sql = get($_POST, 'sql')){
 			if(!$query = fk("query", null, $w = array("query"=>$sql), $w)){ mpre("ОШИБКА добавления запроса в таблицу истории");
 //			}elseif(true){ mpre("Запрос", $sql);
-			}elseif(!$data = mpql(mpqw($sql))){ mpre("Ошибка выполнения запроса");
+			}elseif(!$result = qw($sql)){ mpre("Ошибка выполнения запроса");
+			}elseif(!is_array($data = mpql($result))){ mpre("ОШИБКА получения списка результатов");
 			}elseif(($name = get($data, "name")) && (!$data = $name)){ mpre("Удобный для вывода формат");
 			}else{ exit(!mpre("Результат вывода запроса", ((count($data) == 1) ? first($data) : $data)));
 			} exit(mpre("ОШИБКА выполнения запроса"));
