@@ -37,6 +37,7 @@ RUN sed -i "s/<\/Directory>/\tRequire all granted\n\t<\/Directory>/g" /etc/apach
 RUN a2enmod php7.2
 RUN a2enmod rewrite
 EXPOSE 80
+EXPOSE 22
 
 #        <Directory /var/www/html>
 #                Options Indexes FollowSymLinks MultiViews
