@@ -58,7 +58,8 @@ RUN rm /var/www/html/index.html
 
 RUN apt-get update && apt-get install -y openssh-server
 RUN mkdir /var/run/sshd
-RUN echo 'root:'`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1` | chpasswd
+#RUN echo 'root:'`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1` | chpasswd
+RUN echo 'root:mypassword' | chpasswd
 RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 RUN apt-get clean
 
