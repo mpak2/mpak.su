@@ -1733,17 +1733,19 @@ function hid($tn, $href, $id = false, $fn = "img", $exts = array('image/png'=>'.
 	}elseif(!$el = fk($tn, array("id"=>$el['id']), null, array($fn=>"images/$f"))){ mpre("Ошибка занесения имени файла в таблицу");
 	}else{ return $el; }
 }
-function fid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
-	global $conf;	
-	$file = get(normalize_files_array(),$fn,intval($prefix));
-	$folder = preg_match_all("#^image/\w+$#iu",$file['type']) ? 'images' : 'files';
-	if($file['error'] != 0){ mpre("ОШИБКА загрузки файла");
-	}elseif((!$ext = get($exts, $file['type'])) && !get($exts, '*')){ mpre("Тип загрузаемого файла не найден среди разрешенных");
+function fid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){// pre($fn, $prefix, normalize_files_array());
+	global $conf;
+	if(!$file = get(normalize_files_array(),$fn,intval($prefix))){ pre("ОШИБКА получения имени закачанного файла", ['fn'=>$fn, 'prefix'=>$prefix]);
+	}elseif($file['error']){ mpre("ОШИБКА загрузки файла");
+	}elseif(!$folder = preg_match_all("#^image/\w+$#iu",$file['type']) ? 'images' : 'files'){ pre("ОШИБКА выбора имени директории для хранения файла");
+	}elseif((!$ext = get($exts, $file['type'])) && !get($exts, '*')){ pre("Тип загрузаемого файла `{$file['type']}` не найден среди разрешенных", $ext);
 	}elseif(!strlen($ext) && (!$ext = '.'. last(explode('.', $file['name'])))){ mpre("ОШИБКА расчета расширения");
 	}elseif(!$img = fk($tn, $w = ($id ? ["id"=>$id] : []), $w += ['time'=>time(), 'uid'=>$conf['user']['uid']])){ mpre("ОШИБКА выборки записи по идентификатору");
 	}elseif(!$file_name = "{$tn}-{$fn}_{$img['id']}{$ext}"){ mpre("ОШИБКА расчета имени файла");
 	}elseif(!$ufn = mpopendir("include/{$folder}")){ mpre("ОШИБКА получения пути к загружаемой директории");
 	}elseif(!move_uploaded_file($file['tmp_name'], "$ufn/$file_name")){ mpre("ОШИБКА перемещения файла с временной директории в директорию системы");
+	}elseif(!array_key_exists($fn, $img)){ pre("Поле `{$fn}` не найдено среди полей таблицы `$tn`", $img);
+	/* Если загружать одновременно одно и еще несколько изображений приходится разделять их имена img и imgs но тем не менее грузить нужно в поле img таблиц index b imdex_imgs */
 	}elseif(!$img = fk($tn, $w = ['id'=>$img['id']], $w += [$fn=>"{$folder}/{$file_name}"], $w)){ mpre("ОШИБКА обновления имени файла в записи изображения");
 //	}elseif(($img['id'] != $id) && mpqw("DELETE FROM {$tn} WHERE id=". (int)$img_id)){ mpre("ОШИБКА удаления файла если загрузка не удалась");
 	}else{// mpre($img);
