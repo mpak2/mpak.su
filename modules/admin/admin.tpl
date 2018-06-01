@@ -629,7 +629,7 @@
 												<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$arg['modpath']}-{$tb}?edit&where[id]={$v}"): mpre("ОШИБКА формирования адреса фильтра по записи") ?>
 												<? elseif(!is_string($order = (get($_GET, 'order') ? "&order={$_GET['order']}" : ""))): mpre("ОШИБКА получения ссылки сортировки") ?>
 												<? elseif(!is_string($p = (get($_GET, 'p') ? "&p={$_GET['p']}" : ""))): mpre("ОШИБКА получения ссылки на страницу") ?>
-												<? elseif(!$href_edit = "/{$arg['modpath']}:{$arg['fn']}/r:{$_GET['r']}?&edit={$v}&where[id]={$v}&". implode("&", $href_where). "{$order}{$p}"): mpre("ОШИБКА формирования ссылки для редактирования") ?>
+												<? elseif(!$href_edit = "/{$arg['modpath']}:{$arg['fn']}/r:{$_GET['r']}?&edit={$v}". ($href_where ? "&" : ""). implode("&", $href_where). "{$order}{$p}"): /* &where[id]={$v} */ mpre("ОШИБКА формирования ссылки для редактирования") ?>
 												<? else:// mpre($href_edit) ?>
 													<span class="control" style="white-space:nowrap;">
 														<a class="del" href="javascript:"></a>
