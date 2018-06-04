@@ -489,7 +489,7 @@
 									<? elseif((substr($name, -3) == "_id") && (false === array_search(substr($name, 0, -3), explode(",", get($conf, 'settings', "{$arg['modpath']}_tpl_exceptions") ?: "")))): # Поле вторичного ключа связанной таблицы ?>
 										<? if(!get($conf, 'settings', 'admin_datalist')): ?>
 											<select name="<?=$name?>" style="width:100%;">
-												<? if(get($tpl, 'edit', $name) && !rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($name, 0, -3), "id", $tpl['edit'][$name])): ?> 
+												<? if(strlen(get($tpl, 'edit', $name)) && !rb("{$conf['db']['prefix']}{$arg['modpath']}_". substr($name, 0, -3), "id", $tpl['edit'][$name])): ?> 
 													<option><?=htmlspecialchars($tpl['edit'][$name])?></option>
 												<? endif; ?> 
 												<option value="NULL"></option>
@@ -560,7 +560,7 @@
 								<? endif; ?>
 							</span>
 						</div>
-					<? else:// mpre($_GET, $tpl['edit']); # Горизонтальный вариант таблицы ?>
+					<? else:// mpre($_GET, $tpl['edit']); # Горизонтальное отображение ?>
 						<div class="th">
 							<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($tpl['fields'], array_flip($tpl['title'])) : $tpl['fields']), (get($tpl, 'counter') ?: array()), (get($tpl, 'ecounter') ?: array())) as $name=>$field):// mpre($name, $field) ?>
 								<span>
@@ -806,10 +806,10 @@
 											<? if(!is_array($SELECT = rb("{$arg['modpath']}-". substr($name, 0, -3)))): mpre("Ошибка выборки списка для отображения") ?>
 											<? elseif(!get($conf, 'settings', 'admin_datalist')): ?>
 												<select name="<?=$name?>" style="width:100%;">
-													<option value="NULL"></option>
-													<? if(get($tpl, "edit", $name) && !rb("{$arg['modpath']}-". substr($name, 0, -3), "id", $tpl['edit'][$name])): ?>
+													<? if(strlen(get($tpl, "edit", $name)) && !rb("{$arg['modpath']}-". substr($name, 0, -3), "id", $tpl['edit'][$name])): ?>
 														<option selected style="color:red;"><?=htmlspecialchars($tpl['edit'][$name])?></option>
 													<? endif; ?>
+													<option value="NULL"></option>
 													<? foreach($SELECT as $ln): ?>
 														<option value="<?=$ln['id']?>" <?=((get($tpl, 'edit', $name) == $ln['id']) || (!get($tpl, 'edit') && (($ln['id'] == ((get($_GET, 'where', $name)) ?: get($field, 'Default'))))) ? "selected" : "")?>>
 															<?=$ln['id']?>&nbsp;<?=htmlspecialchars(get($ln, 'name'))?>
