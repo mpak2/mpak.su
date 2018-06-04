@@ -1477,8 +1477,10 @@ function mpevent($name, $description = null){ # Сохранение инфор�
 	}elseif(!$users_event = fk("users-event", $w = array("name"=>$name), $w += array("hide"=>1, "up"=>time()))){ mpre("Ошибка добавления события в базу событий");
 	}elseif(get($users_event, 'hide')){ return []; mpre("Событие выключено");
 	}elseif(!$event_logs = fk("users-event_logs", null, ["event_id"=>$users_event['id'], "themes-index"=>get($conf, "themes", "index", "id"), 'description'=>(is_string($description) ? $description : "")])){// mpre("ОШИБКА добавления события");
+	}elseif(!$settings_name = 'users_event_values'){ mpre("Название параметра для значений логов");
 	}elseif(!get($conf, 'settings', 'users_event_values')){ mpre("Создание таблиц событий");
-		if("mysql" == $conf['db']['type']){ mpre("Создаем таблицы событий для {$conf['db']['type']}");
+		if(!mpsettings('users_event_values', "Значения")){ mpre("ОШИБКА установки названия таблицы значений");
+		}elseif("mysql" == $conf['db']['type']){ mpre("Создаем таблицы событий для {$conf['db']['type']}");
 			qw("CREATE TABLE `{$conf['db']['prefix']}users_event_params` (`id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) DEFAULT NULL, `uid` int(11) DEFAULT NULL, `name` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 			qw("CREATE TABLE `{$conf['db']['prefix']}users_event_value` (`id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) DEFAULT NULL, `uid` int(11) DEFAULT NULL, `name` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 			qw("CREATE TABLE `{$conf['db']['prefix']}users_event_values` (`id` int(11) NOT NULL AUTO_INCREMENT, `time` int(11) DEFAULT NULL, `uid` int(11) DEFAULT NULL, `event_logs_id` int(11) DEFAULT NULL, `event_params_id` int(11) DEFAULT NULL, `event_value_id` int(11) DEFAULT NULL, PRIMARY KEY (`id`), KEY `event_params_id` (`event_params_id`), KEY `event_value_id` (`event_value_id`), KEY `event_logs_id` (`event_logs_id`), CONSTRAINT `mp_users_event_values_ibfk_1` FOREIGN KEY (`event_logs_id`) REFERENCES `mp_users_event_logs` (`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8");
@@ -1489,10 +1491,10 @@ function mpevent($name, $description = null){ # Сохранение инфор�
 		}else{ mpre("База данных не установлена"); }
 	}elseif(!$values = ['Источник'=>get($_SERVER, 'HTTP_REFERER'), 'Адрес'=>$_SERVER['REQUEST_URI']]){ mpre("ОШИБКА получения параметров события");
 	}elseif(!is_array($func_get_args = func_get_args())){ mpre("ОШИБКА получения списка параметров");
-	}elseif(!$_VALUES = array_filter(array_map(function($nn, $args){ # Все принятые функцией массивы
+	}elseif(!is_array($_VALUES = array_filter(array_map(function($nn, $args){ # Все принятые функцией массивы
 			if(!is_array($args)){// mpre("Только массивы");
 			}else{ return $args; }
-		}, array_keys($func_get_args), $func_get_args))){ mpre("ОШИБКА получения пассивов параметра");
+		}, array_keys($func_get_args), $func_get_args)))){ mpre("ОШИБКА получения масса параметра");
 	}elseif(!is_array($_values = array_filter(array_map(function($args){ # Список строковых входящих значений
 			if(!is_string($args)){// mpre("ОШИБКА ожидается строка");
 			}else{ return $args; }
