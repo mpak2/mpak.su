@@ -4,6 +4,22 @@
 	<style>
 		.parts pre { -moz-tab-size:4; -o-tab-size:4; tab-size:4; }
 	</style>
+	<h2>Аякс запрос</h2>
+	<pre class="javascript hljs">
+&lt;script async&gt;
+	(function($, script){
+		$(script).parent().on("click", "a.create", function(e){
+			if(!(name = prompt("Задайте название скопления"))){ alert("ОШИБКА название скопления обязательно для заполнения");
+			}else if(!(ajax = $.ajax({url:null, method:"POST", data:{act:"test", name:name}, async:false, dataType:"json"}))){ console.error("ОШИБКА создания нового скопления");
+			}else if(!(json = ajax.responseJSON)){ alert(ajax.responseText);
+			}else{ console.log("json:", json);
+				document.location.reload(true);
+			}
+		}).one("init", function(e){
+		}).ready(function(e){ $(script).parent().trigger("init"); })
+	})(jQuery, document.currentScript)
+&lt;/script&gt;
+	</pre>
 	<h2>Первоначальная обработка</h2>
 	<pre class="javascript hljs">
 &lt;script sync&gt;
@@ -49,7 +65,7 @@
 			if(!selector){ console.log("<?=__LINE__?>.ОШИБКА не задан элемент для перезагрузки");
 			}else if(!(href = document.location.href)){ console.log("<?=__LINE__?>.ОШИБКА получения адреса страницы");
 			}else{// console.log("<?=__LINE__?>.href:", href);
-				var html = $("<div>").load(href, function(response){
+				var html = $("&lt;div&gt;").load(href, function(response){
 					if(!(node = $(response).find("string" == typeof(selector) ? selector : selector.selector)).length){ console.log("<?=__LINE__?>.ОШИБКА в загруженном документе элемент не найден");
 					}else if(!(html = $(node).get(0).innerHTML)){ console.log("<?=__LINE__?>.ОШИБКА определения HTML кода элемента");
 					}else if(!(node = ("string" == typeof(selector) ? $(response).find(selector) : selector)).length){ console.log("<?=__LINE__?>.ОШИБКА элемент цель не найден");
