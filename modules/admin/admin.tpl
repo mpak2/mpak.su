@@ -411,7 +411,7 @@
 				</script>
 				
 				<div class="table">
-					<? if(!is_array($edit = (get($_GET, 'where', 'id') ? rb($_GET['r'], "id", get($_GET, 'where', 'id')) : []))): mpre("ОШИБКА выборки редактируемого элемента") ?>
+					<? if(!is_array($edit = (get($_GET, 'edit') ? rb($_GET['r'], "id", get($_GET, 'edit')) : []))): mpre("ОШИБКА выборки редактируемого элемента") ?>
 					<? elseif(!is_string($disabled = ((get($_GET, 'edit') == get($edit, 'id')) ? "" : "disabled"))): mpre("Расчет неактивности элементов") ?>
 					<? elseif(get($tpl, 'title') && array_key_exists("edit", $_GET) && ($edit || !get($_GET, 'edit'))):// mpre($disabled) ?>
 						<div class="th">
