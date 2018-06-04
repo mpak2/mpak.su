@@ -49,8 +49,8 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 			if(!preg_match("#_id$#ui",$field) AND preg_match("#(^|.+_)(time|last_time|reg_time|up|down)(\d+|_.+|$)#ui",$field)){ $post = strtotime($post);
 			}elseif(($_GET['r'] == "{$conf['db']['prefix']}users") && ($field == "pass") && $_POST['pass'] && (strlen($_POST['pass']) != 32) && (substr($_POST['pass'], 0, 1) != "!")){ $post = mphash($_POST['name'], $_POST['pass']);
 			}elseif("_id" != substr($field, -3)){ return $post; // return $post;
-			}elseif(empty($post)){ return $post = "NULL";
-			}elseif($post == "NULL"){// mpre("Пустое значение от формы");
+			}elseif(empty($post) && !strlen($post)){ return $post = "NULL";
+			}elseif($post === "NULL"){// mpre("Пустое значение от формы");
 			}elseif(!$tab = substr($field, 0, -3)){ mpre("ОШИБКА определения связанной таблицы таблицы");
 			}elseif(!$TAB = explode("_", $_GET['r'])){ mpre("ОШИБКА парсинга полного адреса текущей таблицы");
 			}elseif(!$table = "{$TAB[1]}-$tab"){ mpre("ОШИБКА получения имени связанной таблицы");
@@ -95,7 +95,8 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 				А иначе потом данный скрипт выведется мне на страницу.
 			*/
 			//array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=". ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\""); });
-			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=". ($val == "NULL" ? "NULL" : "\"". mpquot($val). "\""); });
+
+			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=". ($val === "NULL" ? "NULL" : "\"". mpquot($val). "\""); });
 			qw($sql = "UPDATE `{$_GET['r']}` SET ". implode(", ", array_values($_POST)). " WHERE id=". (int)$_GET['id']);
 			$el = rb($_GET['r'], "id", $_GET['id']);// $_RETURN = 556;
 //			die(!mpre($_POST));
