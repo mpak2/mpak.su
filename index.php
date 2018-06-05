@@ -98,8 +98,9 @@ if(!$conf['db']['conn'] = conn()){ pre("ОШИБКА подключения к �
 $conf['settings'] += array_column(rb("{$conf['db']['prefix']}settings"), "value", "name");
 
 if(!$sess = users_sess()){// pre("Добавляем сессию");
-}elseif(!is_array($conf['user'] = rb('users-', 'id', $sess['uid']))){ pre("ОШИБКА выборки пользователя");
-}elseif(!$conf['user']['sess'] = $sess){ pre("ОШИБКА сохранения сессии в системных переменных");
+}elseif(!$guest = get($conf, 'settings', 'default_usr')){ mpre("Имя пользователя гость не указано");
+}elseif(!is_array($conf['user'] = (rb('users-', 'id', $sess['uid']) ?: rb('users-', 'name', "[{$guest}]")))){ pre("ОШИБКА выборки пользователя");
+}elseif(!$conf['user'] += ['uid'=>(($sess['uid'] > 0) ? get($conf, 'user', 'id') : -$sess['id']), 'sess'=>$sess]){ pre("ОШИБКА сохранения сессии в системных переменных");
 //}elseif(true){ pre($conf['user']);
 }elseif(isset($_GET['logoff'])){ # Если пользователь покидает сайт
   qw("UPDATE {$conf['db']['prefix']}users_sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
