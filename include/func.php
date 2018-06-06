@@ -1282,16 +1282,33 @@ function erb($src, $key = null){
 					}elseif(!$tab = "{$conf['db']['prefix']}{$MOD[0]}_{$MOD[1]}"){
 					}else{ return $tab; }
 				}, $src)){ mpre("Ошибка получения имени таблицы запроса");
-			}elseif((!$LIMIT = ($limit ? " LIMIT ". ((get($_GET, 'p') ?: get($_GET, 'стр'))*$limit). ",". abs($limit) : "")) &0){ mpre("Условия лимита");
+			}elseif(!$debug_backtrace = debug_backtrace()){ mpre("Ошибка получения списка функций");
+			}elseif(!$func = rb($debug_backtrace, 'function', '[rb]')){ mpre("ОШИБКА выборки информации о функции вызвавшей постраничное отображение");
+			}elseif(!$pager_id = crc32("{$func['file']}:{$func['line']}")){ mpre("ОШИБКА формирования идентификатора постраничного отображения");
+			}elseif(!$p = ((strpos(get($_SERVER, 'HTTP_HOST'), "xn--") === 0) && ($arg['fn'] != "admin")) ? "стр" : "p"){ mpre("ОШИБКА формирования переменной с номером пагинатора");
+			}elseif(!$p = "{$p}{$pager_id}"){ mpre("ОШИБКА формирования имени переменной в адресе");
+
+			}elseif((!$LIMIT = ($limit ? " LIMIT ". (get($_GET, $p)*$limit). ",". abs($limit) : "")) &0){ mpre("Условия лимита");
 			}elseif(!$modp = substr($tab, strlen($conf['db']['prefix']))){ mpre("Ошибка вычисления строки модуля");
 			}elseif(!is_string($order = get($conf, 'settings', "{$modp}=>order") ?: "")){ mpre("Расчет поля сортировки");
 			}elseif(!$sql = "SELECT * FROM `{$tab}`". ($where ? " WHERE {$where}" : ""). ($order ? " ORDER BY {$order}" : ""). $LIMIT){ mpre("Ошибка составления запроса к базе");
+//			}elseif(true){ mpre($sql);
 			}elseif(is_numeric($limit) && ($limit <= 0) && !mpre($sql)){ mpre("Отображение запроса");
 			}elseif(!is_array($SRC = qn($sql))){ mpre("Ошибка выполнения запроса", $sql);
-			}elseif($limit && ($tpl['pager'] = mpager($cnt = ql($sql = "SELECT COUNT(*) AS cnt FROM `{$tab}`". ($where ? " WHERE {$where}" : ""). ($order ? " ORDER BY {$order}" : ""), 0, "cnt")/$limit)) &&0){ mpre("Ошибка подсчета пагинатора");
+//			}elseif(strpos($sql, "news_index") && !mpre($p, $sql, $SRC)){
+			}elseif(!is_string($tpl['pager'] = call_user_func(function() use($limit, $sql, $pager_id, $tpl, $tab, $where, $order){ # Получаем описание на постраничные переходы
+					if(!$limit){ return (get($tpl, 'pager') ?: "");
+					}elseif(!$sql = $sql = "SELECT COUNT(*) AS cnt FROM `{$tab}`". ($where ? " WHERE {$where}" : ""). ($order ? " ORDER BY {$order}" : "")){ mpre("ОШИБКА формирования адреса для постраничной выборки");
+					}elseif(!$res = ql($sql)){ mpre("ОШИБКА выполнения запроса на выборку количества записей");
+					}elseif(!is_numeric($count = get($res, 0, "cnt"))){ mpre("Ошибка подсчета количества страниц в пагинаторе", $res);
+					}elseif(!is_numeric($cnt = $cnt = $count/$limit)){ mpre("ОШИБКА получения номера страницы постраничного отображения");
+//			}elseif(strpos($sql, "news_index") && !mpre($sql, $pager_id)){
+					}elseif($pager = mpager($cnt, $pager_id)){ return $pager;
+					}else{ return ""; }
+				}))){ mpre("ОШИБКА формирования списка ссылок на постраничные переходы");
 			}elseif(is_numeric($limit) && ($limit<0) && mpre($sql)){ mpre("Отображение запроса к базе данных");
 			}else{ return $SRC; }
-		}, $src)))){ mpre("Нулевой результат выборки данных `{$src}`", $sql);
+		}, $src)))){ mpre("Нулевой результат выборки данных `{$src}`");
 	}elseif(empty($SRC)){ return [];
 	}elseif(!$_FIELDS = array_slice($FIELDS, $min)){ # Если значений больше чем полей
 		if(!$_VALUES = array_slice($VALUES, $min)){ return last($SRC); # Возвращаем последний массив
@@ -1789,7 +1806,7 @@ function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.pn
 	} return null;
 }
 
-function mpager($count, $null=null, $cur=null, $url=null){
+/*function mpager($count, $null=null, $cur=null, $url=null){
 	global $conf, $arg;
 	$p = (strpos(get($_SERVER, 'HTTP_HOST'), "xn--") === 0) && ($arg['fn'] != "admin") ? "стр" : "p";
 	if ($cur === null) $cur = (array_key_exists($p, $_GET) ? $_GET[$p] : 0);
@@ -1832,7 +1849,57 @@ function mpager($count, $null=null, $cur=null, $url=null){
 		ob_end_clean();
 		return $return;
 	}else{ return $return; }
+}*/
+
+function mpager($count, $id = null, $null=null, $cur=null /* Номер пагинатора */){ # Формируем пагинатор по номеру пагинатора
+	global $conf, $arg;// mpre("mpager");
+	if(!$p = ((strpos(get($_SERVER, 'HTTP_HOST'), "xn--") === 0) && ($arg['fn'] != "admin")) ? "стр" : "p"){ mpre("ОШИБКА формирования переменной с номером пагинатора");
+	}elseif(!$p = "{$p}". (empty($id) ? "" : $id)){ mpre("ОШИБКА формирования имени переменной в адресе");
+	}elseif(!is_numeric($cur = (array_key_exists($p, $_GET) ? $_GET[$p] : 0))){ mpre("ОШИБКА получения текущей страницы пагинатора");
+	}elseif(!$REQUEST_URI = get($_SERVER, 'REQUEST_URI')){// mpre("Не найден адрес");
+	}elseif(!$url = call_user_func(function() use($p, $conf, $REQUEST_URI){ # Формирование адреса
+			if(is_string($url = get($conf, 'settings', 'canonical'))){ return $url;
+			}elseif(is_array($url)){ return get($url, 'name');
+			}else{ return urldecode($REQUEST_URI); }
+		})){ mpre("ОШИБКА формирования адреса пагинатора");
+	}elseif(!$url = seo($url)){ mpre("ОШИБКА получения СЕО адреса страницы пагинатора");
+	}elseif(!$uri = urldecode($REQUEST_URI)){ mpre("ОШИБКА приведения адреса в нужный формат");
+	}elseif(!$url = get($_GET, $p) ? strtr($uri, array("/{$p}:{$_GET[$p]}"=>'', "&{$p}={$_GET[$p]}"=>'')) : $url){ mpre("ОШИБКА замены в адресной строке номера текущей страницы");
+	}elseif(!$url = call_user_func(function() use($url, $uri, $null){ # Формирование адреса исходя из усорвмя отображения шаблона
+			if($null){ return str_replace($uri, $uri. (strpos($url, '&') || strpos($url, '?') ? "&null" : "/null"), $url);
+			}else if($null === false){ return strtr($url, array("/null"=>"", "&null"=>"", "?null"=>""));
+			}else{ return $url; }
+		})){ mpre("ОШИБКА изменения адреса страницы для стрниц с выключенны отображением шаблона");
+	}else{
+	}
+	
+	if(2 > $count = ceil($count)) return;
+	$return = "<script>$(function(){ $(\".pager\").find(\"a[href='". urldecode($REQUEST_URI). "']\").addClass(\"active\").css(\"font-weight\", \"bold\"); })</script>";
+	$return .=  "<div class=\"pager\">";
+	$mpager['first'] = $url;
+
+//	mpre($url);
+	
+	$return .= "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>";
+	$mpager['prev'] = $url. ($cur > 1 ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur-1) : "/{$p}:".($cur-1)) : '');
+	for($i = max(0, min($cur-5, $count-10)); $i < ($max = min($count, max($cur+5, 10))); $i++){
+		$mpager[ $i+1 ] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:$i") : '');
+		$return .=  '&nbsp;'. ("<a href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:$i") : ''). "\">".($i+1)."</a>");
+	}
+	$return .=  '&nbsp;';
+	$return .=  "<a rel=\"next\" href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : "/{$p}:".($cur+1)) : '')."\">вперед &#8594;</a>";
+	$mpager['next'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". min($max-1, $cur+1)) : '');
+	$mpager['last'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($count-1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". ($count-1)) : '');
+	$return .= "</div>";
+	if((($theme = get($conf, 'settings', 'theme')) && ($fn = mpopendir("themes/{$theme}/mpager.tpl"))) || ($fn = mpopendir("themes/zhiraf/mpager.tpl"))){
+		ob_start();
+		include($fn);
+		$return = ob_get_contents();
+		ob_end_clean();
+		return $return;
+	}else{ return $return; }
 }
+
 function mphash($user, $pass){
 	return md5("$user:".md5($pass));
 }
