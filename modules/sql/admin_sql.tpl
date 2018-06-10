@@ -35,17 +35,20 @@
 							<span style="float:right;">
 								<a class="del" href="javascript:void(0)">Удалить</a>
 							</span>
-							<input type="text" name="table" value="" list="tables" placeholder="<?=get($_GET, 'r')?>">
+<!--							<input type="text" name="table" value="" list="tables" placeholder="<?=get($_GET, 'r')?>">
 							<datalist id="tables">
 								<? foreach($tpl['tables'] as $table=>$row): ?>
 									<option><?=$table?></option>
 								<? endforeach; ?>
 							</datalist>
-							<button>Применить</button>
-							<? if($ar = explode("_", get($_GET, 'r'))): ?>
+							<button>Создать</button>-->
+							<? if(!$table = get($_GET, 'r')): mpre("Имя таблицы не задано") ?>
+							<? elseif(!$ar = explode("_", $table)): mpre("ОШИБКА разбивки таблицы по элементам") ?>
+							<? else: ?>
 								<span style="padding:0 10px;">
+									таблица `<b><?=(get($conf, 'settings', implode("_", array_slice($ar, 1))) ?: get($_GET, 'r'))?></b>`
 									<a href="/<?=last(array_slice($ar, 1, 1))?>:admin/r:<?=$_GET['r']?>">
-										<?=(get($conf, 'settings', implode("_", array_slice($ar, 1))) ?: get($_GET, 'r'))?>
+										<?=$table?>
 									</a>
 								</span>
 							<? endif; ?>

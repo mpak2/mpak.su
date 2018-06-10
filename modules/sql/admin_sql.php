@@ -98,9 +98,9 @@ if($dump = get($_REQUEST, 'dump')){
 		}else if(($table = get($_POST, 'del')) && ($fields = fields($table))){
 			exit(qw("DROP TABLE `{$table}`"));
 		}else if($table = $_POST['table']){
-			if($conf['db']['type'] == 'sqlite'){
-				qw("CREATE TABLE `{$table}` (id INTEGER PRIMARY KEY ASC, time INTEGER, name TEXT)");
-			}else{
+			if($conf['db']['type'] == 'sqlite'){ # Новая таблица в sqlite
+				qw("CREATE TABLE `{$table}` (id INTEGER PRIMARY KEY ASC, time INTEGER, uid INTEGER, name TEXT)");
+			}else{ # Новая таблица в mysql
 				qw("CREATE TABLE `$table` (
 					id INT(11) AUTO_INCREMENT PRIMARY KEY,
 					time INT(11),
