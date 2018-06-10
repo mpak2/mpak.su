@@ -45,7 +45,8 @@ if($dump = get($_REQUEST, 'dump')){
 						"COMMIT;",
 						"PRAGMA foreign_keys=ON;",
 					);// die(!mpre(get($transaction, 5))); // foreach($transaction as $sql){ qw($sql); }
-					while(list($key, $sql) = each($transaction)){ qw($sql); }
+//					while(list($key, $sql) = each($transaction)){ qw($sql); } # IS DEPRICATE
+					foreach($transaction as $key=>$sql){ qw($sql); }
 					exit(json_encode($FIELDS));
 				}elseif(!$on_update = $_POST[$w = 'on_update']){ die(!mpre("Не задан `{$w}` контроля вторичного ключа"));
 				}elseif(!$on_delete = $_POST[$w = 'on_delete']){ die(!mpre("Не задан `{$w}` контроля вторичного ключа"));
@@ -64,7 +65,8 @@ if($dump = get($_REQUEST, 'dump')){
 						"COMMIT;",
 						"PRAGMA foreign_keys=ON;",
 					);// die(!mpre($transaction)); // foreach($transaction as $sql){ qw($sql); }
-					while(list($key, $sql) = each($transaction)){ qw($sql); }
+//					while(list($key, $sql) = each($transaction)){ qw($sql); }
+					foreach($transaction as $key=>$sql){ qw($sql); }
 					exit(json_encode($FIELDS));
 				} die(!mpre("Неустановленная ошибка"));
 			}else{// die(!mpre("mysql"));
@@ -222,7 +224,7 @@ if($dump = get($_REQUEST, 'dump')){
 	}else{
 			if($conf['db']['type'] == 'sqlite'){
 				if(!$sql = "ALTER TABLE `". mpquot($table). "` ADD COLUMN `{$f}` {$new['type']}"){ mpre("Ошибка составления запроса");
-				}elseif(qw($sql)){ mpre("Ошибка запроса к БД");
+				}elseif(!qw($sql)){ mpre("Ошибка запроса к БД");
 				}elseif(($after = get($new, 'after')) && (!get($tpl['fields'] = fields($table), $after))){ mpre("Ошибочное поле после");
 				}elseif(!$fields = array_map(function($field) use($f){
 						return "{$field['name']} {$field['type']}";

@@ -123,9 +123,9 @@
 											var on_update = $(e.currentTarget).parents("[field]").find("select[name=on_update] option:selected").attr("value");
 											var on_delete = $(e.currentTarget).parents("[field]").find("select[name=on_delete] option:selected").attr("value");
 											console.log("field:", field, "on_update:", on_update, "on_delete:", on_delete);
-											$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null", {foreign:field, on_update:on_update, on_delete:on_delete}, function(data){ alert(133);
+											$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null", {foreign:field, on_update:on_update, on_delete:on_delete}, function(data){
 												console.log("data:", data);
-//												document.location.reload(true);
+												document.location.reload(true);
 											}, "json").fail(function(error){ alert(error.responseText); })
 										})
 									})(jQuery, document.currentScript)
