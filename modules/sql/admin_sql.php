@@ -227,18 +227,19 @@ if($dump = get($_REQUEST, 'dump')){
 				}elseif(!qw($sql)){ mpre("Ошибка запроса к БД");
 				}elseif(($after = get($new, 'after')) && (!get($tpl['fields'] = fields($table), $after))){ mpre("Ошибочное поле после");
 				}elseif(!$fields = array_map(function($field) use($f){
-						return "{$field['name']} {$field['type']}";
+						return "`{$field['name']}` {$field['type']}";
 					}, $tpl['fields'] = fields($table))){
 				}elseif(!$nn = array_search($after, array_keys($fields))){ mpre("Не найдено поле за которым устанавливаем новое");
 				}elseif(!$NF = array_slice($fields, 0, $nn+1) + [$f=>"`{$f}` {$new['type']}"] + array_slice($fields, $nn+1)){ mpre("Ошибка формирования списка новых полей");
+				}elseif(!$_fields = array_column($tpl['fields'], 'type', 'name')){ mpre("ОШИБКА получения списка старых полей");
 				}else{
 					mpre("Создание поля", $sql, "База данных sqlite не поддерживает изменение полей, поэтому делаем через промежуточную таблицу", $transaction = array(
 						"BEGIN TRANSACTION;",
 						"CREATE TEMPORARY TABLE backup(". implode(",", (array_map(function($f){ return (first(explode(" ", $f)) == "id" ? "{$f} PRIMARY KEY" : $f); }, $fields))). ")",
-						"INSERT INTO backup SELECT ". implode(", ", array_keys(array_diff_key($tpl['fields'], array_flip(array($f))))). ", {$f} FROM ". mpquot($table). ";",
+						"INSERT INTO backup SELECT * FROM ". mpquot($table). ";",
 						"DROP TABLE ". mpquot($table). ";",
 						"CREATE TABLE ". mpquot($table). "(". implode(",", (array_map(function($f){ return (first(explode(" ", $f)) == "id" ? "{$f} PRIMARY KEY" : $f); }, $NF))). ")",
-						"INSERT INTO ". mpquot($table). " (". implode(", ", array_keys($NF)). ") SELECT ". implode(", ", array_keys($NF)). " FROM backup;",
+						"INSERT INTO ". mpquot($table). " (`". implode("`, `", array_keys($_fields)). "`) SELECT `". implode("`, `", array_keys($_fields)). "` FROM backup;",
 						"DROP TABLE backup;",
 						"COMMIT;",
 					)); foreach($transaction as $sql){ qw($sql); }
