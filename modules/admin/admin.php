@@ -52,9 +52,9 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 			}elseif(empty($post) && !strlen($post)){ return $post = "NULL";
 			}elseif($post === "NULL"){// mpre("Пустое значение от формы");
 			}elseif(!$tab = substr($field, 0, -3)){ mpre("ОШИБКА определения связанной таблицы таблицы");
+			}elseif(!get($conf, 'settings', 'admin_datalist')){ return $post; # Если не включен режим редактируемых списков
 			}elseif(!$TAB = explode("_", $_GET['r'])){ mpre("ОШИБКА парсинга полного адреса текущей таблицы");
 			}elseif(!$table = "{$TAB[1]}-$tab"){ mpre("ОШИБКА получения имени связанной таблицы");
-//			}elseif(true){ die(mpre($table));
 			}elseif($index = call_user_func(function($post) use($table, $field){ # Получения записи по значению поля
 					if(preg_match("#^(\d+)\.(.*)#", $post, $match)){
 						if(!$index = rb($table, "id", "name", $match[1], "[{$match[2]}]")){ mpre("Не уникальная запись не найдена");
