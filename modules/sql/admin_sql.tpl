@@ -21,12 +21,12 @@
 										var table = $(e.delegateTarget).attr("table");
 										if(confirm("Подтвердите удаление таблицы `"+ table+ "`")){
 											$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/null", {del:table}, function(data){
-												if(isNaN(data)){// alert(37);
-													alert(data)
-												}else{
-//													document.location.href = "/<?=$arg['modpath']?>:<?=$arg['fn']?>";
-													console.log("data:", data);
-												}
+												console.log("Добавление таблицы", data);
+											}, 'json').error(function(error){
+												alert(error.responseText);
+											}).done(function(json){ // /bmf:admin/r:mp_bmf_test
+//												document.location.href = "/<?=$arg['modpath']?>:<?=$arg['fn']?>";
+												document.location.href = "/<?=first(array_slice(explode('_', $_GET['r']), 1, 2))?>:admin/r:<?=$_GET['r']?>";
 											});
 										}
 									})

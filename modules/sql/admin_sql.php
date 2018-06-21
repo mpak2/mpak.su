@@ -36,10 +36,10 @@ if($dump = get($_REQUEST, 'dump')){
 						"PRAGMA foreign_keys=OFF;",
 						"BEGIN TRANSACTION;",
 						"DROP TABLE IF EXISTS `backup`;",
-						"CREATE TEMPORARY TABLE `backup` (". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "`{$f['name']}` INTEGER PRIMARY KEY" : "`{$f['name']}` {$f['type']}"); }, $FIELDS))). ");",
+						"CREATE TEMPORARY TABLE `backup` (". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "`{$f['name']}` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE" : "`{$f['name']}` {$f['type']}"); }, $FIELDS))). ");",
 						"INSERT INTO `backup` SELECT * FROM `". mpquot($table). "`;",
 						"DROP TABLE `". mpquot($table). "`;",
-						"CREATE TABLE `". mpquot($table). "` (". implode(",", (array_map(function($f) use($fntab, $field){ return ($f['name'] == "id" ? " `{$f['name']}` INTEGER PRIMARY KEY" : "`{$f['name']}` {$f['type']}". ($f['dflt_value'] ? " DEFAULT {$f['dflt_value']}" : "")); }, $FIELDS))). ");",
+						"CREATE TABLE `". mpquot($table). "` (". implode(",", (array_map(function($f) use($fntab, $field){ return ($f['name'] == "id" ? " `{$f['name']}` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE" : "`{$f['name']}` {$f['type']}". ($f['dflt_value'] ? " DEFAULT {$f['dflt_value']}" : "")); }, $FIELDS))). ");",
 						"INSERT INTO `". mpquot($table). "` (`". implode("`, `", array_keys($FIELDS)). "`) SELECT `". implode("`, `", array_keys($FIELDS)). "` FROM backup;",
 						"DROP TABLE backup;",
 						"COMMIT;",
@@ -56,10 +56,10 @@ if($dump = get($_REQUEST, 'dump')){
 						"PRAGMA foreign_keys=OFF;",
 						"BEGIN TRANSACTION;",
 						"DROP TABLE IF EXISTS `backup`;",
-						"CREATE TEMPORARY TABLE `backup` (". implode(", ", (array_map(function($f){ return ($f['name'] == "id" ? "`{$f['name']}` INTEGER PRIMARY KEY" : "`{$f['name']}` {$f['type']}"); }, $FIELDS))). ");",
+						"CREATE TEMPORARY TABLE `backup` (". implode(", ", (array_map(function($f){ return ($f['name'] == "id" ? "`{$f['name']}` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE" : "`{$f['name']}` {$f['type']}"); }, $FIELDS))). ");",
 						"INSERT INTO `backup` SELECT * FROM `". mpquot($table). "`;",
 						"DROP TABLE `". mpquot($table). "`;",
-						"CREATE TABLE `". mpquot($table). "` (". implode(", ", (array_map(function($f) use($fntab, $field, $on_update, $on_delete){ return ($f['name'] == "id" ? " `{$f['name']}` INTEGER PRIMARY KEY" : "`{$f['name']}` {$f['type']}". ($f['dflt_value'] ? " DEFAULT {$f['dflt_value']}" : ""). (($field == $f['name']) ? " REFERENCES {$fntab}(id) ON {$on_update} ON {$on_delete}" : "")); }, $FIELDS))). ");",
+						"CREATE TABLE `". mpquot($table). "` (". implode(", ", (array_map(function($f) use($fntab, $field, $on_update, $on_delete){ return ($f['name'] == "id" ? " `{$f['name']}` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE" : "`{$f['name']}` {$f['type']}". ($f['dflt_value'] ? " DEFAULT {$f['dflt_value']}" : ""). (($field == $f['name']) ? " REFERENCES {$fntab}(id) ON {$on_update} ON {$on_delete}" : "")); }, $FIELDS))). ");",
 						"INSERT INTO `". mpquot($table). "` (`". implode("`, `", array_keys($FIELDS)). "`) SELECT `". implode("`, `", array_keys($FIELDS)). "` FROM `backup`;",
 						"DROP TABLE `backup`;",
 						"COMMIT;",
@@ -96,13 +96,14 @@ if($dump = get($_REQUEST, 'dump')){
 			}else{ exit(!mpre("Результат вывода запроса", ((count($data) == 1) ? first($data) : $data)));
 			} exit(mpre("ОШИБКА выполнения запроса"));
 		}else if(($table = get($_POST, 'del')) && ($fields = fields($table))){
-			exit(qw("DROP TABLE `{$table}`"));
+			if(!qw($sql = "DROP TABLE `{$table}`")){ mpre("ОШИБКА удаления таблицы", $sql);
+			}else{ exit(json_encode($fields)); }
 		}else if($table = $_POST['table']){
 			if($conf['db']['type'] == 'sqlite'){ # Новая таблица в sqlite
-				qw("CREATE TABLE `{$table}` (id INTEGER PRIMARY KEY ASC, time INTEGER, uid INTEGER, name TEXT)");
+				qw("CREATE TABLE `{$table}` (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE, time INTEGER, uid INTEGER, name TEXT)");
 			}else{ # Новая таблица в mysql
 				qw("CREATE TABLE `$table` (
-					id INT(11) AUTO_INCREMENT PRIMARY KEY,
+					id INT(11) AUTO_INCREMENT PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
 					time INT(11),
 					uid INT(11),
 					name VARCHAR(255)
@@ -129,20 +130,19 @@ if($dump = get($_REQUEST, 'dump')){
 				mpre("База данных sqlite не поддерживает удаление полей, поэтому делаем через промежуточную таблицу", $transaction = array(
 					"PRAGMA foreign_keys=OFF;",
 					"BEGIN TRANSACTION;",
-					"CREATE TEMPORARY TABLE `backup`(". implode(",", array_map(function($f){ return ($f['name'] == "id" ? "`{$f['name']}` {$f['type']} PRIMARY KEY" : "`{$f['name']}` {$f['type']}"); }, $tpl['fields'])). ");",
+					"CREATE TEMPORARY TABLE `backup`(". implode(",", array_map(function($f){ return ($f['name'] == "id" ? "`{$f['name']}` {$f['type']} PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE" : "`{$f['name']}` {$f['type']}"); }, $tpl['fields'])). ");",
 					"INSERT INTO `backup` SELECT * FROM `". mpquot($table). "`;",
 					"DROP TABLE `". mpquot($table). "`;",
-					"CREATE TABLE `". mpquot($table). "`(". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "`{$f['name']}` INTEGER PRIMARY KEY" : "`{$f['name']}` {$f['type']}". ($f['dflt_value'] ? " DEFAULT {$f['dflt_value']}" : "")); }, $FIELDS))). ");",
+					"CREATE TABLE `". mpquot($table). "`(". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "`{$f['name']}` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE" : "`{$f['name']}` {$f['type']}". ($f['dflt_value'] ? " DEFAULT {$f['dflt_value']}" : "")); }, $FIELDS))). ");",
 					"INSERT INTO `". mpquot($table). "` SELECT `". implode("`,`", array_column($FIELDS, "name")). "` FROM `backup`;",
 					"DROP TABLE `backup`;",
 					"COMMIT;",
 					"PRAGMA foreign_keys=ON;",
 				)); foreach($transaction as $sql){ qw($sql); }
 
-				mpre("Восстановление индекса", array_column($tpl['indexes'], 'sql'));
-				foreach($tpl['indexes'] as $indexes){
-					qw($indexes['sql']);
-				}
+				mpre("Восстановление индекса", array_column($tpl['indexes'], 'sql', 'name'));
+				foreach($tpl['indexes'] as $indexes){ qw($indexes['sql']); }
+
 			}elseif(get($fields, $f, 'name') && ((get($fields, $f, 'type') != get($fld, 'type')) || ($fields[$f]['name'] != $fld['name']) || (get($fields, $f, 'dflt_value') != get($fld, 'default')))){
 				if(!$nn = array_search($f, array_keys($tpl['fields']))){ mpre("Номер старого элемента не найден");
 				}elseif(!$NF = array_slice($tpl['fields'], 0, $nn) + [$fld['name']=>($fld+ ['dflt_value'=>$fld['default']])] + array_slice($tpl['fields'], $nn+1)){ mpre("Ошибка формирования нового списка значений");
@@ -152,15 +152,18 @@ if($dump = get($_REQUEST, 'dump')){
 					mpre("База данных sqlite не поддерживает изменение полей, поэтому изменения порядка полей делаем через промежуточную таблицу", $transaction = array(
 						"PRAGMA foreign_keys=OFF;",
 						"BEGIN TRANSACTION;",
-						"CREATE TEMPORARY TABLE backup(". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "{$f['name']} INTEGER PRIMARY KEY" : "`{$f['name']}` {$f['type']}"); }, $tpl['fields']))). ");",
+						"CREATE TEMPORARY TABLE backup(". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "{$f['name']} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE" : "`{$f['name']}` {$f['type']}"); }, $tpl['fields']))). ");",
 						"INSERT INTO backup SELECT * FROM ". mpquot($table). ";",
 						"DROP TABLE ". mpquot($table). ";",
-						"CREATE TABLE ". mpquot($table). "(". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "{$f['name']} INTEGER PRIMARY KEY" : "`{$f['name']}` {$f['type']}". ($f['dflt_value'] ? " DEFAULT {$f['dflt_value']}" : "")); }, $NF))). ");",
+						"CREATE TABLE ". mpquot($table). "(". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "{$f['name']} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE" : "`{$f['name']}` {$f['type']}". ($f['dflt_value'] ? " DEFAULT {$f['dflt_value']}" : "")); }, $NF))). ");",
 						"INSERT INTO ". mpquot($table). " (`". implode("`,`", array_keys($NF)). "`) SELECT `". implode("`,`", array_keys($tpl['fields'])). "` FROM backup;",
 						"DROP TABLE backup;",
 						"COMMIT;",
 						"PRAGMA foreign_keys=ON;",
 					)); foreach($transaction as $sql){ qw($sql); }
+
+					mpre("Восстановление индекса", array_column($tpl['indexes'], 'sql', 'name'));
+					foreach($tpl['indexes'] as $indexes){ qw($indexes['sql']); }
 				}
 			}elseif($after = get($fld, 'after')){ # Изменение порядка сортировки полей
 				if(!$afld = get($tpl, 'fields', $after)){ mpre("Ошибка определения свойст поля после которого ставим <b>{$after}</b>");
@@ -173,10 +176,10 @@ if($dump = get($_REQUEST, 'dump')){
 					mpre("База данных sqlite не поддерживает изменение полей, поэтому делаем через промежуточную таблицу", $transaction = array(
 						"PRAGMA foreign_keys=OFF;",
 						"BEGIN TRANSACTION;",
-						"CREATE TEMPORARY TABLE `backup`(". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "`{$f['name']}` INTEGER PRIMARY KEY" : "`{$f['name']}` {$f['type']}"); }, $tpl['fields']))). ");",
+						"CREATE TEMPORARY TABLE `backup`(". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "`{$f['name']}` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE" : "`{$f['name']}` {$f['type']}"); }, $tpl['fields']))). ");",
 						"INSERT INTO `backup` SELECT * FROM `". mpquot($table). "`;",
 						"DROP TABLE `". mpquot($table). "`;",
-						"CREATE TABLE `". mpquot($table). "`(". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "`{$f['name']}` INTEGER PRIMARY KEY" : "`{$f['name']}` {$f['type']}"); }, $NF))). ");",
+						"CREATE TABLE `". mpquot($table). "`(". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "`{$f['name']}` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE" : "`{$f['name']}` {$f['type']}"); }, $NF))). ");",
 						"INSERT INTO `". mpquot($table). "`(`". implode("`, `", array_keys($NF)). "`) SELECT `". implode("`, `", array_keys($NF)). "` FROM `backup`;",
 						"DROP TABLE `backup`;",
 						"COMMIT;",
@@ -235,19 +238,17 @@ if($dump = get($_REQUEST, 'dump')){
 				}else{
 					mpre("Создание поля", $sql, "База данных sqlite не поддерживает изменение полей, поэтому делаем через промежуточную таблицу", $transaction = array(
 						"BEGIN TRANSACTION;",
-						"CREATE TEMPORARY TABLE backup(". implode(",", (array_map(function($f){ return (first(explode(" ", $f)) == "id" ? "{$f} PRIMARY KEY" : $f); }, $fields))). ")",
+						"CREATE TEMPORARY TABLE backup(". implode(",", (array_map(function($f){ return (first(explode(" ", $f)) == "id" ? "{$f} PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE" : $f); }, $fields))). ")",
 						"INSERT INTO backup SELECT * FROM ". mpquot($table). ";",
 						"DROP TABLE ". mpquot($table). ";",
-						"CREATE TABLE ". mpquot($table). "(". implode(",", (array_map(function($f){ return (first(explode(" ", $f)) == "`id`" ? "{$f} PRIMARY KEY" : $f); }, $NF))). ")",
+						"CREATE TABLE ". mpquot($table). "(". implode(",", (array_map(function($f){ return (first(explode(" ", $f)) == "`id`" ? "{$f} PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE" : $f); }, $NF))). ")",
 						"INSERT INTO ". mpquot($table). " (`". implode("`, `", array_keys($_fields)). "`) SELECT `". implode("`, `", array_keys($_fields)). "` FROM backup;",
 						"DROP TABLE backup;",
 						"COMMIT;",
 					)); foreach($transaction as $sql){ qw($sql); }
 
-					mpre("Восстановление индекса", array_column($tpl['indexes'], 'sql'));
-					foreach($tpl['indexes'] as $indexes){
-						qw($indexes['sql']);
-					}
+					mpre("Восстановление индекса", array_column($tpl['indexes'], 'sql', 'name'));
+					foreach($tpl['indexes'] as $indexes){ qw($indexes['sql']); }
 				}
 			}else{
 				qw($sql = "ALTER TABLE `". mpquot($table). "` ADD `". mpquot($f). "` ". mpquot($new['type']). " ". ($new['default'] ? " DEFAULT '". mpquot($new['default']). "'" : ""). " COMMENT '". mpquot($new['comment']). "' AFTER `". mpquot($new['after']). "`"); mpre($sql);
