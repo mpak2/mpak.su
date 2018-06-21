@@ -357,6 +357,17 @@
 	</script>
 <? endif; ?>
 
+<? if(!$canonical = (get($conf, 'settings', 'canonical') ?: $_SERVER['REQUEST_URI'])):// mpre("ОШИБКА получения адреса страницы") ?>
+<? elseif(!is_string($canonical)):// mpre("Не внутренний") ?>
+<? elseif(!$themes_index = get($conf, 'themes', 'index')): mpre("Ошибка выборки хоста") ?>
+<? elseif(!$seo_location = rb('seo-location', 'name', "[{$canonical}]")): mpre("ОШИБКА выборки внутреннего адреса") ?>
+<? elseif(!$seo_index_themes = rb('seo-index_themes', 'themes_index', 'location_id', $themes_index['id'], $seo_location['id'])): mpre("Ошибка выборки адресации") ?>
+<? elseif(!$seo_index = rb('seo-index', 'id', $seo_index_themes['index_id'])): mpre("ОШИБКА получения внешнего адреса") ?>
+<? else:// pre($themes_index, $seo_location, $seo_index_themes, $seo_index) ?>
+	<link rel="canonical" href="//<?=$themes_index['name']?><?=$seo_index['name']?>">
+<? endif; ?>
+
+
 <!-- плайер -->
 <? if(!get($conf, 'settings', 'themes_v6player')):# Таблица микроразметки не создана ?>
 <? else:// mpre($seo_alias) ?>
