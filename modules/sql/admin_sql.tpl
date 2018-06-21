@@ -141,11 +141,18 @@
 									<span>Действие</span>
 								</div>
 								<? foreach($FIELDS as $field=>$fld): ?>
-									<? if(substr($field, -3) != "_id"):// mpre("Поле не вторичное `{$field}`"); ?>
+									<? //if(substr($field, -3) != "_id"):// mpre("Поле не является вторичным ключем `{$field}`"); ?>
+									<? if(!call_user_func(function() use($field){ # Проверка на соответствие поля критериям вторичного ключа
+											if(substr($field, -3) != "_id"){ return $field; mpre("Вторичный ключ внутри таблицы");
+											}elseif(!$ex = explode('-', $field)){ mpre("Раскладываем имя поля по элементам");
+											}elseif(2 == $ex){ return $field; mpre("Вторичное поле вне раздела вида `pages-index`");
+											}else{// mpre("Поле {$field} не является вторичным ключем");
+											}
+										})): // mpre("Поле не является вторичным ключем `{$field}`"); ?>
 									<? elseif((!$foreign_keys = get($FOREIGN_KEYS, $field)) &0): mpre("Вторичный ключ поля") ?>
 									<? else:// mpre($sql, $foreign_keys) ?>
 										<div field="<?=$field?>">
-											<span><?=$field?></span>
+											<span style="white-space:nowrap;"><?=$field?></span>
 											<span><?=$_GET['r']?></span>
 											<span>
 												<? if($on_update = get($foreign_keys, 'on_update')): ?>

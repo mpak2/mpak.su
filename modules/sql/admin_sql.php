@@ -140,8 +140,14 @@ if($dump = get($_REQUEST, 'dump')){
 					"PRAGMA foreign_keys=ON;",
 				)); foreach($transaction as $sql){ qw($sql); }
 
-				mpre("Восстановление индекса", array_column($tpl['indexes'], 'sql', 'name'));
-				foreach($tpl['indexes'] as $indexes){ qw($indexes['sql']); }
+
+				if(!$tab = substr($table, strlen($conf['db']['prefix']))){ mpre("ОШИБКА получения короткого имени таблицы (без префикса)");
+				}elseif(!$keyname = "{$tab}-{$f}"){ mpre("ОШИБКА получение имени ключа удаляемого поля");
+				}elseif(!$tpl['indexes'] = array_diff_key($tpl['indexes'], array_flip([$keyname]))){ mpre("ОШИБКА удаления из списка ключа удаляемого поля");
+				}else{// mpre($tab, $keyname, $tpl['indexes']);
+					mpre("Восстановление индексов", array_column($tpl['indexes'], 'sql', 'name'));
+					foreach($tpl['indexes'] as $indexes){ qw($indexes['sql']); }
+				}
 
 			}elseif(get($fields, $f, 'name') && ((get($fields, $f, 'type') != get($fld, 'type')) || ($fields[$f]['name'] != $fld['name']) || (get($fields, $f, 'dflt_value') != get($fld, 'default')))){
 				if(!$nn = array_search($f, array_keys($tpl['fields']))){ mpre("Номер старого элемента не найден");
@@ -162,8 +168,21 @@ if($dump = get($_REQUEST, 'dump')){
 						"PRAGMA foreign_keys=ON;",
 					)); foreach($transaction as $sql){ qw($sql); }
 
-					mpre("Восстановление индекса", array_column($tpl['indexes'], 'sql', 'name'));
-					foreach($tpl['indexes'] as $indexes){ qw($indexes['sql']); }
+					if(!$tab = substr($table, strlen($conf['db']['prefix']))){ mpre("ОШИБКА получения короткого имени таблицы (без префикса)");
+					}elseif(!$keyname = "{$tab}-{$f}"){ mpre("ОШИБКА получение имени ключа удаляемого поля");
+					}elseif(!$tpl['indexes'] = call_user_func(function($indexes) use($keyname, $table, $tab, $fld, $f){ # Удаляем ключ со старым полем и добавляем запрос на создание ключа на новом поле
+							if(!get($indexes, $keyname)){ mpre("Ключ на поле у старой таблицы не был установлен (на измененное поле тоже не стаим)");
+							}elseif(!is_array($indexes = array_diff_key($indexes, array_flip([$keyname])))){ mpre("Удаляем запись о старом ключе");
+							}elseif(!$field = get($fld, 'name')){ mpre("ОШИБКА имя нового поля не указано");
+							}elseif(!$_keyname = "{$tab}-{$field}"){ mpre("ОШИБКА формирования имени нового ключа");
+							}elseif(!$sql = "CREATE INDEX `{$_keyname}` ON `{$table}` (`{$field}`);"){ mpre("ОШИБКА формирования запроса на создание люча нового поля");
+							}elseif(!$indexes[$_keyname] = ['type'=>'index', 'name'=>$_keyname, 'tbl_name'=>$table, 'sql'=>$sql]){ mpre("ОШИБКА формирования всех полей нового ключа");
+							} return $indexes;
+						}, $tpl['indexes'])){ mpre("ОШИБКА модификации списка ключей таблицы");
+					}else{// mpre($tab, $f, $tpl['indexes']);
+						mpre("Восстановление индексов", array_column($tpl['indexes'], 'sql', 'name'));
+						foreach($tpl['indexes'] as $indexes){ qw($indexes['sql']); }
+					}
 				}
 			}elseif($after = get($fld, 'after')){ # Изменение порядка сортировки полей
 				if(!$afld = get($tpl, 'fields', $after)){ mpre("Ошибка определения свойст поля после которого ставим <b>{$after}</b>");
@@ -185,13 +204,16 @@ if($dump = get($_REQUEST, 'dump')){
 						"COMMIT;",
 						"PRAGMA foreign_keys=ON;",
 					)); foreach($transaction as $sql){ qw($sql); }
-				}
-			}
+					
+					mpre("Восстановление индексов", array_column($tpl['indexes'], 'sql', 'name'));
+					foreach($tpl['indexes'] as $indexes){ qw($indexes['sql']); }
 
-			if(empty($tpl['indexes'][$index_name = substr($_GET['r'], strlen($conf['db']['prefix'])). "-{$fld['name']}"]) && array_key_exists($f, $tpl['fields']) && array_key_exists('index', $fld) && $fld['index']){
+				}
+			}elseif(empty($tpl['indexes'][$index_name = substr($_GET['r'], strlen($conf['db']['prefix'])). "-{$fld['name']}"]) && array_key_exists($f, $tpl['fields']) && array_key_exists('index', $fld) && $fld['index']){
 				qw(mpre("CREATE INDEX `{$index_name}` ON `{$_GET['r']}` (`{$fld['name']}`);"));
 				$tpl['indexes'] = indexes($table);
-			} $tpl['fields'] = fields($table);
+			}else{ $tpl['fields'] = fields($table);
+			}
 		}else{ // $conf['db']['type'] == 'mysql'
 			
 			if($fld['after'] || ($fields[$f]['Type'] != $fld['type']) || ($fields[$f]['Comment'] != $fld['comment']) || ($fields[$f]['Default'] != $fld['default']) || ($fld['name'] && ($fld['name'] != $f))){
@@ -223,7 +245,7 @@ if($dump = get($_REQUEST, 'dump')){
 	}
 
 	if(!$new = $_POST['$']){ # mpre("Не создаем новое поле");
-	}elseif(!$f = $new['name']){ mpre("ОШИБКА получения имени нового поля");
+	}elseif(!$f = $new['name']){// mpre("ОШИБКА получения имени нового поля");
 	}else{
 			if($conf['db']['type'] == 'sqlite'){
 				if(!$sql = "ALTER TABLE `". mpquot($table). "` ADD COLUMN `{$f}` {$new['type']}"){ mpre("Ошибка составления запроса");
@@ -245,9 +267,10 @@ if($dump = get($_REQUEST, 'dump')){
 						"INSERT INTO ". mpquot($table). " (`". implode("`, `", array_keys($_fields)). "`) SELECT `". implode("`, `", array_keys($_fields)). "` FROM backup;",
 						"DROP TABLE backup;",
 						"COMMIT;",
-					)); foreach($transaction as $sql){ qw($sql); }
+					));
 
-					mpre("Восстановление индекса", array_column($tpl['indexes'], 'sql', 'name'));
+					foreach($transaction as $sql){ qw($sql); }
+					mpre("Восстановление индексов", array_column($tpl['indexes'], 'sql', 'name'));
 					foreach($tpl['indexes'] as $indexes){ qw($indexes['sql']); }
 				}
 			}else{
