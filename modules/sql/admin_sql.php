@@ -238,7 +238,7 @@ if($dump = get($_REQUEST, 'dump')){
 						"CREATE TEMPORARY TABLE backup(". implode(",", (array_map(function($f){ return (first(explode(" ", $f)) == "id" ? "{$f} PRIMARY KEY" : $f); }, $fields))). ")",
 						"INSERT INTO backup SELECT * FROM ". mpquot($table). ";",
 						"DROP TABLE ". mpquot($table). ";",
-						"CREATE TABLE ". mpquot($table). "(". implode(",", (array_map(function($f){ return (first(explode(" ", $f)) == "id" ? "{$f} PRIMARY KEY" : $f); }, $NF))). ")",
+						"CREATE TABLE ". mpquot($table). "(". implode(",", (array_map(function($f){ return (first(explode(" ", $f)) == "`id`" ? "{$f} PRIMARY KEY" : $f); }, $NF))). ")",
 						"INSERT INTO ". mpquot($table). " (`". implode("`, `", array_keys($_fields)). "`) SELECT `". implode("`, `", array_keys($_fields)). "` FROM backup;",
 						"DROP TABLE backup;",
 						"COMMIT;",
