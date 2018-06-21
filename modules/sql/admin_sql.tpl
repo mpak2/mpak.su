@@ -152,10 +152,11 @@
 													<?=$on_update?>
 												<? else: ?>
 													<select name="on_update">
-														<option value="UPDATE NO ACTION" selected></option>
-														<option value="UPDATE SET NULL">Нуль</option>
-														<option value="UPDATE SET DEFAULT">Умолчание</option>
-														<option value="UPDATE RESTRICT">Блок</option>
+														<option value="NO ACTION" selected></option>
+														<option value="SET NULL">Нуль</option>
+														<option value="SET DEFAULT">Умолчание</option>
+														<option value="RESTRICT">Блок</option>
+														<option value="CASCADE">Удалить</option>
 													</select>
 												<? endif; ?>
 											</span>
@@ -164,11 +165,11 @@
 													<?=$on_delete?>
 												<? else: ?>
 													<select name="on_delete">
-														<option value="DELETE NO ACTION"></option>
-														<option value="DELETE SET NULL">Нуль</option>
-														<option value="DELETE SET DEFAULT">Умолчание</option>
-														<option value="DELETE RESTRICT" selected>Блок</option>
-														<option value="DELETE CASCADE">Удалить</option>
+														<option value="NO ACTION"></option>
+														<option value="SET NULL">Нуль</option>
+														<option value="SET DEFAULT">Умолчание</option>
+														<option value="RESTRICT" selected>Блок</option>
+														<option value="CASCADE">Удалить</option>
 													</select>
 												<? endif; ?>
 											</span>

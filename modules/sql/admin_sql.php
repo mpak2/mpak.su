@@ -48,8 +48,8 @@ if($dump = get($_REQUEST, 'dump')){
 //					while(list($key, $sql) = each($transaction)){ qw($sql); } # IS DEPRICATE
 					foreach($transaction as $key=>$sql){ qw($sql); }
 					exit(json_encode($FIELDS));
-				}elseif(!$on_update = $_POST[$w = 'on_update']){ die(!mpre("Не задан `{$w}` контроля вторичного ключа"));
-				}elseif(!$on_delete = $_POST[$w = 'on_delete']){ die(!mpre("Не задан `{$w}` контроля вторичного ключа"));
+				}elseif(!$on_update = "UPDATE ". $_POST[$w = 'on_update']){ die(!mpre("Не задан `{$w}` контроля вторичного ключа"));
+				}elseif(!$on_delete = "DELETE ". $_POST[$w = 'on_delete']){ die(!mpre("Не задан `{$w}` контроля вторичного ключа"));
 				}else{// die(!mpre($fntab, $field));
 //					"База данных sqlite не поддерживает изменение полей, поэтому делаем через промежуточную таблицу",
 					$transaction = array(
