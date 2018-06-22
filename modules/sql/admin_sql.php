@@ -46,7 +46,7 @@ if($dump = get($_REQUEST, 'dump')){
 								}else{ return "`{$fld['name']}` {$fld['type']}"; }
 							}, $FIELDS)){ mpre("ОШИБКА формирования массива полей новой таблицы");
 						}elseif(!is_array($foreign_list = array_map(function($foreign) use($field, $fntab){ # На каждый вторичный ключ создаем инструкцию
-								return "FOREIGN KEY(`{$foreign['from']}`) REFERENCES `{$foreign['table']}`({$foreign['to']}) ON UPDATE {$foreign['on_update']} ON DELETE {$foreign['on_delete']}";
+								return "FOREIGN KEY(`foreign-{$foreign['from']}`) REFERENCES `{$foreign['table']}`({$foreign['to']}) ON UPDATE {$foreign['on_update']} ON DELETE {$foreign['on_delete']}";
 							}, $FOREIGN_KEYS))){ mpre("ОШИБКА формирования инструкций связывания вторичных таблиц");
 						}elseif(!$sql = "CREATE TABLE `{$table}` (". implode(" ,", $fields_list). ($foreign_list ? ", ". implode(", ", $foreign_list) : ""). ")"){ mpre("ОШИБКА формирования запроса на создание запроса новой таблицы");
 						}else{ return $sql; }
@@ -83,7 +83,7 @@ if($dump = get($_REQUEST, 'dump')){
 							}, $FIELDS)){ mpre("ОШИБКА формирования массива полей новой таблицы");
 						}elseif(!$FOREIGN_KEYS[$field] = ["from"=>$field, 'table'=>$fntab, 'to'=>'id', 'on_update'=>get($_POST, 'on_update'), 'on_delete'=>get($_POST, 'on_delete')]){ mpre("ОШИБКА добавления нового вторичного ключа к уже созданным");
 						}elseif(!is_array($foreign_list = array_map(function($foreign) use($field, $fntab){ # На каждый вторичный ключ создаем инструкцию
-								return "FOREIGN KEY(`{$foreign['from']}`) REFERENCES `{$foreign['table']}`({$foreign['to']}) ON UPDATE {$foreign['on_update']} ON DELETE {$foreign['on_delete']}";
+								return "FOREIGN KEY(`foreign-{$foreign['from']}`) REFERENCES `{$foreign['table']}`({$foreign['to']}) ON UPDATE {$foreign['on_update']} ON DELETE {$foreign['on_delete']}";
 							}, $FOREIGN_KEYS))){ mpre("ОШИБКА формирования инструкций связывания вторичных таблиц");
 						}elseif(!$sql = "CREATE TABLE `{$table}` (". implode(" ,", $fields_list). ", ". implode(", ", $foreign_list). ")"){ mpre("ОШИБКА формирования запроса на создание запроса новой таблицы");
 						}else{ return $sql; }

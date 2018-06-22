@@ -163,7 +163,7 @@
 													<? if(!$action = get($actions, $on_update)): ?>
 														<?=$on_update?>
 													<? else: ?>
-														<?=$action?>
+														<span title="<?=$on_update?>" style="font-weight:bold;"><?=$action?></span>
 													<? endif; ?>
 												<? elseif(!$selected = "SET NULL"): mpre("ОШИБКА установки значения по умолчанию") ?>
 												<? else: ?>
@@ -179,7 +179,7 @@
 													<? if(!$action = get($actions, $on_delete)): ?>
 														<?=$on_delete?>
 													<? else: ?>
-														<?=$action?>
+														<span title="<?=$on_delete?>" style="font-weight:bold;"><?=$action?></span>
 													<? endif; ?>
 												<? elseif(!$selected = "CASCADE"): mpre("ОШИБКА установки значения по умолчанию") ?>
 												<? else: ?>
@@ -301,19 +301,31 @@
 						<form action="/<?=$arg['modpath']?>:<?=$arg['fn']?>/null" method="post">
 							<script sync>
 								(function($, script){
-									$(script).parent().on("change", "select[name=query]", function(e){
-										var query = $(e.currentTarget).find("option:selected").val();
-										$(e.delegateTarget).find("textarea").val(query);
-									}).one("init", function(e){
-										$.getScript("/include/jquery/jquery.iframe-post-form.js", function(){// console.log("e:", e);
-											$(e.target).iframePostForm({
-												complete:function(data){// alert(data);
-													$(e.target).next(".info").html(data);
-												}
-											})
-										})
-									}).ready(function(){ $(script).parent().trigger("init"); })
-								})(jQuery, document.currentScript);
+									$(script).parent().one("init", function(e){
+										$(FORMS = $(e.currentTarget).is("form") ? e.currentTarget : $(e.currentTarget).find("form")).on("submit", function(e){
+											$.ajax({
+												type: 'POST',
+												url: $(e.currentTarget).attr('action'),
+												data: $(e.currentTarget).serialize(),
+												dataType: 'json',
+											}).done(function(json){
+//												alert("Спасибо. Информация сохранена.");
+												$(".info").text(json);
+											}).fail(function(error){
+//												alert(error.responseText);
+												$(".info").html(error.responseText);
+											}); return false;
+										}).attr("target", "response_"+(timeStamp = e.timeStamp));
+
+										/*$("<"+"iframe>").attr("name", "response_"+timeStamp).appendTo(FORMS).load(function(){
+											var response = $(this).contents().find("body").html();
+											if(json = $.parseJSON(response)){
+												console.log("json:", json);
+												alert("Информация добавлена в кабинет");
+											}else{ alert(response); }
+										}).hide();*/
+									}).ready(function(e){ $(script).parent().trigger("init"); })
+								})(jQuery, document.currentScript)
 							</script>
 							<p>
 								<select name="query" style="width:100%;">
