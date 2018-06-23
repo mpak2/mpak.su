@@ -1806,51 +1806,6 @@ function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.pn
 	} return null;
 }
 
-/*function mpager($count, $null=null, $cur=null, $url=null){
-	global $conf, $arg;
-	$p = (strpos(get($_SERVER, 'HTTP_HOST'), "xn--") === 0) && ($arg['fn'] != "admin") ? "стр" : "p";
-	if ($cur === null) $cur = (array_key_exists($p, $_GET) ? $_GET[$p] : 0);
-	
-	if(!$REQUEST_URI = get($_SERVER, 'REQUEST_URI')){// mpre("Не найден адрес");
-	}elseif($url === null){
-		if(array_key_exists($p, $_GET)){
-			$url = strtr($u = urldecode($REQUEST_URI), array("/{$p}:{$_GET[$p]}"=>'', "&{$p}={$_GET[$p]}"=>''));
-		}else if(!($url = get($conf, 'settings', 'canonical'))){ # Если адрес не установлен в сео, берем из свойств апача
-			$url = $u = urldecode($REQUEST_URI);
-		}else{
-		} $url = seo($url);
-	} if($null){
-		$url = str_replace($u, $u. (strpos($url, '&') || strpos($url, '?') ? "&null" : "/null"), $url);
-	}else if($null === false){
-		$url = strtr($url, array("/null"=>"", "&null"=>"", "?null"=>""));
-	} if(is_array($url)){
-		$url = get($url, 'name');
-	}
-	if(2 > $count = ceil($count)) return;
-	$return = "<script>$(function(){ $(\".pager\").find(\"a[href='". urldecode($REQUEST_URI). "']\").addClass(\"active\").css(\"font-weight\", \"bold\"); })</script>";
-	$return .=  "<div class=\"pager\">";
-	$mpager['first'] = $url;
-
-	$return .= "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>";
-	$mpager['prev'] = $url. ($cur > 1 ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur-1) : "/{$p}:".($cur-1)) : '');
-	for($i = max(0, min($cur-5, $count-10)); $i < ($max = min($count, max($cur+5, 10))); $i++){
-		$mpager[ $i+1 ] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:$i") : '');
-		$return .=  '&nbsp;'. ("<a href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:$i") : ''). "\">".($i+1)."</a>");
-	}
-	$return .=  '&nbsp;';
-	$return .=  "<a rel=\"next\" href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : "/{$p}:".($cur+1)) : '')."\">вперед &#8594;</a>";
-	$mpager['next'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". min($max-1, $cur+1)) : '');
-	$mpager['last'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($count-1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". ($count-1)) : '');
-	$return .= "</div>";
-	if((($theme = get($conf, 'settings', 'theme')) && ($fn = mpopendir("themes/{$theme}/mpager.tpl"))) || ($fn = mpopendir("themes/zhiraf/mpager.tpl"))){
-		ob_start();
-		include($fn);
-		$return = ob_get_contents();
-		ob_end_clean();
-		return $return;
-	}else{ return $return; }
-}*/
-
 function mpager($count, $id = null, $null=null, $cur=null /* Номер пагинатора */){ # Формируем пагинатор по номеру пагинатора
 	global $conf, $arg;// mpre("mpager");
 	if(!$p = ((strpos(get($_SERVER, 'HTTP_HOST'), "xn--") === 0) && ($arg['fn'] != "admin")) ? "стр" : "p"){ mpre("ОШИБКА формирования переменной с номером пагинатора");
@@ -1859,11 +1814,11 @@ function mpager($count, $id = null, $null=null, $cur=null /* Номер паги
 	}elseif(!$REQUEST_URI = get($_SERVER, 'REQUEST_URI')){// mpre("Не найден адрес");
 	}elseif(!$url = call_user_func(function() use($p, $conf, $REQUEST_URI){ # Формирование адреса
 			if(is_string($url = get($conf, 'settings', 'canonical'))){ return $url;
-			}elseif(is_array($url)){ return get($url, 'name');
+			}elseif(is_array($url)){ return get($url, 'name'). "?";
 			}else{ return urldecode($REQUEST_URI); }
 		})){ mpre("ОШИБКА формирования адреса пагинатора");
 	}elseif(!$url = seo($url)){ mpre("ОШИБКА получения СЕО адреса страницы пагинатора");
-	}elseif(!$uri = urldecode($REQUEST_URI)){ mpre("ОШИБКА приведения адреса в нужный формат");
+	}elseif(!$uri = urldecode($url)){ mpre("ОШИБКА приведения адреса в нужный формат");
 	}elseif(!$url = get($_GET, $p) ? strtr($uri, array("/{$p}:{$_GET[$p]}"=>'', "&{$p}={$_GET[$p]}"=>'')) : $url){ mpre("ОШИБКА замены в адресной строке номера текущей страницы");
 	}elseif(!$url = call_user_func(function() use($url, $uri, $null){ # Формирование адреса исходя из усорвмя отображения шаблона
 			if($null){ return str_replace($uri, $uri. (strpos($url, '&') || strpos($url, '?') ? "&null" : "/null"), $url);

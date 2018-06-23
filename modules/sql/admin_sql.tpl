@@ -118,85 +118,87 @@
 						<? elseif(!$sql = "PRAGMA foreign_key_list({$_GET['r']});"): mpre("Ошибка получения информации о вторичных ключах") ?>
 						<? elseif(!is_array($FOREIGN_KEYS = mpqn(mpqw($sql), "from"))): mpre("Ошибка выполнения выборки вторичных ключей") ?>
 						<? else:// mpre($sql, $FOREIGN_KEYS) ?>
-							<div class="table" style="white-space:nowrap;">
-								<script sync>
-									(function($, script){
-										$(script).parent().on("click", "button", function(e){
-											var field = $(e.currentTarget).parents("[field]").attr("field");
-											var on_update = $(e.currentTarget).parents("[field]").find("select[name=on_update] option:selected").attr("value");
-											var on_delete = $(e.currentTarget).parents("[field]").find("select[name=on_delete] option:selected").attr("value");
-											console.log("field:", field, "on_update:", on_update, "on_delete:", on_delete);
-											$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null", {foreign:field, on_update:on_update, on_delete:on_delete}, function(data){
-												console.log("data:", data);
-												document.location.reload(true);
-											}, "json").fail(function(error){ alert(error.responseText); })
-										})
-									})(jQuery, document.currentScript)
-								</script>
-								<div class="th">
-									<span>Поле</span>
-									<span>Таблица</span>
-									<span>Связь</span>
-									<span>Действие обновить</span>
-									<span>Действие удалить</span>
-									<span>Удалить ключ</span>
+							<form method="post">
+								<div class="table" style="white-space:nowrap;">
+									<script sync>
+/*										(function($, script){
+											$(script).parent().on("click", "button", function(e){
+												var field = $(e.currentTarget).parents("[field]").attr("field");
+												var on_update = $(e.currentTarget).parents("[field]").find("select[name=on_update] option:selected").attr("value");
+												var on_delete = $(e.currentTarget).parents("[field]").find("select[name=on_delete] option:selected").attr("value");
+												console.log("field:", field, "on_update:", on_update, "on_delete:", on_delete);
+												$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null", {foreign:field, on_update:on_update, on_delete:on_delete}, function(data){
+													console.log("data:", data);
+													document.location.reload(true);
+												}, "json").fail(function(error){ alert(error.responseText); })
+											})
+										})(jQuery, document.currentScript)*/
+									</script>
+									<div class="th">
+										<span>Поле</span>
+										<span>Таблица</span>
+										<span>Связь</span>
+										<span>Действие обновить</span>
+										<span>Действие удалить</span>
+										<span>Удалить ключ</span>
+									</div>
+									<? foreach($FIELDS as $field=>$fld): ?>
+										<? //if(substr($field, -3) != "_id"):// mpre("Поле не является вторичным ключем `{$field}`"); ?>
+										<? if(!call_user_func(function() use($field){ # Проверка на соответствие поля критериям вторичного ключа
+												if(substr($field, -3) == "_id"){ return $field; mpre("Вторичный ключ внутри таблицы");
+												}elseif(!$ex = explode('-', $field)){ mpre("Раскладываем имя поля по элементам");
+												}elseif(2 == count($ex)){ return $field; mpre("Вторичное поле вне раздела вида `pages-index`");
+												}else{// mpre("Поле `{$field}` не соответствует требованиям вторичного ключа");
+												}
+											})): // mpre("Поле не является вторичным ключем `{$field}`"); ?>
+										<? elseif((!$foreign_keys = get($FOREIGN_KEYS, $field)) &0): mpre("Вторичный ключ поля") ?>
+										<? elseif(!is_array($foreign_key = get($FOREIGN_KEYS, $field) ?: [])): mpre("ОШИБКА получения ключа") ?>
+										<? elseif(!$actions = ['NO ACTION'=>'', 'SET NULL'=>'Обнулить поле', 'SET DEFAULT'=>'Действие по молчанию', 'RESTRICT'=>'Блокировка изменений', 'CASCADE'=>'Удалить связанные']): mpre("ОШИБКА установки возможных действий") ?>
+										<? else:// mpre($sql, $foreign_keys) ?>
+											<div>
+												<span><?=$field?></span>
+												<span><?=get($foreign_key, 'table')?></span>
+												<span><?=get($foreign_key, 'to')?></span>
+												<span>
+													<? if($on_update = get($foreign_keys, 'on_update')): ?>
+														<? if(!$action = get($actions, $on_update)): ?>
+															<?=$on_update?>
+														<? else: ?>
+															<span title="<?=$on_update?>" style="font-weight:bold;"><?=$action?></span>
+														<? endif; ?>
+													<? elseif(!$selected = "SET NULL"): mpre("ОШИБКА установки значения по умолчанию") ?>
+													<? else: ?>
+														<select name="on_update[<?=$field?>]">
+															<? foreach($actions as $action=>$name): ?>
+																<option value="<?=$action?>" <?=($selected == $action ? "selected" : "")?>><?=$name?></option>
+															<? endforeach; ?>
+														</select>
+													<? endif; ?>
+												</span>
+												<span>
+													<? if($on_delete = get($foreign_keys, 'on_delete')): ?>
+														<? if(!$action = get($actions, $on_delete)): ?>
+															<?=$on_delete?>
+														<? else: ?>
+															<span title="<?=$on_delete?>" style="font-weight:bold;"><?=$action?></span>
+														<? endif; ?>
+													<? elseif(!$selected = "CASCADE"): mpre("ОШИБКА установки значения по умолчанию") ?>
+													<? else: ?>
+														<select name="on_delete[<?=$field?>]">
+															<? foreach($actions as $action=>$name): ?>
+																<option value="<?=$action?>" <?=($selected == $action ? "selected" : "")?>><?=$name?></option>
+															<? endforeach; ?>
+														</select>
+													<? endif; ?>
+												</span>
+												<span style="text-align:center;">
+													<button name="foreign" value="<?=$field?>"><?=($foreign_keys ? "Удалить" : "Создать")?></button>
+												</span>
+											</div>
+										<? endif; ?>
+									<? endforeach; ?>
 								</div>
-								<? foreach($FIELDS as $field=>$fld): ?>
-									<? //if(substr($field, -3) != "_id"):// mpre("Поле не является вторичным ключем `{$field}`"); ?>
-									<? if(!call_user_func(function() use($field){ # Проверка на соответствие поля критериям вторичного ключа
-											if(substr($field, -3) == "_id"){ return $field; mpre("Вторичный ключ внутри таблицы");
-											}elseif(!$ex = explode('-', $field)){ mpre("Раскладываем имя поля по элементам");
-											}elseif(2 == count($ex)){ return $field; mpre("Вторичное поле вне раздела вида `pages-index`");
-											}else{// mpre("Поле `{$field}` не соответствует требованиям вторичного ключа");
-											}
-										})): // mpre("Поле не является вторичным ключем `{$field}`"); ?>
-									<? elseif((!$foreign_keys = get($FOREIGN_KEYS, $field)) &0): mpre("Вторичный ключ поля") ?>
-									<? elseif(!is_array($foreign_key = get($FOREIGN_KEYS, $field) ?: [])): mpre("ОШИБКА получения ключа") ?>
-									<? elseif(!$actions = ['NO ACTION'=>'', 'SET NULL'=>'Обнулить поле', 'SET DEFAULT'=>'Действие по молчанию', 'RESTRICT'=>'Блокировка изменений', 'CASCADE'=>'Удалить связанные']): mpre("ОШИБКА установки возможных действий") ?>
-									<? else:// mpre($sql, $foreign_keys) ?>
-										<div field="<?=$field?>">
-											<span><?=$field?></span>
-											<span><?=get($foreign_key, 'table')?></span>
-											<span><?=get($foreign_key, 'to')?></span>
-											<span>
-												<? if($on_update = get($foreign_keys, 'on_update')): ?>
-													<? if(!$action = get($actions, $on_update)): ?>
-														<?=$on_update?>
-													<? else: ?>
-														<span title="<?=$on_update?>" style="font-weight:bold;"><?=$action?></span>
-													<? endif; ?>
-												<? elseif(!$selected = "SET NULL"): mpre("ОШИБКА установки значения по умолчанию") ?>
-												<? else: ?>
-													<select name="on_update">
-														<? foreach($actions as $action=>$name): ?>
-															<option value="<?=$action?>" <?=($selected == $action ? "selected" : "")?>><?=$name?></option>
-														<? endforeach; ?>
-													</select>
-												<? endif; ?>
-											</span>
-											<span>
-												<? if($on_delete = get($foreign_keys, 'on_delete')): ?>
-													<? if(!$action = get($actions, $on_delete)): ?>
-														<?=$on_delete?>
-													<? else: ?>
-														<span title="<?=$on_delete?>" style="font-weight:bold;"><?=$action?></span>
-													<? endif; ?>
-												<? elseif(!$selected = "CASCADE"): mpre("ОШИБКА установки значения по умолчанию") ?>
-												<? else: ?>
-													<select name="on_delete">
-														<? foreach($actions as $action=>$name): ?>
-															<option value="<?=$action?>" <?=($selected == $action ? "selected" : "")?>><?=$name?></option>
-														<? endforeach; ?>
-													</select>
-												<? endif; ?>
-											</span>
-											<span style="text-align:center;">
-												<button><?=($foreign_keys ? "Удалить" : "Создать")?></button>
-											</span>
-										</div>
-									<? endif; ?>
-								<? endforeach; ?>
-							</div>
+							</form>
 						<? endif; ?>
 					<? else: ?>
 						<? if($tpl['key_column_usage'] = ql(($sql = "SELECT * FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE (TABLE_NAME='{$_GET['r']}' AND REFERENCED_TABLE_NAME != '') OR REFERENCED_TABLE_NAME = '{$_GET['r']}'"))): ?>
