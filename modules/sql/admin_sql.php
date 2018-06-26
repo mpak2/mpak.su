@@ -79,22 +79,25 @@ if($dump = get($_REQUEST, 'dump')){
 						"DROP TABLE IF EXISTS `backup`;",
 						"CREATE TEMPORARY TABLE `backup` (". implode(",", (array_map(function($f){ return ($f['name'] == "id" ? "`{$f['name']}` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE" : "`{$f['name']}` {$f['type']}"); }, $FIELDS))). ");",
 						"INSERT INTO `backup` SELECT * FROM `". mpquot($table). "`;",
-						"PRAGMA foreign_keys=OFF",
+						"PRAGMA foreign_keys=0",
 						"DROP TABLE `". mpquot($table). "`;",
 						$cmd_create_table,
-						"PRAGMA foreign_keys=ON",
+						"PRAGMA foreign_keys=1",
 						"INSERT INTO `". mpquot($table). "` (`". implode("`, `", array_keys($FIELDS)). "`) SELECT `". implode("`, `", array_keys($FIELDS)). "` FROM backup;",
 						"DROP TABLE backup;",
 					));// foreach($transaction as $key=>$sql){ qw($sql); }
 
-					if(!qw("BEGIN TRANSACTION")){ mpre("ОШИБКА начала транзакции");
+					if(!qw("PRAGMA foreign_keys=0")){ mpre("ОШИБКА выключения отслеживания вторичных ключей");
+					}elseif(!qw("BEGIN TRANSACTION")){ mpre("ОШИБКА начала транзакции");
 					}elseif(!$_transaction = array_map(function($sql){ # Выполняем запросы с проверкой возвращаемых стататусов. Если статус не возвращен прекращаем транзакцию
 							if(qw($sql)){ return $sql; // mpre("Успешное выполнение запроса", $sql);
 							}else{ mpre("ОШИБКА выполнения запроса изменения таблицы", $sql); }
 						}, $transaction)){ mpre("ОШИБКА выполнения запроса на изменение таблицы");
 					}elseif($errors = array_diff_key($transaction, array_filter($_transaction))){ mpre("Список запросов выполнен с ошибкой - отмена транзакции", $errors);
 						qw("ROLLBACK TRANSACTION");
-					}else{ qw("END TRANSACTION");
+					}elseif(!qw("END TRANSACTION")){ mpre("ОШИБКА завершения транзакции");
+					}elseif(!qw("PRAGMA foreign_keys=1")){ mpre("ОШИБКА включения отслеживания вторичных ключей");
+					}else{
 					}// exit(json_encode($FIELDS));
 					
 					mpre("Восстановление индексов", array_column($tpl['indexes'], 'sql', 'name'));
@@ -129,14 +132,17 @@ if($dump = get($_REQUEST, 'dump')){
 						"DROP TABLE `backup`;",
 					));// die(!mpre($transaction)); // foreach($transaction as $sql){ qw($sql); }
 
-					if(!qw("BEGIN TRANSACTION")){ mpre("ОШИБКА начала транзакции");
+					if(!qw("PRAGMA foreign_keys=0")){ mpre("ОШИБКА выключения отслеживания вторичных ключей");
+					}elseif(!qw("BEGIN TRANSACTION")){ mpre("ОШИБКА начала транзакции");
 					}elseif(!$_transaction = array_map(function($sql){ # Выполняем запросы с проверкой возвращаемых стататусов. Если статус не возвращен прекращаем транзакцию
 							if(qw($sql)){ return $sql; // mpre("Успешное выполнение запроса", $sql);
 							}else{ mpre("ОШИБКА выполнения запроса изменения таблицы", $sql); }
 						}, $transaction)){ mpre("ОШИБКА выполнения запроса на изменение таблицы");
 					}elseif($errors = array_diff_key($transaction, array_filter($_transaction))){ mpre("Список запросов выполнен с ошибкой - отмена транзакции", $errors);
 						qw("ROLLBACK TRANSACTION");
-					}else{ qw("END TRANSACTION");
+					}elseif(!qw("END TRANSACTION")){ mpre("ОШИБКА завершения транзакции");
+					}elseif(!qw("PRAGMA foreign_keys=1")){ mpre("ОШИБКА включения отслеживания вторичных ключей");
+					}else{
 					}
 					
 					mpre("Восстановление индексов", array_column($tpl['indexes'], 'sql', 'name'));
@@ -186,15 +192,17 @@ if($dump = get($_REQUEST, 'dump')){
 					"DROP TABLE `backup`;",
 				));// foreach($transaction as $sql){ qw($sql); }
 
-				if(!qw("BEGIN TRANSACTION")){ mpre("ОШИБКА начала транзакции");
+				if(!qw("PRAGMA foreign_keys=0")){ mpre("ОШИБКА выключения отслеживания вторичных ключей");
+				}elseif(!qw("BEGIN TRANSACTION")){ mpre("ОШИБКА начала транзакции");
 				}elseif(!$_transaction = array_map(function($sql){ # Выполняем запросы с проверкой возвращаемых стататусов. Если статус не возвращен прекращаем транзакцию
 						if(qw($sql)){ return $sql; // mpre("Успешное выполнение запроса", $sql);
 						}else{ mpre("ОШИБКА выполнения запроса изменения таблицы", $sql); }
 					}, $transaction)){ mpre("ОШИБКА выполнения запроса на изменение таблицы");
 				}elseif($errors = array_diff_key($transaction, array_filter($_transaction))){ mpre("Список запросов выполнен с ошибкой - отмена транзакции", $errors);
 					qw("ROLLBACK TRANSACTION");
-				}else{ qw("END TRANSACTION");
-//					exit(json_encode($FIELDS));
+				}elseif(!qw("END TRANSACTION")){ mpre("ОШИБКА завершения транзакции");
+				}elseif(!qw("PRAGMA foreign_keys=1")){ mpre("ОШИБКА включения отслеживания вторичных ключей");
+				}else{
 				}
 
 				if(!$tab = substr($table, strlen($conf['db']['prefix']))){ mpre("ОШИБКА получения короткого имени таблицы (без префикса)");
@@ -222,15 +230,17 @@ if($dump = get($_REQUEST, 'dump')){
 						"DROP TABLE backup;",
 					));// foreach($transaction as $sql){ qw($sql); }
 					
-					if(!qw("BEGIN TRANSACTION")){ mpre("ОШИБКА начала транзакции");
+					if(!qw("PRAGMA foreign_keys=0")){ mpre("ОШИБКА выключения отслеживания вторичных ключей");
+					}elseif(!qw("BEGIN TRANSACTION")){ mpre("ОШИБКА начала транзакции");
 					}elseif(!$_transaction = array_map(function($sql){ # Выполняем запросы с проверкой возвращаемых стататусов. Если статус не возвращен прекращаем транзакцию
 							if(qw($sql)){ return $sql; // mpre("Успешное выполнение запроса", $sql);
 							}else{ mpre("ОШИБКА выполнения запроса изменения таблицы", $sql); }
 						}, $transaction)){ mpre("ОШИБКА выполнения запроса на изменение таблицы");
 					}elseif($errors = array_diff_key($transaction, array_filter($_transaction))){ mpre("Список запросов выполнен с ошибкой - отмена транзакции", $errors);
 						qw("ROLLBACK TRANSACTION");
-					}else{ qw("END TRANSACTION");
-//						exit(json_encode($FIELDS));
+					}elseif(!qw("END TRANSACTION")){ mpre("ОШИБКА завершения транзакции");
+					}elseif(!qw("PRAGMA foreign_keys=1")){ mpre("ОШИБКА включения отслеживания вторичных ключей");
+					}else{
 					}
 
 					if(!$tab = substr($table, strlen($conf['db']['prefix']))){ mpre("ОШИБКА получения короткого имени таблицы (без префикса)");
@@ -268,15 +278,17 @@ if($dump = get($_REQUEST, 'dump')){
 						"DROP TABLE `backup`;",
 					));// foreach($transaction as $sql){ qw($sql); }
 
-					if(!qw("BEGIN TRANSACTION")){ mpre("ОШИБКА начала транзакции");
+					if(!qw("PRAGMA foreign_keys=0")){ mpre("ОШИБКА выключения отслеживания вторичных ключей");
+					}elseif(!qw("BEGIN TRANSACTION")){ mpre("ОШИБКА начала транзакции");
 					}elseif(!$_transaction = array_map(function($sql){ # Выполняем запросы с проверкой возвращаемых стататусов. Если статус не возвращен прекращаем транзакцию
 							if(qw($sql)){ return $sql; // mpre("Успешное выполнение запроса", $sql);
 							}else{ mpre("ОШИБКА выполнения запроса изменения таблицы", $sql); }
 						}, $transaction)){ mpre("ОШИБКА выполнения запроса на изменение таблицы");
 					}elseif($errors = array_diff_key($transaction, array_filter($_transaction))){ mpre("Список запросов выполнен с ошибкой - отмена транзакции", $errors);
 						qw("ROLLBACK TRANSACTION");
-					}else{ qw("END TRANSACTION");
-//						exit(json_encode($FIELDS));
+					}elseif(!qw("END TRANSACTION")){ mpre("ОШИБКА завершения транзакции");
+					}elseif(!qw("PRAGMA foreign_keys=1")){ mpre("ОШИБКА включения отслеживания вторичных ключей");
+					}else{
 					}
 					
 					mpre("Восстановление индексов", array_column($tpl['indexes'], 'sql', 'name'));
@@ -343,15 +355,17 @@ if($dump = get($_REQUEST, 'dump')){
 						"DROP TABLE backup;",
 					));// foreach($transaction as $sql){ qw($sql); }
 
-					if(!qw("BEGIN TRANSACTION")){ mpre("ОШИБКА начала транзакции");
+					if(!qw("PRAGMA foreign_keys=0")){ mpre("ОШИБКА выключения отслеживания вторичных ключей");
+					}elseif(!qw("BEGIN TRANSACTION")){ mpre("ОШИБКА начала транзакции");
 					}elseif(!$_transaction = array_map(function($sql){ # Выполняем запросы с проверкой возвращаемых стататусов. Если статус не возвращен прекращаем транзакцию
 							if(qw($sql)){ return $sql; // mpre("Успешное выполнение запроса", $sql);
 							}else{ mpre("ОШИБКА выполнения запроса изменения таблицы", $sql); }
 						}, $transaction)){ mpre("ОШИБКА выполнения запроса на изменение таблицы");
 					}elseif($errors = array_diff_key($transaction, array_filter($_transaction))){ mpre("Список запросов выполнен с ошибкой - отмена транзакции", $errors);
 						qw("ROLLBACK TRANSACTION");
-					}else{ qw("END TRANSACTION");
-//						exit(json_encode($FIELDS));
+					}elseif(!qw("END TRANSACTION")){ mpre("ОШИБКА завершения транзакции");
+					}elseif(!qw("PRAGMA foreign_keys=1")){ mpre("ОШИБКА включения отслеживания вторичных ключей");
+					}else{
 					}
 					
 					mpre("Восстановление индексов", array_column($tpl['indexes'], 'sql', 'name'));
