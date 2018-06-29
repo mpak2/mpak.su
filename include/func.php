@@ -1814,7 +1814,7 @@ function mpager($count, $id = null, $null=null, $cur=null /* Номер паги
 	}elseif(!$REQUEST_URI = get($_SERVER, 'REQUEST_URI')){// mpre("Не найден адрес");
 	}elseif(!$url = call_user_func(function() use($p, $conf, $REQUEST_URI){ # Формирование адреса
 			if(is_string($canonical = get($conf, 'settings', 'canonical'))){ return $url;
-			}elseif(!is_array($canonical)){ urldecode($REQUEST_URI);
+			}elseif(!is_array($canonical)){ return urldecode($REQUEST_URI);
 			}elseif(!$url = get($canonical, 'name')){ mpre("ОШИБКА выборки адреса страницы из canonical");
 			}elseif(strpos($url, "?")){ return $url;
 			}else{ return $url. "?"; }
