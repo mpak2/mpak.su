@@ -1218,7 +1218,11 @@ function erb($src, $key = null){
 					if(!$tab = substr($table, strlen($conf['db']['prefix']))){ mpre("ОШИБКА формирования префикса таблицы для имени ключа");
 					}elseif(!$name = "{$tab}-{$key}"){ mpre("ОШИБКА формирования имени ключа");
 					}elseif("sqlite" == $conf['db']['type']){// mpre("Запрос для создания ключа БД sqlite");
-						return "CREATE INDEX `{$name}` ON `{$table}` (`{$key}`);";
+						if(!$TABLES = tables()){ mpre("ОШИБКА получения списка таблиц базы данных");
+						}elseif(!get($TABLES, $table)){// mpre("Таблица `{$table}` не найдена в основной БД возможно она с подключенных для чтения");
+						}else{ mpre("Создание ключа", $TABLES);
+							return "CREATE INDEX `{$name}` ON `{$table}` (`{$key}`);";
+						}
 //					}elseif(true){ mpre($key, $FIELDS);
 					}elseif(!$field = get($FIELDS, $key)){ mpre("ОШИБКА поулчения параметров поля");
 					}elseif("text" == get($field, 'Type')){// mpre("Запрещенный для индексирования тип поля");
