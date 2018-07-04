@@ -269,29 +269,38 @@ if(!is_array($zblocks = call_user_func(function() use(&$conf){
 			$zblocks = blocks();
 		} return $zblocks;
 	})) and !get($conf,"deny")){ mpre("Ошибка установки порядка следования расчетов блоков");
-}elseif(!$ind = (get($_GET, 'index') ?: (get($conf, 'settings', 'index') ?: "index"))){ mpre("Ошибка определения имени главного файла");
-}elseif(!$t = mpopendir($f = "themes/{$conf['settings']['theme']}/{$ind}.html")){
-}elseif(array_key_exists('null', $_GET)){// mpre("Аякс запросу шаблон не обязателен");
-}elseif(!get($conf, 'settings', 'theme_exec') && (!$tc = file_get_contents($t))){ mpre("Ошибка получения содержимого файла шаблона");
-}else{
-  if($teme_config=mpopendir("themes/{$conf['settings']['theme']}/config.json") AND $teme_config=file_get_contents($teme_config) AND isJSON($teme_config)){
-    $teme_config = json_decode($teme_config,true);
-    if(get($teme_config,'less_compile')){
-      MpLessCompile(mpopendir("themes/{$conf['settings']['theme']}/"));
-    }
-    if(get($teme_config,'js_auto_mini')){
-      MpJsAutoMini(mpopendir("themes/{$conf['settings']['theme']}/"));
-    }
-  }
-  ob_start();
-    inc($f);
-  $tc = ob_get_clean();
-}
-
-if(array_key_exists('null', $_GET)){ echo $conf["content"];
-}elseif(!$conf["content"] = str_replace('<!-- [modules] -->', $conf["content"], $tc)){ mpre("Ошибка замены содержимого модуля");
-}elseif(!$conf["content"] = strtr($conf["content"], (array)$zblocks)){ mpre("Ошибка установки содержимоого блоков");
+}else if(!$tc = call_user_func(function() use($conf){
+		if(!$ind = (get($_GET, 'index') ?: (get($conf, 'settings', 'index') ?: "index"))){ mpre("Ошибка определения имени главного файла");
+//		}else if(true){ mpre("Проверка");
+		}elseif(!$t = mpopendir($f = "themes/{$conf['settings']['theme']}/{$ind}.html")){ mpre("ОШИБКА файл шаблона не найден", $f);
+		}elseif(array_key_exists('null', $_GET)){// mpre("Аякс запросу шаблон не обязателен");
+//		}elseif(/*!get($conf, 'settings', 'theme_exec') &&*/ (!$tc = file_get_contents($t))){ mpre("Ошибка получения содержимого файла шаблона");
+		}elseif(!$tc = file_get_contents($t)){ mpre("Ошибка получения содержимого файла шаблона");
+		}else{ return $tc; }
+	})){ mpre("ОШИБКА подключения шаблона");
+}else if(call_user_func(function() use($conf){
+		if(!mpsettings("themes_less_compile")){ // Параметр для включения less
+		}elseif(!$teme_config = mpopendir($json = "themes/{$conf['settings']['theme']}/config.json")){ mpre("Конфиг LESS не найден", $json);
+		}elseif(!$teme_config = file_get_contents($teme_config)){ mpre("ОШИБКА подключения конфига LESS", $teme_config);
+		}elseif(!isJSON($teme_config)){ mpre("Содержимое файла не определено как JSON", $teme_config);
+		}else if(!$teme_config = json_decode($teme_config,true)){ mpre("ОШИБКА разбора содержимого конфига LESS", $teme_config);
+		}else{
+			if(get($teme_config,'less_compile')){
+				MpLessCompile(mpopendir("themes/{$conf['settings']['theme']}/"));
+			}
+			if(get($teme_config,'js_auto_mini')){
+				MpJsAutoMini(mpopendir("themes/{$conf['settings']['theme']}/"));
+			} ob_start(); inc($f); $tc = ob_get_clean();
+		}
+	})){ mpre("ОШИБКА подключения less");
+}elseif(array_key_exists('null', $_GET)){ echo $tc;
+}elseif(!$content = call_user_func(function() use($tc, $conf){
+		if($content = str_replace('<!-- [modules] -->', $conf["content"], $tc)){ return $content;
+		}else{ mpre("Ошибка в шаблоне не установено содержимое страницы &lt;!-- [modules] --&gt;");
+		} return $conf["content"];
+	})){ mpre("ОШИБКА замены одержимого шаблона контентом");
+}elseif(!$content = strtr($content, (array)$zblocks)){ mpre("Ошибка установки содержимоого блоков");
 }elseif(!$conf['settings']['microtime'] = substr(microtime(true)-$conf['settings']['microtime'], 0, 8)){ mpre("Ошибка расчета времени генерирования страницы");
-}elseif(!$conf["content"] = array_key_exists("null", $_GET) ? $conf["content"] : strtr($conf["content"], mpzam($conf['settings'], "settings", "<!-- [", "] -->"))){ mpre("Ошибка установки переменных в текст");
-}elseif(empty(get($conf, 'settings', 'users_cashe_disacled')) && cache($conf["content"]) &&0){ mpre("Ошибка кеширования содержимого страницы");
-}else{ echo $conf["content"]; }
+}elseif(!$content = array_key_exists("null", $_GET) ? $content : strtr($content, mpzam($conf['settings'], "settings", "<!-- [", "] -->"))){ mpre("Ошибка установки переменных в текст");
+}elseif(empty(get($conf, 'settings', 'users_cashe_disacled')) && cache($content) &&0){ mpre("Ошибка кеширования содержимого страницы");
+}else{ echo $content; }
