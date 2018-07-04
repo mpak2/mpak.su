@@ -1817,11 +1817,10 @@ function mpager($count, $id = null, $null=null, $cur=null /* Номер паги
 	}elseif(!is_numeric($cur = (array_key_exists($p, $_GET) ? $_GET[$p] : 0))){ mpre("ОШИБКА получения текущей страницы пагинатора");
 	}elseif(!$REQUEST_URI = get($_SERVER, 'REQUEST_URI')){// mpre("Не найден адрес");
 	}elseif(!$url = call_user_func(function() use($p, $conf, $REQUEST_URI){ # Формирование адреса
-			if(is_string($canonical = get($conf, 'settings', 'canonical'))){ return $url;
+			if(is_string($canonical = get($conf, 'settings', 'canonical'))){ return $canonical;
 			}elseif(!is_array($canonical)){ return urldecode($REQUEST_URI);
 			}elseif(!$url = get($canonical, 'name')){ mpre("ОШИБКА выборки адреса страницы из canonical");
-			}elseif(strpos($url, "?")){ return $url;
-			}else{ return $url. "?"; }
+			}else{ return $url; }
 		})){ mpre("ОШИБКА формирования адреса пагинатора");
 	}elseif(!$url = seo($url)){ mpre("ОШИБКА получения СЕО адреса страницы пагинатора");
 	}elseif(!$uri = urldecode($url)){ mpre("ОШИБКА приведения адреса в нужный формат");
@@ -1831,7 +1830,7 @@ function mpager($count, $id = null, $null=null, $cur=null /* Номер паги
 			}else if($null === false){ return strtr($url, array("/null"=>"", "&null"=>"", "?null"=>""));
 			}else{ return $url; }
 		})){ mpre("ОШИБКА изменения адреса страницы для стрниц с выключенны отображением шаблона");
-	}elseif(!$url .= "?"){ mpre("Добавляем вопрос");
+	}elseif(!$url = (strpos($url, "?") ? $url : $url. "?")){ mpre("ОШИБКА добавления вопроса");
 	}else{// mpre($url);
 	}
 	
