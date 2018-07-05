@@ -92,6 +92,7 @@ function conn($init = null){
 		}elseif(!$options = [/*PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,*/PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_PERSISTENT=>false, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>1/*, PDO::SQLITE_MAX_EXPR_DEPTH=>0*/]){ mpre("ОШИБКА задания опций подключения");
 		}elseif("sqlite" == $type){
 			if(!$realpath = realpath($name)){ mpre("Файл с БД не найден `{$name}`");
+			}else if(!is_writable($name)){ die(!pre("ОШИБКА файл БД доступен только на чтение", $name));
 			}else{// mpre("Реальный путь до файла бд", $name);
 				$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:{$realpath}", null, null, $options);
 				$conf['db']['conn']->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
