@@ -295,7 +295,7 @@ function cache($content = false){
 					header("Cache-Control: max-age={$age}");
 					header("Expires: ". gmdate('D, d M Y H:i:s T'));
 					return true;
-				}, 86400*10)){ mpre("Ошибка установки заговлоков");
+				}, (mpsettings("themes_cahce") ?: 86400*10))){ mpre("Ошибка установки заговлоков");
 			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Ошибка определения адреса");
 //			}elseif(array_key_exists('HTTP_CACHE_CONTROL', $_SERVER)){// pre("Обновление");
 			}elseif(get($_SERVER, 'HTTP_CACHE_CONTROL')){
@@ -1221,7 +1221,7 @@ function erb($src, $key = null){
 					}elseif("sqlite" == $conf['db']['type']){// mpre("Запрос для создания ключа БД sqlite");
 						if(!$TABLES = tables()){ mpre("ОШИБКА получения списка таблиц базы данных");
 						}elseif(!get($TABLES, $table)){// mpre("Таблица `{$table}` не найдена в основной БД возможно она с подключенных для чтения");
-						}else{ mpre("Создание ключа", $TABLES);
+						}else{ mpre("Создание ключа", $table, $name);
 							return "CREATE INDEX `{$name}` ON `{$table}` (`{$key}`);";
 						}
 //					}elseif(true){ mpre($key, $FIELDS);
