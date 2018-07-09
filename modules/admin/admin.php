@@ -214,7 +214,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		if(!$database_list = mpql(mpqw("PRAGMA database_list"))){ mpre("ОШИБКА получения списка баз данных");
 		}elseif(!$TABLES = array_map(function($database) use($conf, $arg){
 				if(!$sql = "SELECT * FROM {$database['name']}.sqlite_master WHERE type='table' AND name LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\""){ mpre("Запрос на выборку списка баз данных раздела");
-				}elseif(!$TABLES = array_column(qn($sql, "name"), "name")){ mpre("ОШИБКА получения списка таблиц БД `{$database['name']}`");
+				}elseif(!is_array($TABLES = array_column(qn($sql, "name"), "name"))){ mpre("ОШИБКА получения списка таблиц БД `{$database['name']}`");
 /*				}elseif("main" == $database['name']){ return $TABLES;
 				}elseif(!$TABLES = array_map(function($table) use($database){ # Добавляем имени таблицы префикс
 						return "{$database["name"]}.{$table}";
@@ -223,7 +223,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 					return $TABLES;
 				}
 			}, $database_list)){ mpre("ОШИБКА получения списка табли баз данных");
-		}elseif(!$tpl['tables'] = call_user_func_array('array_merge', $TABLES)){ mpre("ОШИБКА совмещения списка таблиц");
+		}elseif(!is_array($tpl['tables'] = call_user_func_array('array_merge', $TABLES))){ mpre("ОШИБКА совмещения списка таблиц");
 		}else{// mpre($TABLES);
 //			$tpl['tables'] = array_column(qn("SELECT * FROM main.sqlite_master WHERE type='table' AND name LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\"", "name"), "name");
 //			sort($tpl['tables']);
