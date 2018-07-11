@@ -101,15 +101,14 @@ if(!$sess = users_sess()){// pre("Добавляем сессию");
 }elseif(!$guest = get($conf, 'settings', 'default_usr')){ mpre("Имя пользователя гость не указано");
 }elseif(!is_array($conf['user'] = (rb('users-', 'id', $sess['uid']) ?: rb('users-', 'name', "[{$guest}]")))){ pre("ОШИБКА выборки пользователя");
 }elseif(!$conf['user'] += ['uid'=>(($sess['uid'] > 0) ? get($conf, 'user', 'id') : -$sess['id']), 'sess'=>$sess]){ pre("ОШИБКА сохранения сессии в системных переменных");
-//}elseif(true){ pre($conf['user']);
 }elseif(isset($_GET['logoff'])){ # Если пользователь покидает сайт
   qw("UPDATE {$conf['db']['prefix']}users_sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
   setcookie("{$conf['db']['prefix']}modified_since", "", 0, "/");
+  setcookie('sess', null, -1, '/');
   if(!empty($_SERVER['HTTP_REFERER'])){
     exit(header("Location: ". ($conf['settings']['users_logoff_location'] ? $conf['settings']['users_logoff_location'] : $_SERVER['HTTP_REFERER'])));
   } qw($sql = "DELETE FROM {$conf['db']['prefix']}users_sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление сессий');
 }elseif(!$_POST && !get($_COOKIE, "sess")){// pre("Сессия выключена");
-//}elseif(pre($conf['user']['sess']) &&0){
 }elseif(!$_POST || (get($_POST, 'reg') != 'Аутентификация')){// pre("Нет запроса на аутентификацию");
 }elseif(!strlen($_POST['name'])){ pre("Имя не задано");
 }elseif(!strlen($_POST['pass'])){ pre("Пароль не задан");
@@ -120,9 +119,6 @@ if(!$sess = users_sess()){// pre("Добавляем сессию");
 }elseif(!$conf['user']['sess'] = $sess){ pre("ОШИБКА сохранения сессии в системных переменных");
 }elseif(!$user = fk("users-", ['id'=>$user['id']], null, ['last_time'=>time()])){ pre("Ошибка установки времени входа пользователю");
 }else{ // pre($conf['user']['sess']);
-  /*if(get($_POST, 'HTTP_REFERER')){
-    exit(header("Location: {$_POST['HTTP_REFERER']}"));
-  } setcookie("{$conf['db']['prefix']}modified_since", "1", 0, "/");*/
 }
 
 if($sess['uid'] <= 0){ mpre("Посетитель является гостем");
