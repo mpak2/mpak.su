@@ -283,7 +283,7 @@ function cache($content = false){
 		}elseif($_COOKIE['sess']){// pre("Зарегистрированный пользователь");
 
 //		}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])*/){
-// mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
+// 		mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
 //			}elseif(pre($sys_getloadavg)){
 /*			}elseif($sys_getloadavg[0] >= 50){ # Очередь процессов на выполнение больше критического предела - отдаем ошибку
 			error_log(implode("/", $sys_getloadavg). " --- 503 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
@@ -325,7 +325,8 @@ function cache($content = false){
 		}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ mpre("Ошибка создания запроса");
 		}elseif(!$row = mpql($RES, 0)){ mpre("Ошибка извлечения строк");
 		}elseif(empty($row)){ # Пустой результат
-		}elseif((time() - get($row, 'time')) > get($conf, 'themes_cache')){ pre("Кеш устарел");
+		}elseif((time() - get($row, 'time')) > get($conf, 'themes_cache')){ pre("Кеш устарел", (time() - get($row, 'time')));
+			mpqw("DELETE FROM `cache` WHERE id=". (int)$row['id']);
 //		}elseif(true){ pre(time() - get($row, 'time'), $conf['themes_cache']);
 		}elseif(call_user_func(function($header){ header($header); }, explode("\n", $row['headers']))){ mpre("Ошибка установки заговловков");
 		}else{ header('Content-Encoding: gzip');
@@ -365,11 +366,11 @@ function cache($content = false){
 			error_log(implode("/", $sys_getloadavg). " xxx ". ($conf['user']['sess']['uid'] <= 0 ? "{$guest['uname']}{$conf['user']['sess']['id']}" : $conf['user']['uname']). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 		}elseif(!$cache_exists = call_user_func(function($PARAMS) use($conf, $conn){
 				try{
-					if(!$uri = rb($PARAMS, 'name', '[uri]', 'value')){ mpre("Ошибка получения адреса страницы", rb($PARAMS, "name", "[uri]"));
-					}elseif(!$result = $conn->query("SELECT * FROM `cache` WHERE `uri`='{$uri}' ORDER BY `id` DESC LIMIT 1")){ mpre("Ошибка создания запроса");
-					}elseif($result && ($cache = $result->fetch(PDO::FETCH_ASSOC))){// mpre("Обновление страницы");
+					if(!$uri = rb($PARAMS, 'name', '[uri]', 'value')){ pre("Ошибка получения адреса страницы", rb($PARAMS, "name", "[uri]"));
+					}elseif(!$result = $conn->query("SELECT * FROM `cache` WHERE `uri`='{$uri}' ORDER BY `id` DESC LIMIT 1")){ pre("Ошибка создания запроса");
+					}elseif($cache = $result->fetch(PDO::FETCH_ASSOC)){ pre("Обновление страницы");
 						$TYPES = ['id'=>PDO::PARAM_INT, 'time'=>PDO::PARAM_INT, 'headers'=>PDO::PARAM_STR, 'content'=>PDO::PARAM_LOB];
-						$result = $conn->prepare("UPDATE cache SET time=:time, headers=:headers, content=:content WHERE id=:id");
+						$result = $conn->prepare("UPDATE `cache` SET `time`=:time, `headers`=:headers, `content`=:content WHERE `id`=:id");
 						foreach(array_intersect_key($cache, $TYPES) as $name=>$value){
 							$result->bindValue($name, $value, $TYPES[$name]);
 						} $result->execute();
@@ -383,8 +384,7 @@ function cache($content = false){
 					}
 				}catch(Exception $e){ mpre($e); return false; }
 			},[['name'=>'time', 'value'=>time(), 'type'=>PDO::PARAM_INT], ['name'=>'uri', 'value'=>$REQUEST_URI, 'type'=>PDO::PARAM_STR], ['name'=>'headers', 'value'=>implode("\n", headers_list()), 'type'=>PDO::PARAM_STR], ['name'=>'content', 'value'=>$gzen, 'type'=>PDO::PARAM_LOB],])){ mpre("Ошибка установки запроса");
-		}else{
-			return error_log(implode("/", $sys_getloadavg). " ". ($cache_exists > 0 ? "<=>" : ">>>"). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+		}else{// return error_log(implode("/", $sys_getloadavg). " ". ($cache_exists > 0 ? "<=>" : ">>>"). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 		}
 	}
 }
