@@ -9,6 +9,8 @@ $conf['db']['login'] = '';
 $conf['db']['pass'] = '';
 $conf['db']['name'] = '.htdb';
 
+$conf['themes_cache'] = 86400; # Время кеширования страниц для гостей
+
 if(is_dir('./core')){
 	$conf["db"]["open_basedir"] = '.::core::/tmp';
 }

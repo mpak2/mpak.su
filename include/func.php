@@ -325,6 +325,8 @@ function cache($content = false){
 		}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ mpre("Ошибка создания запроса");
 		}elseif(!$row = mpql($RES, 0)){ mpre("Ошибка извлечения строк");
 		}elseif(empty($row)){ # Пустой результат
+		}elseif((time() - get($row, 'time')) > get($conf, 'themes_cache')){ pre("Кеш устарел");
+//		}elseif(true){ pre(time() - get($row, 'time'), $conf['themes_cache']);
 		}elseif(call_user_func(function($header){ header($header); }, explode("\n", $row['headers']))){ mpre("Ошибка установки заговловков");
 		}else{ header('Content-Encoding: gzip');
 			exit($row['content']);
@@ -350,7 +352,7 @@ function cache($content = false){
 		}elseif(!file_exists($conn_file) && !touch($conn_file) && !mkdir(dirname($conn_file))){ mpre("Файл бд кеша не найден {$conn_file}");
 		}elseif(!$conn = conn("sqlite:{$conn_file}")){
 		}elseif(!($TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name")) && !($TABLES = call_user_func(function() use($conf, $conn){
-				if(!(qw($sql = "CREATE TABLE cache (id INTEGER PRIMARY KEY, uri TEXT, headers TEXT, content BLOB)", "Создание таблицы кешей", null, null, $conn)) &0){ mpre("Ошибка создания таблицы кешей {$sql}");
+				if(!(qw($sql = "CREATE TABLE cache(id INTEGER PRIMARY KEY, time INTEGER, uri TEXT, headers TEXT, content BLOB)", "Создание таблицы кешей", null, null, $conn)) &0){ mpre("Ошибка создания таблицы кешей {$sql}");
 				}elseif(qw($sql = "CREATE INDEX `cache-uri` ON `cache` (`uri`);", "Создание ключей", null, null, $conn) &0){ mpre("Ошибка создания ключей таблицы {$sql}");
 				}elseif(!$TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name")){ mpre("Ошибка проверки таблицы стилей");
 				}else{ return $TABLES; }
@@ -366,21 +368,21 @@ function cache($content = false){
 					if(!$uri = rb($PARAMS, 'name', '[uri]', 'value')){ mpre("Ошибка получения адреса страницы", rb($PARAMS, "name", "[uri]"));
 					}elseif(!$result = $conn->query("SELECT * FROM `cache` WHERE `uri`='{$uri}' ORDER BY `id` DESC LIMIT 1")){ mpre("Ошибка создания запроса");
 					}elseif($result && ($cache = $result->fetch(PDO::FETCH_ASSOC))){// mpre("Обновление страницы");
-						$TYPES = ['id'=>PDO::PARAM_INT, 'headers'=>PDO::PARAM_STR, 'content'=>PDO::PARAM_LOB];
-						$result = $conn->prepare("UPDATE cache SET headers=:headers, content=:content WHERE id=:id");
+						$TYPES = ['id'=>PDO::PARAM_INT, 'time'=>PDO::PARAM_INT, 'headers'=>PDO::PARAM_STR, 'content'=>PDO::PARAM_LOB];
+						$result = $conn->prepare("UPDATE cache SET time=:time, headers=:headers, content=:content WHERE id=:id");
 						foreach(array_intersect_key($cache, $TYPES) as $name=>$value){
 							$result->bindValue($name, $value, $TYPES[$name]);
 						} $result->execute();
 						return $cache['id'];
 					}else{ # Добавление новой записи
-						$result = $conn->prepare("INSERT INTO cache (uri, headers, content) VALUES (:uri, :headers, :content)");
+						$result = $conn->prepare("INSERT INTO cache (time, uri, headers, content) VALUES (:time, :uri, :headers, :content)");
 						foreach($PARAMS as $params){
 							$result->bindValue($params['name'], $params['value'], $params['type']);
 						} $result->execute();
 						return -$conn->lastInsertId();
 					}
 				}catch(Exception $e){ mpre($e); return false; }
-			},[['name'=>'uri', 'value'=>$REQUEST_URI, 'type'=>PDO::PARAM_STR], ['name'=>'headers', 'value'=>implode("\n", headers_list()), 'type'=>PDO::PARAM_STR], ['name'=>'content', 'value'=>$gzen, 'type'=>PDO::PARAM_LOB],])){ mpre("Ошибка установки запроса");
+			},[['name'=>'time', 'value'=>time(), 'type'=>PDO::PARAM_INT], ['name'=>'uri', 'value'=>$REQUEST_URI, 'type'=>PDO::PARAM_STR], ['name'=>'headers', 'value'=>implode("\n", headers_list()), 'type'=>PDO::PARAM_STR], ['name'=>'content', 'value'=>$gzen, 'type'=>PDO::PARAM_LOB],])){ mpre("Ошибка установки запроса");
 		}else{
 			return error_log(implode("/", $sys_getloadavg). " ". ($cache_exists > 0 ? "<=>" : ">>>"). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 		}
