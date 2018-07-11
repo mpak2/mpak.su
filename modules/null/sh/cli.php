@@ -12,7 +12,7 @@ if(!$DIR = explode("/", __DIR__)){ print_r("Ошибка определения 
 	}else{ return pre(null, "Директория не найдена `{$file}`"); }
 }){ print_r("Функция подключения файлов");
 }elseif(!$conf['user']['gid'] = array(1=>"Администратор")){ mpre("Устанавливаем администратора");
-}elseif(!$inc($f = "include/mpfunc.php")){ print_r("Ошибка подключения `{$f}`");
+}elseif(!$inc($f = "include/func.php")){ print_r("Ошибка подключения `{$f}`");
 }elseif(!$inc($f = "include/config.php")){ pre("Ошибка подключения `{$f}`");
 }elseif(!$modpath = (isset($argv) ? basename(dirname(dirname(__FILE__))) : basename(dirname(__FILE__)))){ mpre("Ошибка вычисления имени модуля");
 }elseif(!$arg = ['modpath'=>$modpath, "fn"=>implode(".", array_slice(explode(".", basename(__FILE__)), 0, -1))]){ mpre("Установка аргументов");
