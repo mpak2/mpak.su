@@ -298,10 +298,11 @@ function cache($content = false){
 				return true;
 			}, (mpsettings("themes_cahce") ?: 86400*10))){ pre("Ошибка установки заговлоков");
 		}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ pre("Ошибка определения адреса");
-		}elseif(get($_SERVER, 'HTTP_CACHE_CONTROL')){// pre("Принудительное обновление");
+//		}elseif(get($_SERVER, 'HTTP_CACHE_CONTROL')){ pre("Принудительное обновление", get($_SERVER, 'HTTP_CACHE_CONTROL'));
 //			error_log(implode("/", $sys_getloadavg). " ^^^ http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+//		}else if(true){ pre("Кеш");
 		}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg", "/sitemap.xml", "/robots.txt"/*, "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
-		}elseif($_POST || array_key_exists("sess", $_COOKIE)){// print_r("Создание сессии");
+		}elseif($_POST || array_key_exists("sess", $_COOKIE)){ pre("Активная сессия");
 		}elseif(get($_SERVER, 'HTTP_IF_MODIFIED_SINCE') || (http_response_code() == 304)){ mpre("Кешированная страница. Отдаем только статус");
 			error_log(implode("/", $sys_getloadavg). " <== 301 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 			exit(header('HTTP/1.0 304 Not Modified'));
@@ -325,7 +326,7 @@ function cache($content = false){
 		}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ mpre("Ошибка создания запроса");
 		}elseif(!$row = mpql($RES, 0)){ mpre("Ошибка извлечения строк");
 		}elseif(empty($row)){ # Пустой результат
-		}elseif((time() - get($row, 'time')) > get($conf, 'themes_cache')){ pre("Кеш устарел", (time() - get($row, 'time')));
+		}elseif((time() - get($row, 'time')) > get($conf, 'themes_cache')){// pre("Кеш устарел", (time() - get($row, 'time')));
 			mpqw("DELETE FROM `cache` WHERE id=". (int)$row['id']);
 //		}elseif(true){ pre(time() - get($row, 'time'), $conf['themes_cache']);
 		}elseif(call_user_func(function($header){ header($header); }, explode("\n", $row['headers']))){ mpre("Ошибка установки заговловков");
@@ -366,13 +367,13 @@ function cache($content = false){
 			error_log(implode("/", $sys_getloadavg). " xxx ". ($conf['user']['sess']['uid'] <= 0 ? "{$guest['uname']}{$conf['user']['sess']['id']}" : $conf['user']['uname']). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 		}elseif(!$cache_exists = call_user_func(function($PARAMS) use($conf, $conn){
 				try{
-					if(!$uri = rb($PARAMS, 'name', '[uri]', 'value')){ pre("Ошибка получения адреса страницы", rb($PARAMS, "name", "[uri]"));
+					if(!$uri = rb($PARAMS, 'name', '[uri]', 'value')){ pre("Ошибка получения адреса страницы", $PARAMS);
 					}elseif(!$result = $conn->query("SELECT * FROM `cache` WHERE `uri`='{$uri}' ORDER BY `id` DESC LIMIT 1")){ pre("Ошибка создания запроса");
 					}elseif($cache = $result->fetch(PDO::FETCH_ASSOC)){ pre("Обновление страницы");
 						$TYPES = ['id'=>PDO::PARAM_INT, 'time'=>PDO::PARAM_INT, 'headers'=>PDO::PARAM_STR, 'content'=>PDO::PARAM_LOB];
 						$result = $conn->prepare("UPDATE `cache` SET `time`=:time, `headers`=:headers, `content`=:content WHERE `id`=:id");
-						foreach(array_intersect_key($cache, $TYPES) as $name=>$value){
-							$result->bindValue($name, $value, $TYPES[$name]);
+						foreach($PARAMS as $params){
+							$result->bindValue($params['name'], $params['value'], $params['type']);
 						} $result->execute();
 						return $cache['id'];
 					}else{ # Добавление новой записи
