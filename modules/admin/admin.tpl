@@ -530,7 +530,7 @@
 											<? endif; ?>
 											<option value="NULL"></option>
 											<? foreach($tpl['espisok'][$name] as $espisok): ?>
-												<option value="<?=$espisok['id']?>" <?=(((!get($tpl, 'edit') && ($field['Default'] == $espisok['id'])) || ($espisok['id'] == get($tpl, 'edit', $name)) || (array_key_exists('edit', $_GET) && (get($_GET, 'where', $name) == $espisok['id']))) ? "selected" : "")?>><?=$espisok['id']?> <?=get($espisok, 'name')?></option>
+												<option value="<?=$espisok['id']?>" <?=(((!get($tpl, 'edit') && (get($field, 'Default') == $espisok['id'])) || ($espisok['id'] == get($tpl, 'edit', $name)) || (array_key_exists('edit', $_GET) && (get($_GET, 'where', $name) == $espisok['id']))) ? "selected" : "")?>><?=$espisok['id']?> <?=get($espisok, 'name')?></option>
 											<? endforeach; ?>
 										</select>
 									<? else: # Обычное текстовове поле. Если не одно условие не сработало ?>
