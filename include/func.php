@@ -302,7 +302,7 @@ function cache($content = false){
 //			error_log(implode("/", $sys_getloadavg). " ^^^ http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 //		}else if(true){ pre("Кеш");
 		}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg", "/sitemap.xml", "/robots.txt"/*, "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
-		}elseif($_POST || array_key_exists("sess", $_COOKIE)){ pre("Активная сессия");
+		}elseif($_POST || array_key_exists("sess", $_COOKIE)){// pre("Активная сессия");
 		}elseif(get($_SERVER, 'HTTP_IF_MODIFIED_SINCE') || (http_response_code() == 304)){ mpre("Кешированная страница. Отдаем только статус");
 			error_log(implode("/", $sys_getloadavg). " <== 301 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 			exit(header('HTTP/1.0 304 Not Modified'));
