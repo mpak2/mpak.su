@@ -218,7 +218,7 @@
 				.pre {/*position:absolute;*/ z-index:999; background-color:white; border-radius:10px; padding:5px; opacity:0.8; border:3px double red; font-size:12px; color:gray;}
 				.pre legend { color:black; font-size:100%; /*top: 13px;*/ position: relative; }
 				.pre a.del { float:right; position:absolute; top:13px; right:7px; }
-				.admin_links { line-height:22px; }
+				div.admin_links { line-height:22px; }
 			</style>
 			<script>
 				(function($, script){
