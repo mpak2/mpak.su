@@ -369,7 +369,7 @@ function cache($content = false){
 				try{
 					if(!$uri = rb($PARAMS, 'name', '[uri]', 'value')){ pre("Ошибка получения адреса страницы", $PARAMS);
 					}elseif(!$result = $conn->query("SELECT * FROM `cache` WHERE `uri`='{$uri}' ORDER BY `id` DESC LIMIT 1")){ pre("Ошибка создания запроса");
-					}elseif($cache = $result->fetch(PDO::FETCH_ASSOC)){ pre("Обновление страницы");
+					}elseif($cache = $result->fetch(PDO::FETCH_ASSOC)){// pre("Обновление страницы");
 						$TYPES = ['id'=>PDO::PARAM_INT, 'time'=>PDO::PARAM_INT, 'headers'=>PDO::PARAM_STR, 'content'=>PDO::PARAM_LOB];
 						$result = $conn->prepare("UPDATE `cache` SET `time`=:time, `headers`=:headers, `content`=:content WHERE `id`=:id");
 						foreach($PARAMS as $params){

@@ -270,7 +270,7 @@ if(!is_array($zblocks = call_user_func(function() use(&$conf){
 		} return $tc;
 	})){ mpre("ОШИБКА содржимого шаблона");
 }else if(call_user_func(function() use($conf){ # Подключение LESS
-		if(!mpsettings("themes_less_compile")){ // Параметр для включения less
+		if(!get($conf, "settings", "themes_less_compile")){ // Параметр включения less
 		}elseif(!$teme_config = mpopendir($json = "themes/{$conf['settings']['theme']}/config.json")){ mpre("Конфиг LESS не найден", $json);
 		}elseif(!$teme_config = file_get_contents($teme_config)){ mpre("ОШИБКА подключения конфига LESS", $teme_config);
 		}elseif(!isJSON($teme_config)){ mpre("Содержимое файла не определено как JSON", $teme_config);

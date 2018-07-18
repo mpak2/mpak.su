@@ -214,11 +214,8 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		if(!$database_list = mpql(mpqw("PRAGMA database_list"))){ mpre("ОШИБКА получения списка баз данных");
 		}elseif(!$TABLES = array_map(function($database) use($conf, $arg){
 				if(!$sql = "SELECT * FROM {$database['name']}.sqlite_master WHERE type='table' AND name LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\""){ mpre("Запрос на выборку списка баз данных раздела");
-				}elseif(!is_array($TABLES = array_column(qn($sql, "name"), "name"))){ mpre("ОШИБКА получения списка таблиц БД `{$database['name']}`");
-/*				}elseif("main" == $database['name']){ return $TABLES;
-				}elseif(!$TABLES = array_map(function($table) use($database){ # Добавляем имени таблицы префикс
-						return "{$database["name"]}.{$table}";
-					}, $TABLES)){ mpre("ОШИБКА добавления префиксу таблице");*/
+				}elseif(!is_array($_TABLES = (qn($sql, "name") ?: []))){ mpre("ОШИБКА формирования массив имен таблиц");
+				}elseif(!is_array($TABLES = array_column($_TABLES, "name"))){ mpre("ОШИБКА получения списка таблиц БД `{$database['name']}`");
 				}else{// mpre("Список таблиц БД", $database, $$TABLES);
 					return $TABLES;
 				}
