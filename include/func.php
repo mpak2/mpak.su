@@ -259,21 +259,16 @@ function cache($content = false){
 	}else if(!$content){// pre("Отдаем кеш из sqlite");
 		if(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
 		}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
+//		}elseif(true){ mpre($conf["canonical"]);
 		}elseif(is_numeric($content)){ # mpre("Ошибка подключения баз данных");
 			if(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ pre("Ошибка составления имени файла");
 			}elseif(!$conn = conn("sqlite:{$conn_file}")){// pre("Ошибка создания подключения sqlite");
 			}elseif(!$HTTP_HOST = idn_to_utf8($_SERVER['HTTP_HOST'])){ pre("Ошибка определения русскоязычного имени домена");
 			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Ошибка определения адреса");
-//				}elseif(!($TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name"))){ pre("Параметры таблицы не определены");
 			}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ pre("Ошибка создания запроса");
-/*				}elseif(!$row = mpql($RES, 0)){ pre("Кеш страницы не найден");
-				error_log(implode("/", $sys_getloadavg). " --! 503 http://{$HTTP_HOST}{$REQUEST_URI}\n", 3, $cache_log);
-				header('HTTP/1.1 503 Service Temporarily Unavailable');
-				header('Status: 503 Service Temporarily Unavailable');
-				exit(header('Retry-After: '. array_rand(60, 600)));//random() Почторить через небольшой период времени*/
 			}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])*/){ // mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
 			}else{
-				error_log(implode("/", $sys_getloadavg). " <<! http://{$HTTP_HOST}{$REQUEST_URI}\n", 3, $cache_log);
+//				error_log(implode("/", $sys_getloadavg). " <<! http://{$HTTP_HOST}{$REQUEST_URI}\n", 3, $cache_log);
 				foreach(explode("\n", $row['headers']) as $header){
 					header($header);
 				} header('Content-Encoding: gzip');
@@ -282,29 +277,16 @@ function cache($content = false){
 		}elseif(array_key_exists("null", $_GET)){// pre("null");
 		}elseif($_COOKIE['sess']){// pre("Зарегистрированный пользователь");
 
-//		}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])*/){
-// 		mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
-//			}elseif(pre($sys_getloadavg)){
-/*			}elseif($sys_getloadavg[0] >= 50){ # Очередь процессов на выполнение больше критического предела - отдаем ошибку
-			error_log(implode("/", $sys_getloadavg). " --- 503 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-			header('HTTP/1.1 503 Service Temporarily Unavailable');
-			header('Status: 503 Service Temporarily Unavailable');
-			exit(header('Retry-After: '. array_rand(60, 600)));//random() Почторить через небольшой период времени*/
-//			}elseif(pre($sys_getloadavg, time())){
-//		}elseif(($sys_getloadavg[0] < 1) && (1 <= rand(0, $sys_getloadavg[0]))){// mpre("Чем меньше нагрузка, тем более вероятно обновление");
 		}elseif(!call_user_func(function($age){
 				header("Cache-Control: max-age={$age}");
 				header("Expires: ". gmdate('D, d M Y H:i:s T'));
 				return true;
 			}, (mpsettings("themes_cahce") ?: 86400*10))){ pre("Ошибка установки заговлоков");
 		}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ pre("Ошибка определения адреса");
-//		}elseif(get($_SERVER, 'HTTP_CACHE_CONTROL')){ pre("Принудительное обновление", get($_SERVER, 'HTTP_CACHE_CONTROL'));
-//			error_log(implode("/", $sys_getloadavg). " ^^^ http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-//		}else if(true){ pre("Кеш");
 		}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg", "/sitemap.xml", "/robots.txt"/*, "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
 		}elseif($_POST || array_key_exists("sess", $_COOKIE)){// pre("Активная сессия");
 		}elseif(get($_SERVER, 'HTTP_IF_MODIFIED_SINCE') || (http_response_code() == 304)){ mpre("Кешированная страница. Отдаем только статус");
-			error_log(implode("/", $sys_getloadavg). " <== 301 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+//			error_log(implode("/", $sys_getloadavg). " <== 301 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 			exit(header('HTTP/1.0 304 Not Modified'));
 /*		}elseif(!call_user_func(function() use($conf, $REQUEST_URI, $sys_getloadavg, $cache_log){ # Отображение ранее сохраненной в мемкаше страницы
 				if(!class_exists(Memcached)){ mpre("Класс не найден Memcached");
@@ -326,7 +308,7 @@ function cache($content = false){
 		}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ mpre("Ошибка создания запроса");
 		}elseif(!$row = mpql($RES, 0)){ mpre("Ошибка извлечения строк");
 		}elseif(empty($row)){ # Пустой результат
-		}elseif((time() - get($row, 'time')) > get($conf, 'themes_cache')){// pre("Кеш устарел", (time() - get($row, 'time')));
+		}elseif((time() - get($row, 'time')) > time()){// pre("Кеш устарел", (time() - get($row, 'time')));
 			mpqw("DELETE FROM `cache` WHERE id=". (int)$row['id']);
 //		}elseif(true){ pre(time() - get($row, 'time'), $conf['themes_cache']);
 		}elseif(call_user_func(function($header){ header($header); }, explode("\n", $row['headers']))){ mpre("Ошибка установки заговловков");
@@ -341,6 +323,9 @@ function cache($content = false){
 		}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){// mpre("Ошибка определения адреса {$_SERVER['REQUEST_URI']}");
 		}elseif(!$gzen = gzencode($content)){ mpre("Ошибка архивирования кода страницы");
 		}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg", "/sitemap.xml", "/robots.txt"/*, "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
+		}elseif(!is_array($seo_cat = rb("seo-cat", "id", get($conf, "settings", "canonical", "cat_id")))){ mpre("ОШИБКА получения СЕО категории страницы");
+		}elseif(!is_numeric($themes_cache = (get($conf, 'themes_cache') ?: 600))){ mpre("ОШИБКА получения времени кеша темы");
+		}elseif(!is_numeric($seo_cache = get($seo_cat, "cache") ?: $themes_cache)){ mpre("ОШИБКА получения времени кеширования");
 		}elseif(get($_COOKIE, 'sess')){// pre("Зарегистрированный пользователь");
 			if(class_exists("Memcached")){ // mpre("Класс Мемкаш не доступен");
 				if(!$Memcached = new Memcached()){ mpre("Ошибка создания обьекта мемкаш");
@@ -349,7 +334,7 @@ function cache($content = false){
 			}
 		}elseif((class_exists("Memcached")) && ($Memcached = new Memcached()) && ($Memcached->addServer('localhost', 11211)) && ($cache = $Memcached->set("{$_SERVER['HTTP_HOST']}{$REQUEST_URI}", $gzen))){
 			header('Content-Encoding: gzip');
-			error_log(implode("/", $sys_getloadavg). " ~~> ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+//			error_log(implode("/", $sys_getloadavg). " ~~> ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 			exit($gzen);
 		}elseif(!file_exists($conn_file) && !touch($conn_file) && !mkdir(dirname($conn_file))){ mpre("Файл бд кеша не найден {$conn_file}");
 		}elseif(!$conn = conn("sqlite:{$conn_file}")){
@@ -361,10 +346,10 @@ function cache($content = false){
 			}))){ mpre("Параметры таблицы не определены");
 		}elseif(http_response_code() != 200){// pre("Кешируем только корректно отдаваемые страницы");
 			$conn->query("DELETE FROM `cache` WHERE `uri`='{$REQUEST_URI}'");
-			error_log(implode("/", $sys_getloadavg). " <<< ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);	
+//			error_log(implode("/", $sys_getloadavg). " <<< ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);	
 		}elseif($conf['user']['sess']['uid']){// mpre("Сохранение действует только для гостей");
 			$conn->query("DELETE FROM `cache` WHERE `uri`='{$REQUEST_URI}'");
-			error_log(implode("/", $sys_getloadavg). " xxx ". ($conf['user']['sess']['uid'] <= 0 ? "{$guest['uname']}{$conf['user']['sess']['id']}" : $conf['user']['uname']). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+//			error_log(implode("/", $sys_getloadavg). " xxx ". ($conf['user']['sess']['uid'] <= 0 ? "{$guest['uname']}{$conf['user']['sess']['id']}" : $conf['user']['uname']). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 		}elseif(!$cache_exists = call_user_func(function($PARAMS) use($conf, $conn){
 				try{
 					if(!$uri = rb($PARAMS, 'name', '[uri]', 'value')){ pre("Ошибка получения адреса страницы", $PARAMS);
@@ -384,7 +369,7 @@ function cache($content = false){
 						return -$conn->lastInsertId();
 					}
 				}catch(Exception $e){ mpre($e); return false; }
-			},[['name'=>'time', 'value'=>time(), 'type'=>PDO::PARAM_INT], ['name'=>'uri', 'value'=>$REQUEST_URI, 'type'=>PDO::PARAM_STR], ['name'=>'headers', 'value'=>implode("\n", headers_list()), 'type'=>PDO::PARAM_STR], ['name'=>'content', 'value'=>$gzen, 'type'=>PDO::PARAM_LOB],])){ mpre("Ошибка установки запроса");
+			},[['name'=>'time', 'value'=>time()+$seo_cache, 'type'=>PDO::PARAM_INT], ['name'=>'uri', 'value'=>$REQUEST_URI, 'type'=>PDO::PARAM_STR], ['name'=>'headers', 'value'=>implode("\n", headers_list()), 'type'=>PDO::PARAM_STR], ['name'=>'content', 'value'=>$gzen, 'type'=>PDO::PARAM_LOB],])){ mpre("Ошибка установки запроса");
 		}else{// return error_log(implode("/", $sys_getloadavg). " ". ($cache_exists > 0 ? "<=>" : ">>>"). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
 		}
 	}
@@ -398,10 +383,10 @@ function meta($where, $meta = null){
 	if(!$where = (is_array($where) ? $where : [$where])){ mpre("Ошибка установки адреса страницы. Если строкой один адрес то он внутренний");
 	}elseif(!$index = get($where, 1)){ mpre("Ошибка внешний адрес не задан");
 	}elseif("/" != substr($index, 0, 1)){ mpre("Ошибка. Формат внешнего адреса `{$index}` задан не верно ожидается первый слеш");
-	}elseif(!$seo_index = fk('seo-index', $w = ['name'=>$index], $w)){ mpre("Ошибка установки внешнего адреса `{$name}`");
+	}elseif(!$seo_index = fk('seo-index', $w = ['name'=>$index], $w += $meta)){ mpre("Ошибка установки внешнего адреса `{$name}`");
 	}elseif(!$location = get($where, 0)){ mpre("Ошибка не задан внутренний адрес");
 	}elseif("/" != substr($location, 0, 1)){ mpre("Ошибка. Формат внутреннего адреса `{$location}` задан не верно ожидается первый слеш");
-	}elseif(!$seo_location = fk("seo-location", $w = ['name'=>$location], $w)){ mpre("Ошибка установки внутреннего адреса `{$location}`");
+	}elseif(!$seo_location = fk("seo-location", $w = ['name'=>$location], $w += $meta)){ mpre("Ошибка установки внутреннего адреса `{$location}`");
 	}elseif(!$themes_index = get($conf, 'themes', 'index')){// mpre("Многосайтовый режим не установлен");
 		if(!$seo_index = fk('seo-index', $w= ['id'=>$seo_index['id']], $w+= ['location_id'=>$seo_location['id']]+$meta, $w)){ mpre("Ошибка добавления внешнего");
 		}elseif(!$seo_location = fk('seo-location', $w= ['id'=>$seo_location['id']], $w+= ['index_id'=>$seo_index['id']], $w)){ mpre("Ошибка установки <a href='/seo:admin/r:mp_seo_location_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>переадресации</a> `{$seo_location['name']}` на `{$seo_index['name']}`", $w);

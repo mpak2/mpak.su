@@ -223,7 +223,7 @@
 			<script>
 				(function($, script){
 					$(script).parent().one("init", function(e){ // Перетаскивание админских элементов
-						$.getScript("//code.jquery.com/ui/1.11.4/jquery-ui.js", function(){
+						$.getScript("/include/jquery/jquery-ui.js", function(){
 							$(".themes_header_seo_blocks").draggable({handle:".table"}).css("position", "absolute").css(".table", "pointer");
 							setTimeout(function(){ // Ожидаем загрузки всех элементов на страницу
 								$("fieldset.pre").draggable({handle:"legend"}).css("position", "absolute").find("legend").css("cursor", "pointer");
