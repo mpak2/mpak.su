@@ -266,9 +266,21 @@
 								})
 							}
 						}
+					}).on("dblclick", ".th input[type=checkbox]", function(e){
+						var prev = "";
+						var url = new URL(document.location.href);
+						var unique = (url.searchParams.get("unique") ? url.searchParams.get("unique") : "name");
+						$(e.currentTarget).parents(".lines").find('input[type=checkbox][name="id"]').each(function(n, checkbox){
+							if(!(name = $(checkbox).parents("[line_id]").find("[field="+unique+"]").text())){ mpre("ОШИБКА получения имени текущего значения");
+							}else if(name == prev){ console.log("Значения равны", name, prev);
+							}else if(!(prev = name)){ console.error("ОШИБКА установки нового предыдущего значения");
+							}else{
+//								$(checkbox).parents("[line_id]").find("[field="+unique+"]").css("color", "gray");
+								$(checkbox).prop("checked", ($(checkbox).prop("checked") ? false : true));
+							}
+						})
 					}).on("click", ".th input[type=checkbox]", function(e){
 						$(e.currentTarget).next().show();
-						
 						var checked = $(e.currentTarget).is(":checked");
 						$(e.currentTarget).parents(".lines").find('input[type=checkbox][name="id"]').each(function(n, checkbox){
 							$(checkbox).prop('checked', e.shiftKey ? checked : !$(checkbox).is(":checked")).show();
@@ -597,7 +609,7 @@
 							<? foreach($tpl['lines'] as $lines): ?>
 								<div line_id="<?=$lines['id']?>">
 									<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($lines, array_flip($tpl['title'])) : $lines), get($tpl, 'counter') ?: array(), get($tpl, 'ecounter') ?: array()) as $k=>$v): ?>
-										<span>
+										<span field="<?=$k?>">
 											<? if(!$tb = implode("_", array_filter(explode("_", $k)))): mpre("ОШИБКА получения короткого имени таблицы") ?>
 											<?// elseif(true): mpre($tb) ?>
 											<? elseif(substr($k, 0, 2) == "__"): // $tpl['ecounter'] ?>
@@ -721,7 +733,8 @@
 													<a class="ekey" href="<?=$href?>" title="<?=$v?>"></a>&nbsp;<?=$name?>
 												<? endif; ?>
 											<? elseif($k == "name"): ?>
-												<a href="/<?=$arg['modpath']?>:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/<?=$lines['id']?>"><?=htmlspecialchars($v)?>
+												<a class="name" href="/<?=$arg['modpath']?>:<?=substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))?>/<?=$lines['id']?>">
+													<?=htmlspecialchars($v)?>
 												</a>
 											<? elseif($k == "href"): ?>
 												<? if(!$href = $v): ?>
