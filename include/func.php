@@ -89,9 +89,9 @@ function conn($init = null){
 	try{// die(!pre($conf['db']));
 		if(!$type = ($init ? first(explode(":", $init)) : $conf['db']['type'])){ pre("Тип подключения не определен");
 		}elseif(!$name = ($init ? last(explode(":", $init)) : $conf['db']['name'])){ pre("Файл не установлен");
-		}elseif(!$options = [/*PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,*/PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_PERSISTENT=>false, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>1/*, PDO::SQLITE_MAX_EXPR_DEPTH=>0*/]){ mpre("ОШИБКА задания опций подключения");
 		}elseif("sqlite" == $type){
 			if(!$realpath = realpath($name)){ mpre("Файл с БД не найден `{$name}`");
+			}elseif(!$options = [/*PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,*/PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_PERSISTENT=>false, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>1/*, PDO::SQLITE_MAX_EXPR_DEPTH=>0*/]){ mpre("ОШИБКА задания опций подключения");
 			}else if(!is_writable($name)){ die(!pre("ОШИБКА файл БД доступен только на чтение", $name));
 			}else{// mpre("Реальный путь до файла бд", $name);
 				$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:{$realpath}", null, null, $options);
@@ -278,10 +278,10 @@ function cache($content = false){
 		}elseif($_COOKIE['sess']){// pre("Зарегистрированный пользователь");
 
 		}elseif(!call_user_func(function($age){
-				header("Cache-Control: max-age={$age}");
+				header("Cache-Control: must-revalidate,max-age={$age}");
 				header("Expires: ". gmdate('D, d M Y H:i:s T'));
 				return true;
-			}, (mpsettings("themes_cahce") ?: 86400*10))){ pre("Ошибка установки заговлоков");
+			}, (get($conf, "themes_cache") ?: 86400*10))){ pre("Ошибка установки заговлоков");
 		}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ pre("Ошибка определения адреса");
 		}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg", "/sitemap.xml", "/robots.txt"/*, "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
 		}elseif($_POST || array_key_exists("sess", $_COOKIE)){// pre("Активная сессия");
@@ -307,10 +307,9 @@ function cache($content = false){
 		}elseif(!$conn = conn("sqlite:{$conn_file}")){ mpre("Ошибка сохдания подключения sqlite");
 		}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ mpre("Ошибка создания запроса");
 		}elseif(!$row = mpql($RES, 0)){ mpre("Ошибка извлечения строк");
-		}elseif(empty($row)){ # Пустой результат
-		}elseif((time() - get($row, 'time')) > time()){// pre("Кеш устарел", (time() - get($row, 'time')));
+		}elseif(empty($row)){ # mpre("Ранее результат небыл создан");
+		}elseif(get($row, 'time') < time()){ mpre("Кеш устарел", (time() - get($row, 'time')));
 			mpqw("DELETE FROM `cache` WHERE id=". (int)$row['id']);
-//		}elseif(true){ pre(time() - get($row, 'time'), $conf['themes_cache']);
 		}elseif(call_user_func(function($header){ header($header); }, explode("\n", $row['headers']))){ mpre("Ошибка установки заговловков");
 		}else{ header('Content-Encoding: gzip');
 			exit($row['content']);
