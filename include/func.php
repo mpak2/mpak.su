@@ -1356,7 +1356,7 @@ function fdk(&$tn, $find, $insert = array(), $update = array(), $log = false){
 		return $key ? $index[$key] : $index;
 	}else{ return []; }
 }
-function mpdk($tn, $insert, $update = array()){
+function mpdk($tn, $insert, $update = array()){ mpre("Устаревшая функция");
 	global $conf, $arg;
 	if($ins = mpdbf($tn, $insert)){
 		$upd = mpdbf($tn, $update);
@@ -1652,40 +1652,6 @@ function fid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png
 		return $img;
 	}
 }
-function mpfn($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){
-	global $conf;
-	mpevent("Устаревшая функция", "mpfn", $conf['users']['uid']);
-	if($prefix === null){
-		$file = $_FILES[$fn];
-	}else{
-		$file = array(
-			'name'=>$_FILES[$fn]['name'][$prefix],
-			'type'=>$_FILES[$fn]['type'][$prefix],
-			'tmp_name'=>$_FILES[$fn]['tmp_name'][$prefix],
-			'error'=>$_FILES[$fn]['error'][$prefix],
-			'size'=>$_FILES[$fn]['size'][$prefix],
-		);
-	}// mpre($_FILES[$fn]); mpre($file);
-	if($file['error'] === 0){
-		if ($exts[ $file['type'] ] || isset($exts['*'])){
-			if(!($ext = $exts[ $file['type'] ])){
-				$ext = '.'. array_pop(explode('.', $file['name']));
-			} $f = "{$tn}_{$fn}_". (int)($img_id = mpfdk($tn, array("id"=>$id), array("time"=>time(), "uid"=>$conf['user']['uid']))). $ext;
-			if(($ufn = mpopendir('include/images')) && move_uploaded_file($file['tmp_name'], "$ufn/$f")){
-				/*if($img_id != $id) */mpqw($sql = "UPDATE {$tn} SET `". mpquot($fn). "`=\"". mpquot($return = "images/$f"). "\" WHERE id=". (int)$img_id);
-			}else{
-				if($img_id != $id){
-					mpqw("DELETE FROM {$tn} WHERE id=". (int)$img_id);
-				}
-			} return "images/$f";
-		}else{
-			echo " <span style='color:red;'>{$file['type']}</span>";
-		} mpevent("Загрузка файла", $_SERVER['REQUEST_URI'], $conf['user']['uid'], $file);
-		return $return ? $return : false;
-	}elseif(empty($file)){
-		return "error not null";
-	} return null;
-}
 
 function mpager($count, $id = null, $null=null, $cur=null /* Номер пагинатора */){ # Формируем пагинатор по номеру пагинатора
 	global $conf, $arg;// mpre("mpager");
@@ -1716,8 +1682,6 @@ function mpager($count, $id = null, $null=null, $cur=null /* Номер паги
 	$return .=  "<div class=\"pager\">";
 	$mpager['first'] = $url;
 
-//	mpre($url);
-	
 	$return .= "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>";
 	$mpager['prev'] = $url. ($cur > 1 ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur-1) : "/{$p}:".($cur-1)) : '');
 	for($i = max(0, min($cur-5, $count-10)); $i < ($max = min($count, max($cur+5, 10))); $i++){
@@ -1861,17 +1825,27 @@ function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 }
 
 # Функция выполнения запросов. Определяет параметры по типу. Принимает функцию - обработку ошибки, массив - замены [":name"=>"name"] и строку - описание запроса
-function mpqw($sql){ global $conf; # Все аргументы разбираются по типам
+function mpqw($sql){ # Все аргументы разбираются по типам
+	global $conf;
 	if(!is_array($ARGS = array_map(function($arg){
 			if(!$type = (is_callable($arg) ? "function" : gettype($arg))){ mpre("ОШИБКА получения типа аргумента");
 			}else{ return ['type'=>$type, 'arg'=>$arg]; }
 		}, array_slice(func_get_args(), 1)))){ mpre("ОШИБКА выборки параметров");
 	}elseif(!$mt = microtime(true)){ mpre("ОШИБКА установки времени начала запроса");
 	}elseif(!$conn = ((rb($ARGS, 'type', '[object]', 'arg')) ?: $conf['db']['conn'])){ mpre("ОШИБКА определения соединения");
-	}elseif(!$result = call_user_func(function($ARGS) use($sql, $conn, &$conf){// mpre($ARGS);
+	}elseif(!$result = call_user_func(function($ARGS) use($sql, $conn, &$conf, $mt){// mpre($ARGS);
 			if(!$params = rb($ARGS, 'type', '[array]', 'arg')){// mpre("Параметры не заданы");
-				if(!$conf['db']['sql'][] = array('info'=>'', 'time'=>0, 'sql'=>$sql)){ mpre("ОШИБКА добавления информации о запросе");
-				}elseif($result = $conn->query($sql)){ return $result;
+				if(!$conf['db']['sql'][] = array('info'=>'', 'sql'=>$sql)){ mpre("ОШИБКА добавления информации о запросе");
+//				}elseif($result = $conn->query($sql)){ return $result;
+				}elseif($result = call_user_func(function() use(&$conf, $conn, $sql, $mt){ # Сохранение времени выполнения запроса к БД
+						if(!$result = $conn->query($sql)){// mpre("ОШИБКА типа данных возвращаемого статуса запроса", gettype($result));
+						}elseif(!$microtime = number_format(microtime(true)-$mt, 6)){ mpre("ОШИБКА расчета времени выполнения");
+						}elseif(!$max = last(array_keys(array_keys($conf['db']['sql'])))){ mpre("ОШИБКА получения последней информации о запросе");
+						}elseif(!$conf['db']['sql'][$max]["time"] = $microtime){ mpre("ОШИБКА установки времени выполнения запроса");
+						}else{// pre("Тип данных", gettype($result));
+						} return $result;
+					}, $conn)){ return $result;
+//				}elseif(!mpre("Максимум", $conf['db']['sql'][$max])){ mpre("ОШИБКА уведомления");
 				}elseif(!$callback = rb($ARGS, 'type', '[function]', 'arg')){ return $result;
 				}elseif(!$info = $conn->errorInfo()){ mpre("ОШИБКА получения информации о запросе");
 				}elseif(!$error = get($info, 2)){ mpre("Не удалось получить текст ошибки запроса");
@@ -1883,7 +1857,9 @@ function mpqw($sql){ global $conf; # Все аргументы разбираю�
 					return $result->bindValue(":{$name}", $value);
 				}, array_keys($params), $params)){ mpre("ОШИБКА устанвоки параметров");
 			}elseif(!is_bool($result->execute())){ mpre("ОШИБКА выбополнения запроса");
-			}else{ return $result; }
+			}else{// mpre($conf['db']['sql'][$max]);
+				return $result;
+			}
 		}, $ARGS)){// mpre("ОШИБКА получения результата выполнения запроса");
 	}elseif(call_user_func(function($mt) use($conf, $sql, $ARGS){
 			if(!get($conf, 'settings', 'analizsql_log')){// mpre("Лог выполнения отключен");
@@ -1897,6 +1873,7 @@ function mpqw($sql){ global $conf; # Все аргументы разбираю�
 	}elseif(!is_numeric($count = $result->rowCount())){ mpre("ОШИБКА получения количества изменений");
 	}else{ return $result; }
 } function qw($sql, $info = null, $callback = null, $params = null, $conn = null){
+	global $conf;
 	return call_user_func("mpqw", $sql, $info, $callback, $params, $conn);
 }
 function mpfile($filename, $description = null){
