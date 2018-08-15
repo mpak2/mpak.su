@@ -23,11 +23,12 @@ if($dump = get($_REQUEST, 'dump')){
 	}else{
 		if($sql = get($_POST, 'sql')){
 			if(!$query = fk("query", null, $w = array("query"=>$sql), $w)){ mpre("ОШИБКА добавления запроса в таблицу истории");
-//			}elseif(true){ mpre("Запрос", $sql);
+			}elseif(!$microtime = microtime(true)){ mpre("ОШИБКА засечки времени выполнения запроса");
 			}elseif(!$result = qw($sql)){ mpre("Ошибка выполнения запроса");
+			}elseif(!$microtime = microtime(true)-$microtime){ mpre("ОШИБКА получения времени выполнения запроса");
 			}elseif(!is_array($data = mpql($result))){ mpre("ОШИБКА получения списка результатов");
 			}elseif(($name = get($data, "name")) && (!$data = $name)){ mpre("Удобный для вывода формат");
-			}else{ exit(!mpre("Результат вывода запроса", ((count($data) == 1) ? first($data) : $data)));
+			}else{ exit(!mpre("Результат вывода запроса: {$microtime} сек.", ((count($data) == 1) ? first($data) : $data)));
 			} exit(mpre("ОШИБКА выполнения запроса"));
 		}else if(($table = get($_POST, 'del')) && ($fields = fields($table))){
 			if(!qw($sql = "DROP TABLE `{$table}`")){ mpre("ОШИБКА удаления таблицы", $sql);
