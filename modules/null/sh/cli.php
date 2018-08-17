@@ -18,6 +18,15 @@ if(!$DIR = explode("/", __DIR__)){ print_r("Ошибка определения 
 }elseif(!$arg = ['modpath'=>$modpath, "fn"=>implode(".", array_slice(explode(".", basename(__FILE__)), 0, -1))]){ mpre("Установка аргументов");
 }elseif(!isset($argv)){ pre("Запуск из веб интерфейса");
 }elseif(!$conf['db']['conn'] = conn()){ mpre("Ошибка подключения БД попробуйте установить `apt install php-sqlite3`");
+}elseif(array_search($cmd["grep"] = "Запуск с проверкой работы скрипта", $cmd) == get($argv, 1)){// pre("Метод", get($argv, 1));
+    if(!$file = get($argv, 0)){ mpre("ОШИБКА выборки имени сприпта");
+    }elseif(!$cmd = "ps aux | grep {$file} | grep -v grep"){ mpre("ОШИКА получения комманды списка процессов");
+    }elseif($list = `{$cmd}`){ mpre("В списке процессов имеется совпадающий по имени с текущим", "\n{$list}");
+    }elseif(!$action = get($argv, 2)){ mpre("ОШИБКА выборки действия для запуска. Указывается в коммандной строке поледний аргументом");
+    }elseif(!$cmd = "php ". __DIR__. "/{$file} {$action}"){ mpre("ОШИБКА составления запроса на запуск комманды");
+    }else{// mpre("Параметры", __DIR__);
+        passthru($cmd);
+    }
 }elseif(array_search($cmd["webhook"] = "Подключить вебхук", $cmd) == get($argv, 1)){// pre("Метод", get($argv, 1));
 	if(!$telegram_bot = rb("bim-telegram_bot", "name", $w = "[bimorphbot]")){ mpre("Значение по имени не найдено `{$w}`");
 	}else if(!$html = new simple_html_dom()){ mpre("Ошибка создания обьекта парсера");
