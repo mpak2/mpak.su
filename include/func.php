@@ -258,6 +258,7 @@ function cache($content = false){
 	if(!array_search("pdo_sqlite", get_loaded_extensions())){// mpre("В списке доступных модулей не sqlite");
 	}else if(!$content){// pre("Отдаем кеш из sqlite");
 		if(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
+		}elseif(true){ mpre("Заголовки", get($_SERVER, 'HTTP_IF_MODIFIED_SINCE'));
 		}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
 //		}elseif(true){ mpre($conf["canonical"]);
 		}elseif(is_numeric($content)){ # mpre("Ошибка подключения баз данных");
@@ -752,12 +753,12 @@ if(!function_exists('blocks')){
 		}))) &0){ mpre("Разрешения для группы");
 		}else{// mpre($BLOCKS);
 			foreach($BLOCKS as $k=>$block){
-				if(!$theme = ((substr($block['theme'], 0, 1) == "!") && ($conf['settings']['theme'] != substr($block['theme'], 1)) ? $conf['settings']['theme'] : $block['theme'])){ mpre("Ошибка расчета темы с учетом отрицания {$block['theme']}");
+				if(!$theme = ((substr($block['theme'], 0, 1) == "!") && ($conf['settings']['theme'] != substr($block['theme'], 1)) ? $conf['settings']['theme'] : $block['theme'])){// mpre("Ошибка расчета темы с учетом отрицания {$block['theme']}");
 				}elseif(($conf['settings']['theme'] != $block['theme']) && ($conf['settings']['theme'] != $theme)){// mpre("У блока отмечен другой шаблон", $theme);
 				}elseif(!$conf['db']['info'] = "Блок '{$block['name']}'"){ pre("Описание к запросам блока");
 				}elseif(!$mod = get($conf, 'modules', basename(dirname(dirname($block['src'])))) ?: array("folder"=>'')){ mpre("Ошибка определения модуля");
 				}elseif(!$arg = array('blocknum'=>$block['id'], 'modpath'=>$mod['folder'], 'modname'=>(get($mod, 'modname') ?: ""), 'fn'=>basename(first(explode('.', $block['src']))), 'uid'=>0, 'admin_access'=>$block['admin_access'])){ pre("Ошибка формирования аргументов блока");
-				}elseif(!is_numeric($access = $block['admin_access'])){ mpre("Разрешения для блока");
+				}elseif(!is_numeric($access = ($block['admin_access'] ?: 3))){ mpre("Не указаны права доступа к блоку");
 				}elseif((!$_BLOCKS_INDEX_UACCESS = rb($BLOCKS_INDEX_UACCESS, "index_id", "id", $block['id'])) &0){ mpre("Разрешения пользователя для конкретного блока");
 				}elseif((!$_BLOCKS_INDEX_GACCESS = rb($BLOCKS_INDEX_GACCESS, "index_id", "id", $block['id'])) &0){ mpre("Разрешения группы для конкретного блока");
 				}elseif(!is_numeric($gmax = ($_BLOCKS_INDEX_GACCESS ? max(array_column($_BLOCKS_INDEX_GACCESS, 'admin_access')) : $access))){ mpre("Ошибка максимального разрешения для группы");
@@ -1840,7 +1841,7 @@ function mpqw($sql){ # Все аргументы разбираются по т�
 				}elseif($result = call_user_func(function() use(&$conf, $conn, $sql, $mt){ # Сохранение времени выполнения запроса к БД
 						if(!$result = $conn->query($sql)){// mpre("ОШИБКА типа данных возвращаемого статуса запроса", gettype($result));
 						}elseif(!$microtime = number_format(microtime(true)-$mt, 6)){ mpre("ОШИБКА расчета времени выполнения");
-						}elseif(!$max = last(array_keys(array_keys($conf['db']['sql'])))){ mpre("ОШИБКА получения последней информации о запросе");
+						}elseif(!is_numeric($max = (get($conf, 'db', 'sql') ? last(array_keys(array_keys($conf['db']['sql']))) : 0))){ mpre("ОШИБКА получения последней информации о запросе");
 						}elseif(!$conf['db']['sql'][$max]["time"] = $microtime){ mpre("ОШИБКА установки времени выполнения запроса");
 						}else{// pre("Тип данных", gettype($result));
 						} return $result;
