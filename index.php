@@ -157,7 +157,7 @@ if(($start_mod = get($conf, 'settings', 'start_mod')) && !array_key_exists("m", 
         header("Content-Type: {$index_type['name']}; charset=utf-8");
       } $_REQUEST += $_GET = mpgt($conf['settings']['canonical'] = $seo_location['name']);
     }else{ $_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $conf['settings']['start_mod'])); }
-    $conf['settings']['title'] = get($seo_index, 'title');
+    $conf['settings']['title'] = get($seo_index, 'title') ?: $conf['settings']['title'];
     $conf['settings']['description'] = get($seo_index, 'description');
     $conf['settings']['keywords'] = get($seo_index, 'keywords');
   }else{
