@@ -2,17 +2,13 @@
 
 // ----------------------------------------------------------------------
 // Жираф cms Content Management System
-// Copyright (C) 2007-2010 by the mpak.
+// Copyright (C) 2007-2018 by the mpak.
 // (Link: http://mpak.su)
 // LICENSE and CREDITS
 // This program is free software and it's released under the terms of the
 // GNU General Public License(GPL) - (Link: http://www.gnu.org/licenses/gpl.html)http://www.gnu.org/licenses/gpl.html
 // Original Author of file: Krivoshlykov Evgeniy (mpak) +7 911 9842884
 // ----------------------------------------------------------------------
-
-header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
-header("Pragma: no-cache"); // HTTP 1.0.
-header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 
 if(!call_user_func(function(){
     ini_set('display_errors', 1);
@@ -28,100 +24,104 @@ if(!call_user_func(function(){
     include $index; if($conf) die;
   } $conf["db"]["open_basedir"] = implode("/", array_slice(explode("/", dirname(__DIR__)), 2)). "::". __DIR__;
 }else{ # Не в phar
-  if(file_exists($phar = __DIR__. DIRECTORY_SEPARATOR. "index.phar")){
-    $conf["db"]["open_basedir"] = "phar://{$phar}";
-    $conf["db"]["open_basedir"] = strtr(ini_get("open_basedir") ?: __DIR__, [':'=>'::']). "::". $conf["db"]["open_basedir"];
-  }else{
-    $conf["db"]["open_basedir"] = strtr(ini_get("open_basedir") ?: __DIR__, [':'=>'::']);
-  }
+	if(file_exists($phar = __DIR__. DIRECTORY_SEPARATOR. "index.phar")){
+		$conf["db"]["open_basedir"] = "phar://{$phar}";
+		$conf["db"]["open_basedir"] = strtr(ini_get("open_basedir") ?: __DIR__, [':'=>'::']). "::". $conf["db"]["open_basedir"];
+	}else{
+		$conf["db"]["open_basedir"] = strtr(ini_get("open_basedir") ?: __DIR__, [':'=>'::']);
+	}
 }
 
 if(!$conf = call_user_func(function($conf){
-    return $conf;
-  }, $conf)){ print_r("ОШИБКА установки переменных окружения");
+		return $conf;
+	}, $conf)){ print_r("ОШИБКА установки переменных окружения");
 }elseif(!$mp_require_once = function($link){
-    global $conf, $arg, $tpl;
-    foreach(explode('::', $conf["db"]["open_basedir"]) as $k=>$v){
-      if(!file_exists($file_name = "$v/$link")) continue;
-      require_once $file_name; return $file_name;
-    } return $file_name;
-  }){ mpre("Функция подключения ресурсов");
+		global $conf, $arg, $tpl;
+		foreach(explode('::', $conf["db"]["open_basedir"]) as $k=>$v){
+			if(!file_exists($file_name = "$v/$link")) continue;
+			require_once $file_name; return $file_name;
+		} return $file_name;
+	}){ mpre("Функция подключения ресурсов");
 }elseif(!$mp_require_once("include/config.php")){ mpre("ОШИБКА подключения файла конфигурации");
 }elseif(!$mp_require_once("include/func.php")){ mpre("ОШИБКА подключения функций системы");
 }elseif(!empty($argv) && count($argv)>1 && !call_user_func(function($argv) use(&$conf){
-    /* Запуск скрипта из консоли php -f index.php /pages:index/2 - Путь до скрипта в файловой системе */
-    if(!$conf['user']['gid'] = array(1=>"Администратор")){ mpre("Установка прав администратора");
-    }elseif(!$link = get($argv, 1)){ die(!mpre("Не указана ссылка консольной утилиты"));
-    }elseif(!conn()){ die(!mpre("ОШИБКА соединения с базой данных"));
-    }elseif(!preg_match("#^(/.*)$#iu", $link, $match)){ die(!mpre("ОШИБКА адрес исполняемого файла должен начинаться со слеша `{$link}`"));
-      /* Не понял какой адрес мы тут используем */
-      array_shift($argv);//выкидвыаем путь к файлу
-      $mode = explode(":",array_shift($argv));
-      if(!isset($mode[1])) $mode[1]='index'; //index
-      foreach($argv as $k=>$item){
-        $item = explode(":",$item);
-        if(is_numeric($item[0]) AND !isset($item[1])){
-          $_GET['id'] = $item[0];
-        }else{
-          $_GET[$item[0]] = get($item,1)?:"";
-        }
-      } /* Иначе адрес как и в адресной строке /pages:index/1 */
-    }elseif(!$uri = get($match, 1)){ die(!mpre("ОШИБКА получения ссылки из параметров регулярного выржения"));
-    }elseif(!chdir(__DIR__)){ mpre("ОШИБКА Установки текущей директории");
-    }elseif(!$get = mpgt($uri)){ mpre("ОШИБКА получения параметров адресной строки");
-    }elseif(!$m = get($get, 'm')){ mpre("ОШИБКА получения параметров адреса");
-    }elseif(!list($mode[0], $mode[1]) = each($m)){ mpre("ОШИБКА получения имени модуля и исполняемого файла");
-    }elseif(empty($mode[1]) && (!$mode[1] = "index")){ mpre("Используем имя файла index если не указан");
-    }elseif(!is_array($_REQUEST = $_GET)){ mpre("ОШИБКА добавления параметров к реквесту");
-    }elseif(!$arg =['modpath' => $mode[0], 'modname' => $mode[0], 'fn' => $mode[1], 'fe' => null, 'admin_access' => 5]){ mpre("Формирование аргументов страницы");
-    }elseif(!$mode = "modules/".implode("/",$mode)){ mpre("ОШИБКА собираем путь к модулю");
-    }else{// mpre("Запускаем `{$mode}`", $arg);
-      inc($mode,['arg'=>$arg]);
-    } exit();
-  }, $argv)){ mpre("Запуск консольной утилиты");
+	/* Запуск скрипта из консоли php -f index.php /pages:index/2 - Путь до скрипта в файловой системе */
+	if(!$conf['user']['gid'] = array(1=>"Администратор")){ mpre("Установка прав администратора");
+	}elseif(!$link = get($argv, 1)){ die(!mpre("Не указана ссылка консольной утилиты"));
+	}elseif(!conn()){ die(!mpre("ОШИБКА соединения с базой данных"));
+	}elseif(!preg_match("#^(/.*)$#iu", $link, $match)){ die(!mpre("ОШИБКА адрес исполняемого файла должен начинаться со слеша `{$link}`"));
+	/* Не понял какой адрес мы тут используем */
+	array_shift($argv);//выкидвыаем путь к файлу
+	$mode = explode(":",array_shift($argv));
+	if(!isset($mode[1])) $mode[1]='index'; //index
+	foreach($argv as $k=>$item){
+		$item = explode(":",$item);
+		if(is_numeric($item[0]) AND !isset($item[1])){
+		$_GET['id'] = $item[0];
+		}else{
+		$_GET[$item[0]] = get($item,1)?:"";
+		}
+	} /* Иначе адрес как и в адресной строке /pages:index/1 */
+	}elseif(!$uri = get($match, 1)){ die(!mpre("ОШИБКА получения ссылки из параметров регулярного выржения"));
+	}elseif(!chdir(__DIR__)){ mpre("ОШИБКА Установки текущей директории");
+	}elseif(!$get = mpgt($uri)){ mpre("ОШИБКА получения параметров адресной строки");
+	}elseif(!$m = get($get, 'm')){ mpre("ОШИБКА получения параметров адреса");
+	}elseif(!list($mode[0], $mode[1]) = each($m)){ mpre("ОШИБКА получения имени модуля и исполняемого файла");
+	}elseif(empty($mode[1]) && (!$mode[1] = "index")){ mpre("Используем имя файла index если не указан");
+	}elseif(!is_array($_REQUEST = $_GET)){ mpre("ОШИБКА добавления параметров к реквесту");
+	}elseif(!$arg =['modpath' => $mode[0], 'modname' => $mode[0], 'fn' => $mode[1], 'fe' => null, 'admin_access' => 5]){ mpre("Формирование аргументов страницы");
+	}elseif(!$mode = "modules/".implode("/",$mode)){ mpre("ОШИБКА собираем путь к модулю");
+	}else{// mpre("Запускаем `{$mode}`", $arg);
+		inc($mode,['arg'=>$arg]);
+	} exit();
+}, $argv)){ mpre("Запуск консольной утилиты");
 }elseif(!$conf['settings']['http_host'] = strtolower(function_exists("idn_to_utf8") ? idn_to_utf8($_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST'])){ pre("ОШИБКА конвертации имени хоста");
 }elseif(!$conf['settings']['access_array'] = ['0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ']){ mpre("ОШИБКА установки уровней доступа");
 }elseif(!$conf['settings']['microtime'] = microtime(true)){ mpre("Фиксация начала запуска скрипта");
-}elseif(empty(get($conf, 'settings', 'users_cashe_disacled')) && ($cache = cache())){ exit($cache); mpre("Выдаем сохраненную версию если страница кеширована ранее");
-}else{
-}
-
-if(!$conf['db']['conn'] = conn()){ pre("ОШИБКА подключения к базе данных");
+}elseif($cache = call_user_func(function() use($conf){
+		if(get($conf, 'settings', 'users_cashe_disacled')){ mpre("Кеш отключен");
+		}elseif(!$cache = cache()){ mpre("Кеш не найден в базе");
+		}else{ return $cache;
+		}
+	})){ exit($cache); mpre("Выдаем сохраненную версию если страница кеширована ранее"); 
+}elseif(!$conf['db']['conn'] = conn()){ pre("ОШИБКА подключения к базе данных");
 }elseif(($conf['db']['type'] == 'sqlite') && !is_writable($conf['db']['name'])){ die(!pre("ОШИБКА Файл БД `{$conf['db']['name']}` не доступен для записи", "ERROR DB file `{$conf['db']['name']} ' error is not writable"));
 }elseif(!empty($conf['db']['error'])){ pre("ОШИБКА подключения к базе данных", $conf['db']['error']);
-}elseif(!array_key_exists('null', $_GET)){// pre("Список параметров");
-}elseif(tables()){ pre("Установка уже завершена");
-}else{ pre("Установка");
-	exit(inc('include/install.php'));
-} $_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']);
-
-$conf['settings'] += array_column(rb("{$conf['db']['prefix']}settings"), "value", "name");
-
-if(!$sess = users_sess()){// pre("Добавляем сессию");
+}elseif(!$tables = call_user_func(function(){ # Определяем режим установки по наличию таблиы в базе данных
+		if(!array_key_exists('null', $_GET)){ return true; # Пропускаем проверку списка таблиц на ресурсах
+		}elseif(!$tables = tables()){ mpre("База данных не пуста");
+		}else{ return $tables;
+		}
+	})){ exit(inc('include/install.php')); # Запускаем процесс установки
+}elseif(!is_array($_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']))){ mpre("ОШИБКА получения параметров адресной строки");
+}elseif(!$conf['settings'] += array_column(rb("{$conf['db']['prefix']}settings"), "value", "name")){ mpre("ОШИБКА получения параметров сайта");
+}elseif(!$sess = users_sess()){// pre("Добавляем сессию");
 }elseif(!$guest = get($conf, 'settings', 'default_usr')){ mpre("Имя пользователя гость не указано");
 }elseif(!is_array($conf['user'] = (rb('users-', 'id', $sess['uid']) ?: rb('users-', 'name', "[{$guest}]")))){ pre("ОШИБКА выборки пользователя");
 }elseif(!$conf['user'] += ['uid'=>(($sess['uid'] > 0) ? get($conf, 'user', 'id') : -$sess['id']), 'sess'=>$sess]){ pre("ОШИБКА сохранения сессии в системных переменных");
-}elseif(isset($_GET['logoff'])){ # Если пользователь покидает сайт
-  qw("UPDATE {$conf['db']['prefix']}users_sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
-  setcookie("{$conf['db']['prefix']}modified_since", "", 0, "/");
-  setcookie('sess', null, -1, '/');
-  if(!empty($_SERVER['HTTP_REFERER'])){
-    exit(header("Location: ". ($conf['settings']['users_logoff_location'] ? $conf['settings']['users_logoff_location'] : $_SERVER['HTTP_REFERER'])));
-  } qw($sql = "DELETE FROM {$conf['db']['prefix']}users_sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление сессий');
-}elseif(!$_POST && !get($_COOKIE, "sess")){// pre("Сессия выключена");
-}elseif(!$_POST || (get($_POST, 'reg') != 'Аутентификация')){// pre("Нет запроса на аутентификацию");
-}elseif(!strlen($_POST['name'])){ pre("Имя не задано");
-}elseif(!strlen($_POST['pass'])){ pre("Пароль не задан");
-}elseif(!$mphash = mphash($_POST['name'], $_POST['pass'])){pre("Ошибка получения хэша пароля");
-}elseif(!$user = rb("{$conf['db']['prefix']}users", "type_id", "name", "pass", 1, "[". mpquot($_POST['name']). "]", "[{$mphash}]")){ pre("Не верный пароль");
-  sleep(1);
-}elseif(!$sess = fk("users-sess", ['id'=>$sess['id']], null, ['uid'=>$user['id']])){ pre("Ошибка редактирования сессии", $sess);
-}elseif(!$conf['user']['sess'] = $sess){ pre("ОШИБКА сохранения сессии в системных переменных");
-}elseif(!$user = fk("users-", ['id'=>$user['id']], null, ['last_time'=>time()])){ pre("Ошибка установки времени входа пользователю");
-}else{ // pre($conf['user']['sess']);
-}
-
-if($sess['uid'] <= 0){ mpre("Посетитель является гостем");
+}elseif(isset($_GET['logoff'])){ # Удаляем сессию если пользователь покидает сайт
+	qw("UPDATE {$conf['db']['prefix']}users_sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
+	setcookie("{$conf['db']['prefix']}modified_since", "", 0, "/");
+	setcookie('sess', null, -1, '/');
+	if(!empty($_SERVER['HTTP_REFERER'])){
+		exit(header("Location: ". ($conf['settings']['users_logoff_location'] ? $conf['settings']['users_logoff_location'] : $_SERVER['HTTP_REFERER'])));
+	} qw($sql = "DELETE FROM {$conf['db']['prefix']}users_sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление сессий');
+}elseif(!is_array($user = call_user_func(function($user = []) use(&$sess){ # Авторизация
+		if(!$_POST && !get($_COOKIE, "sess")){// pre("Сессия выключена");
+		}elseif(!$_POST || (get($_POST, 'reg') != 'Аутентификация')){// pre("Нет запроса на аутентификацию");
+		}elseif(!strlen($_POST['name'])){ pre("Имя не задано");
+		}elseif(!strlen($_POST['pass'])){ pre("Пароль не задан");
+		}elseif(!$mphash = mphash($_POST['name'], $_POST['pass'])){pre("Ошибка получения хэша пароля");
+		}elseif(!$users_type = rb("users-type", "name", $w = "[Логин]")){ mpre("Тип авторизации не найден {$w}");
+		}elseif(!$user = rb("users-", "type_id", "name", $users_type["id"], $n = "[". mpquot($_POST['name']). "]")){ pre("ОШИБКА пользователь не найден `{$n}`", $_POST);
+		}elseif($user["pass"] != $mphash){ sleep(1); pre("Не верный пароль", $_POST, $mphash, $user);
+		}elseif(!$sess = fk("users-sess", ['id'=>$sess['id']], null, ['uid'=>$user['id']])){ pre("Ошибка редактирования сессии", $user);
+		}elseif(!$conf['user']['sess'] = $sess){ pre("ОШИБКА сохранения сессии в системных переменных");
+		}elseif(!$user = fk("users-", ['id'=>$user['id']], null, ['last_time'=>time()])){ pre("Ошибка установки времени входа пользователю");
+		}else{// pre("Успешная авторизация");
+		} return $user;
+	}))){ mpre("ОШИБКА авторизации"); // exit(header("Location: {$_SERVER['REQUEST_URI']}")); # При авторизации обновляем страницу (избавляемся от пост запроса)
+}elseif($sess['uid'] <= 0){ mpre("Посетитель является гостем");
 }elseif(!$conf['user'] = ql($sql = "SELECT *, id AS uid, name AS uname FROM {$conf['db']['prefix']}users WHERE id=". (int)$sess['uid'], 0)){ mpre("Информация о пользователе не найдена");
 }else{// mpre("Информация о пользователе", $conf['user']);
   if(($conf['settings']['users_uname'] = $conf['user']['uname']) == $conf['settings']['default_usr']){
