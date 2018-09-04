@@ -1,13 +1,13 @@
 <div style="margin:10px;">
+	<form method="get">
+		<input type="text" value="<?=get($tpl, 'search')?>" name="search" placeholder="Запрос поиска" style="min-width:50%;">
+		<button>Найти</button>
+	</form>
 	<? if(!$result = get($tpl, 'result')): mpre("Результат расчетов не найден") ?>
 	<? elseif(!array_filter($list = array_column($result, 'list', 'name'))): mpre("Ничего не найдено") ?>
 	<?// elseif(!$mpager = mpager(10)): mpre("ОШИБКА пагинации") ?>
 	<? elseif(!is_string($search = get($_REQUEST, 'search'))): mpre("Запрос не найден") ?>
 	<? else:// mpre($search) ?>
-		<form method="get">
-			<input type="text" value="<?=get($tpl, 'search')?>" name="search" placeholder="Запрос поиска" style="min-width:50%;">
-			<button>Найти</button>
-		</form>
 		<p><div id="resultStats" style="color:#808080;"><nobr> (<!-- [settings:microtime] --> сек.)&nbsp;</nobr></div></p>
 		<div><?=get($tpl, "pager")?></div>
 		<? foreach($result as $table=>$tab):// mpre($tab) ?>
