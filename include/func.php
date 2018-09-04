@@ -753,8 +753,8 @@ if(!function_exists('blocks')){
 		}))) &0){ mpre("Разрешения для группы");
 		}else{// mpre($BLOCKS);
 			foreach($BLOCKS as $k=>$block){
-				if(!$theme = ((substr($block['theme'], 0, 1) == "!") && ($conf['settings']['theme'] != substr($block['theme'], 1)) ? $conf['settings']['theme'] : $block['theme'])){// mpre("Ошибка расчета темы с учетом отрицания {$block['theme']}");
-				}elseif(($conf['settings']['theme'] != $block['theme']) && ($conf['settings']['theme'] != $theme)){// mpre("У блока отмечен другой шаблон", $theme);
+				if(!is_string($theme = ((substr($block['theme'], 0, 1) == "!") && ($conf['settings']['theme'] != substr($block['theme'], 1)) ? $conf['settings']['theme'] : $block['theme']))){// mpre("Ошибка расчета темы с учетом отрицания {$block['theme']}");
+				}elseif($block['theme'] && ($conf['settings']['theme'] != $block['theme']) && ($conf['settings']['theme'] != $theme)){// mpre("У блока отмечен другой шаблон", $theme);
 				}elseif(!$conf['db']['info'] = "Блок '{$block['name']}'"){ pre("Описание к запросам блока");
 				}elseif(!$mod = get($conf, 'modules', basename(dirname(dirname($block['src'])))) ?: array("folder"=>'')){ mpre("Ошибка определения модуля");
 				}elseif(!$arg = array('blocknum'=>$block['id'], 'modpath'=>$mod['folder'], 'modname'=>(get($mod, 'modname') ?: ""), 'fn'=>basename(first(explode('.', $block['src']))), 'uid'=>0, 'admin_access'=>$block['admin_access'])){ pre("Ошибка формирования аргументов блока");
@@ -763,7 +763,7 @@ if(!function_exists('blocks')){
 				}elseif((!$_BLOCKS_INDEX_GACCESS = rb($BLOCKS_INDEX_GACCESS, "index_id", "id", $block['id'])) &0){ mpre("Разрешения группы для конкретного блока");
 				}elseif(!is_numeric($gmax = ($_BLOCKS_INDEX_GACCESS ? max(array_column($_BLOCKS_INDEX_GACCESS, 'admin_access')) : $access))){ mpre("Ошибка максимального разрешения для группы");
 				}elseif(!is_numeric($umax = ($_BLOCKS_INDEX_UACCESS ? max(array_column($_BLOCKS_INDEX_UACCESS, 'admin_access')) : $access))){ mpre("Ошибка максимального разрешения для пользователя");
-				}elseif(!is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < 1)){// mpre("Недостаточно прав доступа к разделу");
+				}elseif(!is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < 1)){ mpre("Недостаточно прав доступа к блоку");
 				}elseif($conf["settings"]["bid"] = $bid){ pre("Блок к которому мы обращаемся в параметрах блока");// $result = $cb;
 				}elseif(!is_string($cb = call_user_func(function($block) use($arg){ # Получения содержимого блока
 						ob_start();
@@ -790,16 +790,16 @@ if(!function_exists('blocks')){
 						'<!-- [block:title] -->'=>$block['name']
 					)))){ mpre("ОШИБКА получения обработанного блока", $w);
 				}elseif(!$section = array("{modpath}"=>$arg['modpath'],"{modname}"=>$arg['modname'], "{name}"=>$block['name'], "{fn}"=>$arg['fn'], "{id}"=>$block['id'])){ print_r("Ошибка создания массива замены");
-				}elseif(($blocks_start = get($conf, 'settings', 'blocks_start')) &&0){ print_r("Начальна строка замены не найдена");
-				}elseif(($blocks_stop = get($conf, 'settings', 'blocks_stop')) &&0){ print_r("Конечная строка замены не установлена");
-				}elseif(!$key = "<!-- [block:{$block['id']}] -->"){ print_r("Ошибка вычисления троки замены блока");
-				}elseif(!$block_text = "{$blocks_start}{$cb}{$blocks_stop}"){// print_r("Ошибка расчета содержимого блока");
-				}elseif(!$result[$key] = strtr($block_text, $section)){ print_r("Ошибка установки содержимого блока");
+				}elseif(($blocks_start = get($conf, 'settings', 'blocks_start')) &&0){ mpre("Начальна строка замены не найдена");
+				}elseif(($blocks_stop = get($conf, 'settings', 'blocks_stop')) &&0){ mpre("Конечная строка замены не установлена");
+				}elseif(!$key = "<!-- [block:{$block['id']}] -->"){ mpre("Ошибка вычисления троки замены блока");
+				}elseif(!is_string($block_text = "{$blocks_start}{$cb}{$blocks_stop}")){ mpre("Ошибка расчета содержимого блока");
+				}elseif(!$result[$key] = strtr($block_text, $section)){ mpre("Ошибка установки содержимого блока", $block);
 				}elseif(get($block, 'alias') && ($n = "<!-- [block:{$block['alias']}] -->") && (!$result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"])){ # Ошибка установки содержимого по алиасу
 				}elseif(($n = "<!-- [blocks:". $block['reg_id'] . "] -->") && (!$result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"])){ mpre("Ошибка добавления блока по номеру группы");
 				}elseif(!is_string($section_start = strtr(get($conf, 'settings', $t = 'blocks_start'), $section))){ mpre("ОШИБКА замены тега `{$t}`");
 				}elseif(!is_string($section_stop = strtr(get($conf, 'settings', $t = 'blocks_stop'), $section))){ mpre("ОШИБКА замены тега `{$t}`");
-				}else{// mpre($section);
+				}else{// mpre($block);
 					$result[$key] = $section_start. $cb. $section_stop;
 				}
 			} return $result;
@@ -1654,7 +1654,7 @@ function fid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png
 	}
 }
 
-function mpager($count, $id = null, $null=null, $cur=null /* Номер пагинатора */){ # Формируем пагинатор по номеру пагинатора
+function mpager($count, $id = null, $null=null, $cur=null /* Номер пагинатора */){ # Формируем пагинатор по идентификатору
 	global $conf, $arg;// mpre("mpager");
 	if(!$p = ((strpos(get($_SERVER, 'HTTP_HOST'), "xn--") === 0) && ($arg['fn'] != "admin")) ? "стр" : "p"){ mpre("ОШИБКА формирования переменной с номером пагинатора");
 	}elseif(!$p = "{$p}". (empty($id) ? "" : $id)){ mpre("ОШИБКА формирования имени переменной в адресе");

@@ -16,30 +16,30 @@
 
 $tpl['param'] = json_decode($param = ql("SELECT param FROM {$conf['db']['prefix']}blocks_index WHERE id = ".(int)$_REQUEST['search_block_num'], 0, 'param'), true);
 
-# Сохраняем историю поиска
-if($_REQUEST['search_block_num']){
+/*if($_REQUEST['search_block_num']){ 
 	mpqw("INSERT INTO {$conf['db']['prefix']}search_index (uid, time, num, name, ip) VALUE ('{$conf['user']['uid']}', '". time(). "', '".(int)$_REQUEST['search_block_num']."', \"".mpquot(get($_REQUEST, 'search'))."\", '{$_SERVER['REMOTE_ADDR']}')");
-}
+}*/
 
-$search_result = array();
-if(strlen(trim(get($_REQUEST, 'search')))){
-	$tpl['search'] = htmlspecialchars(get($_REQUEST, 'search'));
-	foreach($tpl['param'] as $table=>$v){
-		$fields = '`id`';$where = '';
-
-		foreach($v['fields'] as $f=>$z){
-			$where .= " OR `$f` LIKE \"%".mpquot($tpl['search'])."%\"";
-			$fields .= ", `$f`";
+if(!$block = rb("blocks-index", "id", $_REQUEST['search_block_num'])){ mpre("ОШИБКА выборки блока");
+}elseif(!$tpl['param'] = $param = json_decode($param = $block['param'], true)){ mpre("ОШИБКА получения параметров поиска");
+}elseif(!strlen(trim(get($_REQUEST, 'search')))){ mpre("Запрос на поиск не задан");
+}elseif(!$tpl['search'] = htmlspecialchars(get($_REQUEST, 'search'))){ mpre("ОШИБКА строка запроса не найдена");
+}elseif(!$tpl['result'] = array_map(function($table) use($tpl, $param){
+		if(!$pm = get($param, $table)){ mpre("ОШИБКА получения параметров таблицы");
+		}elseif(!$fields = get($pm, 'fields')){ mpre("ОШИБКА списко полей таблицы не найден");
+		}elseif(!$where = implode(" OR ", array_map(function($field) use($tpl){ # Получения условий полей
+				return "`$field` LIKE \"%".mpquot($tpl['search'])."%\"";
+			}, array_keys($fields)))){ mpre("ОШИБКА получения условий на выборку");
+		}elseif(!$field = implode(",", array_keys($fields))){ mpre("ОШИБКА получения списка полей таблицы");
+		}elseif(!$sql = "SELECT id,{$field} FROM `$table` WHERE ". $where/*. " LIMIT ". (get($_GET, 'p')*5). ",10"*/){ mpre("ОШИБКА составления запроса на выборку результата");
+		}elseif(!is_array($LIST = ql($sql))){ mpre("ОШИБКА получения списка результатов");
+		}elseif(!$sql = "SELECT COUNT(*) AS `cnt` FROM `$table` WHERE ". $where){ mpre("ОШИБКА составления запроса на выборку результата");
+		}elseif(!is_numeric($count = ql($sql, 0, 'cnt'))){ mpre("ОШИБКА получения количества элементов");
+		}elseif(!$result = $pm + ['list'=>$LIST, 'cnt'=>$count]){ mpre("Параметры таблицы");
+		}else{// mpre($sql, $LIST, $count);
+			return $result;
 		}
-
-		if($list = ql($sql = "SELECT SQL_CALC_FOUND_ROWS {$fields} FROM `$table` WHERE ".substr($where, 3). " LIMIT ". (get($_GET, 'p')*5). ",10")){
-			$tpl['pager'] = mpager(ql("SELECT FOUND_ROWS()/10 AS cnt", 0, 'cnt'));
-
-			$tpl['result'][$table] = array(
-				'list'=>$list,
-				'cnt'=>ql("SELECT FOUND_ROWS()/10 AS cnt", 0, 'cnt'),
-			); $tpl['counter'] = get($tpl, 'counter') + count($list);
-		}else{ /*mpre($sql);*/ }
-	}
+	}, array_combine(array_keys($param), array_keys($param)))){ mpre("ОШИБКА получения результатов поиска");
+}else{// mpre($param, $tpl);
 }
 

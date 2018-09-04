@@ -4,16 +4,22 @@
 			<? $post[$name] = $settings; ?>
 		<? endif; ?>
 	<? endforeach; ?>
-	<? if($blocks_index = fk("{$conf['db']['prefix']}blocks_index", array("id"=>$blocknum), null, array("param"=>($json = json_encode($param = (empty($post) ? array() : $post)))))): ?>
-		<?// qw("UPDATE {$conf['db']['prefix']}blocks_index SET param=\"". addslashes($json = json_encode($post)). "\" WHERE id=". (int)$blocknum) ?>
-		<?// mpre($param, $json) ?>
+
+	<? if(!is_array($param = $post = (empty($post) ? [] : $post))): mpre("ОШИБКА получения параметров блока") ?>
+	<? elseif(!$json = json_encode($post, JSON_UNESCAPED_UNICODE)): mpre("ОШИБКА получения параметров поиска блока") ?>
+	<? elseif(!$json = strtr($json, ['\/'=>'/'])): mpre("ОШИБКА конвертации формата параметров") ?>
+	<? elseif(!qw("UPDATE {$conf['db']['prefix']}blocks_index SET `param`='". $json. "' WHERE id=". (int)$blocknum)): mpre("ОШИБКА обновления параметров блока") ?>
+	<? elseif(!$blocks_index = rb("blocks-index", "id", $blocknum)): mpre("ОШИБКА получения параметров блока") ?>
+	<? else: mpre("Сохранено", $post) ?>
 	<? endif; ?>
 <? else: ?>
-	<? if($blocks_index = rb("{$conf['db']['prefix']}blocks_index", "id", $blocknum)): ?>
+	<? if($blocks_index = rb("blocks-index", "id", $blocknum)): ?>
 		<? ($param = json_decode($blocks_index['param'], true)) ?>
 	<? endif; ?>
 <? endif; ?>
-<? if($arg['modpath'] == "blocks"): ?>
+
+<? if(!$TABLES = tables()): mpre("ОШИБКА получения списка таблиц") ?>
+<? elseif($arg['modpath'] == "blocks"): ?>
 	<form method='post'>
 		<style>
 			.admin_search {overflow:hidden;}
@@ -22,18 +28,24 @@
 		</style>
 		<input type="hidden" name="blocknum" value="<?=$arg['blocknum']?>">
 		<div class="admin_search">
-			<? foreach(array_column(tables(), "Tables_in_{$conf['db']['name']}") as $table): ?>
-				<? if($name = substr($table, strlen($conf['db']['prefix']))): ?>
+			<? foreach($TABLES as $table): ?>
+				<? if(!$tab = get($table, 'name')): mpre("ОШИБКА выборки имени таблицы") ?>
+				<? elseif(!$name = substr($tab, strlen($conf['db']['prefix']))): mpre("ОШИБКА получения имени таблицы без префикса") ?>
+				<? else: ?>
 					<div>
 						<div style="padding:10px;">	
-							<b><?=$table?></b>
-							<p><input type='text' name="<?=$table?>[name]" value="<?=(get($param, $table, "name") ?: (get($conf, "settings", $name) ?: $name))?>" placeholder="Имя таблицы" style='width:100%'></p>
-							<p><input type='text' name="<?=$table?>[href]" value="<?=(get($param, $table, "href") ?: "/". first(explode("_", $name)). ":admin/r:{$table}?&where[id]={id}")?>" placeholder="Адрес перехода" style='width:100%'></p>
+							<b><?=$name?></b>
+							<p><input type='text' name="<?=$tab?>[name]" value="<?=(get($param, $name, "name") ?: (get($conf, "settings", $name) ?: $tab))?>" placeholder="Имя таблицы" style='width:100%'></p>
+							<p><input type='text' name="<?=$tab?>[href]" value="<?=(get($param, $name, "href") ?: "/". first(explode("_", $name)). ":admin/r:{$tab}?&where[id]={id}")?>" placeholder="Адрес перехода" style='width:100%'></p>
 							<div>
-								<? foreach(fields($table) as $field): /*if ($v['Field'] == 'id') continue;*/ ?>
-									<div>
-										<input type="checkbox" name="<?=$table?>[fields][<?=$field['Field']?>]" <?=(get($param, $table, "fields", $field['Field']) ? "checked" : "")?>><b><?=$field['Field']?></b> <?=$field['Type']?>
-									</div>
+								<? foreach(fields($name) as $field):// mpre($field) ?>
+									<? if(!$fld = (get($field, 'name') ?: get($field, 'Field'))): mpre("ОШИБКА получения имени поля") ?>
+									<? elseif(!$type = (get($field, 'type') ?: get($field, 'Type'))): mpre("ОШИБКА получения типа поля") ?>
+									<? else: ?>
+										<div>
+											<input type="checkbox" name="<?=$tab?>[fields][<?=$fld?>]" <?=(get($param, $tab, "fields", $fld) ? "checked" : "")?>><b><?=$fld?></b> <?=$type?>
+										</div>
+									<? endif; ?>
 								<? endforeach; ?>
 							</div>
 						</div>
