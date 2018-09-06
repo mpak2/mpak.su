@@ -114,7 +114,7 @@ if(!$conf = call_user_func(function($conf){
 		}elseif(!$mphash = mphash($_POST['name'], $_POST['pass'])){pre("Ошибка получения хэша пароля");
 		}elseif(!$users_type = rb("users-type", "name", $w = "[Логин]")){ mpre("Тип авторизации не найден {$w}");
 		}elseif(!$user = rb("users-", "type_id", "name", $users_type["id"], $n = "[". mpquot($_POST['name']). "]")){ pre("ОШИБКА пользователь не найден `{$n}`", $_POST);
-		}elseif($user["pass"] != $mphash){ sleep(1); pre("Не верный пароль", $_POST, $mphash, $user);
+		}elseif($user["pass"] != $mphash){ sleep(1); pre("Не верный пароль `{$user['name']}`");
 		}elseif(!$sess = fk("users-sess", ['id'=>$sess['id']], null, ['uid'=>$user['id']])){ pre("Ошибка редактирования сессии", $user);
 		}elseif(!$conf['user']['sess'] = $sess){ pre("ОШИБКА сохранения сессии в системных переменных");
 		}elseif(!$user = fk("users-", ['id'=>$user['id']], null, ['last_time'=>time()])){ pre("Ошибка установки времени входа пользователю");
