@@ -625,6 +625,7 @@ function inc($file_name, $variables = [], $req = false){ global $conf, $tpl;
 				}, $file)) &&0){ mpre("Ошибка получения вывода файла");
 			}elseif(!array_search("Администратор", get($conf, 'user', 'gid'))){ return $content; mpre("Не администраторам не доступны подсказки");
 			}elseif(!preg_match("#(.*)(\.tpl|\.html)$#", $file_name, $match)){ return $content; mpre("Только шаблоны оборачиваются подсказками");
+			}elseif(array_key_exists("null", $_GET)){ return $content; mpre("Оборачиваем подсказки только на страницы с шаблоном");
 			}elseif(!$content = "{$modules_start}{$content}{$modules_stop}"){ mpre("Ошибка добавления тегов подсказок администратору");
 			}else{ return $content; }
 		}, $file))){ mpre("Ошибка получения содержимого файла `{$file}`");
