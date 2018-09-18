@@ -32,7 +32,7 @@ function seo_alias($canonical){// mpre($canonical);
 				}else{ return $_SERVER['REQUEST_URI']; }
 			}, $canonical)){ mpre("ОШИБКА определения адреса");
 		}elseif(!is_array($get = mpgt($uri))){ mpre("ОШИБКА получения параметров адресной строки");
-		}elseif(!is_array($mod = get($get, 'm'))){ mpre("ОШИБКА получения параметров адреса");
+		}elseif(!is_array($mod = get($get, 'm'))){// mpre("ОШИБКА получения параметров адреса");
 		}elseif(!$modpath = first(array_keys($mod))){ mpre("ОШИБКА получения модуля из адреса");
 		}elseif(!$fn = first($mod) ?: "index"){ mpre("ОШИБКА получения модуля из адреса");
 		}elseif(!is_array($get = array_diff_key($get, array_flip(['m'])))){ mpre("ОШИБКА получения параметров без адресации");

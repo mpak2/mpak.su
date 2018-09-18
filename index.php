@@ -79,11 +79,10 @@ if(!$conf = call_user_func(function($conf){
 //}elseif(!$conf['settings']['http_host'] = strtolower(function_exists("idn_to_ascii") ? idn_to_ascii($_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST'])){ pre("ОШИБКА конвертации имени хоста");
 }elseif(!$conf['settings']['access_array'] = ['0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ']){ mpre("ОШИБКА установки уровней доступа");
 }elseif(!$conf['settings']['microtime'] = microtime(true)){ mpre("Фиксация начала запуска скрипта");
-}elseif($cache = call_user_func(function() use($conf){
+}elseif($cache = call_user_func(function() use($conf){ # Проверяем существует ли кеш в базе. Если есть - выдаем закешированную страницу
 		if(get($conf, 'settings', 'users_cashe_disacled')){ mpre("Кеш отключен");
 		}elseif(!$cache = cache()){// mpre("Кеш не найден в базе");
-		}else{ return $cache;
-		}
+		}else{ return $cache; }
 	})){ exit($cache); mpre("Выдаем сохраненную версию если страница кеширована ранее"); 
 }elseif(!$conf['db']['conn'] = conn()){ pre("ОШИБКА подключения к базе данных");
 }elseif(($conf['db']['type'] == 'sqlite') && !is_writable($conf['db']['name'])){ die(!pre("ОШИБКА Файл БД `{$conf['db']['name']}` не доступен для записи", "ERROR DB file `{$conf['db']['name']} ' error is not writable"));
@@ -91,8 +90,7 @@ if(!$conf = call_user_func(function($conf){
 }elseif(!$tables = call_user_func(function(){ # Определяем режим установки по наличию таблиы в базе данных
 		if(!array_key_exists('null', $_GET)){ return true; # Пропускаем проверку списка таблиц на ресурсах
 		}elseif(!$tables = tables()){ mpre("База данных не пуста");
-		}else{ return $tables;
-		}
+		}else{ return $tables; }
 	})){ exit(inc('include/install.php')); # Запускаем процесс установки
 }elseif(!is_array($_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']))){ mpre("ОШИБКА получения параметров адресной строки");
 }elseif(!$conf['settings'] += array_column(rb("{$conf['db']['prefix']}settings"), "value", "name")){ mpre("ОШИБКА получения параметров сайта");
@@ -122,29 +120,6 @@ if(!$conf = call_user_func(function($conf){
 		}else{// pre("Успешная авторизация");
 		} return $user;
 	}))){ mpre("ОШИБКА авторизации"); // exit(header("Location: {$_SERVER['REQUEST_URI']}")); # При авторизации обновляем страницу (избавляемся от пост запроса)
-}elseif(!$conf['user'] = call_user_func(function($user) use($sess, $conf){
-		if($sess['uid'] <= 0){// mpre("Пользователь является гостем");
-		}elseif(!$user = ql($sql = "SELECT *, `id` AS `uid`, `name` AS `uname` FROM `{$conf['db']['prefix']}users` WHERE `id`=". (int)$sess['uid'], 0)){ mpre("Пользователь из базы");
-		}elseif(!$user['uid'] = ($user['uname'] == $conf['settings']['default_usr'] ? -$sess['id'] : $user['uid'])){ mpre("Устанавливаем в идентификатор пользователя номер сессии с минусом");
-		}elseif(!$USERS_MEM = rb("users-mem", "uid_id", "id", $user['uid'])){ mpre("ОШИБКА получения списка членства пользователя в группах");
-		}elseif(!$USERS_GRP = rb("users-grp", rb($USERS_MEM, "grp_id"))){ mpre("ОШИБКА получения списка групп пользователя");
-		}elseif(!$user['gid'] = array_column($USERS_GRP, "name", "id")){ mpre("ОШИБКА пользователь не состоит в группах");
-		}else{// mpre("Авторизованный пользователь", $user);
-			$user['sess'] = $sess;
-		} return $user;
-	}, $conf['user'])){ pre("ОШИБКА получения текущего пользователя");
-}elseif(!$conf['modules'] = call_user_func(function(){ # Выборка свойств модулей из базы
-		if(!$MODULES_INDEX = rb("modules-index")){ mpre("ОШИБКА выборки списка свойств сайта");
-		}elseif(!$_MODULES = array_map(function($modules_index){
-				if(!$modules = $modules_index){ mpre("ОШИБКА установки свойств модуля");
-				}elseif(!$modules["modname"] = (strpos($_SERVER['HTTP_HOST'], "xn--") !== false) ? mb_strtolower($modules['name'], 'UTF-8') : $modules['folder']){ mpre("Приведение к формату имени хоста");
-				}else{ return $modules; }
-			}, $MODULES_INDEX)){ mpre("ОШИБКА получения свойств модулей");
-		}elseif(!$MODULES = $_MODULES + rb($_MODULES, "folder") + rb($_MODULES, "modname")){ mpre("Варианты доступа к свойствам раздела");
-		}else{// mpre("Свойства модулей", $MODULES);
-		} return $MODULES;
-	})){ pre("ОШИБКА выборки свойств сайта");
-}elseif(!$modules['admin_access'] = ((array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) ? 5 : $modules['admin_access'])){ mpre("ОШИБКА установки прав доступа к разделу");
 }elseif(!$conf['settings'] += call_user_func(function($seo = []) use($conf){ # Устанавливаем свойства главной страницы
 		if(array_key_exists("m", $_GET)){// mpre("Не главная страница");
 		}elseif(!$seo_index = rb("seo-index", "name", "[/]")){ /*&& array_key_exists("themes_index", $redirect)*/
@@ -157,6 +132,30 @@ if(!$conf = call_user_func(function($conf){
 		}else{// mpre("Свойства страницы", $seo);
 		} return $seo;
 	})){ mpre("ОШИБКА установки свойств главной страницы");
+}elseif(!$conf['user'] = call_user_func(function($user) use($sess, $conf){ # Получаем свойства пользователя
+		if($sess['uid'] <= 0){// mpre("Пользователь является гостем");
+		}elseif(!$user = ql($sql = "SELECT *, `id` AS `uid`, `name` AS `uname` FROM `{$conf['db']['prefix']}users` WHERE `id`=". (int)$sess['uid'], 0)){ mpre("Пользователь из базы");
+		}elseif(!$user['uid'] = ($user['name'] == $conf['settings']['default_usr'] ? -$sess['id'] : $user['uid'])){ mpre("Устанавливаем в идентификатор пользователя номер сессии с минусом");
+		}elseif(!$USERS_MEM = rb("users-mem", "uid", "id", $user['uid'])){ mpre("ОШИБКА получения списка членства пользователя в группах");
+		}elseif(!$USERS_GRP = rb("users-grp", "id", "id", rb($USERS_MEM, "grp_id"))){ mpre("ОШИБКА получения списка групп пользователя");
+		}elseif(!$USERS_GRP += ((array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) ? rb("users-grp", "name", "id", "[Администратор]") : [])){ mpre("ОШИБКА устанвоки прав доступа группы Администратор");
+		}elseif(!$user['gid'] = array_column($USERS_GRP, "name", "id")){ mpre("ОШИБКА пользователь не состоит в группах");
+		}elseif(!$user['sess'] = $sess){ pre("ОШИБКА восстановления сессии");
+		}else{// pre("Авторизованный пользователь", $user);
+		} return $user;
+	}, $conf['user'])){ pre("ОШИБКА получения текущего пользователя");
+}elseif(!$conf['modules'] = call_user_func(function() use($conf){ # Выборка свойств модулей и их свойств
+		if(!$MODULES_INDEX = rb("modules-index")){ mpre("ОШИБКА выборки списка свойств сайта");
+		}elseif(!$_MODULES = array_map(function($modules_index) use($conf){
+				if(!$modules = $modules_index){ pre("ОШИБКА установки свойств модуля");
+				}elseif(!$modules["modname"] = (strpos($_SERVER['HTTP_HOST'], "xn--") !== false) ? mb_strtolower($modules['name'], 'UTF-8') : $modules['folder']){ pre("Приведение к формату имени хоста");
+				}elseif(!is_numeric($modules['admin_access'] = ((array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) ? 5 : (int)$modules_index['admin_access']))){ pre("ОШИБКА установки прав доступа к разделу", $modules_index);
+				}else{ return $modules; }
+			}, $MODULES_INDEX)){ mpre("ОШИБКА получения свойств модулей");
+		}elseif(!$MODULES = $_MODULES + rb($_MODULES, "folder") + rb($_MODULES, "modname")){ mpre("Варианты доступа к свойствам раздела");
+		}else{// pre("Свойства модулей", $MODULES_INDEX, $MODULES);
+		} return $MODULES;
+	})){ pre("ОШИБКА выборки свойств сайта");
 }elseif(call_user_func(function() use($conf){ # Перенаправляем на внешний сайт если адрес главной страницы начинается с // или с http://
 		if(!$start_mod = get($conf, 'settings', 'start_mod')){ pre("Стартовая страница не задана");
 		}elseif((strpos($start_mod, "http://") !== 0) && (strpos($start_mod, "//") !== 0)){// mpre("Формат адреса для перенаправления не совпал");
