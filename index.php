@@ -75,12 +75,13 @@ if(!$conf = call_user_func(function($conf){
 		inc($mode,['arg'=>$arg]);
 	} exit();
 }, $argv)){ mpre("Запуск консольной утилиты");
-}elseif(!$conf['settings']['http_host'] = strtolower(function_exists("idn_to_utf8") ? idn_to_utf8($_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST'])){ pre("ОШИБКА конвертации имени хоста");
+}elseif(!$conf['settings']['http_host'] = strtolower(function_exists("idn_to_utf8") ? idn_to_utf8($_SERVER['HTTP_HOST'] ,IDNA_NONTRANSITIONAL_TO_ASCII, INTL_IDNA_VARIANT_UTS46) : $_SERVER['HTTP_HOST'])){ pre("ОШИБКА конвертации имени хоста");
+//}elseif(!$conf['settings']['http_host'] = strtolower(function_exists("idn_to_ascii") ? idn_to_ascii($_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST'])){ pre("ОШИБКА конвертации имени хоста");
 }elseif(!$conf['settings']['access_array'] = ['0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ']){ mpre("ОШИБКА установки уровней доступа");
 }elseif(!$conf['settings']['microtime'] = microtime(true)){ mpre("Фиксация начала запуска скрипта");
 }elseif($cache = call_user_func(function() use($conf){
 		if(get($conf, 'settings', 'users_cashe_disacled')){ mpre("Кеш отключен");
-		}elseif(!$cache = cache()){ mpre("Кеш не найден в базе");
+		}elseif(!$cache = cache()){// mpre("Кеш не найден в базе");
 		}else{ return $cache;
 		}
 	})){ exit($cache); mpre("Выдаем сохраненную версию если страница кеширована ранее"); 
@@ -121,48 +122,46 @@ if(!$conf = call_user_func(function($conf){
 		}else{// pre("Успешная авторизация");
 		} return $user;
 	}))){ mpre("ОШИБКА авторизации"); // exit(header("Location: {$_SERVER['REQUEST_URI']}")); # При авторизации обновляем страницу (избавляемся от пост запроса)
-}elseif($sess['uid'] <= 0){ mpre("Посетитель является гостем");
-}elseif(!$conf['user'] = ql($sql = "SELECT *, id AS uid, name AS uname FROM {$conf['db']['prefix']}users WHERE id=". (int)$sess['uid'], 0)){ mpre("Информация о пользователе не найдена");
-}else{// mpre("Информация о пользователе", $conf['user']);
-  if(($conf['settings']['users_uname'] = $conf['user']['uname']) == $conf['settings']['default_usr']){
-    $conf['user']['uid'] = -$sess['id'];
-  } $conf['settings']['users_uid'] = $conf['user']['uid'];
-
-  $conf['db']['info'] = 'Получаем информацию о группах в которые входит пользователь';
-  $conf['user']['gid'] = array_column(qn("SELECT g.id, g.name FROM {$conf['db']['prefix']}users_grp as g, {$conf['db']['prefix']}users_mem as m WHERE (g.id=m.grp_id) AND m.uid=". (int)$sess['uid']), "name", "id");
-  $conf['user']['sess'] = $sess;
-} if(!get($conf, 'settings', 'admin_usr')){
-  exit(inc('include/install.php')); // , array('conf'=>$conf)
-}
-
-foreach(mpqn(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index", "Список модулей", function($error) use($conf){
-  if(strpos($error, "doesn't exist")){
-    qw(pre("ALTER TABLE {$conf['db']['prefix']}modules RENAME {$conf['db']['prefix']}modules_index"));
-  }else{ pre("Ошибка обработки ошибки", $error); }
-})) as $modules){
-  if(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) $modules['admin_access'] = 5;
-  $conf['modules'][ $modules['folder'] ] = $modules;
-  $conf['modules'][ $modules['folder'] ]['modname'] = $modules['modname'] = (strpos($_SERVER['HTTP_HOST'], "xn--") !== false) ? mb_strtolower($modules['name'], 'UTF-8') : $modules['folder'];
-  $conf['modules'][ $modules['modname'] ] = &$conf['modules'][ $modules['folder'] ];
-  $conf['modules'][ mb_strtolower($modules['name']) ] = &$conf['modules'][ $modules['folder'] ];
-  $conf['modules'][ $modules['id'] ] = &$conf['modules'][ $modules['folder'] ];
-}
-
-if(($start_mod = get($conf, 'settings', 'start_mod')) && !array_key_exists("m", $_GET)){ # Главная страница
- 	if((strpos($start_mod, "http://") === 0) || (strpos($start_mod, "//") === 0)){// mpre("Перенарпавление не другой сайт");
-    exit(header("Location: {$conf['settings']['start_mod']}"));
-  }elseif(($seo_index = rb("{$conf['db']['prefix']}seo_index", "name", "[/]")) /*&& array_key_exists("themes_index", $redirect)*/){
-    if(get($seo_index, "location_id") && ($seo_location = rb("seo-location", "id", $seo_index['location_id']))){
-      if($index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $seo_index['index_type_id'])){
-        header("Content-Type: {$index_type['name']}; charset=utf-8");
-      } $_REQUEST += $_GET = mpgt($conf['settings']['canonical'] = $seo_location['name']);
-    }else{ $_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $conf['settings']['start_mod'])); }
-    $conf['settings']['title'] = get($seo_index, 'title') ?: $conf['settings']['title'];
-    $conf['settings']['description'] = get($seo_index, 'description');
-    $conf['settings']['keywords'] = get($seo_index, 'keywords');
-  }else{
-    $_REQUEST += $_GET = mpgt(/*$_SERVER['REQUEST_URI'] =*/ ($conf['settings']['canonical'] = $conf['settings']['start_mod']));
-  } $_SERVER['SCRIPT_URL'] = "/";
+}elseif(!$conf['user'] = call_user_func(function($user) use($sess, $conf){
+		if($sess['uid'] <= 0){// mpre("Пользователь является гостем");
+		}elseif(!$user = ql($sql = "SELECT *, `id` AS `uid`, `name` AS `uname` FROM `{$conf['db']['prefix']}users` WHERE `id`=". (int)$sess['uid'], 0)){ mpre("Пользователь из базы");
+		}elseif(!$user['uid'] = ($user['uname'] == $conf['settings']['default_usr'] ? -$sess['id'] : $user['uid'])){ mpre("Устанавливаем в идентификатор пользователя номер сессии с минусом");
+		}elseif(!$USERS_MEM = rb("users-mem", "uid_id", "id", $user['uid'])){ mpre("ОШИБКА получения списка членства пользователя в группах");
+		}elseif(!$USERS_GRP = rb("users-grp", rb($USERS_MEM, "grp_id"))){ mpre("ОШИБКА получения списка групп пользователя");
+		}elseif(!$user['gid'] = array_column($USERS_GRP, "name", "id")){ mpre("ОШИБКА пользователь не состоит в группах");
+		}else{// mpre("Авторизованный пользователь", $user);
+			$user['sess'] = $sess;
+		} return $user;
+	}, $conf['user'])){ pre("ОШИБКА получения текущего пользователя");
+}elseif(!$conf['modules'] = call_user_func(function(){ # Выборка свойств модулей из базы
+		if(!$MODULES_INDEX = rb("modules-index")){ mpre("ОШИБКА выборки списка свойств сайта");
+		}elseif(!$_MODULES = array_map(function($modules_index){
+				if(!$modules = $modules_index){ mpre("ОШИБКА установки свойств модуля");
+				}elseif(!$modules["modname"] = (strpos($_SERVER['HTTP_HOST'], "xn--") !== false) ? mb_strtolower($modules['name'], 'UTF-8') : $modules['folder']){ mpre("Приведение к формату имени хоста");
+				}else{ return $modules; }
+			}, $MODULES_INDEX)){ mpre("ОШИБКА получения свойств модулей");
+		}elseif(!$MODULES = $_MODULES + rb($_MODULES, "folder") + rb($_MODULES, "modname")){ mpre("Варианты доступа к свойствам раздела");
+		}else{// mpre("Свойства модулей", $MODULES);
+		} return $MODULES;
+	})){ pre("ОШИБКА выборки свойств сайта");
+}elseif(!$modules['admin_access'] = ((array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) ? 5 : $modules['admin_access'])){ mpre("ОШИБКА установки прав доступа к разделу");
+}elseif(!$conf['settings'] += call_user_func(function($seo = []) use($conf){ # Устанавливаем свойства главной страницы
+		if(array_key_exists("m", $_GET)){// mpre("Не главная страница");
+		}elseif(!$seo_index = rb("seo-index", "name", "[/]")){ /*&& array_key_exists("themes_index", $redirect)*/
+		}elseif(!is_array($seo_location = get($seo_index, "location_id") ? rb("seo-location", "id", $seo_index['location_id']) : [])){ mpre("ОШИБКА выборки внутреннего адреса");
+		}elseif(!$canonical = ($seo_location ? $seo_location["name"] : $conf['settings']['start_mod'])){ mpre("ОШИБКА определения внутреннего адреса главной страницы");
+		}elseif($_REQUEST += $_GET = mpgt($canonical)){ mpre("Установка входящих параметров страницы");
+		}elseif(!$seo["title"] = get($seo_index, 'title') ?: $conf['settings']['title']){ mpre("ОШИБКА заголовок старницы не установлен");
+		}elseif(!$seo["description"] = get($seo_index, 'description') ?: $conf['settings']['description']){ mpre("ОШИБКА описание старницы не установлено");
+		}elseif(!$seo["keywords"] = get($seo_index, 'keywords') ?: $conf['settings']['keywords']){ mpre("ОШИБКА ключевики старницы не установлены");
+		}else{// mpre("Свойства страницы", $seo);
+		} return $seo;
+	})){ mpre("ОШИБКА установки свойств главной страницы");
+}elseif(call_user_func(function() use($conf){ # Перенаправляем на внешний сайт если адрес главной страницы начинается с // или с http://
+		if(!$start_mod = get($conf, 'settings', 'start_mod')){ pre("Стартовая страница не задана");
+		}elseif((strpos($start_mod, "http://") !== 0) && (strpos($start_mod, "//") !== 0)){// mpre("Формат адреса для перенаправления не совпал");
+		}else{ exit(header("Location: {$conf['settings']['start_mod']}")); }
+	})){ mpre("ОШИБКА перенаправления на другой сайт");
 }elseif(!array_key_exists("null", $_GET) /*&& !is_array($_GET['m'])*/ && $conf['modules']['seo']){
   if(array_key_exists(($p = (strpos(get($_SERVER, 'HTTP_HOST'), "xn--") === 0) ? "стр" : "p"), $_GET) && ($_GET['p'] = $_GET[$p])){
     $r = urldecode(preg_replace("#([\#\?].*)?$#",'',strtr($_SERVER['REQUEST_URI'], array("?{$p}={$_GET[$p]}"=>"", "&{$p}={$_GET[$p]}"=>"", "/{$p}:{$_GET[$p]}"=>""))));

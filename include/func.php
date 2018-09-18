@@ -258,7 +258,7 @@ function cache($content = false){
 	if(!array_search("pdo_sqlite", get_loaded_extensions())){// mpre("В списке доступных модулей не sqlite");
 	}else if(!$content){// pre("Отдаем кеш из sqlite");
 		if(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
-		}elseif(true){ mpre("Заголовки", get($_SERVER, 'HTTP_IF_MODIFIED_SINCE'));
+//		}elseif(true){ mpre("Заголовки", get($_SERVER, 'HTTP_IF_MODIFIED_SINCE'));
 		}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
 //		}elseif(true){ mpre($conf["canonical"]);
 		}elseif(is_numeric($content)){ # mpre("Ошибка подключения баз данных");
@@ -473,8 +473,14 @@ function first($ar, $cur = null){
 		}else{// mpre($next);
 			return $next;
 		}
-	}elseif($keys = array_keys($ar)){
-		return get($ar, array_shift($keys));
+//	}elseif($keys = array_keys($ar)){
+//		return ;
+	}elseif($ar){
+//		reset($ar);
+//		($first_key = key($ar));
+//		pre("Проверка");
+		$keys = array_keys($ar); $first_key = get($ar, array_shift($keys));
+		return $first_key;
 	}else{ return null; }
 } function last($ar, $cur = null){
 	if(empty($ar)){// mpre("Заданный массив пуст");

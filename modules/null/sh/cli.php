@@ -27,10 +27,13 @@ if(!$DIR = explode("/", __DIR__)){ print_r("Ошибка определения 
     }else{// mpre("Параметры", __DIR__);
         passthru($cmd);
     }
-}elseif(array_search($cmd["webhook"] = "Подключить вебхук", $cmd) == get($argv, 1)){// pre("Метод", get($argv, 1));
-	if(!$telegram_bot = rb("bim-telegram_bot", "name", $w = "[bimorphbot]")){ mpre("Значение по имени не найдено `{$w}`");
-	}else if(!$html = new simple_html_dom()){ mpre("Ошибка создания обьекта парсера");
-	}else{ mpre($telegram_bot);
+}elseif(array_search($cmd["1e6"] = "Миллионники", $cmd) == get($argv, 1)){// pre("Метод", get($argv, 1));
+	if(!include("phar://index.phar/include/class/simple_html_dom.php")){ mpre("ОШИБКА подключения класса simple_html_dom");
+	}elseif(!$html = new simple_html_dom()){ mpre("Ошибка создания обьекта парсера");
+	}elseif(!$data = file_get_contents($h = "https://vk.com/catalog.php")){ mpre("ОШИБКА загрузки страницы {$h}");
+	}elseif(!$html->load($data)){ mpre("ОШИБКА разбора дом обьектов странциы");
+	}elseif(!$LINK = $html->find('nav.subpage_link a')){ mpre("ОШИБКА выборки всех ссылок регионов");
+	}else{ mpre("Расчет окончен");
 	}
 # Запуск файлов
 //}else if(!$cmd = "php -f modules/{$arg['modpath']}/sh/". basename($argv[0]). " bin {$vals}"){ mpre("Установка команды запуска");
