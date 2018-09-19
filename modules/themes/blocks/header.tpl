@@ -172,7 +172,7 @@
 <? if(!array_search("Администратор", $conf['user']['gid'])): mpre("Раздел предназначен только администраторам") ?>
 <? elseif(($themes_index = get($conf, 'themes', 'index')) &&0):// mpre("Хост сайта не найден") ?>
 <? elseif(($canonical = get($conf, 'settings', 'canonical')) &&0): mpre("Канонический адрес не задан") ?>
-<? elseif(!$alias = seo_alias($canonical)): mpre("ОШИБКА получения алиаса категории адреса") ?>
+<? elseif(!$alias = seo_alias($canonical)):// mpre("ОШИБКА получения алиаса категории адреса") ?>
 <? elseif((!$seo_cat = rb("seo-cat", "id", get($canonical, 'cat_id'))) && (!$seo_cat = rb("seo-cat", "alias", (empty($alias) ? false : "[{$alias}]"))) &0): mpre("Категория не найдена") ?>
 <?// elseif(!is_string($index = is_array($canonical) ? get($canonical, 'name') : $canonical)): mpre("ОШИБКА получения адреса страницы") ?>
 <? elseif(!is_string($uri = call_user_func(function($canonical){
