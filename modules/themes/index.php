@@ -1,9 +1,9 @@
 <?
 
-if(!is_string($folder = call_user_func(function(){
+if(!is_string($folder = call_user_func(function($file = ""){
 		if($file = get($_GET, 'q')){ return $file;
 		}elseif($file = get($_GET, '')){ return $file;
-		}elseif(!$get = array_diff_key($_GET, array_flip(['m']))){ mpre("ОШИБКА исключения адресации системы");
+		}elseif(!$get = array_diff_key($_GET, array_flip(['m', 'index']))){ mpre("ОШИБКА исключения адресации системы");
 		}elseif(first($get)){ mpre("Ожидается первым параметром тема");
 		}elseif(!$theme = first(array_keys($get))){ mpre("ОШИБКА получения темы");
 		}elseif(!$file = implode('/', array_keys(array_slice($get, 1)))){// mpre("ОШИБКА формирования части пути до файла");

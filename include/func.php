@@ -32,8 +32,8 @@ function seo_alias($canonical){// mpre($canonical);
 				}else{ return $_SERVER['REQUEST_URI']; }
 			}, $canonical)){ mpre("ОШИБКА определения адреса");
 		}elseif(!is_array($get = mpgt($uri))){ mpre("ОШИБКА получения параметров адресной строки");
-		}elseif(!is_array($mod = get($get, 'm'))){// mpre("ОШИБКА получения параметров адреса");
-		}elseif(!$modpath = first(array_keys($mod))){ mpre("ОШИБКА получения модуля из адреса");
+		}elseif(!is_array($mod = get($get, 'm') ?: [])){ mpre("ОШИБКА получения параметров адреса");
+		}elseif(!$modpath = first(array_keys($mod))){// mpre("ОШИБКА получения модуля из адреса", $canonical);
 		}elseif(!$fn = first($mod) ?: "index"){ mpre("ОШИБКА получения модуля из адреса");
 		}elseif(!is_array($get = array_diff_key($get, array_flip(['m'])))){ mpre("ОШИБКА получения параметров без адресации");
 		}elseif(!is_array($params = array_keys($get))){ mpre("ОШИБКА получения списка имен параметров");
@@ -663,7 +663,7 @@ if (!function_exists('modules')){
 	function modules($content){ # Загрузка содержимого модуля
 		global $conf, $arg, $tpl;
 		foreach($_GET['m'] as $k=>$v){ $k = urldecode($k);
-			if(!$mod = (get($conf, 'modules', $k) ?: rb(get($conf, 'modules'), "modname", "[{$k}]"))){ pre("Модуль `{$k}` недоступен");
+			if(!$mod = (get($conf, 'modules', $k) ?: rb(get($conf, 'modules'), "modname", "[{$k}]"))){ pre("Модуль `{$k}` недоступен", $v);
 			}elseif(!$mod['link'] = (is_link($f = mpopendir("modules/{$mod['folder']}")) ? readlink($f) : $mod['folder'])){ pre("Ошибка определения ссылки на раздел");
 			}elseif(!ini_set("include_path" ,mpopendir("modules/{$mod['link']}"). ":./modules/{$mod['link']}:". ini_get("include_path"))){ pre("Сбой добавления локального пути до скриптов");
 			}elseif((!$MODULES_INDEX_UACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM `{$conf['db']['prefix']}modules_index_uaccess` WHERE `mid`=". (int)$mod['id']. " AND `uid`=". (int)$conf['user']['uid'], "Запрос прав доступа пользователя к разделу", function($error) use($conf){
