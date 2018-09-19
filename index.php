@@ -45,36 +45,36 @@ if(!$conf = call_user_func(function($conf){
 }elseif(!$mp_require_once("include/config.php")){ mpre("ОШИБКА подключения файла конфигурации");
 }elseif(!$mp_require_once("include/func.php")){ mpre("ОШИБКА подключения функций системы");
 }elseif(!empty($argv) && count($argv)>1 && !call_user_func(function($argv) use(&$conf){
-	/* Запуск скрипта из консоли php -f index.php /pages:index/2 - Путь до скрипта в файловой системе */
-	if(!$conf['user']['gid'] = array(1=>"Администратор")){ mpre("Установка прав администратора");
-	}elseif(!$link = get($argv, 1)){ die(!mpre("Не указана ссылка консольной утилиты"));
-	}elseif(!conn()){ die(!mpre("ОШИБКА соединения с базой данных"));
-	}elseif(!preg_match("#^(/.*)$#iu", $link, $match)){ die(!mpre("ОШИБКА адрес исполняемого файла должен начинаться со слеша `{$link}`"));
-	/* Не понял какой адрес мы тут используем */
-	array_shift($argv);//выкидвыаем путь к файлу
-	$mode = explode(":",array_shift($argv));
-	if(!isset($mode[1])) $mode[1]='index'; //index
-	foreach($argv as $k=>$item){
-		$item = explode(":",$item);
-		if(is_numeric($item[0]) AND !isset($item[1])){
-		$_GET['id'] = $item[0];
-		}else{
-		$_GET[$item[0]] = get($item,1)?:"";
-		}
-	} /* Иначе адрес как и в адресной строке /pages:index/1 */
-	}elseif(!$uri = get($match, 1)){ die(!mpre("ОШИБКА получения ссылки из параметров регулярного выржения"));
-	}elseif(!chdir(__DIR__)){ mpre("ОШИБКА Установки текущей директории");
-	}elseif(!$get = mpgt($uri)){ mpre("ОШИБКА получения параметров адресной строки");
-	}elseif(!$m = get($get, 'm')){ mpre("ОШИБКА получения параметров адреса");
-	}elseif(!list($mode[0], $mode[1]) = each($m)){ mpre("ОШИБКА получения имени модуля и исполняемого файла");
-	}elseif(empty($mode[1]) && (!$mode[1] = "index")){ mpre("Используем имя файла index если не указан");
-	}elseif(!is_array($_REQUEST = $_GET)){ mpre("ОШИБКА добавления параметров к реквесту");
-	}elseif(!$arg =['modpath' => $mode[0], 'modname' => $mode[0], 'fn' => $mode[1], 'fe' => null, 'admin_access' => 5]){ mpre("Формирование аргументов страницы");
-	}elseif(!$mode = "modules/".implode("/",$mode)){ mpre("ОШИБКА собираем путь к модулю");
-	}else{// mpre("Запускаем `{$mode}`", $arg);
-		inc($mode,['arg'=>$arg]);
-	} exit();
-}, $argv)){ mpre("Запуск консольной утилиты");
+		/* Запуск скрипта из консоли php -f index.php /pages:index/2 - Путь до скрипта в файловой системе */
+		if(!$conf['user']['gid'] = array(1=>"Администратор")){ mpre("Установка прав администратора");
+		}elseif(!$link = get($argv, 1)){ die(!mpre("Не указана ссылка консольной утилиты"));
+		}elseif(!conn()){ die(!mpre("ОШИБКА соединения с базой данных"));
+		}elseif(!preg_match("#^(/.*)$#iu", $link, $match)){ die(!mpre("ОШИБКА адрес исполняемого файла должен начинаться со слеша `{$link}`"));
+		/* Не понял какой адрес мы тут используем */
+		array_shift($argv);//выкидвыаем путь к файлу
+		$mode = explode(":",array_shift($argv));
+		if(!isset($mode[1])) $mode[1]='index'; //index
+		foreach($argv as $k=>$item){
+			$item = explode(":",$item);
+			if(is_numeric($item[0]) AND !isset($item[1])){
+			$_GET['id'] = $item[0];
+			}else{
+			$_GET[$item[0]] = get($item,1)?:"";
+			}
+		} /* Иначе адрес как и в адресной строке /pages:index/1 */
+		}elseif(!$uri = get($match, 1)){ die(!mpre("ОШИБКА получения ссылки из параметров регулярного выржения"));
+		}elseif(!chdir(__DIR__)){ mpre("ОШИБКА Установки текущей директории");
+		}elseif(!$get = mpgt($uri)){ mpre("ОШИБКА получения параметров адресной строки");
+		}elseif(!$m = get($get, 'm')){ mpre("ОШИБКА получения параметров адреса");
+		}elseif(!list($mode[0], $mode[1]) = each($m)){ mpre("ОШИБКА получения имени модуля и исполняемого файла");
+		}elseif(empty($mode[1]) && (!$mode[1] = "index")){ mpre("Используем имя файла index если не указан");
+		}elseif(!is_array($_REQUEST = $_GET)){ mpre("ОШИБКА добавления параметров к реквесту");
+		}elseif(!$arg =['modpath' => $mode[0], 'modname' => $mode[0], 'fn' => $mode[1], 'fe' => null, 'admin_access' => 5]){ mpre("Формирование аргументов страницы");
+		}elseif(!$mode = "modules/".implode("/",$mode)){ mpre("ОШИБКА собираем путь к модулю");
+		}else{// mpre("Запускаем `{$mode}`", $arg);
+			inc($mode,['arg'=>$arg]);
+		} exit();
+	}, $argv)){ mpre("Запуск консольной утилиты");
 }elseif(!$conf['settings']['http_host'] = strtolower(function_exists("idn_to_utf8") ? idn_to_utf8($_SERVER['HTTP_HOST'] ,IDNA_NONTRANSITIONAL_TO_ASCII, INTL_IDNA_VARIANT_UTS46) : $_SERVER['HTTP_HOST'])){ pre("ОШИБКА конвертации имени хоста");
 //}elseif(!$conf['settings']['http_host'] = strtolower(function_exists("idn_to_ascii") ? idn_to_ascii($_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST'])){ pre("ОШИБКА конвертации имени хоста");
 }elseif(!$conf['settings']['access_array'] = ['0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ']){ mpre("ОШИБКА установки уровней доступа");
@@ -156,10 +156,12 @@ if(!$conf = call_user_func(function($conf){
 		}else{// pre("Свойства модулей", $MODULES_INDEX, $MODULES);
 		} return $MODULES;
 	})){ pre("ОШИБКА выборки свойств сайта");
-}elseif(call_user_func(function() use($conf){ # Перенаправляем на внешний сайт если адрес главной страницы начинается с // или с http://
+}elseif(call_user_func(function() use($conf){ # Устанавливаем адрес главной страницы
 		if(!$start_mod = get($conf, 'settings', 'start_mod')){ pre("Стартовая страница не задана");
-		}elseif((strpos($start_mod, "http://") !== 0) && (strpos($start_mod, "//") !== 0)){// mpre("Формат адреса для перенаправления не совпал");
-		}else{ exit(header("Location: {$conf['settings']['start_mod']}")); }
+		}elseif((strpos($start_mod, "http://") === 0) || (strpos($start_mod, "//") === 0)){ exit(header("Location: {$conf['settings']['start_mod']}")); // mpre("Формат адреса для перенаправления не совпал");
+		}elseif("/" != $_SERVER["REQUEST_URI"]){// mpre("Не главная страница");
+		}elseif(!is_array($mpgt = mpgt($start_mod))){ mpre("ОШИБКА получения параметров адреса");
+		}else{ $_GET += $mpgt; }
 	})){ mpre("ОШИБКА перенаправления на другой сайт");
 }elseif(!array_key_exists("null", $_GET) /*&& !is_array($_GET['m'])*/ && $conf['modules']['seo']){
   if(array_key_exists(($p = (strpos(get($_SERVER, 'HTTP_HOST'), "xn--") === 0) ? "стр" : "p"), $_GET) && ($_GET['p'] = $_GET[$p])){
@@ -190,8 +192,7 @@ if(!$conf = call_user_func(function($conf){
   }elseif(get($conf, 'settings', 'start_mod') == $_SERVER['REQUEST_URI']){ # Заглавная страница
     $conf['settings']['canonical'] = "/";
   }elseif(!array_key_exists("404", $conf['settings']) || ($_404 = $conf['settings']['404'])){ # Если не прописан адрес 404 ошибки, то его обработку оставляем для init.php
-    $keys = array_keys($ar = array_keys($_GET['m']));
-    if(!get($conf, 'modules',  $ar[min($keys)] , 'folder')){
+    if(get($_GET, 'm') && !get($conf, 'modules',  first(array_keys($_GET['m'])) , 'folder')){
       $_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = array("id"=>0, "name"=>"/themes:404"), 'name'), $_GET);
     }
   }
@@ -212,7 +213,7 @@ if(call_user_func(function($conf){ # Если прописана внутрен�
   }, $conf)){ mpre("Перенаправление страницы по внутреннему адерсу");
 }elseif(!(array_key_exists("m", $_GET) ? (list($m) = array_keys($_GET['m'])) : "pages")){ mpre("Модуль не установлен");
 }elseif((!$conf['settings']['modpath'] = $modpath = ((!empty($m) && array_key_exists($m, $conf['modules'])) ? $conf['modules'][ $m ]['folder'] : "")) &0){ mpre("Модуль не определен");
-}elseif((array_key_exists("m", $_GET) ? (list($f) = array_values($_GET['m'])) : ($f = "index")) &0){ mpre("Страница не установлена");
+//}elseif((array_key_exists("m", $_GET) ? (list($f) = is_array(get($_GET, 'm')) ? $_GET["m"] : []) : ($f = "index")) &0){ mpre("Страница не установлена");
 }elseif(!$conf['settings']['fn'] = $fn = ((!empty($f) && ($f != "index")) ? $f : "index")){ mpre("Страница не определена");
 }elseif(!$fn = $conf['settings']['fn']){ mpre("Имя файла не определенено");
 }elseif(array_key_exists('theme', $_GET) && (!$conf['user']['sess']['theme'] = $conf['settings']['theme'] = basename($_GET['theme']))){ mpre("Ошибка установки темы из адреса");
@@ -249,7 +250,7 @@ foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_uac
 }
 
 if(!is_array($zblocks = call_user_func(function() use(&$conf){
-		if(array_key_exists('blocks', $_GET['m']) && ($_GET['m']['blocks'] == "index") && !get($_GET, 'id')){// pre($_GET);
+		if(!is_null(get($_GET, 'm', 'blocks')) && ($_GET['m']['blocks'] == "index") && !get($_GET, 'id')){// pre($_GET);
 			$conf["content"] = modules($conf["content"]); $zblocks = [];
 		}elseif(isset($_GET['m']['sql'])){
 			$zblocks = blocks(); $conf["content"] = modules($conf["content"]);
