@@ -163,43 +163,7 @@ if(!$conf = call_user_func(function($conf){
 		}elseif(!is_array($mpgt = mpgt($start_mod))){ mpre("ОШИБКА получения параметров адреса");
 		}else{ $_GET += $mpgt; }
 	})){ mpre("ОШИБКА перенаправления на другой сайт");
-}elseif(!array_key_exists("null", $_GET) /*&& !is_array($_GET['m'])*/ && $conf['modules']['seo']){
-  if(array_key_exists(($p = (strpos(get($_SERVER, 'HTTP_HOST'), "xn--") === 0) ? "стр" : "p"), $_GET) && ($_GET['p'] = $_GET[$p])){
-    $r = urldecode(preg_replace("#([\#\?].*)?$#",'',strtr($_SERVER['REQUEST_URI'], array("?{$p}={$_GET[$p]}"=>"", "&{$p}={$_GET[$p]}"=>"", "/{$p}:{$_GET[$p]}"=>""))));
-  }else{
-    $r = urldecode(preg_replace("#([\#\?].*)?$#",'',$_SERVER['REQUEST_URI']));
-  }
-  if("/robots.txt" == $_SERVER['REQUEST_URI']){
-    $_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = array("id"=>0, "name"=>"/seo:robots"), 'name'), $_GET += ['null'=>true]);
-  }elseif("/sitemap.xml" == $_SERVER['REQUEST_URI']){
-    $_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = array("id"=>0, "name"=>"/seo:sitemap"), 'name'), $_GET += ['null'=>true]);
-  }elseif($redirect = rb("{$conf['db']['prefix']}seo_index", "name", "[{$r}]")){
-    if(strpos($redirect['name'], "http://") === 0){
-      header("Debug info:". __FILE__. ":". __LINE__);
-      exit(header("Location: {$redirect['to']}"));
-    }else if(get($redirect, 'index_id') && ($seo_index = rb("{$conf['db']['prefix']}seo_index", "id", $redirect['index_id']))){ # Перенаправление с внешнего на внешний адрес
-      header('HTTP/1.1 301 Moved Permanently');
-      exit(header("Location: {$seo_index['name']}"));
-    }else if(get($redirect, 'location_id') && ($seo_location = rb("{$conf['db']['prefix']}seo_location", "id", $redirect['location_id']))){
-      $_REQUEST = ($_GET = mpgt($conf['settings']['canonical'] = $seo_location['name'])+array_diff_key($_GET, array("m"=>"Устаревшие адресации"))+$_REQUEST);
-      $conf['settings']['title'] = get($redirect, 'title');
-      $conf['settings']['description'] = get($redirect, 'description');
-      $conf['settings']['keywords'] = get($redirect, 'keywords');
-      if($seo_index_type = rb("{$conf['db']['prefix']}seo_index_type", "id", $redirect['index_type_id'])){
-        header("Content-Type: {$seo_index_type['name']}");
-      }
-    }else{ $_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = $redirect, 'name'), $_GET); }
-  }elseif(get($conf, 'settings', 'start_mod') == $_SERVER['REQUEST_URI']){ # Заглавная страница
-    $conf['settings']['canonical'] = "/";
-  }elseif(!array_key_exists("404", $conf['settings']) || ($_404 = $conf['settings']['404'])){ # Если не прописан адрес 404 ошибки, то его обработку оставляем для init.php
-    if(get($_GET, 'm') && !get($conf, 'modules',  first(array_keys($_GET['m'])) , 'folder')){
-      $_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = array("id"=>0, "name"=>"/themes:404"), 'name'), $_GET);
-    }
-  }
-
-}
-
-if(call_user_func(function($conf){ # Если прописана внутренняя страница и перенаправлениее ее на внешнюю делаем переход и отображаем об этом информацию
+}elseif(call_user_func(function($conf){ # Если прописана внутренняя страница и перенаправлениее ее на внешнюю делаем переход и отображаем об этом информацию
     if(!$seo_location = rb("{$conf['db']['prefix']}seo_location", "name", "[{$_SERVER['REQUEST_URI']}]")){// mpre("Адрес внутренней страници в админке не задан");
     }elseif(!$seo_location['location_status_id']){// mpre("Статус перенаправления не установлен");
     }elseif(!$seo_location_status = rb("{$conf['db']['prefix']}seo_location_status", "id", $seo_location['location_status_id'])){ mpre("ОШИБКА выборки статуса перенаправления");
