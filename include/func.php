@@ -668,7 +668,7 @@ if (!function_exists('modules')){
 		foreach($_GET['m'] as $k=>$v){ $k = urldecode($k);
 			if(!$mod = (get($conf, 'modules', $k) ?: rb(get($conf, 'modules'), "modname", "[{$k}]"))){ pre("Модуль `{$k}` недоступен", $v);
 				ob_start();
-					inc("modules/themes/404", array('arg'=>array('modpath'=>get($conf, "settings", "modpath"), 'fn'=>get($conf, "settings", "fn"))));
+					inc("modules/themes/404", array('arg'=>array('modpath'=>'themes', 'fn'=>404)));
 				$content .= ob_get_contents(); ob_end_clean();
 			}elseif(!$mod['link'] = (is_link($f = mpopendir("modules/{$mod['folder']}")) ? readlink($f) : $mod['folder'])){ pre("Ошибка определения ссылки на раздел");
 			}elseif(!ini_set("include_path" ,mpopendir("modules/{$mod['link']}"). ":./modules/{$mod['link']}:". ini_get("include_path"))){ pre("Сбой добавления локального пути до скриптов");
