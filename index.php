@@ -78,13 +78,17 @@ if(!call_user_func(function(){
 }elseif(!$conf['db']['conn'] = conn()){ pre("ОШИБКА подключения к базе данных");
 }elseif(($conf['db']['type'] == 'sqlite') && !is_writable($conf['db']['name'])){ die(!pre("ОШИБКА Файл БД `{$conf['db']['name']}` не доступен для записи", "ERROR DB file `{$conf['db']['name']} ' error is not writable"));
 }elseif(!empty($conf['db']['error'])){ pre("ОШИБКА подключения к базе данных", $conf['db']['error']);
-}elseif(!$tables = call_user_func(function(){ # Определяем режим установки по наличию таблиы в базе данных
-		if(!array_key_exists('null', $_GET)){ return true; # Пропускаем проверку списка таблиц на ресурсах
-		}elseif(!$tables = tables()){ mpre("База данных не пуста");
-		}else{ return $tables; }
-	})){ exit(inc('include/install.php')); # Запускаем процесс установки
+}elseif(!$conf['settings'] += array_column(rb("settings-"), "value", "name")){ mpre("ОШИБКА получения параметров сайта");
+}elseif(!$tables = call_user_func(function($tables = []) use($conf){ # Определяем режим установки по наличию таблиы в базе данных
+		if(array_key_exists('null', $_GET)){ return pre("Пропускаем проверку списка таблиц на ресурсах");
+		}elseif(!$tables = tables()){ pre("База данных не пуста");
+		}elseif($conf["db"]["type"] != "sqlite"){ pre("Для mysql установка только с пустой базой", $conf["db"]["type"]);
+		}elseif(!get($conf, "settings", "admin_usr")){ return !mpre("Не установлен администратор");
+		}else{ mpre("Список таблиц базы", $tables);
+		} return $tables;
+	})){
+		exit(inc('include/install.php')); # Запускаем процесс установки
 }elseif(!is_array($_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']))){ mpre("ОШИБКА получения параметров адресной строки");
-}elseif(!$conf['settings'] += array_column(rb("{$conf['db']['prefix']}settings"), "value", "name")){ mpre("ОШИБКА получения параметров сайта");
 }elseif(!$sess = users_sess()){// pre("Добавляем сессию");
 }elseif(!$guest = get($conf, 'settings', 'default_usr')){ mpre("Имя пользователя гость не указано");
 }elseif(!is_array($conf['user'] = (rb('users-', 'id', $sess['uid']) ?: rb('users-', 'name', "[{$guest}]")))){ pre("ОШИБКА выборки пользователя");
