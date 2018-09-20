@@ -187,33 +187,31 @@ if(!$conf = call_user_func(function($conf){
 }elseif(($t = get($conf, 'settings', $w = "theme/{$modpath}:*")) && (!$conf['settings']['theme'] = $t)){ mpre("Ошибка установки темы по файлу `{$w}`");
 }elseif(((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]) && (!$conf['settings']['theme'] = $conf['settings']["theme/*:admin"])){ mpre("Ошибка установки темы админ страницы");
 }elseif(inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($conf["content"] = "")))){ mpre("Ошибка подключения файла инициализации");
-}elseif(get($conf, "settings", "themes_index") && inc("modules/admin/admin_multisite.php", array("content"=>($conf["content"] = "")))){ mpre("Ошибка включения режима мультисайта");
+}elseif(inc("modules/admin/admin_multisite.php", array("content"=>($conf["content"] = "")))){ mpre("Ошибка включения режима мультисайта");
 //}elseif(true){ die(!pre(get($conf, "settings", "themes_index")));
-}else{
-}
+}elseif(!is_array($conf["settings"] += call_user_func(function($modules = []) use($conf){
+		foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_gaccess ORDER BY sort", 'Права доступа группы к модулю', function($error) use($conf){
+		if(strpos($error, "Unknown column 'sort'")){
+			qw(mpre("ALTER TABLE `mp_modules_index_gaccess` ADD `sort` int(11) NOT NULL  COMMENT '' AFTER `id`"));
+			qw(mpre("UPDATE `mp_modules_index_gaccess` SET sort=id"));
+		}elseif(strpos($error, "doesn't exist")){
+			qw(mpre("ALTER TABLE {$conf['db']['prefix']}modules_gaccess RENAME {$conf['db']['prefix']}modules_index_gaccess"));
+		}
+		})) as $k=>$v){
+		if(array_key_exists($v['gid'], $conf['user']['gid']) && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false){
+			$modules[ $v['mid'] ]['admin_access'] = $v['admin_access'];
+		}
+		}
 
-foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_gaccess ORDER BY sort", 'Права доступа группы к модулю', function($error) use($conf){
-  if(strpos($error, "Unknown column 'sort'")){
-    qw(mpre("ALTER TABLE `mp_modules_index_gaccess` ADD `sort` int(11) NOT NULL  COMMENT '' AFTER `id`"));
-    qw(mpre("UPDATE `mp_modules_index_gaccess` SET sort=id"));
-  }elseif(strpos($error, "doesn't exist")){
-    qw(mpre("ALTER TABLE {$conf['db']['prefix']}modules_gaccess RENAME {$conf['db']['prefix']}modules_index_gaccess"));
-  }
-})) as $k=>$v){
-  if(array_key_exists($v['gid'], $conf['user']['gid']) && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false){
-    $conf['modules'][ $v['mid'] ]['admin_access'] = $v['admin_access'];
-  }
-}
-
-foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_uaccess ORDER BY uid", 'Права доступа пользователя к модулю', function($error) use($conf){
-  if(strpos($error, "doesn't exist")){ qw(mpre("ALTER TABLE {$conf['db']['prefix']}modules_uaccess RENAME {$conf['db']['prefix']}modules_index_uaccess"));
-	}else{ pre("Неустановленная ошибка при выборки прав доступа пользователей"); }
-})) as $k=>$v){
-  if ($conf['user']['uid'] == $v['uid'] && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false)
-    $conf['modules'][ $v['mid'] ]['admin_access'] = $v['admin_access'];
-}
-
-if(!is_array($zblocks = call_user_func(function() use(&$conf){
+		foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_uaccess ORDER BY uid", 'Права доступа пользователя к модулю', function($error) use($conf){
+		if(strpos($error, "doesn't exist")){ qw(mpre("ALTER TABLE {$conf['db']['prefix']}modules_uaccess RENAME {$conf['db']['prefix']}modules_index_uaccess"));
+			}else{ pre("Неустановленная ошибка при выборки прав доступа пользователей"); }
+		})) as $k=>$v){
+		if ($conf['user']['uid'] == $v['uid'] && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false)
+			$modules[ $v['mid'] ]['admin_access'] = $v['admin_access'];
+		} return $modules;
+	}))){ mpre("ОШИБКА загрузки прав доступа к разделам и блокам");
+}elseif(!is_array($zblocks = call_user_func(function() use(&$conf){
 		if(!is_null(get($_GET, 'm', 'blocks')) && ($_GET['m']['blocks'] == "index") && !get($_GET, 'id')){// pre($_GET);
 			$conf["content"] = modules($conf["content"]); $zblocks = [];
 		}elseif(isset($_GET['m']['sql'])){

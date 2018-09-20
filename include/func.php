@@ -25,18 +25,19 @@ function users_sess($sess = null){
 }
 
 # Получение алиаса страницы сайта (Используется для формирования адресов СЕО модуля)
-function seo_alias($canonical){// mpre($canonical);
-		if(!$uri = call_user_func(function($canonical){
+function seo_alias($canonical){ global $conf; // mpre($canonical);
+		if(!$uri = call_user_func(function($canonical) use($conf){
 				if(is_array($canonical)){ return get($canonical, 'name');
-				}elseif(is_string($canonical)){ return $canonical;
+				}elseif(!is_string($canonical = is_null($canonical) ? $_SERVER['REQUEST_URI'] : $canonical)){ mpre("ОШИБКА ожидается адрес страницы сайта", gettype($canonical));
+				}elseif(!is_string($url = ("/" == $canonical ? get($conf, "settings", "start_mod") : $_SERVER['REQUEST_URI']))){ mpre("ОШИБКА определения адреса страницы");
 				}else{// pre($_SERVER['REQUEST_URI']);
-					return $_SERVER['REQUEST_URI'];
+					return $url;
 				}
 			}, $canonical)){ mpre("ОШИБКА определения адреса");
 		}elseif(!is_array($get = mpgt($uri))){ mpre("ОШИБКА получения параметров адресной строки");
-		}elseif(!is_array($mod = get($get, 'm') ?: [])){ mpre("ОШИБКА получения параметров адреса");
-		}elseif(!$modpath = first(array_keys($mod))){ mpre("ОШИБКА получения модуля из адреса");
-		}elseif(!$fn = first($mod) ?: "index"){ mpre("ОШИБКА получения модуля из адреса");
+		}elseif(!$m = get($get, 'm') ?: []){ mpre("ОШИБКА информация о разделе не найдена в адресе `{$uri}`");
+		}elseif(!$modpath = first(array_keys($m))){ mpre("ОШИБКА получения модуля из адреса", $m);
+		}elseif(!$fn = first($m) ?: "index"){ mpre("ОШИБКА получения модуля из адреса");
 		}elseif(!is_array($get = array_diff_key($get, array_flip(['m'])))){ mpre("ОШИБКА получения параметров без адресации");
 		}elseif(!is_array($params = array_keys($get))){ mpre("ОШИБКА получения списка имен параметров");
 		}elseif(!$alias = "{$modpath}:{$fn}". ($params ? "/". implode("/", $params) : "")){ mpre("ОШИБКА получения алиаса");
