@@ -25,17 +25,17 @@ function users_sess($sess = null){
 }
 
 # Получение алиаса страницы сайта (Используется для формирования адресов СЕО модуля)
-function seo_alias($canonical){ global $conf; // mpre($canonical);
+function seo_alias($canonical = null, $url = false){ global $conf; // mpre($canonical);
 		if(!$uri = call_user_func(function($canonical) use($conf){
 				if(is_array($canonical)){ return get($canonical, 'name');
-				}elseif(!is_string($canonical = is_null($canonical) ? $_SERVER['REQUEST_URI'] : $canonical)){ mpre("ОШИБКА ожидается адрес страницы сайта", gettype($canonical));
-				}elseif(!is_string($url = ("/" == $canonical ? get($conf, "settings", "start_mod") : $_SERVER['REQUEST_URI']))){ mpre("ОШИБКА определения адреса страницы");
-				}else{// pre($_SERVER['REQUEST_URI']);
+				}elseif(!is_string($url = ("/" == $_SERVER['REQUEST_URI'] ? get($conf, "settings", "start_mod") : $_SERVER['REQUEST_URI']))){ mpre("ОШИБКА определения адреса страницы");
+				}else{// pre($url, get($conf, "settings", "start_mod"));
 					return $url;
 				}
-			}, $canonical)){ mpre("ОШИБКА определения адреса");
+			}, ($canonical ?: get($conf, "sttings", "canonical")))){ mpre("ОШИБКА определения адреса");
+		}elseif($url){ return $uri;
 		}elseif(!is_array($get = mpgt($uri))){ mpre("ОШИБКА получения параметров адресной строки");
-		}elseif(!$m = get($get, 'm') ?: []){ mpre("ОШИБКА информация о разделе не найдена в адресе `{$uri}`");
+		}elseif(!is_array($m = get($get, 'm') ?: [])){ mpre("ОШИБКА информация о разделе не найдена в адресе `{$uri}`");
 		}elseif(!$modpath = first(array_keys($m))){ mpre("ОШИБКА получения модуля из адреса", $m);
 		}elseif(!$fn = first($m) ?: "index"){ mpre("ОШИБКА получения модуля из адреса");
 		}elseif(!is_array($get = array_diff_key($get, array_flip(['m'])))){ mpre("ОШИБКА получения параметров без адресации");
@@ -667,6 +667,9 @@ if (!function_exists('modules')){
 		global $conf, $arg, $tpl;
 		foreach($_GET['m'] as $k=>$v){ $k = urldecode($k);
 			if(!$mod = (get($conf, 'modules', $k) ?: rb(get($conf, 'modules'), "modname", "[{$k}]"))){ pre("Модуль `{$k}` недоступен", $v);
+				ob_start();
+					inc("modules/themes/404", array('arg'=>array('modpath'=>get($conf, "settings", "modpath"), 'fn'=>get($conf, "settings", "fn"))));
+				$content .= ob_get_contents(); ob_end_clean();
 			}elseif(!$mod['link'] = (is_link($f = mpopendir("modules/{$mod['folder']}")) ? readlink($f) : $mod['folder'])){ pre("Ошибка определения ссылки на раздел");
 			}elseif(!ini_set("include_path" ,mpopendir("modules/{$mod['link']}"). ":./modules/{$mod['link']}:". ini_get("include_path"))){ pre("Сбой добавления локального пути до скриптов");
 			}elseif((!$MODULES_INDEX_UACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM `{$conf['db']['prefix']}modules_index_uaccess` WHERE `mid`=". (int)$mod['id']. " AND `uid`=". (int)$conf['user']['uid'], "Запрос прав доступа пользователя к разделу", function($error) use($conf){
@@ -677,7 +680,6 @@ if (!function_exists('modules')){
 					if(!strpos($error, "Unknown column 'admin_access'")){ pre("Неопределенная ошибка", $error);
 					}else{ qw(mpre("ALTER TABLE `{$conf['db']['prefix']}modules_index_gaccess` CHANGE `access` `admin_access` int(11) NOT NULL")); }
 				}))) &0){ mpre("Разрешения для группы");
-//		}elseif(!is_numeric($access = (("admin" == $mod['folder'] || (strpos($v, "admin") === 0)) ? 4 : 1))){ mpre("Ошибка подсчета дефолтного доступа к разделам");
 			}elseif(!is_numeric($access = call_user_func(function($v) use($mod){
 					if("admin" === $v){ return 5;
 					}elseif("admin" == $mod['folder']){ return 4;
@@ -698,11 +700,9 @@ if (!function_exists('modules')){
 				}
 			}elseif(!$v = $v != 'del' && $v != 'init' && $v != 'sql' && strlen($v) ? $v : 'index'){ pre("Ошибка определения имени скрипта");
 			}elseif(!$conf['db']['info'] = "Модуль '". ($name = $mod['name']). "'"){ pre("Ошибка установки описания запрос к БД");
-//			}elseif(!$g = (preg_match("/[a-z]/", $v) ? "/{$v}.*.php" : "/*.{$v}.php")){ pre("Ошибка определения шаблона запроса к файловой системе");
 			}elseif(!$g = "/{$v}.*"){ pre("Ошибка определения шаблона запроса к файловой системе");
 			}elseif((!$glob = glob($gd = mpopendir("modules/{$mod['link']}"). $g)) && (!$glob = glob($gd = "modules/{$mod['link']}". $g)) &0){ pre("Список файлов раздела {$gd}");
 			}elseif(!empty($glob) && (!$glob = basename(array_pop($glob))) && (!$g = explode(".", $glob)) && ($v = array_shift($g))){ pre("Ошибка определения имен файлов");
-//			}elseif(!$fe = ((strpos($_SERVER['HTTP_HOST'], "xn--") !== false) && (count($g) > 1)) ? array_shift($g) : $v){ mpre("Ошибка определения русскоязычного названия имени");
 			}elseif(!$arg = array('modpath'=>$mod['folder'], 'modname'=>$mod['modname'], 'fn'=>$v, "fe"=>"", 'admin_access'=>$mod['admin_access'])){ pre("Ошибка формирования аргументов страницы");
 			}elseif($v == "admin"){
 				ob_start();
@@ -712,22 +712,22 @@ if (!function_exists('modules')){
 					}
 				$content .= ob_get_contents(); ob_end_clean();
 			}else{// mpre($_SERVER['REQUEST_URI']);
-					if(!get($conf, 'settings', 'seo_meta')){ mpre("Обработкич мета информации страницы выключен");
-					}elseif($get = []){ mpre("Задание параметров запроса");
-					}elseif(!$uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? get($canonical, 'name') : $_SERVER['REQUEST_URI']){ mpre("Ошибка формирования адреса страницы");
-					}elseif(!$get = mpgt($uri)){// mpre("Параметры в адресе не заданы");
-					}elseif(array_key_exists("null", $get)){// mpre("Аякс запрос");
-					}elseif(array_key_exists("p", $get)){// mpre("Установлена пагинация старницы");
-					}elseif($conf['settings']['theme/*:admin'] == $conf['settings']['theme']){// mpre("Админ страница");
-					}elseif(array_search($arg['fn'], ['', 'ajax', 'json', '404'])){// mpre("Список исключенных для СЕО старниц");
-					}else{// mpre($canonical);
-						inc("modules/seo/admin_meta.php", array('arg'=>$arg, "uri"=>$uri, "get"=>$get, "canonical"=>$canonical));
+				if(!get($conf, 'settings', 'seo_meta')){ mpre("Обработкич мета информации страницы выключен");
+				}elseif($get = []){ mpre("Задание параметров запроса");
+				}elseif(!$uri = get($canonical = get($conf, 'settings', 'canonical'), 'name') ? get($canonical, 'name') : $_SERVER['REQUEST_URI']){ mpre("Ошибка формирования адреса страницы");
+				}elseif(!$get = mpgt($uri)){// mpre("Параметры в адресе не заданы");
+				}elseif(array_key_exists("null", $get)){// mpre("Аякс запрос");
+				}elseif(array_key_exists("p", $get)){// mpre("Установлена пагинация старницы");
+				}elseif($conf['settings']['theme/*:admin'] == $conf['settings']['theme']){// mpre("Админ страница");
+				}elseif(array_search($arg['fn'], ['', 'ajax', 'json', '404'])){// mpre("Список исключенных для СЕО старниц");
+				}else{// mpre($canonical);
+					inc("modules/seo/admin_meta.php", array('arg'=>$arg, "uri"=>$uri, "get"=>$get, "canonical"=>$canonical));
+				}
+				ob_start();
+					if(is_null($return = inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg)))){ # Если не создано скриптов и шаблона для страницы запускаетм общую (аля 404 для модуля)
+						inc("modules/{$mod['link']}/default.tpl", array('arg'=>$arg));
 					}
-					ob_start();
-						if(is_null($return = inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg)))){ # Если не создано скриптов и шаблона для страницы запускаетм общую (аля 404 для модуля)
-							inc("modules/{$mod['link']}/default.tpl", array('arg'=>$arg));
-						}
-					$content .= ob_get_contents(); ob_end_clean();
+				$content .= ob_get_contents(); ob_end_clean();
 			}
 		} return $content;
 	}

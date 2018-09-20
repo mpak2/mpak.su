@@ -188,7 +188,23 @@ if(!$conf = call_user_func(function($conf){
 }elseif(((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]) && (!$conf['settings']['theme'] = $conf['settings']["theme/*:admin"])){ mpre("Ошибка установки темы админ страницы");
 }elseif(inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($conf["content"] = "")))){ mpre("Ошибка подключения файла инициализации");
 }elseif(inc("modules/admin/admin_multisite.php", array("content"=>($conf["content"] = "")))){ mpre("Ошибка включения режима мультисайта");
-//}elseif(true){ die(!pre(get($conf, "settings", "themes_index")));
+//}elseif(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), function($v){ return (strpos($v, "admin") === 0); })){ $conf['settings']['theme'] = "zhiraf"; # Админстраница
+}elseif(!$conf['settings']['theme'] = call_user_func(function($theme){
+		if(!array_filter(get($_GET['m']), function($v){ return (strpos($v, "admin") === 0); })){// mpre("Не админка");
+		}else{// mpre("Админстраница");
+			$theme = "zhiraf";
+		} return $theme;
+	}, $conf['settings']['theme'])){ mpre("ОШИБКА установки темы страницы");
+/*}elseif(call_user_func(function() use($conf){
+		if(!$modpath = $conf["settings"]["modpath"]){ mpre("ОШИБКА модуль не задан");
+		}elseif(!$fn = $conf["settings"]["fn"]){ mpre("ОШИБКА файл не задан");
+		}elseif(!$file_name = "modules/". basename($modpath). "/". basename($fn)){ mpre("ОШИБКА составления пути до файла");
+		}elseif(mpopendir("{$file_name}.tpl") || mpopendir("{$file_name}.php")){ mpre("Файлы на месте");
+		}else{// mpre("Файл не найден", $file_name);
+			header("HTTP/1.0 404 Not Found");
+			$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = array("id"=>0, "name"=>"/themes:404"), 'name'), $_GET);
+		}
+	})){ mpre("ОШИБКА перехода на страницу ошибки");*/
 }elseif(!is_array($conf["settings"] += call_user_func(function($modules = []) use($conf){
 		foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_gaccess ORDER BY sort", 'Права доступа группы к модулю', function($error) use($conf){
 		if(strpos($error, "Unknown column 'sort'")){

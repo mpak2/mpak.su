@@ -1,7 +1,6 @@
 <?
 
-if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), function($v){ return (strpos($v, "admin") === 0); })){ $conf['settings']['theme'] = "zhiraf"; # Админстраница
-}elseif(!get($conf, "settings", "themes_index")){// mpre("Резим мультисайта выключен");
+if(!get($conf, "settings", "themes_index")){ mpre("Резим мультисайта выключен");
 }elseif(!$http_host = mb_strtolower($_SERVER['HTTP_HOST'], 'UTF-8')){ mpre("Ошибка определения хоста");
 }elseif(!$http_host = (strpos($http_host, "www.") === 0 ? substr($http_host, 4) : $http_host)){ mpre("Удаление www из начала страницы");
 }elseif(!$http_host = idn_to_utf8($http_host, IDNA_NONTRANSITIONAL_TO_ASCII, INTL_IDNA_VARIANT_UTS46)){ mpre("Руссификация хоста");
@@ -29,12 +28,6 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 }elseif(array_key_exists("null", $_GET)){ # Ресурсы не трогаем
 }elseif(!$url = first(explode("?", urldecode($_SERVER['REQUEST_URI'])))){ mpre("Ошибка формирования исходного адреса страницы");
 }elseif(!$url = preg_replace("#\/(стр|p)\:[0-9]+#", "", $url)){ mpre("Ошибка избавления от номера страниц в адресе");
-}elseif(call_user_func(function(){
-		if(strpos($_SERVER['REQUEST_URI'], "//") !== 0){// mpre("Не переходим");
-		}else{ header("HTTP/1.0 404 Not Found");
-			$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = array("id"=>0, "name"=>"/themes:404"), 'name'), $_GET);
-		}
-	})){ mpre("ОШИБКА перехода на страницу ошибки");
 }elseif(!is_array($seo_index = rb("seo-index", "name", array_flip([$url])))){ mpre("ОШИБКА получения внешнего адреса страницы");
 }elseif(!is_array($seo_index_themes = ($seo_index && $themes_index ? rb("seo-index_themes", "themes_index", "index_id", $themes_index['id'], $seo_index["id"]) : []))){ mpre("ОШИБКА выборки адресации");
 }elseif(!is_array($seo_location = ($seo_index_themes ? rb("seo-location", "id", $seo_index_themes["location_id"]) : rb("seo-location", "name", "[{$url}]")))){ mpre("ОШИБКА выборки внутреннего адреса страницы");
@@ -71,14 +64,14 @@ if(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), fun
 		}else{ exit(header("Location: ". substr($url, 0, -1)));
 		}
 	})){ mpre("ОШИБКА обработки адресов заканчивающихся на правый слеш");
-}elseif(!$conf["settings"]["canonical"] = call_user_func(function($canonical = null) use($conf, $seo_location, $seo_index_themes){ # Расчет и установка каноникала
+}elseif(!$conf["settings"]["canonical"] = call_user_func(function($canonical = null) use($conf, $themes_index, $seo_index, $seo_location, $seo_index_themes){ # Расчет и установка каноникала
+//		mpre($seo_index_themes, $themes_index);
 		if(!is_array($canonical = ($seo_location + $seo_index_themes))){ mpre("ОШИБКА формирования массива с каноникалам");
 		}elseif(!is_array($canonical += ($seo_index_themes ? ["index_themes_id"=>$seo_index_themes['id']] : []))){ mpre("ОШИБКА добавления в мета информацию ссылки на заголовки");
 		}elseif(!$uri = ("/" == $_SERVER["REQUEST_URI"] ? $conf["settings"]["start_mod"] : $_SERVER["REQUEST_URI"])){ mpre("ОШИБКА нахождения адреса текущей страницы");
 		}elseif(!$canonical = ($canonical ?: $uri)){ mpre("ОШИБКА формирования каноникала");
 		}elseif(!is_string($href = get($seo_location, "name") ?: $canonical)){ mpre("ОШИБКА расчета адреса");
 		}elseif(!$get = mpgt($href, $_GET)){ mpre("ОШИБКА получения параметров адресной строки");
-		}elseif(!$mod = get($conf, 'modules', first(array_keys($get['m'])))){ mpre("Модуль не определен");
 		}elseif(!$_GET = ($get + $_GET)){ mpre("ОШИБКА добавления параметров адресной строки");
 		}else{// pre($canonical, $href, $get, $_GET, $mod, $seo_location, $url);
 		} return $canonical;
