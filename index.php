@@ -19,22 +19,13 @@ if(!call_user_func(function(){
     return error_reporting(E_ALL /*& ~E_NOTICE & ~E_STRICT*/);
   })){ mpre("Установка системных переменных и уровня отчета ошибок");
 }elseif(function_exists("mb_internal_encoding") && !mb_internal_encoding("UTF-8")){ mpre("Кодировки библиотеки корвертации");
-}elseif(strpos(__DIR__, "phar://") === 0){ # Файл index.php внутри phar архива
-  if(!isset($index) && ($index = './index.php') && file_exists($index)){
-    include $index; if($conf) die;
-  } $conf["db"]["open_basedir"] = implode("/", array_slice(explode("/", dirname(__DIR__)), 2)). "::". __DIR__;
-}else{ # Не в phar
-	if(file_exists($phar = __DIR__. DIRECTORY_SEPARATOR. "index.phar")){
-		$conf["db"]["open_basedir"] = "phar://{$phar}";
-		$conf["db"]["open_basedir"] = strtr(ini_get("open_basedir") ?: __DIR__, [':'=>'::']). "::". $conf["db"]["open_basedir"];
-	}else{
-		$conf["db"]["open_basedir"] = strtr(ini_get("open_basedir") ?: __DIR__, [':'=>'::']);
-	}
-}
-
-if(!$conf = call_user_func(function($conf){
-		return $conf;
-	}, $conf)){ print_r("ОШИБКА установки переменных окружения");
+}elseif(!$conf["db"]["open_basedir"] = call_user_func(function($open_basedir = null){ # Расчет пути до корня системы
+		if(strpos(__DIR__, "phar://") === 0){ $open_basedir = implode("/", array_slice(explode("/", dirname(__DIR__)), 2)). "::". __DIR__; # Файл index.php внутри phar архива
+		}elseif(file_exists($phar = __DIR__. DIRECTORY_SEPARATOR. "index.phar")){ $open_basedir = strtr(ini_get("open_basedir") ?: __DIR__, [':'=>'::']). "::phar://{$phar}"; # Не в phar
+		}else{ $open_basedir = strtr(ini_get("open_basedir") ?: __DIR__, [':'=>'::']);
+		} return $open_basedir;
+	})){ print_r("ОШИБКА получения пути до корня системы");
+}elseif(!isset($index) && ($index = './index.php') && file_exists($index)){ include $index; if($conf) die;
 }elseif(!$mp_require_once = function($link){
 		global $conf, $arg, $tpl;
 		foreach(explode('::', $conf["db"]["open_basedir"]) as $k=>$v){
@@ -187,44 +178,34 @@ if(!$conf = call_user_func(function($conf){
 }elseif(($t = get($conf, 'settings', $w = "theme/{$modpath}:*")) && (!$conf['settings']['theme'] = $t)){ mpre("Ошибка установки темы по файлу `{$w}`");
 }elseif(((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]) && (!$conf['settings']['theme'] = $conf['settings']["theme/*:admin"])){ mpre("Ошибка установки темы админ страницы");
 }elseif(inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($conf["content"] = "")))){ mpre("Ошибка подключения файла инициализации");
-}elseif(inc("modules/admin/admin_multisite.php", array("content"=>($conf["content"] = "")))){ mpre("Ошибка включения режима мультисайта");
-//}elseif(($conf['settings']['theme'] == "zhiraf") || array_filter(get($_GET['m']), function($v){ return (strpos($v, "admin") === 0); })){ $conf['settings']['theme'] = "zhiraf"; # Админстраница
+}elseif(get($conf, "settings", "themes_index") && inc("modules/admin/admin_multisite.php", array("content"=>($conf["content"] = "")))){ mpre("Ошибка включения режима мультисайта");
 }elseif(!$conf['settings']['theme'] = call_user_func(function($theme){
 		if(!array_filter(get($_GET['m']), function($v){ return (strpos($v, "admin") === 0); })){// mpre("Не админка");
 		}else{// mpre("Админстраница");
 			$theme = "zhiraf";
 		} return $theme;
 	}, $conf['settings']['theme'])){ mpre("ОШИБКА установки темы страницы");
-/*}elseif(call_user_func(function() use($conf){
-		if(!$modpath = $conf["settings"]["modpath"]){ mpre("ОШИБКА модуль не задан");
-		}elseif(!$fn = $conf["settings"]["fn"]){ mpre("ОШИБКА файл не задан");
-		}elseif(!$file_name = "modules/". basename($modpath). "/". basename($fn)){ mpre("ОШИБКА составления пути до файла");
-		}elseif(mpopendir("{$file_name}.tpl") || mpopendir("{$file_name}.php")){ mpre("Файлы на месте");
-		}else{// mpre("Файл не найден", $file_name);
-			header("HTTP/1.0 404 Not Found");
-			$_REQUEST += $_GET = mpgt(get($conf['settings']['canonical'] = array("id"=>0, "name"=>"/themes:404"), 'name'), $_GET);
-		}
-	})){ mpre("ОШИБКА перехода на страницу ошибки");*/
 }elseif(!is_array($conf["settings"] += call_user_func(function($modules = []) use($conf){
 		foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_gaccess ORDER BY sort", 'Права доступа группы к модулю', function($error) use($conf){
-		if(strpos($error, "Unknown column 'sort'")){
-			qw(mpre("ALTER TABLE `mp_modules_index_gaccess` ADD `sort` int(11) NOT NULL  COMMENT '' AFTER `id`"));
-			qw(mpre("UPDATE `mp_modules_index_gaccess` SET sort=id"));
-		}elseif(strpos($error, "doesn't exist")){
-			qw(mpre("ALTER TABLE {$conf['db']['prefix']}modules_gaccess RENAME {$conf['db']['prefix']}modules_index_gaccess"));
-		}
+			if(strpos($error, "Unknown column 'sort'")){
+				qw(mpre("ALTER TABLE `mp_modules_index_gaccess` ADD `sort` int(11) NOT NULL  COMMENT '' AFTER `id`"));
+				qw(mpre("UPDATE `mp_modules_index_gaccess` SET sort=id"));
+			}elseif(strpos($error, "doesn't exist")){
+				qw(mpre("ALTER TABLE {$conf['db']['prefix']}modules_gaccess RENAME {$conf['db']['prefix']}modules_index_gaccess"));
+			}
 		})) as $k=>$v){
-		if(array_key_exists($v['gid'], $conf['user']['gid']) && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false){
-			$modules[ $v['mid'] ]['admin_access'] = $v['admin_access'];
-		}
+			if(array_key_exists($v['gid'], $conf['user']['gid']) && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false){
+				$modules[ $v['mid'] ]['admin_access'] = $v['admin_access'];
+			}
 		}
 
 		foreach((array)mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_uaccess ORDER BY uid", 'Права доступа пользователя к модулю', function($error) use($conf){
-		if(strpos($error, "doesn't exist")){ qw(mpre("ALTER TABLE {$conf['db']['prefix']}modules_uaccess RENAME {$conf['db']['prefix']}modules_index_uaccess"));
+			if(strpos($error, "doesn't exist")){ qw(mpre("ALTER TABLE {$conf['db']['prefix']}modules_uaccess RENAME {$conf['db']['prefix']}modules_index_uaccess"));
 			}else{ pre("Неустановленная ошибка при выборки прав доступа пользователей"); }
 		})) as $k=>$v){
-		if ($conf['user']['uid'] == $v['uid'] && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false)
-			$modules[ $v['mid'] ]['admin_access'] = $v['admin_access'];
+			if ($conf['user']['uid'] == $v['uid'] && array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) === false){
+				$modules[ $v['mid'] ]['admin_access'] = $v['admin_access'];
+			}
 		} return $modules;
 	}))){ mpre("ОШИБКА загрузки прав доступа к разделам и блокам");
 }elseif(!is_array($zblocks = call_user_func(function() use(&$conf){
