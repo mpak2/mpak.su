@@ -10,14 +10,14 @@
 // Original Author of file: Krivoshlykov Evgeniy (mpak) +7 911 9842884
 // ----------------------------------------------------------------------
 
-if(!call_user_func(function(){
+if(!call_user_func(function(){ # Переменные окружения
     ini_set('display_errors', 1);
     date_default_timezone_set('Europe/Moscow');
     header('Content-Type: text/html; charset=utf-8');
     header("Cache-Control:no-cache, must-revalidate;");
     setlocale (LC_ALL, "Russian"); putenv("LANG=ru_RU");
     return error_reporting(E_ALL /*& ~E_NOTICE & ~E_STRICT*/);
-  })){ mpre("Установка системных переменных и уровня отчета ошибок");
+  })){ mpre("ОШИБКА Установка системных переменных и уровня отчета ошибок");
 }elseif(function_exists("mb_internal_encoding") && !mb_internal_encoding("UTF-8")){ mpre("Кодировки библиотеки корвертации");
 }elseif(!$conf["db"]["open_basedir"] = call_user_func(function($open_basedir = null){ # Расчет пути до корня системы
 		if(strpos(__DIR__, "phar://") === 0){ $open_basedir = implode("/", array_slice(explode("/", dirname(__DIR__)), 2)). "::". __DIR__; # Файл index.php внутри phar архива
@@ -35,24 +35,12 @@ if(!call_user_func(function(){
 	}){ mpre("Функция подключения ресурсов");
 }elseif(!$mp_require_once("include/config.php")){ mpre("ОШИБКА подключения файла конфигурации");
 }elseif(!$mp_require_once("include/func.php")){ mpre("ОШИБКА подключения функций системы");
-}elseif(!empty($argv) && count($argv)>1 && !call_user_func(function($argv) use(&$conf){
-		/* Запуск скрипта из консоли php -f index.php /pages:index/2 - Путь до скрипта в файловой системе */
-		if(!$conf['user']['gid'] = array(1=>"Администратор")){ mpre("Установка прав администратора");
+}elseif(call_user_func(function($argv) use(&$conf){ // Запуск скрипта из консоли php -f index.php /pages:index/2 - Путь до скрипта в файловой системе
+		if(empty($argv)){// mpre("Только при запуске из консоли");
+		}elseif(count($argv)>1){ mpre("Аргументы командной строки не указаны пример - php -f index.php /pages:index/2");
+		}elseif(!$conf['user']['gid'] = array(1=>"Администратор")){ mpre("Установка прав администратора");
 		}elseif(!$link = get($argv, 1)){ die(!mpre("Не указана ссылка консольной утилиты"));
 		}elseif(!conn()){ die(!mpre("ОШИБКА соединения с базой данных"));
-		}elseif(!preg_match("#^(/.*)$#iu", $link, $match)){ die(!mpre("ОШИБКА адрес исполняемого файла должен начинаться со слеша `{$link}`"));
-		/* Не понял какой адрес мы тут используем */
-		array_shift($argv);//выкидвыаем путь к файлу
-		$mode = explode(":",array_shift($argv));
-		if(!isset($mode[1])) $mode[1]='index'; //index
-		foreach($argv as $k=>$item){
-			$item = explode(":",$item);
-			if(is_numeric($item[0]) AND !isset($item[1])){
-			$_GET['id'] = $item[0];
-			}else{
-			$_GET[$item[0]] = get($item,1)?:"";
-			}
-		} /* Иначе адрес как и в адресной строке /pages:index/1 */
 		}elseif(!$uri = get($match, 1)){ die(!mpre("ОШИБКА получения ссылки из параметров регулярного выржения"));
 		}elseif(!chdir(__DIR__)){ mpre("ОШИБКА Установки текущей директории");
 		}elseif(!$get = mpgt($uri)){ mpre("ОШИБКА получения параметров адресной строки");
@@ -62,38 +50,43 @@ if(!call_user_func(function(){
 		}elseif(!is_array($_REQUEST = $_GET)){ mpre("ОШИБКА добавления параметров к реквесту");
 		}elseif(!$arg =['modpath' => $mode[0], 'modname' => $mode[0], 'fn' => $mode[1], 'fe' => null, 'admin_access' => 5]){ mpre("Формирование аргументов страницы");
 		}elseif(!$mode = "modules/".implode("/",$mode)){ mpre("ОШИБКА собираем путь к модулю");
-		}else{// mpre("Запускаем `{$mode}`", $arg);
-			inc($mode,['arg'=>$arg]);
-		} exit();
-	}, $argv)){ mpre("Запуск консольной утилиты");
-}elseif(!$conf['settings']['http_host'] = strtolower(function_exists("idn_to_utf8") ? idn_to_utf8($_SERVER['HTTP_HOST'] ,IDNA_NONTRANSITIONAL_TO_ASCII, INTL_IDNA_VARIANT_UTS46) : $_SERVER['HTTP_HOST'])){ pre("ОШИБКА конвертации имени хоста");
-//}elseif(!$conf['settings']['http_host'] = strtolower(function_exists("idn_to_ascii") ? idn_to_ascii($_SERVER['HTTP_HOST']) : $_SERVER['HTTP_HOST'])){ pre("ОШИБКА конвертации имени хоста");
-}elseif(!$conf['settings']['access_array'] = ['0'=>'Запрет', '1'=>'Чтение', '2'=>'Добавл', '3'=>'Запись', '4'=>'Модер', '5'=>'Админ']){ mpre("ОШИБКА установки уровней доступа");
+		}else{ exit(inc($mode,['arg'=>$arg])); }
+	}, $argv)){ mpre("Консольный режим запуска страниц php -f index.php /pages:index/2");
+}elseif(!$conf['settings']['http_host'] = call_user_func(function(){
+		if(!$http_host = mb_strtolower($_SERVER['HTTP_HOST'], 'UTF-8')){ mpre("Ошибка определения хоста");
+		}elseif(!$http_host = (strpos($http_host, "www.") === 0 ? substr($http_host, 4) : $http_host)){ mpre("Удаление www из начала страницы");
+		}elseif(!$http_host = idn_to_utf8($http_host, IDNA_NONTRANSITIONAL_TO_ASCII, INTL_IDNA_VARIANT_UTS46)){ mpre("Руссификация хоста");
+		}elseif(!$http_host = preg_replace("/[.]+$/", "", $http_host)){ mpre("Ошибка выризания точек в конце хоста. По стандартам можно ставить точку в конце адреса и это будет работать");
+		}else{ return $http_host; }
+	})){ mpre("ОШИБКА получения имени хоста");
 }elseif(!$conf['settings']['microtime'] = microtime(true)){ mpre("Фиксация начала запуска скрипта");
 }elseif($cache = call_user_func(function() use($conf){ # Проверяем существует ли кеш в базе. Если есть - выдаем закешированную страницу
 		if(get($conf, 'settings', 'users_cashe_disacled')){ mpre("Кеш отключен");
 		}elseif(!$cache = cache()){// mpre("Кеш не найден в базе");
 		}else{ return $cache; }
 	})){ exit($cache); mpre("Выдаем сохраненную версию если страница кеширована ранее"); 
-}elseif(!$conf['db']['conn'] = conn()){ pre("ОШИБКА подключения к базе данных");
-}elseif(($conf['db']['type'] == 'sqlite') && !is_writable($conf['db']['name'])){ die(!pre("ОШИБКА Файл БД `{$conf['db']['name']}` не доступен для записи", "ERROR DB file `{$conf['db']['name']} ' error is not writable"));
-}elseif(!empty($conf['db']['error'])){ pre("ОШИБКА подключения к базе данных", $conf['db']['error']);
-}elseif(!$conf['settings'] += array_column(rb("settings-"), "value", "name")){ mpre("ОШИБКА получения параметров сайта");
-}elseif(!$tables = call_user_func(function($tables = []) use($conf){ # Определяем режим установки по наличию таблиы в базе данных
+}elseif(!$conf['db']['conn'] = call_user_func(function($conn = null){ # Подключение к базе данных
+		if(($conf['db']['type'] == 'sqlite') && !is_writable($conf['db']['name'])){ die(!pre("ОШИБКА Файл БД `{$conf['db']['name']}` не доступен для записи", "ERROR DB file `{$conf['db']['name']} ' error is not writable"));
+		}elseif(!$conn = conn()){ pre("ОШИБКА подключения к базе данных");
+		}elseif(!empty($conf['db']['error'])){ pre("ОШИБКА подключения к базе данных", $conf['db']['error']);
+		}else{// mpre("Соединение с базой данных прошло успешно", $conn);
+		} return $conn;
+	}, $conf['db']['conn'])){ pre("ОШИБКА не удалось подключиться к базе данных");
+}elseif(!$conf['settings'] += array_column(rb("settings-"), "value", "name")){ mpre("ОШИБКА загрузки свойств сайта");
+}elseif(!$tables = call_user_func(function($tables = []) use($conf){ # Определяем режим установки по наличию таблиы в базе данных и свойствам администратора
 		if(array_key_exists('null', $_GET)){ return pre("Пропускаем проверку списка таблиц на ресурсах");
 		}elseif(!$tables = tables()){ pre("База данных не пуста");
 		}elseif($conf["db"]["type"] != "sqlite"){ pre("Для mysql установка только с пустой базой", $conf["db"]["type"]);
 		}elseif(!get($conf, "settings", "admin_usr")){ return !mpre("Не установлен администратор");
 		}else{ mpre("Список таблиц базы", $tables);
 		} return $tables;
-	})){
-		exit(inc('include/install.php')); # Запускаем процесс установки
+	})){ exit(inc('include/install.php')); # Запускаем процесс установки
 }elseif(!is_array($_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']))){ mpre("ОШИБКА получения параметров адресной строки");
 }elseif(!$sess = users_sess()){// pre("Добавляем сессию");
 }elseif(!$guest = get($conf, 'settings', 'default_usr')){ mpre("Имя пользователя гость не указано");
 }elseif(!is_array($conf['user'] = (rb('users-', 'id', $sess['uid']) ?: rb('users-', 'name', "[{$guest}]")))){ pre("ОШИБКА выборки пользователя");
 }elseif(!$conf['user'] += ['uid'=>(($sess['uid'] > 0) ? get($conf, 'user', 'id') : -$sess['id']), 'sess'=>$sess]){ pre("ОШИБКА сохранения сессии в системных переменных");
-}elseif(isset($_GET['logoff'])){ # Удаляем сессию если пользователь покидает сайт
+}elseif(isset($_GET['logoff'])){ # Закрытие авторизации
 	qw("UPDATE {$conf['db']['prefix']}users_sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
 	setcookie("{$conf['db']['prefix']}modified_since", "", 0, "/");
 	setcookie('sess', null, -1, '/');
@@ -152,10 +145,9 @@ if(!call_user_func(function(){
 		} return $MODULES;
 	})){ pre("ОШИБКА выборки свойств сайта");
 }elseif(call_user_func(function() use($conf){ # Устанавливаем адрес главной страницы
-		if(!$start_mod = get($conf, 'settings', 'start_mod')){ pre("Стартовая страница не задана");
-		}elseif((strpos($start_mod, "http://") === 0) || (strpos($start_mod, "//") === 0)){ exit(header("Location: {$conf['settings']['start_mod']}")); // mpre("Формат адреса для перенаправления не совпал");
-		}elseif("/" != $_SERVER["REQUEST_URI"]){// mpre("Не главная страница");
-		}elseif(!is_array($mpgt = mpgt($start_mod))){ mpre("ОШИБКА получения параметров адреса");
+		if(!$href = ("/" == $_SERVER["REQUEST_URI"] ? get($conf, 'settings', 'start_mod') : $_SERVER["REQUEST_URI"])){ pre("Стартовая страница не задана");
+		}elseif((strpos($href, "http://") === 0) || (strpos($href, "//") === 0)){ exit(header("Location: {$conf['settings']['start_mod']}")); // mpre("Формат адреса для перенаправления не совпал");
+		}elseif(!is_array($mpgt = mpgt($href))){ mpre("ОШИБКА получения параметров адреса");
 		}else{ $_GET += $mpgt; }
 	})){ mpre("ОШИБКА перенаправления на другой сайт");
 }elseif(call_user_func(function($conf){ # Если прописана внутренняя страница и перенаправлениее ее на внешнюю делаем переход и отображаем об этом информацию
@@ -170,23 +162,92 @@ if(!call_user_func(function(){
       exit(header("Location: {$seo_index['name']}"));
     }
   }, $conf)){ mpre("Перенаправление страницы по внутреннему адерсу");
-}elseif(!(array_key_exists("m", $_GET) ? (list($m) = array_keys($_GET['m'])) : "pages")){ mpre("Модуль не установлен");
-}elseif((!$conf['settings']['modpath'] = $modpath = ((!empty($m) && array_key_exists($m, $conf['modules'])) ? $conf['modules'][ $m ]['folder'] : "")) &0){ mpre("Модуль не определен");
-//}elseif((array_key_exists("m", $_GET) ? (list($f) = is_array(get($_GET, 'm')) ? $_GET["m"] : []) : ($f = "index")) &0){ mpre("Страница не установлена");
-}elseif(!$conf['settings']['fn'] = $fn = ((!empty($f) && ($f != "index")) ? $f : "index")){ mpre("Страница не определена");
-}elseif(!$fn = $conf['settings']['fn']){ mpre("Имя файла не определенено");
-}elseif(array_key_exists('theme', $_GET) && (!$conf['user']['sess']['theme'] = $conf['settings']['theme'] = basename($_GET['theme']))){ mpre("Ошибка установки темы из адреса");
-}elseif(get($conf, 'user', 'theme') && (!$conf['user']['sess']['theme'] = $conf['settings']['theme'] = $conf['user']['theme'])){ mpre("Ошибка установки темы из настроек пользователя");
-}elseif(($t = get($conf, 'settings', $w = "theme/{$modpath}:{$fn}")) && (!$conf['settings']['theme'] = $t)){ mpre("Ошибка установки темы по файлу и модулю `{$w}`");
-}elseif(($t = get($conf, 'settings', $w = "theme/*:{$fn}")) && (!$conf['settings']['theme'] = $t)){ mpre("Ошибка установки темы по модулю `{$w}`");
-}elseif(($t = get($conf, 'settings', $w = "theme/{$modpath}:*")) && (!$conf['settings']['theme'] = $t)){ mpre("Ошибка установки темы по файлу `{$w}`");
-}elseif(((strpos($conf['settings']['fn'], "admin") === 0) && $conf['settings']["theme/*:admin"]) && (!$conf['settings']['theme'] = $conf['settings']["theme/*:admin"])){ mpre("Ошибка установки темы админ страницы");
+}elseif(!$conf["settings"] += call_user_func(function($settings = []) use($conf){ # Определение исполняемых файлов сайта
+		if(!(array_key_exists("m", $_GET) ? (list($m) = array_keys($_GET['m'])) : "pages")){ mpre("Модуль не установлен");
+		}elseif((!$settings['modpath'] = ((!empty($m) && array_key_exists($m, $conf['modules'])) ? $conf['modules'][ $m ]['folder'] : "")) &0){ mpre("Модуль не определен");
+		}elseif(!$settings['fn'] = ((!empty($f) && ($f != "index")) ? $f : "index")){ mpre("Страница не определена");
+		}else{// mpre("Исполняемые раздел и файл", $settings);
+		} return $settings;
+	})){ mpre("ОШИБКА установки модуля и исполняемого файла");
+}elseif(!$conf['settings']['theme'] = call_user_func(function($theme) use($conf){ # Установка темы сайта
+		if(!$theme = get($_GET, "theme") ?: $theme){ mpre("Ошибка установки темы из адреса");
+		}elseif(get($conf, 'user', 'theme') && (!$conf['user']['sess']['theme'] = $conf['settings']['theme'] = $conf['user']['theme'])){ mpre("Ошибка установки темы из настроек пользователя");
+		}elseif(!$theme = get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}") ?: $theme){ mpre("Ошибка установки темы по файлу и модулю `{$w}`");
+		}elseif(!$theme = get($conf, 'settings', $w = "theme/*:{$conf['settings']['fn']}") ?: $theme){ mpre("Ошибка установки темы по модулю `{$w}`");
+		}elseif(!$theme = get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:*") ?: $theme){ mpre("Ошибка установки темы по файлу `{$w}`");
+		}else{// mpre("Определена тема сайта как", $theme);
+		} return basename($theme);
+	}, $conf['settings']['theme'])){ mpre("ОШИБКА определения темы сайта");
 }elseif(inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($conf["content"] = "")))){ mpre("Ошибка подключения файла инициализации");
-}elseif(get($conf, "settings", "themes_index") && inc("modules/admin/admin_multisite.php", array("content"=>($conf["content"] = "")))){ mpre("Ошибка включения режима мультисайта");
+}elseif(!is_array($themes_index = call_user_func(function($http_host, $themes_index = []) use($conf){ # Выборка хоста и добавление в случае необходимости
+		if(!get($conf, "themes", "index")){// mpre("Односайтовый режим");
+		}elseif($themes_index = rb("themes-index", "name", "[$http_host]")){// mpre("Хост найден в списке хостов");
+			if(!$_themes_index = (get($themes_index, 'index_id') ? rb("themes-index", "id", $themes_index['index_id']) : [])){// mpre("Зеркало сайта не найдено");
+			}elseif($_SERVER['REQUEST_URI'] == "/robots.txt"){// mpre("Обработка страницы робота");
+			}else{ $themes_index = $_themes_index; }
+		}elseif((gethostbyname($_SERVER['HTTP_HOST']) == $_SERVER['SERVER_ADDR']) || (get($conf, "settings", 'admin_gethostbyname') == gethostbyname($_SERVER['HTTP_HOST']))){ # Хост настроен на сервер или совпадает с указанным в админке ip
+			if(!trim($http_host)){ mpre("Хост пустышка");
+			}else if(!$themes_index = fk("themes-index", $w = array("name"=>$http_host), $w, $w)){ mpre("Ошибка добавления нового хоста");
+			}else{ header('HTTP/1.0 403 Forbidden');
+				inc("modules/{$arg['modpath']}/{$arg['fn']}_init", array("themes_index"=>$themes_index));
+			}
+		}else{
+		} return $themes_index;
+	}, $conf["settings"]["http_host"]))){ mpre("ОШИБКА выборки хоста сайта");
+//		}elseif(empty($themes_index)){ mpre("ОШИБКА хост сайта не определен");
+}elseif(!is_array($conf['themes']['index'] = (get($conf, 'themes', 'index') ? $conf['themes']['index'] + $themes_index : $themes_index))){ mpre("Таблица хостов не задана");
+}elseif(!$url = first(explode("?", urldecode($_SERVER['REQUEST_URI'])))){ mpre("Ошибка формирования исходного адреса страницы");
+}elseif(!$url = preg_replace("#\/(стр|p)\:[0-9]+#", "", $url)){ mpre("Ошибка избавления от номера страниц в адресе");
+}elseif(!is_array($seo_index = rb("seo-index", "name", array_flip([$url])))){ mpre("ОШИБКА получения внешнего адреса страницы");
+}elseif(!is_array($seo_index_themes = ($seo_index && $themes_index ? rb("seo-index_themes", "themes_index", "index_id", $themes_index['id'], $seo_index["id"]) : []))){ mpre("ОШИБКА выборки адресации");
+}elseif(!is_array($seo_location = ($seo_index_themes ? rb("seo-location", "id", $seo_index_themes["location_id"]) : rb("seo-location", "name", "[{$url}]")))){ mpre("ОШИБКА выборки внутреннего адреса страницы");
+}elseif(!is_array($seo_location_themes = ($seo_location && $themes_index ? rb("seo-location_themes", "location_id", "themes_index", $seo_location['id'], $themes_index['id']) : []))){ mpre("ОШИБКА получения перенаправления страницы");
+}elseif(call_user_func(function() use($conf, $seo_index, $seo_location_themes, $seo_location){ # Отображаем администратору или переходим по перенаправлению
+		if($seo_index){// mpre("Для перенаправления не найден внешний адрес");
+		}elseif(empty($seo_location_themes)){// mpre("Для перенправления не установлена адресация");
+		}elseif(empty($seo_location)){// mpre("Для перенправления не утсановлен внутренний адрес");
+		}elseif(!$_seo_index = rb("seo-index", "id", $seo_location_themes["index_id"])){ mpre("ОШИБКА выборки страницы перенаправления");
+		}elseif(array_search("Администратор", $conf['user']['gid'])){ mpre("<a href='/seo:admin/r:seo-location_themes?&where[id]={$seo_location_themes['id']}'>Перенаправление</a> с внутреннего на внешний адрес <a href='{$_seo_index['name']}'>{$_seo_index['name']}</a>");
+		}else{ header("HTTP/1.1 301 Moved Permanently");
+			exit(header("Location: {$_seo_index['name']}"));
+		}
+	})){ mpre("ОШИБКА расчета перенаправления");
+}elseif(!$start_mod = get($themes_index, 'href') ?: $conf["settings"]["start_mod"]){// mpre("Каноникл у хоста не указан");
+}elseif(call_user_func(function() use($themes_index, $start_mod, $conf){ # По свойствам выставляем настройку
+		if($_SERVER['REQUEST_URI'] != "/"){// mpre("Только для главной страницы");
+		}elseif(!$conf['settings']['canonical'] = $start_mod){ mpre("ОШИБКА установки каноникала в свойство");
+		}else{ $_REQUEST += $_GET = mpgt($start_mod); }
+	})){ mpre("ОШИБКА установки адреса главной страницы");
+}elseif(call_user_func(function() use($conf, $seo_index, $seo_index_themes){ # Установка мета информации сайта
+		if(empty($seo_index_themes)){// mpre("Адресация не задана");
+		}elseif(!$conf['settings']['title'] = (get($seo_index_themes, 'title') ? htmlspecialchars($seo_index_themes['title']) : $conf['settings']['title'])){ mpre("ОШИБКА установки мета заголовка");
+		}elseif(!$conf['settings']['description'] = (get($seo_index_themes, 'description') ? htmlspecialchars($seo_index_themes['description']) : $conf['settings']['description'])){ mpre("ОШИБКА установки мета описания");
+		}elseif(!$conf['settings']['keywords'] = (get($seo_index_themes, 'keywords') ? htmlspecialchars($seo_index_themes['keywords']) : $conf['settings']['keywords'])){ mpre("ОШИБКА установки <a href='/settings:admin/r:settings-?edit&where[name]=keywords'>мета ключевиков</a>");
+		}else{// mpre("Адресация страницы", $seo_index_themes);
+		}
+	})){ mpre("ОШИБКА перенаправления сайта");
+}elseif(call_user_func(function() use($url){
+		if(strlen($url) <= 1){// mpre("Похоже на главную страницу");
+		}elseif(substr($url, -1) != "/"){// mpre("Страница оканчивается не на слеш");
+		}elseif(first(array_keys(get($get, 'm'))) == "webdav"){// mpre("Раздел исключений адресации со слешами");
+		}elseif(array_search("Администратор", $conf['user']['gid'])){ mpre("Адрес заканчивается на правый слеш - перенаправляем без слеша <a href='". substr($url, 0, -1). "'>". substr($url, 0, -1). "</a>");
+		}else{ exit(header("Location: ". substr($url, 0, -1)));
+		}
+	})){ mpre("ОШИБКА обработки адресов заканчивающихся на правый слеш");
+}elseif(!$conf["settings"]["canonical"] = call_user_func(function($canonical = null) use($conf, $themes_index, $seo_index, $seo_location, $seo_index_themes){ # Расчет и установка каноникала
+		if(!is_array($canonical = ($seo_location + $seo_index_themes))){ mpre("ОШИБКА формирования массива с каноникалам");
+		}elseif(!is_array($canonical += ($seo_index_themes ? ["index_themes_id"=>$seo_index_themes['id']] : []))){ mpre("ОШИБКА добавления в мета информацию ссылки на заголовки");
+		}elseif(!$uri = ("/" == $_SERVER["REQUEST_URI"] ? $conf["settings"]["start_mod"] : $_SERVER["REQUEST_URI"])){ mpre("ОШИБКА нахождения адреса текущей страницы");
+		}elseif(!$canonical = ($canonical ?: $uri)){ mpre("ОШИБКА формирования каноникала");
+		}elseif(!is_string($href = get($seo_location, "name") ?: $canonical)){ mpre("ОШИБКА расчета адреса");
+		}elseif(!$get = mpgt($href, $_GET)){ mpre("ОШИБКА получения параметров адресной строки");
+		}elseif(!$_GET = ($get + $_GET)){ mpre("ОШИБКА добавления параметров адресной строки");
+		}else{// pre($canonical, $href, $get, $_GET, $mod, $seo_location, $url);
+		} return $canonical;
+	})){ mpre("ОШИБКА установки канонической мета информации");
 }elseif(!$conf['settings']['theme'] = call_user_func(function($theme){
 		if(!array_filter(get($_GET['m']), function($v){ return (strpos($v, "admin") === 0); })){// mpre("Не админка");
-		}else{// mpre("Админстраница");
-			$theme = "zhiraf";
+		}else{ $theme = "zhiraf";
 		} return $theme;
 	}, $conf['settings']['theme'])){ mpre("ОШИБКА установки темы страницы");
 }elseif(!is_array($conf["settings"] += call_user_func(function($modules = []) use($conf){
@@ -224,9 +285,9 @@ if(!call_user_func(function(){
 }elseif(array_key_exists('null', $_GET)){ echo $conf["content"];
 }elseif(!$tc = call_user_func(function() use($conf){ # Содержимое шаблона
 		if(!$ind = (get($_GET, 'index') ?: (get($conf, 'settings', 'index') ?: "index"))){ mpre("Ошибка определения имени главного файла");
-		}elseif(!$t = mpopendir($f = "themes/{$conf['settings']['theme']}/{$ind}.html")){ mpre("Содержимоге файла не найдено", $f);
-		}elseif(!get($conf, 'settings', 'theme_exec') && (!$tc = file_get_contents($t))){ mpre("Ошибка получения содержимого файла шаблона");
-		}else{
+		}elseif(!$file = mpopendir($f = "themes/{$conf['settings']['theme']}/{$ind}.html")){ mpre("Содержимоге файла не найдено", $f);
+		}elseif(!get($conf, 'settings', 'theme_exec') && (!$tc = file_get_contents($file))){ mpre("Ошибка получения содержимого файла шаблона");
+		}else{// mpre("Запускаем шаблон на исполнение");
 			ob_start(); inc($f); $tc = ob_get_clean();
 		} return $tc;
 	})){ mpre("ОШИБКА содржимого шаблона");
@@ -245,9 +306,18 @@ if(!call_user_func(function(){
 			} ob_start(); inc($f); $tc = ob_get_clean();
 		}
 	})){ mpre("ОШИБКА подключения less");
-}elseif(!$conf["content"] = str_replace('<!-- [modules] -->', $conf["content"], $tc)){ mpre("Ошибка замены содержимого модуля");
-}elseif(!$conf["content"] = strtr($conf["content"], (array)$zblocks)){ mpre("Ошибка установки содержимоого блоков");
 }elseif(!$conf['settings']['microtime'] = substr(microtime(true)-$conf['settings']['microtime'], 0, 8)){ mpre("Ошибка расчета времени генерирования страницы");
-}elseif(!$conf["content"] = array_key_exists("null", $_GET) ? $conf["content"] : strtr($conf["content"], mpzam($conf['settings'], "settings", "<!-- [", "] -->"))){ mpre("Ошибка установки переменных в текст");
-}elseif(empty(get($conf, 'settings', 'users_cashe_disacled')) && cache($conf["content"]) &&0){ mpre("Ошибка кеширования содержимого страницы");
-}else{ echo $conf["content"]; }
+}elseif(!$content = call_user_func(function($content) use($conf, $tc, $zblocks){ # Установка параметров свойств сайта
+		if(!$content = str_replace('<!-- [modules] -->', $content, $tc)){ mpre("Ошибка замены содержимого модуля");
+		}elseif(!$content = strtr($content, (array)$zblocks)){ mpre("Ошибка установки содержимоого блоков");
+		}elseif(!$content = array_key_exists("null", $_GET) ? $content : strtr($content, mpzam($conf['settings'], "settings", "<!-- [", "] -->"))){ mpre("Ошибка установки переменных в текст");
+		}else{// mpre("Результат форматирования содержимого страницы", $content);
+		} return $content;
+	}, $conf["content"])){ mpre("ОШИБКА форматирования содержимого страницы");
+}elseif(!$content = call_user_func(function() use($conf, $content){ # Если не запрещено перед выдачей кешируем страницу
+		if(get($conf, 'settings', 'users_cashe_disacled')){ mpre("Кеширование запрещено");
+		}else{// mpre("Кеширование старницы");
+			cache($content);
+		} return $content;
+	})){ mpre("Ошибка кеширования содержимого страницы");
+}else{ echo $content; }

@@ -550,57 +550,6 @@ function indexes($table_name){
 		return qn("SHOW INDEXES IN {$table}", "Column_name");
 	}
 }
-# Подключение страницы
-/*function inc($file_name, $variables = [], $req = false){
-	global $conf; extract($variables);
-	if(preg_match("#(.*)(\.php|\.tpl|\.html)$#", $file_name, $match)){
-		global $tpl;
-		if($f = mpopendir($file_name)){
-			$_arg = $GLOBALS['arg'];
-			if(!array_key_exists('arg', $variables)){ # Если не переопределяем список аргументов
-				if(($path = explode("/", $file_name)) && ($path[0] == "modules")){
-					if($mod = get($conf, 'modules', $path[1])){
-						$GLOBALS['arg'] = $arg = array("modpath"=>$path[1], 'modname'=>$mod['modname'], "admin_access"=>$mod['admin_access'], "fn"=>first(explode(".", $path[2])));
-					}
-				}
-			} if(array_search("Администратор", get($conf, 'user', 'gid'))){
-				ob_start();
-					call_user_func_array(function($f, $variables, $req) use(&$conf, &$arg, &$tpl,&$return){ extract($variables); ($req ? require($f) : include($f)); }, [$f, $variables, $req]);
-					$content = ob_get_clean();
-				if((".tpl" == get($match, 2))){
-					echo strtr(get($conf, 'settings', 'modules_start'), array('{path}'=>$f));
-					if($nesting = nesting($content)){
-						mpre("Ошибка верстки. Нарушена структура вложенности тегов.", $f, $nesting);
-					}
-				} echo $content;
-				if((".tpl" == get($match, 2))){
-					echo strtr(get($conf, 'settings', 'modules_stop'), array('{path}'=>$f));
-				}
-				$GLOBALS['arg'] = $_arg;
-				return true;
-			}else{
-				if($req){ require $f; }else{ include $f; }
-				$GLOBALS['arg'] = $_arg;
-				return true;
-			}
-			$GLOBALS['arg'] = $_arg;
-			return false;
-		}else if(!array_key_exists('arg', $variables)){ # Установленная переменная arg признак не выводить ошибку
-			mpre("Подключаемый файл не найден", $file_name);
-		}
-	}else{
-		$php = inc("{$file_name}.php", $variables, $req, $return);
-		if($return){// mpre("Ошибочный возвращенный статус 1");	
-			return 0;
-		}else{
-			$tpl = inc("{$file_name}.tpl", $variables, $req);
-			if($return){	// mpre("Ошибочный возвращенный статус 1");
-				return 0;
-			}
-		}
-		return ($php || $tpl);
-	} return false;
-}*/
 
 # Подключение фала. Путь должен быть от корня сайта /modules/pages/index Можно указать расширение .tpl .php В случае успешного подключения возвращается ноль. На ошибке выполнение прекращается
 function inc($file_name, $variables = [], $req = false){ global $conf, $tpl;
@@ -666,7 +615,7 @@ if (!function_exists('modules')){
 	function modules($content){ # Загрузка содержимого модуля
 		global $conf, $arg, $tpl;
 		foreach($_GET['m'] as $k=>$v){ $k = urldecode($k);
-			if(!$mod = (get($conf, 'modules', $k) ?: rb(get($conf, 'modules'), "modname", "[{$k}]"))){ pre("Модуль `{$k}` недоступен", $v);
+			if(!$mod = (get($conf, 'modules', $k) ?: rb(get($conf, 'modules'), "modname", "[{$k}]"))){// pre("Модуль `{$k}` недоступен", $v);
 				ob_start();
 					inc("modules/themes/404", array('arg'=>array('modpath'=>'themes', 'fn'=>404)));
 				$content .= ob_get_contents(); ob_end_clean();
