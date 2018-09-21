@@ -569,7 +569,7 @@ function seo($href, $return = true){
 	if(!$seo_location = rb("seo-location", "name", "id", (is_string($href) ? "[$href]" : true), (is_numeric(get($href, "id")) ? $href['id'] : true))){// mpre("Внутренний адрес не найден");
 	}elseif(!is_array($index = get($seo_location, "index_id") ? rb("seo-index", 'id', $seo_location['index_id']) : [])){ mpre("ОШИБКА выборки внешнего адреса");
 	}elseif(!$themes_index = get($conf, 'themes', 'index')){ $href = $seo_location["name"];
-	}elseif(!$SEO_INDEX_THEMES = rb("seo-index_themes", "location_id", "themes_index", "id", $seo_location['id'], $themes_index['id'])){ mpre("ОШИБКА получения списка адресаций");
+	}elseif(!$SEO_INDEX_THEMES = rb("seo-index_themes", "location_id", "themes_index", "id", $seo_location['id'], $themes_index['id'])){// mpre("ОШИБКА получения списка адресаций");
 	}elseif(!$tpl['index'] = rb("seo-index", "id", "id", rb($SEO_INDEX_THEMES, "index_id"))){ mpre("ОШИБКА получения адреса из списка адресаций");
 	}elseif(!$index = last($tpl['index'])){// mpre("Подходящих под суловие ссылок не найдено");
 	}elseif(!$href = get($index, 'name')){ mpre("ОШИБКА получения ссылки из списка подходящих");
