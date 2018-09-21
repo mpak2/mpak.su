@@ -565,19 +565,17 @@ function inc($file_name, $variables = [], $req = false){ global $conf, $tpl;
 # Функция определения seo вдреса страницы. Если адрес не определен в таблице seo_redirect то false
 # Параметр return определяет возвращать ли ссылку обратно если переадресация не найдена
 function seo($href, $return = true){
-	global $conf;
-	if($seo_location = rb("seo-location", "name", "id", (is_string($href) ? "[$href]" : true), (is_numeric(get($href, "id")) ? $href['id'] : true))){
-		if(array_key_exists("index_id", $seo_location) && $seo_location['index_id']){ # Односайтовый режим
-			if(!$index = rb("seo-index", 'id', $seo_location['index_id'])){ return $href;
-			}else{ return $index['name']; }
-		}elseif($themes_index = get($conf, 'user', 'sess', 'themes_index')){ # МногоСайтов
-			if(!$SEO_INDEX_THEMES = rb("seo-index_themes", "location_id", "themes_index", "id", $seo_location['id'], $themes_index['id'])){ return $href;
-			}elseif(!$tpl['index'] = rb("seo-index", "id", "id", rb($SEO_INDEX_THEMES, "index_id"))){ return $href;
-			}elseif(count($tpl['index']) == 1){ return get(first($tpl['index']), 'name');
-			}elseif($themes_index = last($tpl['index'])){ return $themes_index['name'];
-			}else{ mpre("Внешний адрес дублируется <a href='/seo:admin/r:mp_seo_index_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>не найден</a>", $SEO_INDEX_THEMES); }
-		}else{ return $href; }
-	}else{ return $href; }
+	global $conf;// mpre($href);
+	if(!$seo_location = rb("seo-location", "name", "id", (is_string($href) ? "[$href]" : true), (is_numeric(get($href, "id")) ? $href['id'] : true))){// mpre("Внутренний адрес не найден");
+	}elseif(!is_array($index = get($seo_location, "index_id") ? rb("seo-index", 'id', $seo_location['index_id']) : [])){ mpre("ОШИБКА выборки внешнего адреса");
+	}elseif(!$themes_index = get($conf, 'themes', 'index')){ $href = $seo_location["name"];
+	}elseif(!$SEO_INDEX_THEMES = rb("seo-index_themes", "location_id", "themes_index", "id", $seo_location['id'], $themes_index['id'])){ mpre("ОШИБКА получения списка адресаций");
+	}elseif(!$tpl['index'] = rb("seo-index", "id", "id", rb($SEO_INDEX_THEMES, "index_id"))){ mpre("ОШИБКА получения адреса из списка адресаций");
+	}elseif(!$index = last($tpl['index'])){// mpre("Подходящих под суловие ссылок не найдено");
+	}elseif(!$href = get($index, 'name')){ mpre("ОШИБКА получения ссылки из списка подходящих");
+	}elseif(count($tpl['index']) > 1){ mpre("Внешний адрес дублируется <a href='/seo:admin/r:mp_seo_index_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>не найден</a>", $SEO_INDEX_THEMES);
+	}else{// mpre("Найденная ссылка", $href);
+	} return $href;
 }
 
 if (!function_exists('modules')){
@@ -639,7 +637,7 @@ if (!function_exists('modules')){
 				}elseif($conf['settings']['theme/*:admin'] == $conf['settings']['theme']){// mpre("Админ страница");
 				}elseif(array_search($arg['fn'], ['', 'ajax', 'json', '404'])){// mpre("Список исключенных для СЕО старниц");
 				}else{// mpre($canonical);
-					inc("modules/seo/admin_meta.php", array('arg'=>$arg, "uri"=>$uri, "get"=>$get, "canonical"=>$canonical));
+					inc("modules/seo/admin_meta.php", ['arg'=>$arg, "uri"=>$uri, "get"=>$get, "canonical"=>$canonical]);
 				}
 				ob_start();
 					if(is_null($return = inc("modules/{$mod['link']}/{$v}", array('arg'=>$arg)))){ # Если не создано скриптов и шаблона для страницы запускаетм общую (аля 404 для модуля)
