@@ -6,8 +6,8 @@ function users_sess($sess = null){
 	if(!$guest = ['id'=>0, "uname"=>"гость", "pass"=>"nopass", "reg_time"=>0, "last_time"=>time()]){ pre("Ошибка создания пользователя");
 	}elseif(!$hash = ($_COOKIE["sess"] ?: md5("{$_SERVER['REMOTE_ADDR']}:".microtime()))){ pre("ОШИБКА расчета хеша кукисы");
 	}elseif(!$url = mpquot(urldecode($_SERVER['REQUEST_URI']))){ pre("ОШИБКА расчета адреса текущей страницы");
-	}elseif(!is_string($ref = mpquot(mpidn(urldecode(get($_SERVER, 'HTTP_REFERER')))))){ pre("ОШИБКА расчета реферальной ссылки");
-	}elseif(!$_sess = array('id'=>0, 'uid'=>$guest['id'], "refer"=>0, 'last_time'=>time(), 'count'=>0, 'count_time'=>0, 'cnull'=>0, 'sess'=>$hash, 'ref'=>$ref, 'ip'=>mpquot($_SERVER['REMOTE_ADDR']), 'agent'=>mpquot($_SERVER['HTTP_USER_AGENT']), 'url'=>$url)){ pre("Ошибка создания пустой сессии");
+//	}elseif(!is_string($ref = mpquot(mpidn(urldecode(get($_SERVER, 'HTTP_REFERER')))))){ pre("ОШИБКА расчета реферальной ссылки");
+	}elseif(!$_sess = array('id'=>0, 'uid'=>$guest['id'], "refer"=>0, 'last_time'=>time(), 'count'=>0, 'count_time'=>0, 'cnull'=>0, 'sess'=>$hash, /*'ref'=>$ref,*/ 'ip'=>mpquot($_SERVER['REMOTE_ADDR']), 'agent'=>mpquot($_SERVER['HTTP_USER_AGENT']), 'url'=>$url)){ pre("Ошибка создания пустой сессии");
 	}elseif(!is_numeric($uid = get($conf, 'user', 'uid') > 1 ? $conf['user']['uid'] : $guest['id'])){ pre("ОШИБКА установки идентификтаора пользователя");
 	}elseif(!$sql = "SELECT * FROM {$conf['db']['prefix']}users_sess WHERE `ip`='{$_sess['ip']}' AND last_time>=".(time()-86400)." AND `agent`=\"{$_sess['agent']}\" AND ". ($_COOKIE["sess"] ? "sess=\"{$_sess['sess']}\"" : "uid=". $uid)." ORDER BY id DESC"){ mpre("ОШИБКА составления запроса поиска сессии");
 	}elseif($sess = (get($_COOKIE, "sess") ? mpql(mpqw($sql), 0) : [])){ return $sess;// pre("ОШИБКА получения сессии");
@@ -45,37 +45,6 @@ function seo_alias($canonical = null, $url = false){ global $conf; // mpre($cano
 			return $alias;
 		}
 }
-
-# Автоподгрузка классов
-function PHPClassAutoload($CN){
-//	if(!$dirname = __DIR__){ mpre("ОШИБКА установки текущей директории")
-//	mpre(getcwd());
-	foreach(explode("\\",$CN) as $class_name){
-		//For example - include/mail/PHPMailerAutoload.php
-		$file_project = mpopendir("include/class/$class_name/$class_name.php");
-		$file_single  = mpopendir($file = "include/class/$class_name.php");
-		$file_mail    = mpopendir("include/class/mail/class.".strtolower($class_name).".php");
-		if($file_project){ include_once $file_project;
-		}else if($file_single){ include_once $file_single;
-		}elseif($file_mail){ include_once $file_mail;
-		}elseif(in_array($class_name, array('Memcached'))){// mpre("Имя класса в массиве");
-		}else{ mpre("Файл класса не найден {$file}");
-		}
-	}
-}
-
-# Иницилизация автоподгрузки
-//if (version_compare(PHP_VERSION, '5.1.2', '>=')) {
-    if (version_compare(PHP_VERSION, '5.3.0', '>=')){
-        spl_autoload_register('PHPClassAutoload', true, true);
-    } else {
-        spl_autoload_register('PHPClassAutoload');
-    }
-//} else { # Функция устарела в версии 7.2
-//    function __autoload($classname){
-//        PHPClassAutoload($classname);
-//    }
-//}
 
 # Генерация base64 последовательности изображения из картинги
 function base64($img, $w, $h, $c = 0){
@@ -220,7 +189,7 @@ function ip(){
 	return get($_SERVER,'HTTP_X_REAL_IP')?:get($_SERVER,'REMOTE_ADDR');
 }
 
-//возвращает содержимое папки, поумолчанию рекурсивно
+//возвращает содержимое папки, по умолчанию рекурсивно
 function getDirContents($dir, $regexp="", $recursive=true, &$results = array()){
 	$files = scandir($dir);
 	foreach($files as $key => $value){
@@ -808,32 +777,6 @@ function mp_array_format($array,$array_format){
 	return $buf?:$array;
 }
 
-set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
-	global $conf;
-	if(!$errortype = array (
-			1   =>  "Ошибка",
-			2   =>  "Предупреждение",
-			4   =>  "Ошибка синтаксического анализа",
-			8   =>  "Замечание",
-			16  =>  "Ошибка ядра",
-			32  =>  "Предупреждение ядра",
-			64  =>  "Ошибка компиляции",
-			128 =>  "Предупреждение компиляции",
-			256 =>  "Ошибка пользователя",
-			512 =>  "Предупреждение пользователя",
-			1024=>  "Замечание пользователя",
-			2048=> "Обратная совместимость",
-		)){ mpre("ОШИБКА установки массива ошибок");
-	}elseif(!$file_info = "{$filename}:{$linenum}"){ mpre("ОШИБКА получения информаци о файле и строке");
-	}elseif(!$type_num = (($type = get($errortype, $errno)) ? "{$type} ({$errno})" : "Неустановленный тип ошибки ({$errno})")){ mpre("Тип ошибки не установлен");
-	}elseif(!$pdo = (0 === strpos($errmsg, 'PDO::query():'))){ mpre($file_info, $type_num, $errmsg);
-	}elseif(!$conn = $conf['db']['conn']){ mpre("ОШИБКА определения соединения с базой данных");
-	}elseif(!$info = last($conf['db']['sql'])){ mpre("ОШИБКА получения запроса", $conf['db']);
-	}elseif(!$error = (last($conn->errorInfo()) ?: $errmsg)){ mpre("Текст ошибки не установлен", $info['sql']);
-	}else{ mpre($file_info, $type_num, $error, $info['sql']);
-		mpevent($type, $error, ["Файл"=>$file_info, "Номер ошибки"=>$type_num, "Ошибка"=>$error, "Запрос"=>$info['sql']]);
-	}
-});
 function mpzam($ar, $name = null, $prefix = "{", $postfix = "}", $separator = ":"){ # Создание из много мерного массиива - одномерного. Применяется для подставки в текстах отправляемых писем данных из массивов
 	$f = function($ar, $prx = "") use(&$f, $prefix, $postfix, $separator, $name){
 		$r = array();
@@ -1262,9 +1205,6 @@ function mpdbf($tn, $post = null, $and = false){
 				qw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE `id`=". (int)$s['id']);
 			} return $s['id'];
 		}else{ mpre("Множественные изменения запрещены `{$tn}`", $find); # Множественное обновление. Если в качестве условия используется несколько элементов
-/*			if($update && ($upd = mpdbf($tn, $update))){
-				qw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE `id` IN (". in($sel). ")");
-			} return $sel;*/
 		}
 	}elseif($insert){
 		if(!$fields = fields($tn)){ mpre("ОШИБКА получения полей таблицы `{$tn}`");
@@ -1373,12 +1313,6 @@ function mpevent($name, $description = null){ # Сохранение инфор�
 	}
 }
 
-function mpidn($value, $enc = 0){
-	/*if(!class_exists('idna_convert') && require_once(mpopendir('include/idna_convert.class.inc'))){ mpre("Ошибка подключения класса");
-	}else*/if(!$IDN = new idna_convert()){ mpre("Ошибка создания экземпляра класса");
-	}elseif($enc){ return $IDN->encode($value);
-	}else{ return $IDN->decode($value); }
-}
 function mpsettings($name, $value = null, $aid = 4, $description = ""){
 	global $conf, $arg;
 	if($value === null){
@@ -1421,24 +1355,6 @@ function mpgt($REQUEST_URI, $get = array()){
 		}
 	} if(!empty($get['стр']) && $get['стр']) $get['p'] = $get['стр'];
 	return $get;
-}
-function mpwr($tn, $get = null, $prefix = null){ mpre("Устаревшая функция. Если вы ее используете удалите из кода. Скоро она перестанет быть доступной");
-	global $conf;
-	if(empty($prefix)) $where = ' WHERE 1=1';
-	$f = mpqn(mpqw("DESC {$tn}"), 'Field');
-	foreach($get !== null ? $get : $_GET as $k=>$v){
-		$buf = explode('.', $k);
-		$n = array_pop($buf);unset($buf );
-		if((substr($k, 0, 1) == '!') && ($f[substr($k, 1)] || $f[$n])){
-			$where .= " AND {$prefix}`". mpquot(substr($k, 1)). "`<>\"". mpquot($v). "\"";
-		}elseif(is_numeric($v) && (substr($k, 0, 1) == '+') && ($f[substr($k, 1)] || $f[$n])){
-			$where .= " AND {$prefix}`". mpquot(substr($k, 1)). "`>". (int)$v;
-		}elseif(is_numeric($v) && (substr($k, 0, 1) == '-') && ($f[substr($k, 1)] || $f[$n])){
-			$where .= " AND {$prefix}`". mpquot(substr($k, 1)). "`<". (int)$v;
-		}elseif(($v !== "") && get($f,$n) && gettype($v) == "string"){
-			$where .= " AND {$prefix}`". mpquot($k). "`=\"". mpquot($v). "\"";
-		}
-	} return $where;
 }
 
 function mpsmtp($to, $subj="", $text="", $from = null, $files = array(), $login = null){ # Отправка письмо по SMTP протоколу
@@ -1665,14 +1581,7 @@ function mpager($count, $id = null, $null=null, $cur=null /* Номер паги
 function mphash($user, $pass){
 	return md5("$user:".md5($pass));
 }
-function mpget($name, $value = null){
-	$param = "$name".(strlen($value) ? "=$value" : '');
-	if (isset($_GET[$name])){
-		return str_replace("$name={$_GET[$name]}", $param, $_SERVER['REQUEST_URI']);
-	}else{
-		return $_SERVER['REQUEST_URI'].(strpos($_SERVER['REQUEST_URI'], '?') ? '&' : '?').$param;
-	}
-}
+
 function mpct($file_name, $arg = array(), $vr = 1){
 	global $conf, $tpl;
 	foreach(explode('::', $conf["db"]["open_basedir"]) as $k=>$v)
@@ -1684,18 +1593,7 @@ function mpct($file_name, $arg = array(), $vr = 1){
 	$content = ob_get_contents(); ob_end_clean();
 	return $content;
 }
-function mpeval($file_name, $arg = array(), $vr = 1){
-	global $conf;
-	foreach(explode('::', $conf["db"]["open_basedir"]) as $k=>$v)
-		if (file_exists($file = "$v/$file_name")) break;
-	if (!file_exists($file = "$v/$file_name")) return "<div style=\"margin-top:100px; text-align:center;\"><span style=color:red;>Ошибка доступа к файлу</span> $v/$file_name</div>";
-	ob_start();
-	$conf['settings']['data-file'] = $file;
-	eval('?>'. strtr(file_get_contents($file), array('<? die;'=>'<?', '<?php die;'=>'<?php')));
-	$content = ob_get_contents();
-	ob_end_clean();
-	return $content;
-}
+
 function mpreaddir($file_name, $merge=0){
 	global $conf;
 	$itog = array();
@@ -1714,7 +1612,6 @@ function mpreaddir($file_name, $merge=0){
 	return $itog;
 }
 function mpopendir($file_name, $merge=1){
-//	mpre(__DIR__);
 	global $conf;
 	if(!$prefix = $merge ? explode('::', get($conf, "db", "open_basedir")) : array('./')){ mpre("Ошибка нахождения префиксов настройки системы");
 	}elseif(($merge < 0) && krsort($prefix)){ mpre("Ошибка сортировки префиксов");
@@ -1727,6 +1624,7 @@ function mpopendir($file_name, $merge=1){
 		}
 	}
 }
+
 function mpql($dbres, $ln = null, $fd = null){
 	$result = array();
 	if($dbres){
@@ -1753,9 +1651,7 @@ function mpql($dbres, $ln = null, $fd = null){
 			}
 		} return $r;
 	}
-}
-
-function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
+} function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 	$result = array();
 	if($dbres){
 		while($line = $dbres->fetch(PDO::FETCH_ASSOC)){
@@ -1836,6 +1732,7 @@ function mpqw($sql){ # Все аргументы разбираются по т�
 	global $conf;
 	return call_user_func("mpqw", $sql, $info, $callback, $params, $conn);
 }
+
 function mpfile($filename, $description = null){
 //	$file_name = strtr($file_name, array('../'=>'', '/./'=>'/', '//'=>'/'));
 	$file_name = mpopendir("include/$filename");
@@ -1860,14 +1757,7 @@ function mpfile($filename, $description = null){
 		return '';
 	}
 }
-function mpgc($value, $param = null){
-	if ($param) unset($value[$param]);
-	ob_start();
-	var_dump($value);
-	$str = ob_get_contents();
-	ob_end_clean();
-	return $str;
-}
+
 function mpwysiwyg($name, $content = null, $tpl = ""){
 	global $conf;
 	if(!isset($conf['settings']['wysiwyg']) OR empty($conf['settings']['wysiwyg'])){
@@ -1891,41 +1781,6 @@ function mpwysiwyg($name, $content = null, $tpl = ""){
 		return "<textarea name='$name' style='width:100%; height:200px;'>$content</textarea>";
 	}
 }
-function mpmenu($m = array()){
-	global $conf, $arg;
-	# Скрываем меню в админке для администраторов
-	if($conf['settings']['admin_mpmenu_hide'] && $arg['admin_access'] < 5) return;
-	if(array_key_exists("null", $_GET)) return false;
-	$tab = (int)$_GET['r'];
-	if($_GET['r']){
-		echo <<<EOF
-			<script>
-				$(function(){
-					$('.tabs li.{$tab}').add('.tabs li.{$_GET['r']}').addClass('act');
-				});
-			</script>
-EOF;
-	}
-	if(empty($conf['settings']['admin_help_hide'])){
-		echo '<div style="float:right; margin:5px;"><a target=blank href="//mpak.su/help/modpath:'. $arg['modpath']. "/fn:". $arg['fn']. '/r:'. $_GET['r']. '">Помощь</a></div>';
-	}
-	if($modname = array_search('admin', $_GET['m'])){
-		$modname_id = mpfdk("{$conf['db']['prefix']}modules_index",
-			array("folder"=>$modname), null, array("priority"=>time())
-		);
-	}
-	echo '<ul class="nl tabs">';
-	foreach($m as $k=>$v){
-		if (($v[0] == '.') && ($_GET['r'] != $k)) continue;
-		echo "<li class=\"$k\"><a href=\"/{$modname}:admin". ($k ? "/r:$k" : ''). "\">$v</a></li>";
-	}
-	echo '</ul>';
-	if(!empty($m) && empty($_GET['r'])){
-		if(!is_numeric($r = array_shift(array_keys($m))) && (strpos($_SERVER['REQUEST_URI'], "?") !== false)){
-			header("Location: /admin:{$arg['modname']}/r:". array_shift(array_keys($m)));
-		}
-	}
-}
 
 function pre(){
 	global $conf;
@@ -1947,6 +1802,7 @@ function pre(){
 		return call_user_func_array("pre", func_get_args());
 	}
 }
+
 function mpquot($data){ # экранирование символов при использовании в запросах к базе данных
 	global $conf;
 	if(ini_get('magic_quotes_gpc')){ # Волшебные кавычки для входных данных GET/POST/Cookie. magic_quotes_gpc = On

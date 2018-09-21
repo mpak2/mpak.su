@@ -33,8 +33,58 @@ if(!call_user_func(function(){ # Переменные окружения
 			require_once $file_name; return $file_name;
 		} return $file_name;
 	}){ mpre("Функция подключения ресурсов");
+}elseif(call_user_func(function() use($conf){ # Отображение нефатальных ошибок только под администратором
+		set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
+			if(!$errortype = array (
+					1   =>  "Ошибка",
+					2   =>  "Предупреждение",
+					4   =>  "Ошибка синтаксического анализа",
+					8   =>  "Замечание",
+					16  =>  "Ошибка ядра",
+					32  =>  "Предупреждение ядра",
+					64  =>  "Ошибка компиляции",
+					128 =>  "Предупреждение компиляции",
+					256 =>  "Ошибка пользователя",
+					512 =>  "Предупреждение пользователя",
+					1024=>  "Замечание пользователя",
+					2048=> "Обратная совместимость",
+				)){ mpre("ОШИБКА установки массива ошибок");
+			}elseif(!$file_info = "{$filename}:{$linenum}"){ mpre("ОШИБКА получения информаци о файле и строке");
+			}elseif(!$type_num = (($type = get($errortype, $errno)) ? "{$type} ({$errno})" : "Неустановленный тип ошибки ({$errno})")){ mpre("Тип ошибки не установлен");
+			}elseif(!$pdo = (0 === strpos($errmsg, 'PDO::query():'))){ mpre($file_info, $type_num, $errmsg);
+			}elseif(!$conn = $conf['db']['conn']){ mpre("ОШИБКА определения соединения с базой данных");
+			}elseif(!$info = last($conf['db']['sql'])){ mpre("ОШИБКА получения запроса", $conf['db']);
+			}elseif(!$error = (last($conn->errorInfo()) ?: $errmsg)){ mpre("Текст ошибки не установлен", $info['sql']);
+			}else{ mpre($file_info, $type_num, $error, $info['sql']);
+				mpevent($type, $error, ["Файл"=>$file_info, "Номер ошибки"=>$type_num, "Ошибка"=>$error, "Запрос"=>$info['sql']]);
+			}
+		});
+	})){ mpre("ОШИБКА устанвоки режима вывода ошибок");
 }elseif(!$mp_require_once("include/config.php")){ mpre("ОШИБКА подключения файла конфигурации");
 }elseif(!$mp_require_once("include/func.php")){ mpre("ОШИБКА подключения функций системы");
+}elseif(call_user_func(function(){ # Автоподгрузка классов
+		function PHPClassAutoload($CN){
+		//	if(!$dirname = __DIR__){ mpre("ОШИБКА установки текущей директории")
+			foreach(explode("\\",$CN) as $class_name){
+				//For example - include/mail/PHPMailerAutoload.php
+				$file_project = mpopendir("include/class/$class_name/$class_name.php");
+				$file_single  = mpopendir($file = "include/class/$class_name.php");
+				$file_mail    = mpopendir("include/class/mail/class.".strtolower($class_name).".php");
+				if($file_project){ include_once $file_project;
+				}else if($file_single){ include_once $file_single;
+				}elseif($file_mail){ include_once $file_mail;
+				}elseif(in_array($class_name, array('Memcached'))){// mpre("Имя класса в массиве");
+				}else{ mpre("Файл класса не найден {$file}");
+				}
+			}
+		}
+
+        if(version_compare(PHP_VERSION, '5.3.0', '>=')){
+			spl_autoload_register('PHPClassAutoload', true, true);
+		}else{
+			spl_autoload_register('PHPClassAutoload');
+		}
+	})){ mpre("ОШИБКА установки пути к автозагрузке");
 }elseif(call_user_func(function($argv) use(&$conf){ // Запуск скрипта из консоли php -f index.php /pages:index/2 - Путь до скрипта в файловой системе
 		if(empty($argv)){// mpre("Только при запуске из консоли");
 		}elseif(count($argv)>1){ mpre("Аргументы командной строки не указаны пример - php -f index.php /pages:index/2");
