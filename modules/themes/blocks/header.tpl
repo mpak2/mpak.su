@@ -174,25 +174,27 @@
 <? elseif(($canonical = get($conf, 'settings', 'canonical')) &&0): mpre("Канонический адрес не задан") ?>
 <? elseif(!$alias = seo_alias($canonical)): mpre("ОШИБКА получения алиаса категории адреса") ?>
 <? elseif((!$seo_cat = rb("seo-cat", "id", get($canonical, 'cat_id'))) && (!$seo_cat = rb("seo-cat", "alias", (empty($alias) ? false : "[{$alias}]"))) &0): mpre("Категория не найдена") ?>
-<? elseif(!is_string($uri = call_user_func(function($canonical){
+<? /*elseif(!is_string($uri = call_user_func(function($canonical){
 		if(is_array($canonical)){ return get($canonical, 'name');
 		}elseif(is_string($canonical)){ return $canonical;
 		}else{ return $_SERVER['REQUEST_URI']; }
-	}, $canonical))): mpre("ОШИБКА расчета адреса страницы") ?>
+	}, $canonical))): mpre("ОШИБКА расчета адреса страницы")*/ ?>
+<? elseif(!$uri = $_SERVER['REQUEST_URI']): mpre("ОШИБКА определения адреса") ?>
 <? elseif(!is_array($seo_index = ($uri ? rb("seo-index", "name", array_flip([$uri])) : []))): mpre("ОШИБКА нахождения внутреннего адреса `{$index}`") ?>
+<?// elseif(true): mpre($uri, $seo_index) ?>
 <? elseif(!is_array($themes_index = get($conf, 'themes', 'index') ?: [])): mpre("ОШИБКА выборки хоста сайта") ?>
 <? elseif(!is_array($seo_index_themes = (($seo_index && $themes_index) ? rb("seo-index_themes", "themes_index", "index_id", $themes_index['id'], $seo_index['id']) : []))): mpre("Адрес мультисайт
  режима не найден"); ?>
 <? elseif(!is_array($seo_location = $seo_index_themes ? rb("seo-location", "id", $seo_index_themes["location_id"]) : [])): mpre("ОШИБКА получения внутреннего адреса") ?>
-<? elseif(!is_array($seo_index = call_user_func(function($seo_location) use($conf, $themes_index, $seo_index_themes){
-		if(!$seo_index_themes){ return $seo_index_themes;
-		}elseif(!$themes_index = get($conf, 'themes', 'index')){// mpre("Односайтовый режим");
-			if(!$seo_index = rb('seo-index', 'location_id', get($seo_location, 'id'))){ return []; mpre("ОШИБКА выборки внешнего адреса страницы");
-			}else{ return $seo_index; }
-		}elseif(!$seo_index = rb('seo-index', 'id', $seo_index_themes['index_id'])){ return []; mpre("Внешний адрес мультисайт режима не найден");
-		}else{ return $seo_index; }
+<? elseif(!is_array($seo_index = call_user_func(function($seo_location) use($conf, $seo_index, $themes_index, $seo_index_themes){
+		if(!$seo_location){// mpre("Внутренний адрес не задан");
+		}elseif(!$themes_index = get($conf, 'themes', 'index')){ $seo_index = rb('seo-index', 'location_id', $seo_location['id']); // mpre("Односайтовый режим");
+		}elseif(!$seo_location_themes = rb("seo-location_themes", "themes_index", "location_id", $themes_index["id"], $seo_location["id"])){ mpre("ОШИБКА выборки переадресации");
+		}elseif(!$seo_index = rb('seo-index', 'id', $seo_location_themes['index_id'])){ mpre("Внешний адрес мультисайт режима не найден");
+		}else{// mpre("Переадресация", $seo_location_themes);
+		} return $seo_index;
 	}, $seo_location))): mpre("ОШИБКА нахождения внешнего адреса") ?>
-<? else:// mpre($alias, $seo_cat) ?>
+<? else:// mpre($uri, array_flip([$uri]), $seo_index, $themes_index, $seo_index_themes) ?>
 		<div class="themes_header_seo_blocks" style="z-index:999999; border:1px solid #eee; border-radius:7px; position:fixed; background-color:rgba(255,255,255,0.7); color:black; padding:0 5px; left:10px; top:10px; width:auto;">
 			<div class="table">
 				<div>
@@ -209,7 +211,7 @@
 							<? elseif(!$seo_index): ?>
 								<span><?=$uri?></span>
 							<? else: ?>
-								<a href="/seo:admin/r:seo-index?&where[id]=<?=$seo_index['id']?>"><?=$seo_location['name']?></a>
+								<a href="/seo:admin/r:seo-index?&where[id]=<?=$seo_index['id']?>"><?=$uri?></a>
 							<? endif; ?>
 						</div>
 					</span>
