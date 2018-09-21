@@ -570,10 +570,10 @@ function seo($href, $return = true){
 	}elseif(!is_array($index = get($seo_location, "index_id") ? rb("seo-index", 'id', $seo_location['index_id']) : [])){ mpre("ОШИБКА выборки внешнего адреса");
 	}elseif(!$themes_index = get($conf, 'themes', 'index')){ $href = $seo_location["name"];
 	}elseif(!$SEO_INDEX_THEMES = rb("seo-index_themes", "location_id", "themes_index", "id", $seo_location['id'], $themes_index['id'])){// mpre("ОШИБКА получения списка адресаций");
-	}elseif(!$tpl['index'] = rb("seo-index", "id", "id", rb($SEO_INDEX_THEMES, "index_id"))){ mpre("ОШИБКА получения адреса из списка адресаций");
-	}elseif(!$index = last($tpl['index'])){// mpre("Подходящих под суловие ссылок не найдено");
+	}elseif(!$INDEX = rb("seo-index", "id", "id", rb($SEO_INDEX_THEMES, "index_id"))){ mpre("ОШИБКА получения адреса из списка адресаций");
+	}elseif(!$index = first($INDEX)){// mpre("Подходящих под суловие ссылок не найдено");
 	}elseif(!$href = get($index, 'name')){ mpre("ОШИБКА получения ссылки из списка подходящих");
-	}elseif(count($tpl['index']) > 1){ mpre("Внешний адрес дублируется <a href='/seo:admin/r:mp_seo_index_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>не найден</a>", $SEO_INDEX_THEMES);
+	}elseif(count($INDEX) > 1){ mpre("Внешний адрес дублируется <a href='/seo:admin/r:mp_seo_index_themes?&where[location_id]={$seo_location['id']}&where[themes_index]={$themes_index['id']}'>не найден</a>", $SEO_INDEX_THEMES);
 	}else{// mpre("Найденная ссылка", $href);
 	} return $href;
 }
