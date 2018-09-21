@@ -179,8 +179,8 @@ if(!call_user_func(function(){ # Переменные окружения
 		} return basename($theme);
 	}, $conf['settings']['theme'])){ mpre("ОШИБКА определения темы сайта");
 }elseif(inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($conf["content"] = "")))){ mpre("Ошибка подключения файла инициализации");
-}elseif(!is_array($themes_index = call_user_func(function($http_host, $themes_index = []) use($conf){ # Выборка хоста и добавление в случае необходимости
-		if(!get($conf, "themes", "index")){// mpre("Односайтовый режим");
+}elseif(!is_array($conf['themes']['index'] = $themes_index = call_user_func(function($http_host, $themes_index = []) use($conf){ # Выборка хоста и добавление в случае необходимости
+		if(!get($conf, "settings", "themes_index")){ mpre("Односайтовый режим");
 		}elseif($themes_index = rb("themes-index", "name", "[$http_host]")){// mpre("Хост найден в списке хостов");
 			if(!$_themes_index = (get($themes_index, 'index_id') ? rb("themes-index", "id", $themes_index['index_id']) : [])){// mpre("Зеркало сайта не найдено");
 			}elseif($_SERVER['REQUEST_URI'] == "/robots.txt"){// mpre("Обработка страницы робота");
@@ -191,11 +191,9 @@ if(!call_user_func(function(){ # Переменные окружения
 			}else{ header('HTTP/1.0 403 Forbidden');
 				inc("modules/{$arg['modpath']}/{$arg['fn']}_init", array("themes_index"=>$themes_index));
 			}
-		}else{
+		}else{// mpre("Хост сайта", $themes_index);
 		} return $themes_index;
 	}, $conf["settings"]["http_host"]))){ mpre("ОШИБКА выборки хоста сайта");
-//		}elseif(empty($themes_index)){ mpre("ОШИБКА хост сайта не определен");
-}elseif(!is_array($conf['themes']['index'] = (get($conf, 'themes', 'index') ? $conf['themes']['index'] + $themes_index : $themes_index))){ mpre("Таблица хостов не задана");
 }elseif(!$url = first(explode("?", urldecode($_SERVER['REQUEST_URI'])))){ mpre("Ошибка формирования исходного адреса страницы");
 }elseif(!$url = preg_replace("#\/(стр|p)\:[0-9]+#", "", $url)){ mpre("Ошибка избавления от номера страниц в адресе");
 }elseif(!is_array($seo_index = rb("seo-index", "name", array_flip([$url])))){ mpre("ОШИБКА получения внешнего адреса страницы");
