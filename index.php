@@ -33,33 +33,6 @@ if(!call_user_func(function(){ # Переменные окружения
 			require_once $file_name; return $file_name;
 		} return $file_name;
 	}){ mpre("Функция подключения ресурсов");
-}elseif(call_user_func(function() use($conf){ # Отображение нефатальных ошибок только под администратором
-		set_error_handler(function ($errno, $errmsg, $filename, $linenum, $vars){
-			if(!$errortype = array (
-					1   =>  "Ошибка",
-					2   =>  "Предупреждение",
-					4   =>  "Ошибка синтаксического анализа",
-					8   =>  "Замечание",
-					16  =>  "Ошибка ядра",
-					32  =>  "Предупреждение ядра",
-					64  =>  "Ошибка компиляции",
-					128 =>  "Предупреждение компиляции",
-					256 =>  "Ошибка пользователя",
-					512 =>  "Предупреждение пользователя",
-					1024=>  "Замечание пользователя",
-					2048=> "Обратная совместимость",
-				)){ mpre("ОШИБКА установки массива ошибок");
-			}elseif(!$file_info = "{$filename}:{$linenum}"){ mpre("ОШИБКА получения информаци о файле и строке");
-			}elseif(!$type_num = (($type = get($errortype, $errno)) ? "{$type} ({$errno})" : "Неустановленный тип ошибки ({$errno})")){ mpre("Тип ошибки не установлен");
-			}elseif(!$pdo = (0 === strpos($errmsg, 'PDO::query():'))){ mpre($file_info, $type_num, $errmsg);
-			}elseif(!$conn = $conf['db']['conn']){ mpre("ОШИБКА определения соединения с базой данных");
-			}elseif(!$info = last($conf['db']['sql'])){ mpre("ОШИБКА получения запроса", $conf['db']);
-			}elseif(!$error = (last($conn->errorInfo()) ?: $errmsg)){ mpre("Текст ошибки не установлен", $info['sql']);
-			}else{ mpre($file_info, $type_num, $error, $info['sql']);
-				mpevent($type, $error, ["Файл"=>$file_info, "Номер ошибки"=>$type_num, "Ошибка"=>$error, "Запрос"=>$info['sql']]);
-			}
-		});
-	})){ mpre("ОШИБКА устанвоки режима вывода ошибок");
 }elseif(!$mp_require_once("include/config.php")){ mpre("ОШИБКА подключения файла конфигурации");
 }elseif(!$mp_require_once("include/func.php")){ mpre("ОШИБКА подключения функций системы");
 }elseif(call_user_func(function(){ # Автоподгрузка классов
@@ -85,7 +58,35 @@ if(!call_user_func(function(){ # Переменные окружения
 			spl_autoload_register('PHPClassAutoload');
 		}
 	})){ mpre("ОШИБКА установки пути к автозагрузке");
-}elseif(call_user_func(function($argv) use(&$conf){ // Запуск скрипта из консоли php -f index.php /pages:index/2 - Путь до скрипта в файловой системе
+}elseif(call_user_func(function(){ # Отображение нефатальных ошибок только под администратором
+		set_error_handler(function($errno, $errmsg, $filename, $linenum, $vars){
+			global $conf;
+			if(!$errortype = array(
+					1   =>  "Ошибка",
+					2   =>  "Предупреждение",
+					4   =>  "Ошибка синтаксического анализа",
+					8   =>  "Замечание",
+					16  =>  "Ошибка ядра",
+					32  =>  "Предупреждение ядра",
+					64  =>  "Ошибка компиляции",
+					128 =>  "Предупреждение компиляции",
+					256 =>  "Ошибка пользователя",
+					512 =>  "Предупреждение пользователя",
+					1024=>  "Замечание пользователя",
+					2048=> "Обратная совместимость",
+				)){ mpre("ОШИБКА установки массива ошибок");
+			}elseif(!$file_info = "{$filename}:{$linenum}"){ mpre("ОШИБКА получения информаци о файле и строке");
+			}elseif(!$type_num = (($type = get($errortype, $errno)) ? "{$type} ({$errno})" : "Неустановленный тип ошибки ({$errno})")){ mpre("Тип ошибки не установлен");
+			}elseif(!$pdo = (0 === strpos($errmsg, 'PDO::query():'))){ mpre($file_info, $type_num, $errmsg);
+			}elseif(!$conn = $conf['db']['conn']){ mpre("ОШИБКА определения соединения с базой данных");
+			}elseif(!$info = last($conf['db']['sql'])){ mpre("ОШИБКА получения запроса", $conf['db']);
+			}elseif(!$error = (last($conn->errorInfo()) ?: $errmsg)){ mpre("Текст ошибки не установлен", $info['sql']);
+			}else{ mpre($file_info, $type_num, $error, $info['sql']);
+				mpevent($type, $error, ["Файл"=>$file_info, "Номер ошибки"=>$type_num, "Ошибка"=>$error, "Запрос"=>$info['sql']]);
+			}
+		});
+	})){ mpre("ОШИБКА устанвоки режима вывода ошибок");
+}elseif(call_user_func(function() use(&$conf){ // Запуск скрипта из консоли php -f index.php /pages:index/2 - Путь до скрипта в файловой системе
 		if(empty($argv)){// mpre("Только при запуске из консоли");
 		}elseif(count($argv)>1){ mpre("Аргументы командной строки не указаны пример - php -f index.php /pages:index/2");
 		}elseif(!$conf['user']['gid'] = array(1=>"Администратор")){ mpre("Установка прав администратора");
@@ -101,7 +102,7 @@ if(!call_user_func(function(){ # Переменные окружения
 		}elseif(!$arg =['modpath' => $mode[0], 'modname' => $mode[0], 'fn' => $mode[1], 'fe' => null, 'admin_access' => 5]){ mpre("Формирование аргументов страницы");
 		}elseif(!$mode = "modules/".implode("/",$mode)){ mpre("ОШИБКА собираем путь к модулю");
 		}else{ exit(inc($mode,['arg'=>$arg])); }
-	}, $argv)){ mpre("Консольный режим запуска страниц php -f index.php /pages:index/2");
+	})){ mpre("Консольный режим запуска страниц php -f index.php /pages:index/2");
 }elseif(!$conf['settings']['http_host'] = call_user_func(function(){
 		if(!$http_host = mb_strtolower($_SERVER['HTTP_HOST'], 'UTF-8')){ mpre("Ошибка определения хоста");
 		}elseif(!$http_host = (strpos($http_host, "www.") === 0 ? substr($http_host, 4) : $http_host)){ mpre("Удаление www из начала страницы");
@@ -115,7 +116,7 @@ if(!call_user_func(function(){ # Переменные окружения
 		}elseif(!$cache = cache()){// mpre("Кеш не найден в базе");
 		}else{ return $cache; }
 	})){ exit($cache); mpre("Выдаем сохраненную версию если страница кеширована ранее"); 
-}elseif(!$conf['db']['conn'] = call_user_func(function($conn = null){ # Подключение к базе данных
+}elseif(!$conf['db']['conn'] = call_user_func(function($conn = null) use($conf){ # Подключение к базе данных
 		if(($conf['db']['type'] == 'sqlite') && !is_writable($conf['db']['name'])){ die(!pre("ОШИБКА Файл БД `{$conf['db']['name']}` не доступен для записи", "ERROR DB file `{$conf['db']['name']} ' error is not writable"));
 		}elseif(!$conn = conn()){ pre("ОШИБКА подключения к базе данных");
 		}elseif(!empty($conf['db']['error'])){ pre("ОШИБКА подключения к базе данных", $conf['db']['error']);
