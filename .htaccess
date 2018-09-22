@@ -19,6 +19,10 @@
 	php_value suhosin.executor.include.whitelist phar
 #	php_value upload_max_filesize 200M
 
+	php_value max_input_vars 10000
+	php_value suhosin.post.max_vars 10000
+	php_value suhosin.request.max_vars 10000
+
 	<FilesMatch ".(tpl)$">
 	  Order allow,deny
 	  Deny from all
