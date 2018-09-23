@@ -233,19 +233,18 @@ if(!call_user_func(function(){ # Переменные окружения
 }elseif(!is_array($conf['themes']['index'] = $themes_index = call_user_func(function($http_host, $themes_index = []) use($conf){ # Выборка хоста и добавление в случае необходимости
 		if(!get($conf, "settings", "themes_index")){ mpre("Односайтовый режим");
 		}elseif($themes_index = rb("themes-index", "name", "[$http_host]")){// mpre("Хост найден в списке хостов");
-			if(!$_themes_index = (get($themes_index, 'index_id') ? rb("themes-index", "id", $themes_index['index_id']) : [])){// mpre("Зеркало сайта не найдено");
-			}elseif($_SERVER['REQUEST_URI'] == "/robots.txt"){// mpre("Обработка страницы робота");
-			}else{ $themes_index = $_themes_index; }
-		}elseif((gethostbyname($_SERVER['HTTP_HOST']) == $_SERVER['SERVER_ADDR']) || (get($conf, "settings", 'admin_gethostbyname') == gethostbyname($_SERVER['HTTP_HOST']))){ # Хост настроен на сервер или совпадает с указанным в админке ip
-			if(!trim($http_host)){ mpre("Хост пустышка");
-			}else if(!$themes_index = fk("themes-index", $w = array("name"=>$http_host), $w, $w)){ mpre("Ошибка добавления нового хоста");
-			}else{ header('HTTP/1.0 403 Forbidden');
-				inc("modules/{$arg['modpath']}/{$arg['fn']}_init", array("themes_index"=>$themes_index));
-			}
 		}else{// mpre("Хост сайта", $themes_index);
 		} return $themes_index;
 	}, $conf["settings"]["http_host"]))){ mpre("ОШИБКА выборки хоста сайта");
 }elseif(!$url = first(explode("?", urldecode($_SERVER['REQUEST_URI'])))){ mpre("Ошибка формирования исходного адреса страницы");
+}elseif(call_user_func(function() use($url){
+		if(!array_search($url, [1=>"/robots.txt", "/sitemap.xml"])){// mpre("Адрес не метафайла");
+		}elseif(!$fn = first(explode(".", basename($url)))){ mpre("ОШИБКА установки имени файла");
+		}elseif(!$filename = "modules/seo/{$fn}.php"){ mpre("ОШИБКА составления имени файла");
+		}else{// pre($filename);
+			die(inc($filename, ["arg"=>array("modpath"=>"seo", "fn"=>$url)]));
+		}
+	})){ mpre("ОШИБКА запуска файлов robots.txt");
 }elseif(!$url = preg_replace("#\/(стр|p)\:[0-9]+#", "", $url)){ mpre("Ошибка избавления от номера страниц в адресе");
 }elseif(!is_array($seo_index = rb("seo-index", "name", array_flip([$url])))){ mpre("ОШИБКА получения внешнего адреса страницы");
 }elseif(!is_array($seo_index_themes = ($seo_index && $themes_index ? rb("seo-index_themes", "themes_index", "index_id", $themes_index['id'], $seo_index["id"]) : []))){ mpre("ОШИБКА выборки адресации");
