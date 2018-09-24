@@ -134,9 +134,22 @@ if(!call_user_func(function(){ # Переменные окружения
 	})){ exit(inc('include/install.php')); # Запускаем процесс установки
 }elseif(!is_array($_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']))){ mpre("ОШИБКА получения параметров адресной строки");
 }elseif(!$sess = users_sess()){// pre("Добавляем сессию");
+//}elseif(true){ pre($sess, $_COOKIE);
 }elseif(!$guest = get($conf, 'settings', 'default_usr')){ mpre("Имя пользователя гость не указано");
 }elseif(!is_array($conf['user'] = (rb('users-', 'id', $sess['uid']) ?: rb('users-', 'name', "[{$guest}]")))){ pre("ОШИБКА выборки пользователя");
 }elseif(!$conf['user'] += ['uid'=>(($sess['uid'] > 0) ? get($conf, 'user', 'id') : -$sess['id']), 'sess'=>$sess]){ pre("ОШИБКА сохранения сессии в системных переменных");
+}elseif(!$conf['settings'] += call_user_func(function($seo = []) use($conf){ # Устанавливаем свойства главной страницы
+		if(array_key_exists("m", $_GET)){// mpre("Не главная страница");
+		}elseif(!$seo_index = rb("seo-index", "name", "[/]")){ /*&& array_key_exists("themes_index", $redirect)*/
+		}elseif(!is_array($seo_location = get($seo_index, "location_id") ? rb("seo-location", "id", $seo_index['location_id']) : [])){ mpre("ОШИБКА выборки внутреннего адреса");
+		}elseif(!$canonical = ($seo_location ? $seo_location["name"] : $conf['settings']['start_mod'])){ mpre("ОШИБКА определения внутреннего адреса главной страницы");
+		}elseif($_REQUEST += $_GET = mpgt($canonical)){ mpre("Установка входящих параметров страницы");
+		}elseif(!$seo["title"] = get($seo_index, 'title') ?: $conf['settings']['title']){ mpre("ОШИБКА заголовок старницы не установлен");
+		}elseif(!$seo["description"] = get($seo_index, 'description') ?: $conf['settings']['description']){ mpre("ОШИБКА описание старницы не установлено");
+		}elseif(!$seo["keywords"] = get($seo_index, 'keywords') ?: $conf['settings']['keywords']){ mpre("ОШИБКА ключевики старницы не установлены");
+		}else{// mpre("Свойства страницы", $seo);
+		} return $seo;
+	})){ mpre("ОШИБКА установки свойств главной страницы");
 }elseif(isset($_GET['logoff'])){ # Закрытие авторизации
 	qw("UPDATE {$conf['db']['prefix']}users_sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
 	setcookie("{$conf['db']['prefix']}modified_since", "", 0, "/");
@@ -158,31 +171,19 @@ if(!call_user_func(function(){ # Переменные окружения
 		}elseif(!$user = fk("users-", ['id'=>$user['id']], null, ['last_time'=>time()])){ pre("Ошибка установки времени входа пользователю");
 		}else{// pre("Успешная авторизация");
 		} return $user;
-	}))){ mpre("ОШИБКА авторизации"); // exit(header("Location: {$_SERVER['REQUEST_URI']}")); # При авторизации обновляем страницу (избавляемся от пост запроса)
-}elseif(!$conf['settings'] += call_user_func(function($seo = []) use($conf){ # Устанавливаем свойства главной страницы
-		if(array_key_exists("m", $_GET)){// mpre("Не главная страница");
-		}elseif(!$seo_index = rb("seo-index", "name", "[/]")){ /*&& array_key_exists("themes_index", $redirect)*/
-		}elseif(!is_array($seo_location = get($seo_index, "location_id") ? rb("seo-location", "id", $seo_index['location_id']) : [])){ mpre("ОШИБКА выборки внутреннего адреса");
-		}elseif(!$canonical = ($seo_location ? $seo_location["name"] : $conf['settings']['start_mod'])){ mpre("ОШИБКА определения внутреннего адреса главной страницы");
-		}elseif($_REQUEST += $_GET = mpgt($canonical)){ mpre("Установка входящих параметров страницы");
-		}elseif(!$seo["title"] = get($seo_index, 'title') ?: $conf['settings']['title']){ mpre("ОШИБКА заголовок старницы не установлен");
-		}elseif(!$seo["description"] = get($seo_index, 'description') ?: $conf['settings']['description']){ mpre("ОШИБКА описание старницы не установлено");
-		}elseif(!$seo["keywords"] = get($seo_index, 'keywords') ?: $conf['settings']['keywords']){ mpre("ОШИБКА ключевики старницы не установлены");
-		}else{// mpre("Свойства страницы", $seo);
-		} return $seo;
-	})){ mpre("ОШИБКА установки свойств главной страницы");
-}elseif(!$conf['user'] = call_user_func(function($user) use($sess, $conf){ # Получаем свойства пользователя
-		if($sess['uid'] <= 0){// mpre("Пользователь является гостем");
-		}elseif(!$user = ql($sql = "SELECT *, `id` AS `uid`, `name` AS `uname` FROM `{$conf['db']['prefix']}users` WHERE `id`=". (int)$sess['uid'], 0)){ mpre("Пользователь из базы");
-		}elseif(!$user['uid'] = ($user['name'] == $conf['settings']['default_usr'] ? -$sess['id'] : $user['uid'])){ mpre("Устанавливаем в идентификатор пользователя номер сессии с минусом");
-		}elseif(!$USERS_MEM = rb("users-mem", "uid", "id", $user['uid'])){ mpre("ОШИБКА получения списка членства пользователя в группах");
-		}elseif(!$USERS_GRP = rb("users-grp", "id", "id", rb($USERS_MEM, "grp_id"))){ mpre("ОШИБКА получения списка групп пользователя");
-		}elseif(!$USERS_GRP += ((array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) ? rb("users-grp", "name", "id", "[Администратор]") : [])){ mpre("ОШИБКА устанвоки прав доступа группы Администратор");
-		}elseif(!$user['gid'] = array_column($USERS_GRP, "name", "id")){ mpre("ОШИБКА пользователь не состоит в группах");
+	}, $conf['user']))){ mpre("ОШИБКА авторизации"); // exit(header("Location: {$_SERVER['REQUEST_URI']}")); # При авторизации обновляем страницу (избавляемся от пост запроса)
+}elseif(!is_array($conf['user'] = call_user_func(function($user) use($sess, $conf){ # Получаем свойства пользователя
+		if($sess['uid'] <= 0){ pre("Пользователь является гостем");
+		}elseif(!$user = ql($sql = "SELECT *, `id` AS `uid`, `name` AS `uname` FROM `{$conf['db']['prefix']}users` WHERE `id`=". (int)$sess['uid'], 0)){ pre("ОШИБКА выборки пользователя сессии из базы");
+		}elseif(!$user['uid'] = ($user['name'] == $conf['settings']['default_usr'] ? -$sess['id'] : $user['uid'])){ pre("Устанавливаем в идентификатор пользователя номер сессии с минусом");
 		}elseif(!$user['sess'] = $sess){ pre("ОШИБКА восстановления сессии");
+		}elseif(!$USERS_MEM = rb("users-mem", "uid", "id", $user['uid'])){ pre("ОШИБКА получения списка членства пользователя в группах");
+		}elseif(!$USERS_GRP = rb("users-grp", "id", "id", rb($USERS_MEM, "grp_id"))){ pre("ОШИБКА получения списка групп пользователя");
+		}elseif(!$USERS_GRP += ((array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) ? rb("users-grp", "name", "id", "[Администратор]") : [])){ pre("ОШИБКА устанвоки прав доступа группы Администратор");
+		}elseif(!$user['gid'] = array_column($USERS_GRP, "name", "id")){ pre("ОШИБКА пользователь не состоит в группах");
 		}else{// pre("Авторизованный пользователь", $user);
 		} return $user;
-	}, $conf['user'])){ pre("ОШИБКА получения текущего пользователя");
+	}, $conf['user']))){ pre("ОШИБКА получения текущего пользователя");
 }elseif(!$conf['modules'] = call_user_func(function() use($conf){ # Выборка свойств модулей и их свойств
 		if(!$MODULES_INDEX = rb("modules-index")){ mpre("ОШИБКА выборки списка свойств сайта");
 		}elseif(!$_MODULES = array_map(function($modules_index) use($conf){
@@ -231,7 +232,7 @@ if(!call_user_func(function(){ # Переменные окружения
 	}, $conf['settings']['theme'])){ mpre("ОШИБКА определения темы сайта");
 }elseif(inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($conf["content"] = "")))){ mpre("Ошибка подключения файла инициализации");
 }elseif(!is_array($conf['themes']['index'] = $themes_index = call_user_func(function($http_host, $themes_index = []) use($conf){ # Выборка хоста и добавление в случае необходимости
-		if(!get($conf, "settings", "themes_index")){ mpre("Односайтовый режим");
+		if(!get($conf, "settings", "themes_index")){// mpre("Односайтовый режим");
 		}elseif($themes_index = rb("themes-index", "name", "[$http_host]")){// mpre("Хост найден в списке хостов");
 		}else{// mpre("Хост сайта", $themes_index);
 		} return $themes_index;
