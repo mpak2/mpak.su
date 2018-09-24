@@ -173,7 +173,7 @@ if(!call_user_func(function(){ # Переменные окружения
 		} return $user;
 	}, $conf['user']))){ mpre("ОШИБКА авторизации"); // exit(header("Location: {$_SERVER['REQUEST_URI']}")); # При авторизации обновляем страницу (избавляемся от пост запроса)
 }elseif(!is_array($conf['user'] = call_user_func(function($user) use($sess, $conf){ # Получаем свойства пользователя
-		if($sess['uid'] <= 0){ pre("Пользователь является гостем");
+		if($sess['uid'] <= 0){// pre("Пользователь является гостем");
 		}elseif(!$user = ql($sql = "SELECT *, `id` AS `uid`, `name` AS `uname` FROM `{$conf['db']['prefix']}users` WHERE `id`=". (int)$sess['uid'], 0)){ pre("ОШИБКА выборки пользователя сессии из базы");
 		}elseif(!$user['uid'] = ($user['name'] == $conf['settings']['default_usr'] ? -$sess['id'] : $user['uid'])){ pre("Устанавливаем в идентификатор пользователя номер сессии с минусом");
 		}elseif(!$user['sess'] = $sess){ pre("ОШИБКА восстановления сессии");
