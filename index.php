@@ -127,7 +127,7 @@ if(!call_user_func(function(){ # Переменные окружения
 }elseif(!$tables = call_user_func(function($tables = []) use($conf){ # Определяем режим установки по наличию таблиы в базе данных и свойствам администратора
 		if(array_key_exists('null', $_GET)){ return pre("Пропускаем проверку списка таблиц на ресурсах");
 		}elseif(!$tables = tables()){ pre("База данных не пуста");
-		}elseif($conf["db"]["type"] != "sqlite"){ pre("Для mysql установка только с пустой базой", $conf["db"]["type"]);
+		}elseif($conf["db"]["type"] != "sqlite"){ //pre("Для mysql установка только с пустой базой", $conf["db"]["type"]);
 		}elseif(!get($conf, "settings", "admin_usr")){ return !mpre("Не установлен администратор");
 		}else{ mpre("Список таблиц базы", $tables);
 		} return $tables;
@@ -221,22 +221,29 @@ if(!call_user_func(function(){ # Переменные окружения
 		}else{// mpre("Исполняемые раздел и файл", $settings);
 		} return $settings;
 	})){ mpre("ОШИБКА установки модуля и исполняемого файла");
-}elseif(!$conf['settings']['theme'] = call_user_func(function($theme) use($conf){ # Установка темы сайта
-		if(!$theme = get($_GET, "theme") ?: $theme){ mpre("Ошибка установки темы из адреса");
-		}elseif(get($conf, 'user', 'theme') && (!$conf['user']['sess']['theme'] = $conf['settings']['theme'] = $conf['user']['theme'])){ mpre("Ошибка установки темы из настроек пользователя");
-		}elseif(!$theme = get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}") ?: $theme){ mpre("Ошибка установки темы по файлу и модулю `{$w}`");
-		}elseif(!$theme = get($conf, 'settings', $w = "theme/*:{$conf['settings']['fn']}") ?: $theme){ mpre("Ошибка установки темы по модулю `{$w}`");
-		}elseif(!$theme = get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:*") ?: $theme){ mpre("Ошибка установки темы по файлу `{$w}`");
-		}else{// mpre("Определена тема сайта как", $theme);
-		} return basename($theme);
-	}, $conf['settings']['theme'])){ mpre("ОШИБКА определения темы сайта");
-}elseif(inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($conf["content"] = "")))){ mpre("Ошибка подключения файла инициализации");
 }elseif(!is_array($conf['themes']['index'] = $themes_index = call_user_func(function($http_host, $themes_index = []) use($conf){ # Выборка хоста и добавление в случае необходимости
 		if(!get($conf, "settings", "themes_index")){// mpre("Односайтовый режим");
 		}elseif($themes_index = rb("themes-index", "name", "[$http_host]")){// mpre("Хост найден в списке хостов");
 		}else{// mpre("Хост сайта", $themes_index);
 		} return $themes_index;
 	}, $conf["settings"]["http_host"]))){ mpre("ОШИБКА выборки хоста сайта");
+}elseif(!$conf['settings']['theme'] = call_user_func(function($theme) use($conf,$themes_index){ # Установка темы сайта
+		if(!$theme = get($_GET, "theme") ?: $theme){ mpre("Ошибка установки темы из адреса");
+		}elseif(get($conf, 'user', 'theme') && (!$conf['user']['sess']['theme'] = $conf['settings']['theme'] = $conf['user']['theme'])){ mpre("Ошибка установки темы из настроек пользователя");
+		}elseif(!$theme = get($themes_index, 'theme')){ mpre("Ошибка установки темы по файлу `{$w}`");
+		}elseif(!$theme = get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}") ?: $theme){ mpre("Ошибка установки темы по файлу и модулю `{$w}`");
+		}elseif(!$theme = get($conf, 'settings', $w = "theme/*:{$conf['settings']['fn']}") ?: $theme){ mpre("Ошибка установки темы по модулю `{$w}`");
+		}elseif(!$theme = get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:*") ?: $theme){ mpre("Ошибка установки темы по файлу `{$w}`");
+		}else{// mpre("Определена тема сайта как", $theme);
+		} return basename($theme);
+	}, $conf['settings']['theme'])){ mpre("ОШИБКА определения темы сайта");
+}elseif(!$conf["db"]["open_basedir"] = call_user_func(function($open_basedir)use($conf){
+		if(!$conf['themes']['index']){ // mpre("Дополнительная директория только для мультисайтового режима");
+		}elseif(!$open_basedir = "/var/www/html/themes/{$conf['settings']['theme']}::{$open_basedir}"){  mpre("Ошибка перезагрузки директории мультихоста");
+		}else{ // mpre("Меняем директорию для мультихоста");
+		} return $open_basedir;
+	}, $conf["db"]["open_basedir"])){ mpre("Ошибка модификации пути до корневой директории");
+}elseif(inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($conf["content"] = "")))){ mpre("Ошибка подключения файла инициализации");
 }elseif(!$url = first(explode("?", urldecode($_SERVER['REQUEST_URI'])))){ mpre("Ошибка формирования исходного адреса страницы");
 }elseif(call_user_func(function() use($url){
 		if(!array_search($url, [1=>"/robots.txt", "/sitemap.xml"])){// mpre("Адрес не метафайла");

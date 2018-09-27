@@ -720,9 +720,9 @@ if(!function_exists('blocks')){
 				}elseif(($blocks_stop = get($conf, 'settings', 'blocks_stop')) &&0){ mpre("Конечная строка замены не установлена");
 				}elseif(!$key = "<!-- [block:{$block['id']}] -->"){ mpre("Ошибка вычисления троки замены блока");
 				}elseif(!is_string($block_text = "{$blocks_start}{$cb}{$blocks_stop}")){ mpre("Ошибка расчета содержимого блока");
-				}elseif(!$result[$key] = strtr($block_text, $section)){ mpre("Ошибка установки содержимого блока", $block);
-				}elseif(get($block, 'alias') && ($n = "<!-- [block:{$block['alias']}] -->") && (!$result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"])){ # Ошибка установки содержимого по алиасу
-				}elseif(($n = "<!-- [blocks:". $block['reg_id'] . "] -->") && (!$result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"])){ mpre("Ошибка добавления блока по номеру группы");
+				}elseif(!is_string($result[$key] = strtr($block_text, $section))){ mpre("Ошибка установки содержимого блока", $block);
+				}elseif(get($block, 'alias') && ($n = "<!-- [block:{$block['alias']}] -->") && !is_string($result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"])){ # Ошибка установки содержимого по алиасу
+				}elseif(($n = "<!-- [blocks:". $block['reg_id'] . "] -->") && !is_string($result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"])){ mpre("Ошибка добавления блока по номеру группы");
 				}elseif(!is_string($section_start = strtr(get($conf, 'settings', $t = 'blocks_start'), $section))){ mpre("ОШИБКА замены тега `{$t}`");
 				}elseif(!is_string($section_stop = strtr(get($conf, 'settings', $t = 'blocks_stop'), $section))){ mpre("ОШИБКА замены тега `{$t}`");
 				}else{// mpre($block);
@@ -1718,7 +1718,7 @@ function mpqw($sql){ # Все аргументы разбираются по т�
 	}elseif(call_user_func(function($mt) use($conf, $sql, $ARGS){
 			if(!get($conf, 'settings', 'analizsql_log')){// mpre("Лог выполнения отключен");
 			}elseif(!$microtime = microtime(true)-$mt){ mpre("ОШИБКА расчета времени выполнения");
-			}elseif(!$info = (rb($ARGS, 'type', '[string]', 'arg') ?: get($conf, 'db', 'info'))){ mpre("Описание запроса не задано");
+			}elseif(!$info = (rb($ARGS, 'type', '[string]', 'arg') ?: get($conf, 'db', 'info'))){ //mpre("Описание запроса не задано");
 			}elseif(!$conf['db']['sql'][] = $mess = array('info'=>$info, 'time'=>$microtime, 'sql'=>$sql)){ mpre("ОШИБКА добавления информации в лог");
 			}elseif(!get($conf, 'settings', 'sqlanaliz_time_log')){// pre("Лимиты выполнения запроса не заданы");
 			}elseif($microtime <= $conf['settings']['sqlanaliz_time_log']){// mpre("Время запроса в пределах нормы");
