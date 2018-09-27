@@ -258,11 +258,12 @@ if(!call_user_func(function(){ # Переменные окружения
 }elseif(!is_array($seo_index_themes = ($seo_index && $themes_index ? rb("seo-index_themes", "themes_index", "index_id", $themes_index['id'], $seo_index["id"]) : []))){ mpre("ОШИБКА выборки адресации");
 }elseif(!is_array($seo_location = ($seo_index_themes ? rb("seo-location", "id", $seo_index_themes["location_id"]) : rb("seo-location", "name", "[{$url}]")))){ mpre("ОШИБКА выборки внутреннего адреса страницы");
 }elseif(!is_array($seo_location_themes = ($seo_location && $themes_index ? rb("seo-location_themes", "location_id", "themes_index", $seo_location['id'], $themes_index['id']) : []))){ mpre("ОШИБКА получения перенаправления страницы");
-}elseif(call_user_func(function() use($conf, $seo_index, $seo_location_themes, $seo_location){ # Отображаем администратору или переходим по перенаправлению
+}elseif(call_user_func(function() use($conf, $seo_index, $seo_location_themes, $seo_location, $seo_index_themes){ # Отображаем администратору или переходим по перенаправлению
 		if($seo_index){// mpre("Для перенаправления не найден внешний адрес");
 		}elseif(empty($seo_location_themes)){// mpre("Для перенправления не установлена адресация");
 		}elseif(empty($seo_location)){// mpre("Для перенправления не утсановлен внутренний адрес");
 		}elseif(!$_seo_index = rb("seo-index", "id", $seo_location_themes["index_id"])){ mpre("ОШИБКА выборки страницы перенаправления");
+		}elseif(!$seo_index_themes){ mpre("Ошибка перенаправления на <a href='/seo:admin/r:seo-location_themes?&where[id]={$seo_location_themes['id']}'>несуществующую страницу</a>");
 		}elseif(array_search("Администратор", $conf['user']['gid'])){ mpre("<a href='/seo:admin/r:seo-location_themes?&where[id]={$seo_location_themes['id']}'>Перенаправление</a> с внутреннего на внешний адрес <a href='{$_seo_index['name']}'>{$_seo_index['name']}</a>");
 		}else{ header("HTTP/1.1 301 Moved Permanently");
 			exit(header("Location: {$_seo_index['name']}"));
@@ -291,10 +292,12 @@ if(!call_user_func(function(){ # Переменные окружения
 		}
 	})){ mpre("ОШИБКА обработки адресов заканчивающихся на правый слеш");
 }elseif(!$conf["settings"]["canonical"] = call_user_func(function($canonical = null) use($conf, $themes_index, $seo_index, $seo_location, $seo_index_themes){ # Расчет и установка каноникала
-		if(!is_array($canonical = ($seo_location + $seo_index_themes))){ mpre("ОШИБКА формирования массива с каноникалам");
+		if(!$canonical = ("/" == $_SERVER["REQUEST_URI"] ? $conf["settings"]["start_mod"] : $_SERVER["REQUEST_URI"])){ mpre("ОШИБКА нахождения адреса текущей страницы");
+//		}elseif(true){ mpre($canonical);
+		}elseif(!$seo_index_themes){ //mpre("Битый адрес на странице");
+		}elseif(!is_array($canonical = ($seo_location + $seo_index_themes))){ mpre("ОШИБКА формирования массива с каноникалам");
 		}elseif(!is_array($canonical += ($seo_index_themes ? ["index_themes_id"=>$seo_index_themes['id']] : []))){ mpre("ОШИБКА добавления в мета информацию ссылки на заголовки");
-		}elseif(!$uri = ("/" == $_SERVER["REQUEST_URI"] ? $conf["settings"]["start_mod"] : $_SERVER["REQUEST_URI"])){ mpre("ОШИБКА нахождения адреса текущей страницы");
-		}elseif(!$canonical = ($canonical ?: $uri)){ mpre("ОШИБКА формирования каноникала");
+//		}elseif(!$canonical = ($canonical ?: $uri)){ mpre("ОШИБКА формирования каноникала");
 		}elseif(!is_string($href = get($seo_location, "name") ?: $canonical)){ mpre("ОШИБКА расчета адреса");
 		}elseif(!$get = mpgt($href, $_GET)){ mpre("ОШИБКА получения параметров адресной строки");
 		}elseif(!$_GET = ($get + $_GET)){ mpre("ОШИБКА добавления параметров адресной строки");

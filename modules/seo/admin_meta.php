@@ -1,6 +1,7 @@
 <?
-
-if(!$canonical){ mpre("Каноническая ссылка не установлена"); # Нет мета или обновление категории больше чем у записи
+//mpre($canonical);
+if(is_array($canonical)){// mpre("Каноническая ссылка не установлена"); # Нет мета или обновление категории больше чем у записи
+//}elseif(true){ 
 }elseif(!$alias = "{$arg['modpath']}:{$arg['fn']}". (($keys = array_keys(array_diff_key(array_filter($_GET), array_flip(["m", ""])))) ? "/". implode("/", $keys) : "")){ mpre("Алиас сфоримрован ошибочно");
 }elseif(!$alias = seo_alias($canonical)){ mpre("ОШИБКА получения алиаса категории адреса");
 }elseif(array_search('', $_GET)){// mpre("Пустые значения в адресе");

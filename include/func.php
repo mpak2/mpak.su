@@ -1113,7 +1113,7 @@ function erb($src, $key = null){
 				foreach($SRC as $src){
 					$TMP = &$_SRC;
 					foreach($_FIELDS as $_fields){
-						if(!array_key_exists($_fields, $src)){ mpre("Значение поля `{$_fields}` не установлено", $src);
+						if(!array_key_exists($_fields, $src)){ mpre("Значение поля `{$_fields}` не установлено", $src,$func_get_args);
 						}elseif(!array_key_exists($src[$_fields], $TMP)){ $TMP[ $src[$_fields] ] = [];
 						} $TMP = &$TMP[ $src[$_fields] ];
 					} $TMP = $src;
