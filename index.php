@@ -230,7 +230,7 @@ if(!call_user_func(function(){ # Переменные окружения
 }elseif(!$conf['settings']['theme'] = call_user_func(function($theme) use($conf,$themes_index){ # Установка темы сайта
 		if(!$theme = get($_GET, "theme") ?: $theme){ mpre("Ошибка установки темы из адреса");
 		}elseif(get($conf, 'user', 'theme') && (!$conf['user']['sess']['theme'] = $conf['settings']['theme'] = $conf['user']['theme'])){ mpre("Ошибка установки темы из настроек пользователя");
-		}elseif($_theme = get($themes_index, 'theme')){ $theme = $_theme;// mpre("Ошибка установки темы по файлу `{$w}`");
+		}elseif(!$theme = get($themes_index, 'theme') ?: $theme){ mpre("Ошибка установки темы по файлу `{$w}`");
 		}elseif(!$theme = get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}") ?: $theme){ mpre("Ошибка установки темы по файлу и модулю `{$w}`");
 		}elseif(!$theme = get($conf, 'settings', $w = "theme/*:{$conf['settings']['fn']}") ?: $theme){ mpre("Ошибка установки темы по модулю `{$w}`");
 		}elseif(!$theme = get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:*") ?: $theme){ mpre("Ошибка установки темы по файлу `{$w}`");
@@ -283,10 +283,10 @@ if(!call_user_func(function(){ # Переменные окружения
 		}else{// mpre("Адресация страницы", $seo_index_themes);
 		}
 	})){ mpre("ОШИБКА перенаправления сайта");
-}elseif(call_user_func(function() use($url){
+}elseif(call_user_func(function() use($url, $conf){
 		if(strlen($url) <= 1){// mpre("Похоже на главную страницу");
 		}elseif(substr($url, -1) != "/"){// mpre("Страница оканчивается не на слеш");
-		}elseif(first(array_keys(get($get, 'm'))) == "webdav"){// mpre("Раздел исключений адресации со слешами");
+//		}elseif(first(array_keys(get($get, 'm'))) == "webdav"){// mpre("Раздел исключений адресации со слешами");
 		}elseif(array_search("Администратор", $conf['user']['gid'])){ mpre("Адрес заканчивается на правый слеш - перенаправляем без слеша <a href='". substr($url, 0, -1). "'>". substr($url, 0, -1). "</a>");
 		}else{ exit(header("Location: ". substr($url, 0, -1)));
 		}
