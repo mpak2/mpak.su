@@ -230,13 +230,13 @@ if(!call_user_func(function(){ # Переменные окружения
 }elseif(!$conf['settings']['theme'] = call_user_func(function($theme) use($conf,$themes_index){ # Установка темы сайта
 		if(!$theme = get($_GET, "theme") ?: $theme){ mpre("Ошибка установки темы из адреса");
 		}elseif(get($conf, 'user', 'theme') && (!$conf['user']['sess']['theme'] = $conf['settings']['theme'] = $conf['user']['theme'])){ mpre("Ошибка установки темы из настроек пользователя");
-		}elseif(!$theme = get($themes_index, 'theme')){ mpre("Ошибка установки темы по файлу `{$w}`");
+		}elseif($_theme = get($themes_index, 'theme')){ $theme = $_theme;// mpre("Ошибка установки темы по файлу `{$w}`");
 		}elseif(!$theme = get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}") ?: $theme){ mpre("Ошибка установки темы по файлу и модулю `{$w}`");
 		}elseif(!$theme = get($conf, 'settings', $w = "theme/*:{$conf['settings']['fn']}") ?: $theme){ mpre("Ошибка установки темы по модулю `{$w}`");
 		}elseif(!$theme = get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:*") ?: $theme){ mpre("Ошибка установки темы по файлу `{$w}`");
 		}else{// mpre("Определена тема сайта как", $theme);
 		} return basename($theme);
-	}, $conf['settings']['theme'])){ mpre("ОШИБКА определения темы сайта");
+	}, $conf['settings']['theme'])){ pre("ОШИБКА определения темы сайта");
 }elseif(!$conf["db"]["open_basedir"] = call_user_func(function($open_basedir)use($conf){
 		if(!$conf['themes']['index']){ // mpre("Дополнительная директория только для мультисайтового режима");
 		}elseif(!$open_basedir = "/var/www/html/themes/{$conf['settings']['theme']}::{$open_basedir}"){  mpre("Ошибка перезагрузки директории мультихоста");
