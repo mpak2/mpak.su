@@ -21,8 +21,8 @@ if($dump = get($_REQUEST, 'dump')){
 }else if(array_key_exists("null", $_GET)){
 	if(!$_POST){ mpre("Пост запрос не задан");
 	}else{
-		if($sql = get($_POST, 'sql')){
-			if(!$query = fk("query", null, $w = array("query"=>$sql), $w)){ mpre("ОШИБКА добавления запроса в таблицу истории");
+		if($sql = get($_POST, 'sql')){// mpre($sql);
+			if(get($conf, "settings", "mp_sql_query") && !($query = fk("query", null, $w = array("query"=>$sql), $w))){ mpre("ОШИБКА добавления запроса в таблицу истории");
 			}elseif(!$microtime = microtime(true)){ mpre("ОШИБКА засечки времени выполнения запроса");
 			}elseif(!$result = qw($sql)){ mpre("Ошибка выполнения запроса");
 			}elseif(!$microtime = microtime(true)-$microtime){ mpre("ОШИБКА получения времени выполнения запроса");
