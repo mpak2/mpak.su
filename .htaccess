@@ -14,6 +14,7 @@
 <IfModule mod_rewrite.c>
 	AddDefaultCharset UTF-8
 	AddType application/x-httpd-php .phar .tpl
+
 	php_value short_open_tag 1
 	php_value file_uploads 1
 	php_value suhosin.executor.include.whitelist phar
@@ -56,8 +57,10 @@
 	RewriteRule ^(.*)$ /index.phar [L]
 
 # Если стоит в составе другой системы в директории
+#	AddDefaultCharset UTF-8
+#	AddType application/x-httpd-php .phar .tpl
 	RewriteCond %{SCRIPT_FILENAME} !-f
-	RewriteRule ^(admin|themes|menu|img)(.+)$ /mpak/index.phar/%{REQUEST_URI} [L]
+	RewriteRule ^(brands|mimi|.*:admin|.*:img)(.+)?$ /mimi/index.phar/$1 [L]
 
 </IfModule>
 ## EXPIRES CACHING ##

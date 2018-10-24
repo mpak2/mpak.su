@@ -35,6 +35,7 @@ if(!call_user_func(function(){ # Переменные окружения
 	}){ mpre("Функция подключения ресурсов");
 }elseif(!$mp_require_once("include/config.php")){ mpre("ОШИБКА подключения файла конфигурации");
 }elseif(!$mp_require_once("include/func.php")){ mpre("ОШИБКА подключения функций системы");
+//}else if(true){ pre($conf["db"]["open_basedir"]);
 }elseif(call_user_func(function(){ # Автоподгрузка классов
 		function PHPClassAutoload($CN){
 		//	if(!$dirname = __DIR__){ mpre("ОШИБКА установки текущей директории")
@@ -78,7 +79,8 @@ if(!call_user_func(function(){ # Переменные окружения
 			}elseif(!$file_info = "{$filename}:{$linenum}"){ mpre("ОШИБКА получения информаци о файле и строке");
 			}elseif(!$type_num = (($type = get($errortype, $errno)) ? "{$type} ({$errno})" : "Неустановленный тип ошибки ({$errno})")){ mpre("Тип ошибки не установлен");
 			}elseif(!$pdo = (0 === strpos($errmsg, 'PDO::query():'))){ mpre($file_info, $type_num, $errmsg);
-			}elseif(!$conn = $conf['db']['conn']){ mpre("ОШИБКА определения соединения с базой данных");
+//			}elseif(!$_conn){ mpre("ОШИБКА определения соединения с базой данных");
+			}elseif(!$conn = (is_array($c = $conf['db']['conn']) ? last($c) : $c)){ mpre("ОШИБКА получения соединения");
 			}elseif(!$info = last($conf['db']['sql'])){ mpre("ОШИБКА получения запроса", $conf['db']);
 			}elseif(!$error = (last($conn->errorInfo()) ?: $errmsg)){ mpre("Текст ошибки не установлен", $info['sql']);
 			}else{ mpre($file_info, $type_num, $error, $info['sql']);
@@ -124,6 +126,16 @@ if(!call_user_func(function(){ # Переменные окружения
 		} return $conn;
 	}, $conf['db']['conn'])){ pre("ОШИБКА не удалось подключиться к базе данных");
 }elseif(!$conf['settings'] += array_column(rb("settings-"), "value", "name")){ mpre("ОШИБКА загрузки свойств сайта");
+}elseif(!$_SERVER["REQUEST_URI"] = call_user_func(function($REUEST_URI) use($conf){ # Изменяем адрес внутри вложенно директории
+		if(!$PATH = explode("/", $REUEST_URI)){ pre("ОШИБКА разбора директорий");
+		}else if("admin" == last($PATH)){ $REUEST_URI = "/admin";
+		}else if(!$subdir = get($conf, "settings", "subdir")){ pre("Поддиректория файловой системы не задана");
+		}else if(!$SUB = explode("/", $subdir)){ pre("ОШИБКА получения структуры субдиректорий");
+		}else if(array_slice($PATH, 0, count($SUB)) != $SUB){// pre("Структуры адреса и субдиректорий не совпадают", array_slice($PATH, 0, count($SUB)), $SUB);
+		}else if(!$REUEST_URI = implode("/", array_slice($PATH, 1))){// $REUEST_URI = "/";// pre("ОШИБКА получения адреса без первой директории");
+		}else{// die(pre("REUEST_URI", $REUEST_URI));
+		} return $REUEST_URI;
+	}, $_SERVER["REQUEST_URI"])){ mpre("ОШИБКА установки адреса");
 }elseif(!$tables = call_user_func(function($tables = []) use($conf){ # Определяем режим установки по наличию таблиы в базе данных и свойствам администратора
 		if(array_key_exists('null', $_GET)){ return pre("Пропускаем проверку списка таблиц на ресурсах");
 		}elseif(!$tables = tables()){ pre("База данных не пуста");
@@ -329,7 +341,8 @@ if(!call_user_func(function(){ # Переменные окружения
 		}
 	})){ mpre("ОШИБКА установки параметров запроса");
 }elseif(!$conf['settings']['theme'] = call_user_func(function($theme){
-		if(!array_filter(get($_GET['m']), function($v){ return (strpos($v, "admin") === 0); })){// mpre("Не админка");
+		if("admin" == last(explode("/", $_SERVER['REQUEST_URI']))){ $theme = "zhiraf";// mpre("Админ раздел внутри директории");
+		}else if(!array_filter(get($_GET['m']), function($v){ return (strpos($v, "admin") === 0); })){// mpre("Не админка");
 		}else{ $theme = "zhiraf";
 		} return $theme;
 	}, $conf['settings']['theme'])){ mpre("ОШИБКА установки темы страницы");
@@ -369,6 +382,7 @@ if(!call_user_func(function(){ # Переменные окружения
 }elseif(!$tc = call_user_func(function() use($conf){ # Содержимое шаблона
 		if(!$ind = (get($_GET, 'index') ?: (get($conf, 'settings', 'index') ?: "index"))){ mpre("Ошибка определения имени главного файла");
 		}elseif(!$file = mpopendir($f = "themes/{$conf['settings']['theme']}/{$ind}.html")){ mpre("Содержимоге файла не найдено", $f);
+//		}elseif(true){ die($file);
 		}elseif(!get($conf, 'settings', 'theme_exec') && (!$tc = file_get_contents($file))){ mpre("Ошибка получения содержимого файла шаблона");
 		}else{// mpre("Запускаем шаблон на исполнение");
 			ob_start(); inc($f); $tc = ob_get_clean();

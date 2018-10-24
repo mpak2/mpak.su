@@ -20,7 +20,7 @@ elif [ $1 = "server" ]; then
 	echo "==> Создание сервера $name <=="
 	 [ $2 = "" ] && server="html" || server="$2"
 #	 [ $3 = "" ] && path="/var/www/html" || path="$3" 
-	sudo docker run -d --restart=always --name $server -v /var/www/html/:/var/www/html/ -p 80:80 -p 1022:22 -p 443:443 $name /usr/sbin/apache2ctl -D FOREGROUND
+	sudo docker run -d --restart=always --name $server -v /var/www/html/:/var/www/html/ -p 80:80 -p 1022:22 -p 443:443 -p 3306:3306 $name /usr/sbin/apache2ctl -D FOREGROUND
 elif [ $1 = "start" ]; then
 	sudo docker start $name;
 	sudo docker ps;

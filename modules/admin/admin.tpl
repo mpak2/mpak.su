@@ -403,7 +403,7 @@
 					(function($, script){
 						$(script).parent().one("init", function(e){
 							var forms = $(e.delegateTarget).attr("target", "response_"+(timeStamp = e.timeStamp));
-							$("<"+"iframe>").attr("name", "response_"+timeStamp).appendTo(forms).load(function(){
+							$("<"+"iframe>").css("display", "none").attr("name", "response_"+timeStamp).appendTo(forms).load(function(){
 								var data = $(this).contents().find("body").html();
 
 								try{if(json = JSON.parse(data)){
