@@ -427,13 +427,13 @@ function get($ar){
 		}else{ return null; }
 	} return $ar;
 } 
-function &get_link(&$ar){
+/*function &get_link(&$ar){ Cannot redeclare get_link() 
 	foreach(array_slice(func_get_args(), 1) as $key){
 		if(!empty($ar) && is_array($ar) && (is_string($key) || is_numeric($key)) && array_key_exists($key, $ar)){
 			$ar = &$ar[ $key ];
 		}else{ return false; }
 	} return $ar;
-}
+}*/
 function first($ar, $cur = null){
 	if(empty($ar)){// mpre("Заданный массив пуст");
 	}elseif(!is_array($ar)){// mpre("Заданный массив не является массивом");
