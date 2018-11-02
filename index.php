@@ -129,7 +129,7 @@ if(!call_user_func(function(){ # Переменные окружения
 }elseif(!$_SERVER["REQUEST_URI"] = call_user_func(function($REUEST_URI) use($conf){ # Изменяем адрес внутри вложенно директории
 		if(!$PATH = explode("/", $REUEST_URI)){ pre("ОШИБКА разбора директорий");
 		}else if("admin" == last($PATH)){ $REUEST_URI = "/admin";
-		}else if(!$subdir = get($conf, "settings", "subdir")){ pre("Поддиректория файловой системы не задана");
+		}else if(!$subdir = get($conf, "settings", "subdir")){// pre("Поддиректория файловой системы не задана");
 		}else if(!$SUB = explode("/", $subdir)){ pre("ОШИБКА получения структуры субдиректорий");
 		}else if(array_slice($PATH, 0, count($SUB)) != $SUB){// pre("Структуры адреса и субдиректорий не совпадают", array_slice($PATH, 0, count($SUB)), $SUB);
 		}else if(!$REUEST_URI = implode("/", array_slice($PATH, 1))){// $REUEST_URI = "/";// pre("ОШИБКА получения адреса без первой директории");
