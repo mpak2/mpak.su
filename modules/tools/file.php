@@ -198,7 +198,7 @@ if(!(strpos($doc = get($_GET, 'path'), 'http') === 0) && !($doc = $_SERVER['argv
 		}else{ return $SRC; }
 	}, "script"))){ mpre("Ошибка загрузки массива скриптов", $s);
 }elseif(!file_put_contents("{$bn}/index.html", $html)){ mpre("Ошибка записи данных в index.html");
-}elseif(mpre("Тег для установки локальных путей", '<base href="/themes/theme:<!-- [settings:theme] -->/null/">')){ mpre("Код для установки в шаблон");
+}elseif(mpre("Тег для установки локальных путей", '<base href="/themes/<!-- [settings:theme] -->/">')){ mpre("Код для установки в шаблон");
 }else{
 
 //	file_put_contents("$bn/block.html", "<h3 title='<!-- [block:modpath] -->:<!-- [block:fn] -->:<!-- [block:id] -->'><!-- [block:title] --></h3>\n<div><!-- [block:content] --></div>\n");
