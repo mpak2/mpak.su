@@ -235,8 +235,8 @@ if(!call_user_func(function(){ # Переменные окружения
 	})){ mpre("ОШИБКА установки модуля и исполняемого файла");
 }elseif(!is_array($conf['themes']['index'] = $themes_index = call_user_func(function($http_host, $themes_index = []) use($conf){ # Выборка хоста и добавление в случае необходимости
 		if(!get($conf, "settings", "themes_index")){// mpre("Односайтовый режим");
-		}elseif($themes_index = rb("themes-index", "name", "[$http_host]")){// mpre("Хост найден в списке хостов");
-		}else{// mpre("Хост сайта", $themes_index);
+		}elseif($themes_index = rb("themes-index", "name", "[$http_host]")){// mpre("Сайт найден в списке");
+		}else{ mpre("Сайт в списке хостов не найден `{$http_host}`");
 		} return $themes_index;
 	}, $conf["settings"]["http_host"]))){ mpre("ОШИБКА выборки хоста сайта");
 }elseif(!$conf['settings']['theme'] = call_user_func(function($theme) use($conf,$themes_index){ # Установка темы сайта
