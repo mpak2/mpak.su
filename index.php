@@ -235,17 +235,26 @@ if(!call_user_func(function(){ # Переменные окружения
 	})){ mpre("ОШИБКА установки модуля и исполняемого файла");
 }elseif(!is_array($conf['themes']['index'] = $themes_index = call_user_func(function($http_host, $themes_index = []) use($conf){ # Выборка хоста и добавление в случае необходимости
 		if(!get($conf, "settings", "themes_index")){// mpre("Односайтовый режим");
-		}elseif($themes_index = rb("themes-index", "name", "[$http_host]")){// mpre("Хост найден в списке хостов");
-		}else{// mpre("Хост сайта", $themes_index);
+		}elseif($themes_index = rb("themes-index", "name", "[$http_host]")){// mpre("Сайт найден в списке");
+		}else{ mpre("Сайт в списке хостов не найден <a href='/themes:admin/r:themes-index'>{$http_host}</a>");
 		} return $themes_index;
 	}, $conf["settings"]["http_host"]))){ mpre("ОШИБКА выборки хоста сайта");
 }elseif(!$conf['settings']['theme'] = call_user_func(function($theme) use($conf,$themes_index){ # Установка темы сайта
-		if(!$theme = get($_GET, "theme") ?: $theme){ mpre("Ошибка установки темы из адреса");
-		}elseif(get($conf, 'user', 'theme') && (!$conf['user']['sess']['theme'] = $conf['settings']['theme'] = $conf['user']['theme'])){ mpre("Ошибка установки темы из настроек пользователя");
-		}elseif(!$theme = get($themes_index, 'theme') ?: $theme){ mpre("Ошибка установки темы по файлу `{$w}`");
-		}elseif(!$theme = get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}") ?: $theme){ mpre("Ошибка установки темы по файлу и модулю `{$w}`");
-		}elseif(!$theme = get($conf, 'settings', $w = "theme/*:{$conf['settings']['fn']}") ?: $theme){ mpre("Ошибка установки темы по модулю `{$w}`");
-		}elseif(!$theme = get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:*") ?: $theme){ mpre("Ошибка установки темы по файлу `{$w}`");
+		if(get($_GET, "theme")){ $theme = $_GET["theme"]; mpre("Ошибка установки темы из адреса");
+		}elseif(get($conf, 'user', 'theme')){ $theme = $conf['user']['theme'];
+		}elseif(get($themes_index, 'theme')){ $theme = $themes_index["theme"];
+		}elseif($_theme = call_user_func(function($theme = null) use($themes_index){
+                if(empty($themes_index)){// mpre("Хост не установлен");
+                }else if(!get($themes_index, "index_theme_id")){ mpre("Хост не связан с <a href='/themes:admin/r:themes-index_theme'>таблицей тем</a>");
+                }else if(!$themes_index_theme = rb("themes-index_theme", "id", $themes_index["index_theme_id"])){ mpre("Тема не найдена в таблице тем");
+                }else if(get($themes_index_theme, $n = "theme")){ $theme = $themes_index_theme[$n];
+                }else if(get($themes_index_theme, $n = "name")){ $theme = $themes_index_theme[$n];
+                }else{ mpre("ОШИБКА таблица тем не содержит полей с темой");
+                } return $theme;
+            })){ $theme = $_theme;// mpre("Установка темы из связанной таблицы");
+		}elseif(get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}")){ $theme = get($conf, 'settings', $w);
+		}elseif(get($conf, 'settings', $w = "theme/*:{$conf['settings']['fn']}")){ $theme = get($conf, 'settings', $w);
+		}elseif(get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:*")){ $theme = get($conf, 'settings', $w);
 		}else{// mpre("Определена тема сайта как", $theme);
 		} return basename($theme);
 	}, $conf['settings']['theme'])){ pre("ОШИБКА определения темы сайта");
