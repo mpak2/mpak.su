@@ -266,6 +266,15 @@ if(!call_user_func(function(){ # Переменные окружения
 	}, $conf["db"]["open_basedir"])){ mpre("Ошибка модификации пути до корневой директории");
 }elseif(inc("include/init.php", array("arg"=>array("modpath"=>"admin", "fn"=>"init"), "content"=>($conf["content"] = "")))){ mpre("Ошибка подключения файла инициализации");
 }elseif(!$url = first(explode("?", urldecode($_SERVER['REQUEST_URI'])))){ mpre("Ошибка формирования исходного адреса страницы");
+}elseif(call_user_func(function() use($conf){
+		if(!$url = $_SERVER["REQUEST_URI"]){ pre("ОШИБКА получения URI адреса");
+		}elseif(strlen($url) <= 1){// mpre("Похоже на главную страницу");
+		}elseif(substr($url, -1) != "/"){// mpre("Страница оканчивается не на слеш");
+//		}elseif(first(array_keys(get($get, 'm'))) == "webdav"){// mpre("Раздел исключений адресации со слешами");
+		}elseif(array_search("Администратор", $conf['user']['gid'])){ mpre("Адрес заканчивается на правый слеш - перенаправляем без слеша <a href='". substr($url, 0, -1). "'>". substr($url, 0, -1). "</a>");
+		}else{ exit(header("Location: ". substr($url, 0, -1)));
+		}
+	})){ pre("ОШИБКА обработки адресов заканчивающихся на правый слеш");
 }elseif(call_user_func(function() use($url){
 		if(!array_search($url, [1=>"/robots.txt", "/sitemap.xml"])){// mpre("Адрес не метафайла");
 		}elseif(!$fn = first(explode(".", basename($url)))){ mpre("ОШИБКА установки имени файла");
@@ -317,14 +326,6 @@ if(!call_user_func(function(){ # Переменные окружения
 		}else{// mpre("Адресация страницы", $seo_index_themes);
 		}
 	})){ pre("ОШИБКА перенаправления сайта");
-}elseif(call_user_func(function() use($url, $conf){
-		if(strlen($url) <= 1){// mpre("Похоже на главную страницу");
-		}elseif(substr($url, -1) != "/"){// mpre("Страница оканчивается не на слеш");
-//		}elseif(first(array_keys(get($get, 'm'))) == "webdav"){// mpre("Раздел исключений адресации со слешами");
-		}elseif(array_search("Администратор", $conf['user']['gid'])){ mpre("Адрес заканчивается на правый слеш - перенаправляем без слеша <a href='". substr($url, 0, -1). "'>". substr($url, 0, -1). "</a>");
-		}else{ exit(header("Location: ". substr($url, 0, -1)));
-		}
-	})){ pre("ОШИБКА обработки адресов заканчивающихся на правый слеш");
 }elseif(!$conf["settings"]["canonical"] = call_user_func(function($canonical = null) use($conf, $seo_index, $seo_location, $seo_index_themes){ # Расчет и установка каноникала
 		if(!$canonical = ("/" == $_SERVER["REQUEST_URI"] ? $conf["settings"]["start_mod"] : $_SERVER["REQUEST_URI"])){ mpre("ОШИБКА нахождения адреса текущей страницы");
 //		}elseif(true){ mpre($canonical);
@@ -345,8 +346,9 @@ if(!call_user_func(function(){ # Переменные окружения
 	})){ mpre("ОШИБКА установки параметров запроса");
 }elseif(!$conf['settings']['theme'] = call_user_func(function($theme){
 		if("admin" == last(explode("/", $_SERVER['REQUEST_URI']))){ $theme = "zhiraf";// mpre("Админ раздел внутри директории");
-		}else if(!array_filter(get($_GET['m']), function($v){ return (strpos($v, "admin") === 0); })){// mpre("Не админка");
-		}else{ $theme = "zhiraf";
+		}elseif(array_filter(array_flip($_GET['m']), function($v){ return ("admin" == $v); })){ $theme = "zhiraf"; // mpre("Мдуль админка");
+		}elseif(array_filter($_GET['m'], function($v){ return ("admin" == $v); })){ $theme = "zhiraf"; // mpre("Страница админка");
+		}else{// mpre("Тема", $theme);
 		} return $theme;
 	}, $conf['settings']['theme'])){ mpre("ОШИБКА установки темы страницы");
 }elseif(!is_array($conf["settings"] += call_user_func(function($modules = []) use($conf){
