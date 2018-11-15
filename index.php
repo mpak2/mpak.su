@@ -216,7 +216,7 @@ if(!call_user_func(function(){ # Переменные окружения
 	})){ mpre("ОШИБКА перенаправления на другой сайт");
 }elseif(call_user_func(function($conf){ # Если прописана внутренняя страница и перенаправлениее ее на внешнюю делаем переход и отображаем об этом информацию
     if(!$seo_location = rb("{$conf['db']['prefix']}seo_location", "name", "[{$_SERVER['REQUEST_URI']}]")){// mpre("Адрес внутренней страници в админке не задан");
-    }elseif(!$seo_location['location_status_id']){// mpre("Статус перенаправления не установлен");
+    }elseif(!get($seo_location, 'location_status_id')){// mpre("Статус перенаправления не установлен");
     }elseif(!$seo_location_status = rb("{$conf['db']['prefix']}seo_location_status", "id", $seo_location['location_status_id'])){ mpre("ОШИБКА выборки статуса перенаправления");
     }elseif(!get($seo_location, "index_id")){// mpre("Внешний адрес для перенаправления не установлен");
     }elseif(get($conf, 'settings', 'seo_meta_hidden')){// mpre("Скрываем сообщения для администраторов");
@@ -240,9 +240,15 @@ if(!call_user_func(function(){ # Переменные окружения
 		} return $themes_index;
 	}, $conf["settings"]["http_host"]))){ mpre("ОШИБКА выборки хоста сайта");
 }elseif(!$conf['settings']['theme'] = call_user_func(function($theme) use($conf){ # Установка темы сайта
-		if(get($_GET, "theme")){ $theme = $_GET["theme"]; mpre("Ошибка установки темы из адреса");
+		if("admin" == last(explode("/", $_SERVER['REQUEST_URI']))){ $theme = "zhiraf";// mpre("Админ раздел внутри директории");
+		}elseif(array_filter(array_flip($_GET['m']), function($v){ return ("admin" == $v); })){ $theme = "zhiraf"; // mpre("Мдуль админка");
+		}elseif(array_filter($_GET['m'], function($v){ return ("admin" == $v); })){ $theme = "zhiraf"; // mpre("Страница админка");
+		}elseif(get($_GET, "theme")){ $theme = $_GET["theme"]; mpre("Ошибка установки темы из адреса");
 		}elseif(get($conf, 'user', 'theme')){ $theme = $conf['user']['theme'];
 		}elseif(get($conf, 'themes', 'index', 'theme')){ $theme = $conf['themes']['index']['theme'];
+		}elseif(get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}")){ $theme = get($conf, 'settings', $w);
+		}elseif(get($conf, 'settings', $w = "theme/*:{$conf['settings']['fn']}")){ $theme = get($conf, 'settings', $w);
+		}elseif(get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:*")){ $theme = get($conf, 'settings', $w);
 		}elseif($_theme = call_user_func(function($theme = null) use($conf){
                 if(!get($conf, 'themes', 'index')){// mpre("Хост не установлен");
                 }else if(!$index_theme_id = get($conf, 'themes', 'index', "index_theme_id")){ mpre("Хост не связан с <a href='/themes:admin/r:themes-index_theme'>таблицей тем</a>");
@@ -252,9 +258,6 @@ if(!call_user_func(function(){ # Переменные окружения
                 }else{ mpre("ОШИБКА таблица тем не содержит полей с темой");
                 } return $theme;
             })){ $theme = $_theme;// mpre("Установка темы из связанной таблицы");
-		}elseif(get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}")){ $theme = get($conf, 'settings', $w);
-		}elseif(get($conf, 'settings', $w = "theme/*:{$conf['settings']['fn']}")){ $theme = get($conf, 'settings', $w);
-		}elseif(get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:*")){ $theme = get($conf, 'settings', $w);
 		}else{// mpre("Определена тема сайта как", $theme);
 		} return basename($theme);
 	}, $conf['settings']['theme'])){ pre("ОШИБКА определения темы сайта");
@@ -286,19 +289,16 @@ if(!call_user_func(function(){ # Переменные окружения
 }elseif(!$url = preg_replace("#\/(стр|p)\:[0-9]+#", "", $url)){ mpre("Ошибка избавления от номера страниц в адресе");
 }elseif(!is_array($seo_index = rb("seo-index", "name", array_flip([$url])))){ mpre("ОШИБКА получения внешнего адреса страницы");
 }elseif(!is_array($seo_index_themes = ($seo_index && get($conf, 'themes', 'index') ? rb("seo-index_themes", "themes_index", "index_id", $conf['themes']['index']['id'], $seo_index["id"]) : []))){ mpre("ОШИБКА выборки адресации");
-//}elseif(!is_array($seo_location = ($seo_index_themes ? rb("seo-location", "id", $seo_index_themes["location_id"]) : rb("seo-location", "name", "[{$url}]")))){ mpre("ОШИБКА выборки внутреннего адреса страницы");
 }else if(!is_array($seo_location = call_user_func(function($seo_location = []) use($conf, $seo_index_themes, $seo_index, $url){ // Запись внутреннего адреса
 		if(get($seo_index, "location_id")){ $seo_location = rb("seo-location", "id", $seo_index["location_id"]);// mpre("Односайтовый режим");
 		}else if(empty($seo_index_themes)){ $seo_location = rb("seo-location", "name", "[{$url}]");// mpre("Адрес не установлен");
 		}else{ $seo_location = rb("seo-location", "id", $seo_index_themes["location_id"]);
 		} return $seo_location;
 	}))){ mpre("ОШИБКА получения внутреннего адреса");
-//}elseif(!is_array($seo_location_themes = ($seo_location && $themes_index ? rb("seo-location_themes", "location_id", "themes_index", $seo_location['id'], $themes_index['id']) : []))){ mpre("ОШИБКА получения перенаправления страницы");
 }elseif(call_user_func(function() use($conf, $seo_index, $seo_location, $seo_index_themes){ # Отображаем администратору или переходим по перенаправлению
 		if($seo_index){// mpre("Для перенаправления не найден внешний адрес");
 		}elseif(empty($seo_location)){// mpre("Для перенправления не утсановлен внутренний адрес");
-//		}elseif(empty($seo_location_themes)){// mpre("Для перенправления не утсановлен внутренний адрес");
-		}elseif(!is_array($seo_location_themes = rb("seo-location_themes", "location_id", "themes_index", $seo_location['id'], $themes_index['id']))){ mpre("ОШИБКА получения перенаправления страницы");
+		}elseif(!is_array($seo_location_themes = rb("seo-location_themes", "location_id", "themes_index", $seo_location['id'], get($conf, "themes", "index", "id")))){ mpre("ОШИБКА получения перенаправления страницы");
 		}elseif(!$_seo_index = rb("seo-index", "id", $seo_location_themes["index_id"])){ mpre("ОШИБКА выборки страницы перенаправления");
 		}elseif(!$seo_index_themes){ mpre("Ошибка перенаправления на <a href='/seo:admin/r:seo-location_themes?&where[id]={$seo_location_themes['id']}'>несуществующую страницу</a>");
 		}elseif(array_search("Администратор", $conf['user']['gid'])){ mpre("<a href='/seo:admin/r:seo-location_themes?&where[id]={$seo_location_themes['id']}'>Перенаправление</a> с внутреннего на внешний адрес <a href='{$_seo_index['name']}'>{$_seo_index['name']}</a>");
@@ -344,13 +344,6 @@ if(!call_user_func(function(){ # Переменные окружения
 		}else{// mpre("ГЕТ Параметры", $get);
 		}
 	})){ mpre("ОШИБКА установки параметров запроса");
-}elseif(!$conf['settings']['theme'] = call_user_func(function($theme){
-		if("admin" == last(explode("/", $_SERVER['REQUEST_URI']))){ $theme = "zhiraf";// mpre("Админ раздел внутри директории");
-		}elseif(array_filter(array_flip($_GET['m']), function($v){ return ("admin" == $v); })){ $theme = "zhiraf"; // mpre("Мдуль админка");
-		}elseif(array_filter($_GET['m'], function($v){ return ("admin" == $v); })){ $theme = "zhiraf"; // mpre("Страница админка");
-		}else{// mpre("Тема", $theme);
-		} return $theme;
-	}, $conf['settings']['theme'])){ mpre("ОШИБКА установки темы страницы");
 }elseif(!is_array($conf["settings"] += call_user_func(function($modules = []) use($conf){
 		foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_gaccess ORDER BY sort", 'Права доступа группы к модулю', function($error) use($conf){
 			if(strpos($error, "Unknown column 'sort'")){
