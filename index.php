@@ -242,7 +242,7 @@ if(!call_user_func(function(){ # Переменные окружения
 }elseif(!$conf['settings']['theme'] = call_user_func(function($theme) use($conf){ # Установка темы сайта
 		if("admin" == last(explode("/", $_SERVER['REQUEST_URI']))){ $theme = "zhiraf";// mpre("Админ раздел внутри директории");
 		}elseif(array_filter(array_flip($_GET['m']), function($v){ return ("admin" == $v); })){ $theme = "zhiraf"; // mpre("Мдуль админка");
-		}elseif(array_filter($_GET['m'], function($v){ return ("admin" == $v); })){ $theme = "zhiraf"; // mpre("Страница админка");
+		}elseif(array_filter($_GET['m'], function($fn){ return (0 === strpos($fn, "admin")); })){ $theme = "zhiraf"; // mpre("Страница админка");
 		}elseif(get($_GET, "theme")){ $theme = $_GET["theme"]; mpre("Ошибка установки темы из адреса");
 		}elseif(get($conf, 'user', 'theme')){ $theme = $conf['user']['theme'];
 		}elseif(get($conf, 'themes', 'index', 'theme')){ $theme = $conf['themes']['index']['theme'];
