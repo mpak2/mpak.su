@@ -298,7 +298,7 @@ if(!call_user_func(function(){ # Переменные окружения
 }elseif(call_user_func(function() use($conf, $seo_index, $seo_location, $seo_index_themes){ # Отображаем администратору или переходим по перенаправлению
 		if($seo_index){// mpre("Для перенаправления не найден внешний адрес");
 		}elseif(empty($seo_location)){// mpre("Для перенправления не утсановлен внутренний адрес");
-		}elseif(!is_array($seo_location_themes = rb("seo-location_themes", "location_id", "themes_index", $seo_location['id'], get($conf, "themes", "index", "id")))){ mpre("ОШИБКА получения перенаправления страницы");
+		}elseif(!$seo_location_themes = rb("seo-location_themes", "location_id", "themes_index", $seo_location['id'], get($conf, "themes", "index", "id"))){// mpre("ОШИБКА получения перенаправления страницы");
 		}elseif(!$_seo_index = rb("seo-index", "id", $seo_location_themes["index_id"])){ mpre("ОШИБКА выборки страницы перенаправления");
 		}elseif(!$seo_index_themes){ mpre("Ошибка перенаправления на <a href='/seo:admin/r:seo-location_themes?&where[id]={$seo_location_themes['id']}'>несуществующую страницу</a>");
 		}elseif(array_search("Администратор", $conf['user']['gid'])){ mpre("<a href='/seo:admin/r:seo-location_themes?&where[id]={$seo_location_themes['id']}'>Перенаправление</a> с внутреннего на внешний адрес <a href='{$_seo_index['name']}'>{$_seo_index['name']}</a>");
