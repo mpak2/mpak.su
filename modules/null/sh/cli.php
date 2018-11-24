@@ -26,7 +26,7 @@ if(call_user_func(function($conf = []){ // Подключение компоне
 }elseif(!is_array($argv = (isset($argv) ? $argv : array_merge([0=>basename(__FILE__)], (array)get($_GET, 'argv'))))){ mpre("ОШИБКА получения аргументов адреса");
 }elseif(!$argv = call_user_func(function($argv = ""){
 		if(array_key_exists('argv', $GLOBALS)){ $argv = $GLOBALS['argv'];
-		}elseif(get($_GET, 'argv')){ $argv = $_GET["argv"];
+		}elseif(!$argv = array_merge([0=>basename(__FILE__)], (array)get($_GET, 'argv'))){ mpre("ОШИБКА получения аргументов адреса");
 		}else{// mpre($argv);
 		} return $argv;
 	})){ mpre("ОШИБКА получения аргументов");
