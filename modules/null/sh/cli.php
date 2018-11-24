@@ -42,7 +42,6 @@ if(call_user_func(function($conf = []){ // Подключение компоне
 	mpre("argv: `{$argv}`", $cmd);
 }
 
-
 /*
 if(!empty($conf)){ mpre("Жираф уже подключен");
 }elseif(isset($argv)){ print_r("Запускаем не из консоли", $argv);
