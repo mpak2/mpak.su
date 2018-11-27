@@ -200,7 +200,7 @@ if(!call_user_func(function(){ # Переменные окружения
 		if(!$MODULES_INDEX = rb("modules-index")){ mpre("ОШИБКА выборки списка свойств сайта");
 		}elseif(!$_MODULES = array_map(function($modules_index) use($conf){
 				if(!$modules = $modules_index){ pre("ОШИБКА установки свойств модуля");
-				}elseif(!$modules["modname"] = (strpos($_SERVER['HTTP_HOST'], "xn--") !== false) ? mb_strtolower($modules['name'], 'UTF-8') : $modules['folder']){ pre("Приведение к формату имени хоста");
+				}elseif(!$modules["modname"] = mb_strtolower((get($modules, 'name') ?: $modules['folder']), 'UTF-8')){ pre("Приведение к формату имени хоста");
 				}elseif(!is_numeric($modules['admin_access'] = ((array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) ? 5 : (int)$modules_index['admin_access']))){ pre("ОШИБКА установки прав доступа к разделу", $modules_index);
 				}else{ return $modules; }
 			}, $MODULES_INDEX)){ mpre("ОШИБКА получения свойств модулей");
