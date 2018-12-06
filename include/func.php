@@ -1328,7 +1328,8 @@ function mpsettings($name, $value = null, $aid = 4, $description = ""){
 
 # Разбор адресной строки на параметры для использования в $_GET массиве
 function mpgt($REQUEST_URI, $get = array()){
-	if(strpos($REQUEST_URI, "?")){
+	if(!$REQUEST_URI = urldecode($REQUEST_URI)){ mpre("ОШИБКА декодирования адреса");
+	}elseif(strpos($REQUEST_URI, "?")){
 		$keys = array_keys($ar = explode('?', $REQUEST_URI));
 		$part = explode('//', str_replace("/null/", "//", $ar[min($keys)]), 2);// mpre($part); exit;
 	}else{
