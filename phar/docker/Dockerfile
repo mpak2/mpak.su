@@ -2,6 +2,7 @@ FROM ubuntu
 MAINTAINER Кривошлыков Евгений <docker@mpak.su>
 
 RUN apt-get update && apt-get -y upgrade
+ARG DEBIAN_FRONTEND=noninteractive
 RUN apt install -y vim
 RUN apt install -y wget
 
@@ -27,13 +28,16 @@ RUN sed -i "s/short_open_tag = Off/short_open_tag = On/" /etc/php/7.2/apache2/ph
 RUN sed -i "s/short_open_tag = Off/short_open_tag = On/" /etc/php/7.2/cli/php.ini
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+RUN echo "IncludeOptional /var/www/*.conf" >> /etc/apache2/apache2.conf
 #RUN sed -i "s/<\/VirtualHost>/Проверка\n<\/VirtualHost>" /etc/apache2/apache2.conf
 RUN sed -i "s/<\/VirtualHost>/\n\t<Directory \/var\/www\/html>\n\t<\/Directory>\n<\/VirtualHost>/g" /etc/apache2/sites-available/000-default.conf
-RUN sed -i "s/<\/Directory>/\tOptions Indexes FollowSymLinks MultiViews\n\t<\/Directory>/g" /etc/apache2/sites-enabled/000-default.conf
-RUN sed -i "s/<\/Directory>/\tAllowOverride All\n\t<\/Directory>/g" /etc/apache2/sites-enabled/000-default.conf
-RUN sed -i "s/<\/Directory>/\tOrder allow,deny\n\t<\/Directory>/g" /etc/apache2/sites-enabled/000-default.conf
-RUN sed -i "s/<\/Directory>/\tAllow from all\n\t<\/Directory>/g" /etc/apache2/sites-enabled/000-default.conf
-RUN sed -i "s/<\/Directory>/\tRequire all granted\n\t<\/Directory>/g" /etc/apache2/sites-enabled/000-default.conf
+RUN sed -i "s/<\/Directory>/\tOptions Indexes FollowSymLinks MultiViews\n\t<\/Directory>/g" /etc/apache2/sites-available/000-default.conf
+RUN sed -i "s/<\/Directory>/\tAllowOverride All\n\t<\/Directory>/g" /etc/apache2/sites-available/000-default.conf
+RUN sed -i "s/<\/Directory>/\tOrder allow,deny\n\t<\/Directory>/g" /etc/apache2/sites-available/000-default.conf
+RUN sed -i "s/<\/Directory>/\tAllow from all\n\t<\/Directory>/g" /etc/apache2/sites-available/000-default.conf
+RUN sed -i "s/<\/Directory>/\tRequire all granted\n\t<\/Directory>/g" /etc/apache2/sites-available/000-default.conf
+RUN mv /etc/apache2/sites-enabled/000-default.conf /tmp
+RUN cd /etc/apache2/sites-enabled/; ln -s ../sites-available/000-default.conf 000-default.conf
 RUN a2enmod php7.2
 RUN a2enmod rewrite
 EXPOSE 80
