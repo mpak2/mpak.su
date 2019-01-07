@@ -7,7 +7,12 @@
 			$(script).parent().one("init", function(e){
 				setTimeout(function(){
 					var request_uri = decodeURIComponent(location.pathname)+decodeURIComponent(location.search);
-					$(".pager").find("a[href='"+request_uri+"']").addClass("active");
+					if((a = $(e.delegateTarget).find("a[href='"+request_uri+"']")).length){
+						$(a).addClass("active");
+					}else{
+						$(e.delegateTarget).find("a.numeric:first").addClass("active");
+					}
+//					$(".pager").find("a[href='"+request_uri+"']").addClass("active");
 				}, 100)
 			}).trigger("init")
 		})(jQuery, document.scripts[document.scripts.length-1])
