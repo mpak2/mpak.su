@@ -245,10 +245,10 @@ if(!call_user_func(function(){ # Переменные окружения
 		}elseif(array_filter($_GET['m'], function($fn){ return (0 === strpos($fn, "admin")); })){ $theme = "zhiraf"; // mpre("Страница админка");
 		}elseif(get($_GET, "theme")){ $theme = $_GET["theme"]; mpre("Ошибка установки темы из адреса");
 		}elseif(get($conf, 'user', 'theme')){ $theme = $conf['user']['theme'];
+		}elseif(get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:*")){ $theme = get($conf, 'settings', $w);
 		}elseif(get($conf, 'themes', 'index', 'theme')){ $theme = $conf['themes']['index']['theme'];
 		}elseif(get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}")){ $theme = get($conf, 'settings', $w);
 		}elseif(get($conf, 'settings', $w = "theme/*:{$conf['settings']['fn']}")){ $theme = get($conf, 'settings', $w);
-		}elseif(get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:*")){ $theme = get($conf, 'settings', $w);
 		}elseif($_theme = call_user_func(function($theme = null) use($conf){
                 if(!get($conf, 'themes', 'index')){// mpre("Хост не установлен");
                 }else if(!$index_theme_id = get($conf, 'themes', 'index', "index_theme_id")){ mpre("Хост не связан с <a href='/themes:admin/r:themes-index_theme'>таблицей тем</a>");
