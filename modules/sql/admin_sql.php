@@ -38,7 +38,7 @@ if($dump = get($_REQUEST, 'dump')){
 				qw("CREATE TABLE `{$table}` (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE, time INTEGER, uid INTEGER, name TEXT)");
 			}else{ # Новая таблица в mysql
 				qw("CREATE TABLE `$table` (
-					id INT(11) AUTO_INCREMENT PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
+					id INT(11) NOT NULL AUTO_INCREMENT,
 					time INT(11),
 					uid INT(11),
 					name VARCHAR(255)
