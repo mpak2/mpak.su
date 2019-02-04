@@ -16,10 +16,12 @@
 		ul.tabs > li.sub > a:after {content:"↵";};
 	</style>
 	<? foreach(get($tpl, 'menu') ?: array() as $k=>$ar): ?>
-		<? if(!$r = $tpl['tables'][$k]): mpre("ОШИБКА получения полного имени таблицы") ?>
-		<? elseif(!$tab = substr($r, strlen($conf['db']['prefix']))): mpre("ОШИБКА расчета имени таблицы") ?>
-		<? elseif(!is_string($tb = (substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))): mpre("ОШИБКА получения короткого имени таблицы `{$r}`", gettype($tb)) ?>
-		<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$arg['modpath']}-{$tb}"): mpre("ОШИБКА формирования адреса перехода") ?>
+		<? if(!$r = get($tpl, 'tables', $k)): mpre("ОШИБКА получения полного имени таблицы") ?>
+		<? //elseif(!$tab = substr($r, strlen($conf['db']['prefix']))): mpre("ОШИБКА расчета имени таблицы") ?>
+		<? elseif(!$tab = strpos($r, '.') ? $r : substr($r, strlen($conf['db']['prefix']))): mpre("ОШИБКА получения короткого имени таблицы") ?>
+		<? elseif(!is_string($tb = (strpos($r, '.') ? $tab : substr($tab, strlen("{$arg['modpath']}_"))))): mpre("ОШИБКА получения короткого имени таблицы `{$r}`", gettype($tb)) ?>
+		<? elseif(!$tabl = strpos($r, '.') ? $tab : "{$arg['modpath']}-{$tb}"): mpre("ОШИБКА получения имени таблицы в адресе") ?>
+		<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$tabl}"): mpre("ОШИБКА формирования адреса перехода") ?>
 		<? elseif(!$name = (get($conf, 'settings', $tab) ?: $tb)): mpre("ОШИБКА формирования имени вкладки") ?>
 		<? elseif(!is_array($tables = array_intersect_key($tpl['tables'], array_flip($ar)))): mpre("ОШИБКА выборки списка нижестоящих таблиц") ?>
 		<? elseif(!is_string($act = (($_GET['r'] == $r) ? "act" : ""))): mpre("ОШИБКА определения класса активности вкладки") ?>
@@ -31,9 +33,12 @@
 				<ul>
 					<? foreach($ar as $n=>$v): ?>
 						<? if(!$r = $tpl['tables'][$v]): mpre("ОШИБКА получения полного имени вложенной таблицы") ?>
-						<? elseif(!$tab = substr($r, strlen($conf['db']['prefix']))): mpre("ОШИБКА формирования имени таблицы") ?>
-						<? elseif(!is_string($tb = (substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))): mpre("ОШИБКА получения короткого имени таблицы `{$r}`", gettype($tb)) ?>
-						<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$arg['modpath']}-{$tb}"): mpre("ОШИБКА формирования адреса перехода") ?>
+						<? //elseif(!$tab = substr($r, strlen($conf['db']['prefix']))): mpre("ОШИБКА формирования имени таблицы") ?>
+						<? elseif(!$tab = strpos($r, '.') ? $r : substr($r, strlen($conf['db']['prefix']))): mpre("ОШИБКА получения короткого имени таблицы") ?>
+						<? //elseif(!is_string($tb = (substr($r, strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))): mpre("ОШИБКА получения короткого имени таблицы `{$r}`", gettype($tb)) ?>
+						<? elseif(!is_string($tb = (strpos($r, '.') ? $tab : substr($tab, strlen("{$arg['modpath']}_"))))): mpre("ОШИБКА получения короткого имени таблицы `{$r}`", gettype($tb)) ?>
+						<? elseif(!$tabl = strpos($r, '.') ? $tab : "{$arg['modpath']}-{$tb}"): mpre("ОШИБКА получения имени таблицы в адресе") ?>
+						<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$tabl}"): mpre("ОШИБКА формирования адреса перехода") ?>
 						<? elseif(!$name = (get($conf, 'settings', $tab) ?: $tb)): mpre("ОШИБКА формирования имени вкладки") ?>
 						<? elseif(!is_string($subact = (($_GET['r'] == $r) ? "subact" : ""))): mpre("ОШИБКА определения класса активности вкладки") ?>
 						<? else:// mpre($tb) ?>
@@ -572,7 +577,7 @@
 								<? endif; ?>
 							</span>
 						</div>
-					<? else:// mpre($_GET, $tpl['edit']); # Горизонтальное отображение ?>
+					<? else: //mpre($tpl['fields']); // mpre($_GET, $tpl['edit']); # Горизонтальное отображение ?>
 						<div class="th">
 							<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($tpl['fields'], array_flip($tpl['title'])) : $tpl['fields']), (get($tpl, 'counter') ?: array()), (get($tpl, 'ecounter') ?: array())) as $name=>$field):// mpre($name, $field) ?>
 								<span>

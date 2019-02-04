@@ -97,12 +97,9 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 			//array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=". ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\""); });
 
 			array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = "`$key`=". ($val === "NULL" ? "NULL" : "\"". mpquot($val). "\""); });
-			qw($sql = "UPDATE `{$_GET['r']}` SET ". implode(", ", array_values($_POST)). " WHERE id=". (int)$_GET['id']);
-			$el = rb($_GET['r'], "id", $_GET['id']);// $_RETURN = 556;
-//			die(!mpre($_POST));
+			qw($sql = "UPDATE {$_GET['r']} SET ". implode(", ", array_values($_POST)). " WHERE id=". (int)$_GET['id']);
+			$el = rb($_GET['r'], "id", $_GET['id']);
 		}else{// die(!mpre($_POST));// mpre("Добавление", $_POST);
-
-		
 			if($ar = array_filter($_POST, function($e){ return is_array($e); })){
 				array_walk($_POST, function($val, $key){
 					if(is_array($val)){
@@ -122,7 +119,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 						if($post = $_POST + array($a=>$v)){
 
 
-							qw($sql = "INSERT INTO `{$_GET['r']}` (`". implode("`, `", array_keys($post)). "`) VALUES (". implode(", ", array_values($post)). ")");
+							qw($sql = "INSERT INTO {$_GET['r']} (`". implode("`, `", array_keys($post)). "`) VALUES (". implode(", ", array_values($post)). ")");
 							$_GET['id'] = $conf['db']['conn']->lastInsertId();
 
 
@@ -138,7 +135,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 				*/
 				//array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = ($val == "NULL" ? "NULL" : "\"". mpquot(htmlspecialchars_decode($val)). "\""); });
 				array_walk_recursive($_POST, function($val, $key){ $_POST[$key] = ($val == "NULL" ? "NULL" : "\"". mpquot($val). "\""); });
-				mpqw($sql = "INSERT INTO `{$_GET['r']}` (`". implode("`, `", array_keys($_POST)). "`) VALUES (". implode(", ", array_values($_POST)). ")", "Добавление записи в таблицу из админстраницы", function($error) use($conf){
+				mpqw($sql = "INSERT INTO {$_GET['r']} (`". implode("`, `", array_keys($_POST)). "`) VALUES (". implode(", ", array_values($_POST)). ")", "Добавление записи в таблицу из админстраницы", function($error) use($conf){
 					if(($fields = fields($_GET['r'])) && preg_match("#Column '([\w-_]+)' cannot be null#", $error, $match)){
 					}elseif($type = $fields[$match[1]]['Type']){ mpre("Тип данных для правки структуры БД не определен", $_GET['r'], $match);
 					}else{
@@ -206,51 +203,42 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 			return $href;
 		}
 	})){ mpre("ОШИБКА составления ссылки");
-}else{ # Выборка таблицы
-	if(!get($_GET, 'r')){ mpre("Имя таблицы не задано");
-	}elseif(strpos($_GET['r'], "-") && ($ex = explode("-", $_GET['r']))){
-		$_GET['r'] = $conf['db']['prefix']. first($ex). (($l = last($ex)) ? "_{$l}" : "");
-	} if($conf['db']['type'] == "sqlite"){
-		if(!$database_list = mpql(mpqw("PRAGMA database_list"))){ mpre("ОШИБКА получения списка баз данных");
-		}elseif(!$TABLES = array_map(function($database) use($conf, $arg){
+}else if(!$tpl['tables'] = call_user_func(function($tables = []) use($conf, $arg){ // Список табли модуля
+		if($conf['db']['type'] == "mysql"){ $tables = array_column(ql("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\""), "Tables_in_{$conf['db']['name']}");
+		}elseif(!$database_list = mpql(mpqw("PRAGMA database_list"))){ mpre("ОШИБКА получения списка баз данных");
+		}elseif(!$TABLES = array_map(function($database, $TABLES = []) use($conf, $arg){
 				if(!$sql = "SELECT * FROM {$database['name']}.sqlite_master WHERE type='table' AND name LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\""){ mpre("Запрос на выборку списка баз данных раздела");
 				}elseif(!is_array($_TABLES = (qn($sql, "name") ?: []))){ mpre("ОШИБКА формирования массив имен таблиц");
 				}elseif(!is_array($TABLES = array_column($_TABLES, "name"))){ mpre("ОШИБКА получения списка таблиц БД `{$database['name']}`");
-				}else{// mpre("Список таблиц БД", $database, $$TABLES);
-					return $TABLES;
-				}
+				}elseif("main" == $database["name"]){ //mpre("Основная база данных");
+				}elseif(!is_array($TABLES = array_map(function($table) use($database){ return "{$database["name"]}.{$table}"; }, $TABLES))){ mpre("ОШИБКА добавления имени базы данных к имени таблицы", $database);
+				}else{ //mpre("Список таблиц БД", $database, $TABLES);
+				} return $TABLES;
 			}, $database_list)){ mpre("ОШИБКА получения списка табли баз данных");
-		}elseif(!is_array($tpl['tables'] = call_user_func_array('array_merge', $TABLES))){ mpre("ОШИБКА совмещения списка таблиц");
+		}elseif(!is_array($tables = call_user_func_array('array_merge', $TABLES))){ mpre("ОШИБКА совмещения списка таблиц");
+		}elseif(!sort($tables)){ mpre("ОШИБКА сортировки таблиц");
 		}else{// mpre($TABLES);
-//			$tpl['tables'] = array_column(qn("SELECT * FROM main.sqlite_master WHERE type='table' AND name LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\"", "name"), "name");
-//			sort($tpl['tables']);
-		}
-	}else{
-		$tpl['tables'] = array_column(ql("SHOW TABLES WHERE `Tables_in_{$conf['db']['name']}` LIKE \"{$conf['db']['prefix']}{$arg['modpath']}%\""), "Tables_in_{$conf['db']['name']}");
-	}// mpre($_GET['r']);
-	sort($tpl['tables']);
-
-	foreach($tpl['tables'] as $key=>$tables){
-		$short = implode("_", array_slice(explode("_", $tables), 0, -1));
-		if(($top = array_search($short, $tpl['tables'])) !== false){
-			$tpl['menu'][$top][] = $key;
-		}else{ $tpl['menu'][$key] = array(); }
-	}
-	
-	if(empty($_GET['r'])){
-		$modules_index = fk("modules-index", array("folder"=>$arg['modpath']), null, array("priority"=>time()));
-
-		if(!$table = "{$arg['modpath']}-index"){ mpre("ОШИБКА формирования имени дефолтновй таблицы");
-		}elseif(!$tpl['tables']){ mpre("Таблиц в разделе не найдено переходим на основную", $table);
-			header("Location:/{$arg['modpath']}:admin/r:{$table}");$_RETURN = 556;
-		}elseif(!$table = first($tables = $tpl['tables'])){ mpre("ОШИБКА получения первой таблицы в списке таблиц раздела");
-		}elseif(!is_string($tb = (substr($table, strlen("{$conf['db']['prefix']}{$arg['modpath']}_")) ?: ""))){ mpre("ОШИБКА получения короткой записи таблицы `{$table}`");
-		}elseif(!$_table = "{$arg['modpath']}-{$tb}"){ mpre("ОШИБКА формирования имени таблицы");
-		}else{ mpre("Переход на страницу таблицы", $table, $_table);
-			header("Location:/{$arg['modpath']}:admin/r:{$_table}");$_RETURN = 556;
-		}
-	}elseif(array_search($_GET['r'], $tpl['tables']) !== false){
-		$tpl['fields'] = fields($_GET['r']);
+		} return $tables;
+	})){ mpre("ОШИБКА получения списка таблиц блока");
+}else if(!$_GET['r'] = call_user_func(function($table) use($conf, $tpl){ // Формирование имени таблицы
+		if(!$table){ $table = first($tpl["tables"]);// mpre("Имя таблицы не задано");
+		}else if(!strpos($table, "-")){ //mpre("Полный адрес таблицы");
+		}else if(!$ex = explode("-", $table)){ mpre("ОШИБКА разбора имени таблицы на части");
+		}else{ //mpre("Короткое имя таблицы", $ex);
+			$table = $conf['db']['prefix']. first($ex). (($l = last($ex)) ? "_{$l}" : "");
+		} return $table;
+	}, get($_GET, 'r'))){ mpre("ОШИБКА получения имени таблицы");
+}else if(!$tpl['menu'] = call_user_func(function($tables, $menu = []){ // Список меню
+		foreach($tables as $key=>$table){
+			if(!$short = implode("_", array_slice(explode("_", $table), 0, -1))){ mpre("ОШИБКА получения короткого имени таблицы");
+			}else if(($top = array_search($short, $tables)) !== false){ //mpre("Подтаблица", $short);
+				$menu[$top][] = $key;
+			}else{ $menu[$key] = array(); }
+		} return $menu;
+	}, $tpl["tables"])){ mpre("ОШИБКА формирования меню");
+}else if(array_search($_GET['r'], $tpl['tables']) === false){ mpre("ОШИБКА имя таблицы не найдено в списке таблиц");
+}else if(!$tpl['fields'] = fields($_GET['r'])){ mpre("ОШИБКА выборки полей таблицы");
+}else{ # Выборка таблицы
 		if(get($_GET, 'order')){ # Установка временной сортировки
 			$conf['settings'][substr($_GET['r'], strlen($conf['db']['prefix'])). "=>order"] = $_GET['order'];
 		}
@@ -301,13 +289,14 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 					$tpl['espisok'][$espisok] = rb("{$conf['db']['prefix']}{$espisok}");
 				}
 			}
-			foreach($tpl['tables'] as $tables){
-				$ft = substr($tables, strlen("{$conf['db']['prefix']}{$arg['modpath']}_"));
-				if($fields = fields($tables)){
+			foreach($tpl['tables'] as $table){
+				if(!$table = strpos($table, ".") ? last(explode(".", $table)) : $table){ mpre("ОШИБКА получения имени таблицы");
+				}else if(!$ft = substr($table, strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))){ mpre("ОШИБКА получения короткого имени таблицы");
+				}else if($fields = fields($table)){
 					if(get($fields, ($t = "{$tab}_id"))){
 						$tpl['counter']["_{$ft}"] = array_column(ql("SELECT `{$t}`, COUNT(*) AS cnt FROM `{$conf['db']['prefix']}{$arg['modpath']}". ($ft ? "_{$ft}" : ""). "` WHERE `{$t}` IN (". in($tpl['lines']). ") GROUP BY `{$t}`"), "cnt", $t);
 					}
-				}else{ mpre("Поля таблицы $tables не определены"); }
+				}else{ mpre("Поля таблицы $table не определены"); }
 			}
 
 			$tpl['etitle'] = array("id"=>"Номер", 'time'=>'Время', 'up'=>'Обновление', 'down'=>'Окончание', 'uid'=>'Пользователь', 'count'=>'Количество', 'level'=>'Уровень', 'ref'=>'Источник', 'cat_id'=>'Категория', 'img'=>'Изображение', 'img2'=>'Изображение2', 'img3'=>'Изображение3', 'file'=>'Файл', 'hide'=>'Видим', 'sum'=>'Сумма', 'fam'=>'Фамилия', 'imy'=>'Имя', 'otv'=>'Отвество', 'sort'=>'Сорт', 'name'=>'Название', 'duration'=>'Длительность', 'pass'=>'Пароль', 'reg_time'=>'Время регистрации', 'last_time'=>'Последний вход', 'email'=>'Почта', 'skype'=>'Скайп', 'site'=>'Сайт', 'title'=>'Заголовок', 'sity_id'=>'Город', 'country_id'=>'Страна', 'value'=>'Значение', 'status'=>'Статус', 'addr'=>'Адрес', 'tel'=>'Телефон', 'code'=>'Код', "article"=>"Артикул", 'price'=>'Цена', 'captcha'=>'Защита', 'href'=>'Ссылка', 'keywords'=>'Ключевики', "users_sity"=>'Город', 'log'=>'Лог', 'min'=>'Мин', 'max'=>'Макс', 'own'=>'Владелец', 'period'=>'Период', "from"=>"Откуда", "to"=>"Куда", "percentage"=>"Процент", 'description'=>'Описание', 'text'=>'Текст', 'result'=>"Результат", "place"=>"Место", "num"=>"Номер");
@@ -319,5 +308,4 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		}elseif($_GET['r'] == "{$conf['db']['prefix']}users"){ # Количество групп в которых состоит человек
 			$tpl['counter']["_mem"] = array_column(ql("SELECT `uid`, COUNT(*) AS cnt FROM `{$conf['db']['prefix']}{$arg['modpath']}_mem` WHERE `uid` IN (". in($tpl['lines']). ") GROUP BY `uid`"), "cnt", "uid");
 		}
-	}
 }

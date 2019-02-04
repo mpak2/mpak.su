@@ -471,22 +471,23 @@ function first($ar, $cur = null){
 }
 
 
-function tables($table = null){
+function tables($table = null, $modpath = null){
 	global $conf;
-	if($conf['db']['type'] == "sqlite"){
-		$tpl['tables'] = qn("SELECT * FROM sqlite_master WHERE type='table'", "name");
-	}else{
-		$tpl['tables'] = qn("SHOW TABLES", "Tables_in_{$conf['db']['name']}");
-	}// pre($tpl['tables']);
-
-	if($table){ return get($tpl,'tables',$table); }else{
-		ksort($tpl['tables']);// pre(array_keys($tpl['tables']));
-		return $tpl['tables'];
-	}
+	if(!$tpl['tables'] = call_user_func(function($tables = []) use($conf){ // Список таблиц БД
+			if($conf['db']['type'] == "mysql"){ $tables = qn("SHOW TABLES", "Tables_in_{$conf['db']['name']}");
+			}else if($conf['db']['type'] != "sqlite"){ mpre("ОШИБКА определения типа базы данных");
+			}else if(!$tables = qn("SELECT * FROM sqlite_master WHERE type='table'", "name")){ mpre("ОШИБКА выборки списка таблиц sqlite");
+			}else{ //pre($tables);
+			} return $tables;
+		})){ mpre("ОШИБКА выборки списка таблиц");
+	}else if($table){ return get($tpl,'tables',$table);
+	}else if(!ksort($tpl['tables'])){ mpre("ОШИБКА сортировки таблиц");
+	}else{ return $tpl['tables']; }
 } function fields($tab, $type = false){
 	global $conf;
 	if(!$table = call_user_func(function($tab) use($conf){ # Формирование полного имени таблицы
-			if(0 === strpos($tab, $conf['db']['prefix'])){ return $tab; mpre("Адрес таблицы указан полностью");
+			if(strpos($tab, ".")){ return $tab; mpre($tab); mpre("Имя таблицы вместе с бд");
+			}elseif(0 === strpos($tab, $conf['db']['prefix'])){ return $tab; mpre("Адрес таблицы указан полностью");
 			}elseif(!strpos($tab, '-')){ return "{$conf['db']['prefix']}{$tab}"; mpre("Адрес таблицы указан полностью");
 			}elseif(!$ex = explode('-', $tab)){ mpre("Ошибка разбивки таблицы на составные части");
 			}elseif(!$tab = "{$conf['db']['prefix']}{$ex[0]}_{$ex[1]}"){ mpre("Ошибка составления полного имени таблицы");
@@ -495,8 +496,11 @@ function tables($table = null){
 			}
 		}, $tab)){ mpre("Ошибка формирования полного имени таблицы");
 	}elseif($conf['db']['type'] == "sqlite"){
-		$tpl['fields'] = qn("pragma table_info ('". $table. "')", "name");
-		if($type){
+		if(!$table_info = (strpos($table, ".") ? first(explode(".", $table)). ".table_info" : "table_info")){ mpre("ОШИБКА получения схемы");
+		}else if(!$table = (strpos($table, ".") ? last(explode(".", $table)) : $table)){ mpre("ОШИБКА получения имени таблицы");
+		}else if(!$sql = "pragma {$table_info} ('". $table. "')"){ mpre("ОШИБКА получения запроса получения схемы таблицы");
+		}else if(!$tpl['fields'] = qn($sql, "name")){ mpre("ОШИБКА получения схемы", $sql);
+		}else if($type){
 			$tpl['fields'] = array_column($tpl['fields'], "type", "name");
 		}
 	}else{
@@ -1056,10 +1060,9 @@ function erb($src, $key = null){
 //			}elseif(true){ mpre($WHERE);
 			}elseif(!is_string($where = implode(" AND ", $WHERE))){ mpre("Ошибка составления всех условий в строку");
 			}elseif(!$tab = call_user_func(function($src) use($conf, $arg){
-					if($conf['db']['prefix'] == substr($src, 0, strlen($conf['db']['prefix']))){// mpre("Полное имя таблицы вместе с префиксом");
-						return $src;
-					}elseif(!strpos($src, "-")){// mpre("Короткое имя таблицы без модуля", $src);
-						return "{$conf['db']['prefix']}{$arg['modpath']}{$src}";
+					if(strpos($src, ".")){ /*mpre($src);*/ return $src; // mpre("Короткое имя таблицы без модуля", $src);
+					}elseif($conf['db']['prefix'] == substr($src, 0, strlen($conf['db']['prefix']))){ return $src; // mpre("Полное имя таблицы вместе с префиксом");
+					}elseif(!strpos($src, "-")){ return "{$conf['db']['prefix']}{$arg['modpath']}{$src}"; // mpre("Короткое имя таблицы без модуля", $src);
 					}elseif(!$MOD = explode("-", $src, 2)){ mpre("Ошибка парсинга модуля имени таблицы");
 					}elseif(!$tab = "{$conf['db']['prefix']}{$MOD[0]}_{$MOD[1]}"){
 					}else{ return $tab; }
@@ -1077,14 +1080,14 @@ function erb($src, $key = null){
 			}elseif((!$LIMIT = ($limit ? " LIMIT ". (get($_GET, $p)*$limit). ",". abs($limit) : "")) &0){ mpre("Условия лимита");
 			}elseif(!$modp = substr($tab, strlen($conf['db']['prefix']))){ mpre("Ошибка вычисления строки модуля");
 			}elseif(!is_string($order = get($conf, 'settings', "{$modp}=>order") ?: "")){ mpre("Расчет поля сортировки");
-			}elseif(!$sql = "SELECT * FROM `{$tab}`". ($where ? " WHERE {$where}" : ""). ($order ? " ORDER BY {$order}" : ""). $LIMIT){ mpre("Ошибка составления запроса к базе");
+			}elseif(!$sql = "SELECT * FROM {$tab}". ($where ? " WHERE {$where}" : ""). ($order ? " ORDER BY {$order}" : ""). $LIMIT){ mpre("Ошибка составления запроса к базе");
 //			}elseif(true){ mpre($sql);
 			}elseif(is_numeric($limit) && ($limit <= 0) && !mpre($sql)){ mpre("Отображение запроса");
 			}elseif(!is_array($SRC = qn($sql))){ mpre("Ошибка выполнения запроса", $sql);
 //			}elseif(strpos($sql, "news_index") && !mpre($p, $sql, $SRC)){
 			}elseif(!is_string($tpl['pager'] = call_user_func(function() use($limit, $sql, $pager_id, $tpl, $tab, $where, $order){ # Получаем описание на постраничные переходы
 					if(!$limit){ return (get($tpl, 'pager') ?: "");
-					}elseif(!$sql = $sql = "SELECT COUNT(*) AS cnt FROM `{$tab}`". ($where ? " WHERE {$where}" : ""). ($order ? " ORDER BY {$order}" : "")){ mpre("ОШИБКА формирования адреса для постраничной выборки");
+					}elseif(!$sql = $sql = "SELECT COUNT(*) AS cnt FROM {$tab}". ($where ? " WHERE {$where}" : ""). ($order ? " ORDER BY {$order}" : "")){ mpre("ОШИБКА формирования адреса для постраничной выборки");
 					}elseif(!$res = ql($sql)){ mpre("ОШИБКА выполнения запроса на выборку количества записей");
 					}elseif(!is_numeric($count = get($res, 0, "cnt"))){ mpre("Ошибка подсчета количества страниц в пагинаторе", $res);
 					}elseif(!is_numeric($cnt = $cnt = $count/$limit)){ mpre("ОШИБКА получения номера страницы постраничного отображения");
@@ -1129,9 +1132,9 @@ function erb($src, $key = null){
 } function rb($src, $key = 'id'){
 	global $conf, $arg, $tpl;
 	$func_get_args = func_get_args();
-//	echo "<pre>"; print_r($func_get_args); echo "</pre>"; exit;
 	if(is_string($src)){
-		if(strpos($func_get_args[0], '-')){ # Разделитель  - (тире) считается разделителем для раздела
+		if(strpos($func_get_args[0], '.')){ //mpre($func_get_args); # Точка в имени таблицы
+		}else if(strpos($func_get_args[0], '-')){ # Разделитель  - (тире) считается разделителем для раздела
 			$func_get_args[0] = $conf['db']['prefix']. implode("_", array_filter(explode("-", $func_get_args[0])));
 		}else if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$func_get_args[0])){ # Если имя таблицы начинается с префика
 			$func_get_args[0] = "{$conf['db']['prefix']}{$arg['modpath']}_{$func_get_args[0]}";
@@ -1200,11 +1203,11 @@ function mpdbf($tn, $post = null, $and = false){
 } function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
 	global $conf, $arg;
 	if($find && ($fnd = mpdbf($tn, $find, 1)) &&
-		($sel = qn($sql = "SELECT `id` FROM `". mpquot($tn). "` WHERE ". $fnd))
+		($sel = qn($sql = "SELECT `id` FROM ". mpquot($tn). " WHERE ". $fnd))
 	){
 		if((count($sel) == 1) && ($s = array_shift($sel))){
 			if($update && ($upd = mpdbf($tn, $update))){
-				qw($sql = "UPDATE `". mpquot($tn). "` SET {$upd} WHERE `id`=". (int)$s['id']);
+				qw($sql = "UPDATE ". mpquot($tn). " SET {$upd} WHERE `id`=". (int)$s['id']);
 			} return $s['id'];
 		}else{ mpre("Множественные изменения запрещены `{$tn}`", $find); # Множественное обновление. Если в качестве условия используется несколько элементов
 		}
@@ -1213,7 +1216,7 @@ function mpdbf($tn, $post = null, $and = false){
 		}elseif(!$mpdbf = $insert+array("time"=>time(), "uid"=>get($conf, 'user', 'uid'), 'sid'=>get($conf, 'user', 'sess', 'id'))){ mpre("ОШИБКА добавления дефолтных значений");
 		}elseif(!$values = array_map(function($val){ return mpquot($val); }, array_intersect_key($mpdbf, $fields))){ mpre("ОШИБКА составления значений запроса");
 		}else{// pre($conf['user']['sess']);
-			qw("INSERT INTO `". mpquot($tn). "` (`". implode("`, `", array_keys($values)). "`) VALUES (\"". implode("\", \"", array_values($values)). "\")");
+			qw("INSERT INTO ". mpquot($tn). " (`". implode("`, `", array_keys($values)). "`) VALUES (\"". implode("\", \"", array_values($values)). "\")");
 			return $sel['id'] = $conf['db']['conn']->lastInsertId();
 		}// qw($sql = "INSERT INTO `". mpquot($tn). "` SET ". mpdbf($tn, $insert+array("time"=>time(), "uid"=>(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0))));
 	}
@@ -1235,7 +1238,7 @@ function fdk(&$tn, $find, $insert = array(), $update = array(), $log = false){
 			return ($tn[ $insert['id'] ] = $insert);
 		}else{ return false; }
 	}elseif($index_id = mpfdk($tn, $find, $insert, $update, $log)){
-		if($line = qn("SELECT * FROM `$tn` WHERE id IN (". (is_numeric($index_id) ? $index_id : in($index_id)). ")")){
+		if($line = qn("SELECT * FROM $tn WHERE id IN (". (is_numeric($index_id) ? $index_id : in($index_id)). ")")){
 			if(1 == count($line)){
 				return first($line);
 			}elseif(!$mn = explode("_", substr($tn, strlen($conf['db']['prefix'])), 2)){ mpre("Ошибка парсинга адреса таблицы");
