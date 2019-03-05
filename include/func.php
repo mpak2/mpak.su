@@ -355,8 +355,9 @@ function meta($where, $meta = null){
 	if(!$where = (is_array($where) ? $where : [$where])){ mpre("Ошибка установки адреса страницы. Если строкой один адрес то он внутренний");
 	}elseif(!$index = get($where, 1)){ mpre("Ошибка внешний адрес не задан");
 	}elseif("/" != substr($index, 0, 1)){ mpre("Ошибка. Формат внешнего адреса `{$index}` задан не верно ожидается первый слеш");
+	}elseif(get($where, 0) === get($where, 1)){ mpre("Ошибка. Внутренний и внешний адреса совпадают",$where);
 	}elseif(!$seo_index = fk('seo-index', $w = ['name'=>$index], $w += $meta)){ mpre("Ошибка установки внешнего адреса `{$name}`");
-	}elseif(!$location = get($where, 0)){ mpre("Ошибка не задан внутренний адрес");
+	}elseif(!$location = get($where, 0)){ mpre("Ошибка. Не задан внутренний адрес");
 	}elseif("/" != substr($location, 0, 1)){ mpre("Ошибка. Формат внутреннего адреса `{$location}` задан не верно ожидается первый слеш");
 	}elseif(!$seo_location = fk("seo-location", $w = ['name'=>$location], $w += $meta)){ mpre("Ошибка установки внутреннего адреса `{$location}`");
 	}elseif(!$themes_index = get($conf, 'themes', 'index')){// mpre("Многосайтовый режим не установлен");
