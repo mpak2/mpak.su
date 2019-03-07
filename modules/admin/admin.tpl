@@ -52,7 +52,9 @@
 		<? endif; ?>
 	<? endforeach; ?>
 </ul>
-<? if(array_search($_GET['r'], $tpl['tables']) !== false): ?>
+<? if(!$table = get($_GET, 'r')): //mpre("Не указано имя таблицы") ?>
+<? elseif(array_search($table, $tpl['tables']) === false): //mpre("Таблица не найдена в списке") ?>
+<? else: ?>
 	<style>
 		.line_links ul.admin li {display:inline-block;}
 		.line_links ul.admin li:before{ content:"• "; }
@@ -162,29 +164,40 @@
 <? endif; ?>
 <div class="lines">
 	<div class="inner">
-		<? if(array_search($_GET['r'], $tpl['tables']) === false): ?>
-			<div style="margin:10px;">
-				<script>
-					(function($, script){
-						$(script).parent().on("click", "button.table", function(e){
-							if(value = prompt("Название таблицы")){
-								$.post("/sql:admin_sql/null", {table:"<?=$_GET['r']?>"}, function(data){
-									$.post("/settings:admin/r:mp_settings/null", {modpath:"<?=$arg['modpath']?>", name:"<?=substr($_GET['r'], strlen($conf['db']['prefix']))?>", value:value, aid:4}, function(data){
-										console.log("post:", data);
-										document.location.reload(true);
-									});
-								}, "json").fail(function(error){
-									console.log("error:", error);
-									alert(error.responseText);
-								});
-							}
-						})
-					})(jQuery, document.scripts[document.scripts.length-1])
-				</script> Таблица не найдена
-				<? if($conf['modules']['sql']['admin_access'] > 4): ?>
-					<button class="table">Создать</button>
-				<? endif; ?>
-			</div>
+		<? if(!$table = call_user_func(function() use($arg, $conf){
+				if(!$table = get($_GET, 'r')){ mpre("Таблица не указана");
+				}else if(strpos("-", $table)){ mpre("Короткий адрес таблицы");
+				}else if(!$tab = implode("-", array_slice(explode("-", $table), 1))){ //mpre("ОШИБКА получения короткого имени таблицы");
+				}else if(!$table = "{$conf["db"]["prefix"]}{$arg["modpath"]}_{$tab}"){ mpre("ОШИБКА составления полного имени таблицы");
+				}else{ //mpre($_GET, $table, $tab);
+				} return $table;
+			})): mpre("Не указано имя таблицы для создания <a href='/{$arg['modpath']}:admin/r:{$arg['modpath']}-index'>Создать</a>"); ?>
+		<? elseif(call_user_func(function() use($table, $conf, $tpl, $arg){ // Отображение кнопки добавить таблицу
+				if(array_search($table, $tpl['tables']) !== false){ //mpre("Таблица уже создана");
+				}else if($conf['modules']['sql']['admin_access'] <= 4){ mpre("Права доступа недостаточные для создания таблицы");
+				}else{ ?>
+					<div style="margin:10px;">
+						<script>
+							(function($, script){
+								$(script).parent().on("click", "button.table", function(e){
+									if(value = prompt("Название таблицы")){
+										$.post("/sql:admin_sql/null", {table:"<?=$table?>"}, function(data){
+											$.post("/settings:admin/r:mp_settings/null", {modpath:"<?=$arg['modpath']?>", name:"<?=substr($table, strlen($conf['db']['prefix']))?>", value:value, aid:4}, function(data){
+												console.log("post:", data);
+												document.location.reload(true);
+											});
+										}, "json").fail(function(error){
+											console.log("error:", error);
+											alert(error.responseText);
+										});
+									}
+								})
+							})(jQuery, document.scripts[document.scripts.length-1])
+						</script> Таблица не найдена
+						<button class="table">Создать</button>
+					</div>
+				<? }
+			})): mpre("ОШИБКА отображения кнопки добавить таблицу") ?>
 		<? else: ?>
 			<style>
 				.lines, .lines .inner {
@@ -577,9 +590,11 @@
 								<? endif; ?>
 							</span>
 						</div>
+					<? elseif(!$fields = get($tpl, 'fields')): mpre("ОШИБКА не указаны поля таблицы <b>{$table}</b>") ?>
+					<? elseif(!$FIELDS = array_merge((array_key_exists('title', $tpl) ? array_intersect_key($tpl['fields'], array_flip($tpl['title'])) : $tpl['fields']), (get($tpl, 'counter') ?: array()), (get($tpl, 'ecounter') ?: array()))): mpre("ОШИБКА составления списка полей таблицы") ?>
 					<? else: //mpre($tpl['fields']); // mpre($_GET, $tpl['edit']); # Горизонтальное отображение ?>
 						<div class="th">
-							<? foreach(array_merge((array_key_exists('title', $tpl) ? array_intersect_key($tpl['fields'], array_flip($tpl['title'])) : $tpl['fields']), (get($tpl, 'counter') ?: array()), (get($tpl, 'ecounter') ?: array())) as $name=>$field):// mpre($name, $field) ?>
+							<? foreach($FIELDS as $name=>$field):// mpre($name, $field) ?>
 								<span>
 									<? if(!is_array($href_where = array_map(function($key){ return "where[{$key}]=". get($_GET, 'where', $key); }, array_keys(get($_GET, 'where') ?: [])))): mpre("ОШИБКА получения параметров условий фильтра") ?>
 									<? elseif(!$sort = "&order=". (get($_GET, "order") == $name ? "{$name}%20DESC" : $name )): mpre("ОШИБКА получения строки сортировки") ?>

@@ -76,10 +76,11 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		})){ mpre("ОШИБКА предобработки занчений связанных таблиц");
 //	}elseif(mpre($_POST)){
 	}else{// die(!mpre($_SERVER['REQUEST_URI'], $_POST)); # Правка записи и добавление новой
-		if(is_numeric(get($_POST, '_id'))){
+		/*if(is_numeric(get($_POST, '_id'))){ //mpre("Идентификатор число");
+		}else if(!isset($_POST['_id'])){ //mpre("Идентификатор не найден");
 			$_GET['id'] = get($_POST, '_id');
 			unset($_POST['_id']);
-		}
+		}*/
 		if(get($_GET, 'id') && !get($_POST, '_id')){// mpre("Редактирование", $_POST);
 			if(!get($conf, 'settings', 'admin_history_log')){// mpre("История не включена");
 			}elseif(!$admin_history_type = fk("admin-history_type", $w = array("name"=>"Редактирование"), $w)){ mpre("Тип записи не найден {$w}");
@@ -219,7 +220,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 		}elseif(!sort($tables)){ mpre("ОШИБКА сортировки таблиц");
 		}else{// mpre($TABLES);
 		} return $tables;
-	})){ mpre("ОШИБКА получения списка таблиц блока");
+	})){ mpre("ОШИБКА получения списка таблиц модуля");
 }else if(!$_GET['r'] = call_user_func(function($table) use($conf, $tpl){ // Формирование имени таблицы
 		if(!$table){ $table = first($tpl["tables"]);// mpre("Имя таблицы не задано");
 		}else if(!strpos($table, "-")){ //mpre("Полный адрес таблицы");
