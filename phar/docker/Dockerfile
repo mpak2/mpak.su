@@ -42,6 +42,7 @@ RUN a2enmod php7.2
 RUN a2enmod rewrite
 #RUM apt install -y certbot
 #RUN a2enmod python-certbot-apache
+#RUN a2enmod ssl
 EXPOSE 80
 EXPOSE 22
 
