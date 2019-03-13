@@ -40,6 +40,8 @@ RUN mv /etc/apache2/sites-enabled/000-default.conf /tmp
 RUN cd /etc/apache2/sites-enabled/; ln -s ../sites-available/000-default.conf 000-default.conf
 RUN a2enmod php7.2
 RUN a2enmod rewrite
+#RUM apt install -y certbot
+#RUN a2enmod python-certbot-apache
 EXPOSE 80
 EXPOSE 22
 
