@@ -1209,6 +1209,7 @@ function mpdbf($tn, $post = null, $and = false){
 			}else{ //mpre("Полный размер имени таблицы");
 			} return $table;
 		}, $table)){ mpre("ОШИБКА получения полного имени таблицы");
+	}else if(!$fields = fields($table)){ mpre("ОШИБКА получения списка полей таблицы");
 	}else if(!is_array($INDEX = call_user_func(function($INDEX = []) use($table, $find){ // Расчет количества записей подходящих под условия
 			if(!$find){ //mpre("Условие не указано - не обновляем");
 			}else if(!$fnd = mpdbf($table, $find, 1)){ mpre("ОШИБКА получения списка условий");
@@ -1218,11 +1219,14 @@ function mpdbf($tn, $post = null, $and = false){
 			}else{ //mpre("Параметры под условия выборки", $INDEX);
 			} return $INDEX;
 		}))){ mpre("ОШИБКА получения записей подходящих под условия");
-	}else if(!is_array($INDEX = call_user_func(function($INDEX) use($table, $find, $update){ // Обновляем записи таблицы
+	}else if(!is_array($INDEX = call_user_func(function($INDEX) use($table, $find, $update, $fields){ // Обновляем записи таблицы
 			if(1 != count($INDEX)){ //mpre("Не верное количество для обновления");
 			}else if(!$update){ //mpre("Данные обновления не указаны. Не обновляем");
-			}else if($update == array_intersect_key(first($INDEX), $update)){ //mpre("Значения обовления равны. Не обновляем");
-			}else if(!$upd = mpdbf($table, $update, 1)){ mpre("ОШИБКА получения списка условий");
+			}else if(!$selected = array_intersect_key(first($INDEX), $update)){ mpre("ОШИБКА получения значений из базы");
+			}else if(!$updated = array_intersect_key($update, $fields)){ mpre("ОШИБКА получения списка обновляемых данных");
+			}else if($updated == $selected){ //mpre("Значения обовления равны. Не обновляем");
+			}else if(!$_update = array_diff_assoc($updated, $selected)){ mpre("ОШИБКА получения только различающихся данных");
+			}else if(!$upd = mpdbf($table, $_update, 1)){ mpre("ОШИБКА получения списка условий", $update, $select, $_update);
 			}else if(!$sql = "UPDATE {$table} SET {$upd} WHERE id IN (". in($INDEX). ")"){ mpre("ОШИБКА получения запроса на выборку списка записей таблицы");
 			}else if(!qw($sql)){ mpre("ОШИБКА добавления записи в базу данных");
 			}else{ //mpre("Обновление", $sql, $INDEX);
