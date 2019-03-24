@@ -15,6 +15,7 @@ if(!$conf = call_user_func(function($conf = []){ // Подключение ко�
 		}){ print_r("Функция подключения файлов");
 		}elseif(!$conf['user']['gid'] = array(1=>"Администратор")){ mpre("Устанавливаем администратора");
 		}elseif(!$inc($f = "include/func.php")){ print_r("Ошибка подключения `{$f}`");
+		}elseif(!$short_open_tag = ini_get("short_open_tag")){ pre("Установите параметр `short_open_tag`\nsed -i \"s/short_open_tag = .*/short_open_tag = On/\" /etc/php/7.0/cli/php.ini");
 		}elseif(!$inc($f = "include/config.php")){ pre("Ошибка подключения `{$f}`");
 		}elseif(!$modpath = (isset($argv) ? basename(dirname(dirname(__FILE__))) : basename(dirname(__FILE__)))){ mpre("Ошибка вычисления имени модуля");
 		}elseif(!$arg = ['modpath'=>$modpath, "fn"=>implode(".", array_slice(explode(".", basename(__FILE__)), 0, -1))]){ mpre("Установка аргументов");
@@ -30,6 +31,7 @@ if(!$conf = call_user_func(function($conf = []){ // Подключение ко�
 		}else{// mpre($argv);
 		} return $argv;
 	})){ mpre("ОШИБКА получения аргументов");
+}elseif(array_search($cmd["phpinfo"] = "Информация php", $cmd) == get($argv, 1)){ phpinfo();
 }elseif(array_search($cmd["parse"] = "Парсинг", $cmd) == get($argv, 1)){// pre("Метод", get($argv, 1));
 	if(!include("phar://index.phar/include/class/simple_html_dom.php")){ mpre("ОШИБКА подключения класса simple_html_dom");
 	}elseif(!$html = new simple_html_dom()){ mpre("Ошибка создания обьекта парсера");

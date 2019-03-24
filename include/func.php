@@ -1200,80 +1200,54 @@ function mpdbf($tn, $post = null, $and = false){
 				}
 			}
 		}
-	} /*mpre($post, implode(($and ? " AND " : ', '), (array)$f));*/ return implode(($and ? " AND " : ', '), (array)$f);
-} function mpfdk($tn, $find, $insert = array(), $update = array(), $log = false){
+	} return implode(($and ? " AND " : ', '), (array)$f);
+} function fk($table, $find, $insert = array(), $update = array(), $key = false, $log = false){
 	global $conf, $arg;
-	if($find && ($fnd = mpdbf($tn, $find, 1)) &&
-		($sel = qn($sql = "SELECT `id` FROM ". mpquot($tn). " WHERE ". $fnd))
-	){
-		if((count($sel) == 1) && ($s = array_shift($sel))){
-			if($update && ($upd = mpdbf($tn, $update))){
-				qw($sql = "UPDATE ". mpquot($tn). " SET {$upd} WHERE `id`=". (int)$s['id']);
-			} return $s['id'];
-		}else{ mpre("Множественные изменения запрещены `{$tn}`", $find); # Множественное обновление. Если в качестве условия используется несколько элементов
-		}
-	}elseif($insert){
-		if(!$fields = fields($tn)){ mpre("ОШИБКА получения полей таблицы `{$tn}`");
-		}elseif(!$mpdbf = $insert+array("time"=>time(), "uid"=>get($conf, 'user', 'uid'), 'sid'=>get($conf, 'user', 'sess', 'id'))){ mpre("ОШИБКА добавления дефолтных значений");
-		}elseif(!$values = array_map(function($val){ return mpquot($val); }, array_intersect_key($mpdbf, $fields))){ mpre("ОШИБКА составления значений запроса");
-		}else{// pre($conf['user']['sess']);
-			qw("INSERT INTO ". mpquot($tn). " (`". implode("`, `", array_keys($values)). "`) VALUES (\"". implode("\", \"", array_values($values)). "\")");
-			return $sel['id'] = $conf['db']['conn']->lastInsertId();
-		}// qw($sql = "INSERT INTO `". mpquot($tn). "` SET ". mpdbf($tn, $insert+array("time"=>time(), "uid"=>(!empty($conf['user']['uid']) ? $conf['user']['uid'] : 0))));
-	}
+	if(!$table = call_user_func(function($table) use($conf){ // Получаем полное имя по короткому формату без префикса или с именем раздела через тире
+			if(strpos($table, '-')){ $table = $conf['db']['prefix']. implode("_", array_filter(explode("-", $table)));
+			}else if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$table)){ $table = "{$conf['db']['prefix']}{$arg['modpath']}_{$table}";	
+			}else{ //mpre("Полный размер имени таблицы");
+			} return $table;
+		}, $table)){ mpre("ОШИБКА получения полного имени таблицы");
+	}else if(!is_array($INDEX = call_user_func(function($INDEX = []) use($table, $find){ // Расчет количества записей подходящих под условия
+			if(!$find){ //mpre("Условие не указано - не обновляем");
+			}else if(!$fnd = mpdbf($table, $find, 1)){ mpre("ОШИБКА получения списка условий");
+			}else if(!$count = ql($sql = "SELECT COUNT(*) AS `cnt` FROM {$table} WHERE ". $fnd, 0, 'cnt')){// mpre("Список записей по условиям выборки - пуст", $find, $sql);
+			}else if(!$INDEX = qn($sql = "SELECT * FROM {$table} WHERE ". $fnd)){ mpre("Список записей по условиям выборки - пуст", $find, $sql);
+			}else if(1 < count($INDEX)){ mpre("Множественные изменения таблицы запрещены количество записей {$count} подходящих под условия {$fnd}");
+			}else{ //mpre("Параметры под условия выборки", $INDEX);
+			} return $INDEX;
+		}))){ mpre("ОШИБКА получения записей подходящих под условия");
+	}else if(!is_array($INDEX = call_user_func(function($INDEX) use($table, $find, $update){ // Обновляем записи таблицы
+			if(1 != count($INDEX)){ //mpre("Не верное количество для обновления");
+			}else if(!$update){ //mpre("Данные обновления не указаны. Не обновляем");
+			}else if($update == array_intersect_key(first($INDEX), $update)){ //mpre("Значения обовления равны. Не обновляем");
+			}else if(!$upd = mpdbf($table, $update, 1)){ mpre("ОШИБКА получения списка условий");
+			}else if(!$sql = "UPDATE {$table} SET {$upd} WHERE id IN (". in($INDEX). ")"){ mpre("ОШИБКА получения запроса на выборку списка записей таблицы");
+			}else if(!qw($sql)){ mpre("ОШИБКА добавления записи в базу данных");
+			}else{ //mpre("Обновление", $sql, $INDEX);
+			} return $INDEX;
+		}, $INDEX))){ mpre("ОШИБКА обновления записей таблицы");
+	//}else if(true){ mpre($find, $INDEX);
+	}else if(!is_array($INDEX = call_user_func(function($INDEX) use($conf, $find, $table, $insert){ // Добавление новой записи
+			if(count($INDEX)){ //mpre("Не добавляем если количество подходящих под условия больше одного", $find);
+			}else if(!$insert){ mpre("Параметры добавления не указаны");
+			}else if(!$ins = mpdbf($table, $insert)){ mpre("ОШИБКА получения параметров добавления записи");
+			}elseif(!$mpdbf = $insert+array("time"=>time(), "uid"=>get($conf, 'user', 'uid'), 'sid'=>get($conf, 'user', 'sess', 'id'))){ mpre("ОШИБКА добавления дефолтных значений");
+			}else if(!$fields = fields($table)){ mpre("ОШИБКА получения полей таблицы `{$table}`");
+			}elseif(!$values = array_map(function($val){ return mpquot($val); }, array_intersect_key($mpdbf, $fields))){ mpre("ОШИБКА составления значений запроса");
+			}else if(!$sql = "INSERT INTO ". mpquot($table). " (`". implode("`, `", array_keys($values)). "`) VALUES (\"". implode("\", \"", array_values($values)). "\")"){ mpre("ОШИБКА составления запроса на добавление");
+			}else if(!qw($sql)){ mpre("ОШИБКА добавления записи в базу данных");
+			}else if(!$INDEX = qn("SELECT * FROM {$table} WHERE id=". $conf['db']['conn']->lastInsertId())){ mpre("ОШИБКА получения последней добавленной записи");
+			}else{ //mpre("Добавление", $find, $sql, $INDEX);
+			} return $INDEX;
+		}, $INDEX))){ mpre("ОШИБКА добавления нового значения");
+	}else if(!$INDEX){ pre("Пустой результат");
+	}else{ //mpre("Полное имя таблицы", $table);
+		return $key ? $INDEX[$key] : first($INDEX);
+	} return [];
 }
 
-function fdk(&$tn, $find, $insert = array(), $update = array(), $log = false){
-	global $conf;
-	if(is_array($tn)){
-		$func_get_args = array_merge([$tn], array_keys($find), ['id'], array_values($find));
-		if($update){
-			if($tlist = call_user_func_array('rb', $func_get_args)){
-				foreach($tlist as $k=>&$ln){
-					$tlist[$k] = $ln = array_replace_recursive($ln, $update);
-				} $tn = array_replace_recursive($tn, $tlist); return count($tlist) ? first($tlist) : $tlist;
-			}else{ mpre("Результат для изменений не найдн"); }
-		}elseif($insert){
-			$tn[] = array();
-			$insert['id'] = last(array_keys($tn));
-			return ($tn[ $insert['id'] ] = $insert);
-		}else{ return false; }
-	}elseif($index_id = mpfdk($tn, $find, $insert, $update, $log)){
-		if($line = qn("SELECT * FROM $tn WHERE id IN (". (is_numeric($index_id) ? $index_id : in($index_id)). ")")){
-			if(1 == count($line)){
-				return first($line);
-			}elseif(!$mn = explode("_", substr($tn, strlen($conf['db']['prefix'])), 2)){ mpre("Ошибка парсинга адреса таблицы");
-			}else{// mpre("Количество элементов подходящих под условие больше одного", $mn, $tn, $find, $line);
-				mpre("Дублирующийся элемент", implode("<br />\t", array_map(function($l) use($mn){
-					return "<a href='/seo:admin/r:{$mn[0]}-{$mn[1]}?&where[id]={$l['id']}'>{$l['name']} ({$l['id']})</a>";
-				}, $line)));
-				return $line;
-			}
-		}else{ mpre("sql:", $sql); return false; }
-	}
-} function fk($t, $find, $insert = array(), $update = array(), $key = false, $log = false){
-	global $conf, $arg;
-	if(strpos($t, '-')){ //проверка полное или коротное название таблицы
-		$t = $conf['db']['prefix']. implode("_", array_filter(explode("-", $t)));
-	}elseif(!preg_match("#^{$conf['db']['prefix']}.*#iu",$t)){
-		$t = "{$conf['db']['prefix']}{$arg['modpath']}_{$t}";	
-	}
-	if($index = fdk($t, $find, $insert, $update, $log)){
-		return $key ? $index[$key] : $index;
-	}else{ return []; }
-}
-function mpdk($tn, $insert, $update = array()){ mpre("Устаревшая функция");
-	global $conf, $arg;
-	if($ins = mpdbf($tn, $insert)){
-		$upd = mpdbf($tn, $update);
-//		foreach(mpql(mpqw("SHOW COLUMNS FROM $tn")) as $k=>$v){
-		foreach(fields($tn) as $name=>$field){
-			$fields[$name] = ($field['Type'] ?: $field['type']);
-		} if("SELECT id FROM `". mpquot($tn). "` WHERE "){
-			mpqw("INSERT INTO `". mpquot($tn). "` SET $ins ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)". ($update ? ", $upd" : ""));
-		} return $conf['db']['conn']->lastInsertId();
-	}
-}
 function mpevent($name, $description = null){ # Сохранение информации о событии
 	global $conf, $argv;
 	if(!$name){ mpre("Имя события не указано");
