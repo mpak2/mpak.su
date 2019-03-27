@@ -1226,10 +1226,10 @@ function mpdbf($tn, $post = null, $and = false){
 			}else if(!$updated = array_intersect_key($update, $fields)){ mpre("ОШИБКА получения списка обновляемых данных");
 			}else if($updated == $selected){ //mpre("Значения обовления равны. Не обновляем");
 			}else if(!$_update = array_diff_assoc($updated, $selected)){ mpre("ОШИБКА получения только различающихся данных");
-			}else if(!$upd = mpdbf($table, $_update, 1)){ mpre("ОШИБКА получения списка условий", $update, $select, $_update);
+			}else if(!$upd = mpdbf($table, $_update)){ mpre("ОШИБКА получения списка условий", $update, $select, $_update);
 			}else if(!$sql = "UPDATE {$table} SET {$upd} WHERE id IN (". in($INDEX). ")"){ mpre("ОШИБКА получения запроса на выборку списка записей таблицы");
 			}else if(!qw($sql)){ mpre("ОШИБКА добавления записи в базу данных");
-			}else{ //mpre("Обновление", $sql, $INDEX);
+			}else{ //mpre("Обновление", $updated, $_update, $sql, $INDEX);
 			} return $INDEX;
 		}, $INDEX))){ mpre("ОШИБКА обновления записей таблицы");
 	//}else if(true){ mpre($find, $INDEX);
