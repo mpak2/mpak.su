@@ -865,10 +865,10 @@
 											<?// elseif((!$list_value = get($list, 'name')) && !is_numeric($list_value) && !is_string($list_value) && !is_null($list_value)): mpre("ОШИБКА определения занчения списка", gettype($list_value)) ?>
 											<? //elseif(!is_string($list_value = (get($list, 'name') ?: ""))): mpre("ОШИБКА получения значения поля имени", $list) ?>
 											<? elseif(!is_string($list_value = call_user_func(function($_LIST) use($list, $list_id){
-													if(!$list_id){// mpre("Идентификатор не задан");
+													if(!$list_id){ //mpre("Идентификатор не задан");
 													}elseif(!is_string($name = (($n = get($list, 'name')) ? ".{$n}" : ""))){ mpre("ОШИБКА формирования имени элемента");
 													}elseif(1 < count($_LIST)){ return "{$list['id']}{$name}"; mpre("Не уникальное значение имени", "{$list['id']}.{$list['name']}");
-													}elseif(!$name = get($list, 'name')){ return $list_id; mpre("Имя элемента не задано");
+													}elseif(!$name = get($list, 'name')){ return $list_id. ""; mpre("Имя элемента не задано");
 													}else{ return $name;
 													} return "";
 												}, $_LIST))): mpre("ОШИБКА определения значения поля", $list) ?>
