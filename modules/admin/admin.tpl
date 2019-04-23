@@ -677,7 +677,7 @@
 															$(script).parent().on("click", ".del", function(e){
 																$.ajax({
 																	type: 'POST',
-																	url: "/telegram:admin/r:mp_telegram_test/<?=$lines["id"]?>/null",
+																	url: "/telegram:admin/r:<?=$_GET['r']?>/<?=$lines["id"]?>/null",
 																	data: {"img":""},
 																	//dataType: 'json',
 																}).done(function(json){
