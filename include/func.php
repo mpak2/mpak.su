@@ -1503,7 +1503,8 @@ function fid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png
 	}elseif(!strlen($ext) && (!$ext = '.'. last(explode('.', $file['name'])))){ mpre("ОШИБКА расчета расширения");
 	}elseif(!$img = fk($tn, $w = ($id ? ["id"=>$id] : []), $w += ['time'=>time(), 'uid'=>$conf['user']['uid']])){ mpre("ОШИБКА выборки записи по идентификатору");
 	}elseif(!$file_name = "{$tn}-{$fn}_{$img['id']}{$ext}"){ mpre("ОШИБКА расчета имени файла");
-	}elseif(!$ufn = mpopendir("include/{$folder}")){ mpre("ОШИБКА получения пути к загружаемой директории");
+	}elseif(!$ufn = mpopendir($f = "include/{$folder}")){ mpre("ОШИБКА директория с файлами не создана `{$f}`");
+	}else if(!is_writable($ufn)){ mpre("ОШИБКА ограничены права на запись в директорию `{$ufn}`");
 	}elseif(!move_uploaded_file($file['tmp_name'], "$ufn/$file_name")){ mpre("ОШИБКА перемещения файла с временной директории в директорию системы");
 	}elseif(!array_key_exists($fn, $img)){ pre("Поле `{$fn}` не найдено среди полей таблицы `$tn`", $img);
 	/* Если загружать одновременно одно и еще несколько изображений приходится разделять их имена img и imgs но тем не менее грузить нужно в поле img таблиц index b imdex_imgs */

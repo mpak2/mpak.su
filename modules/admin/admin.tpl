@@ -672,10 +672,26 @@
 												<? endif; ?>
 											<? elseif(!preg_match("#_id$#ui",$k) AND preg_match("#^img(\d*|_.+)?#iu",$k)): ?>
 												<div class="imgs" fn="<?=$k?>" style="position:relative; height:14px;">
-													<a class="del <?=($lines[$k]?"":"disabled")?>" href="javascript:void(0)" title="Удалить изображение"><img src="/img/del.png"></a>
+													<script sync>
+														(function($, script){
+															$(script).parent().on("click", ".del", function(e){
+																$.ajax({
+																	type: 'POST',
+																	url: "/telegram:admin/r:mp_telegram_test/<?=$lines["id"]?>/null",
+																	data: {"img":""},
+																	//dataType: 'json',
+																}).done(function(json){
+																	document.location.reload(true);
+																}).fail(function(error){
+																	alert(error.responseText);
+																}); return false;
+															}).ready(function(e){ $(script).parent().trigger("init"); })
+														})(jQuery, document.currentScript)
+													</script>
+													<a class="del imgs <?=($lines[$k] ? "" : "disabled")?>" href="javascript:void(0)" title="Удалить изображение"><img src="/img/del.png"></a>
 													<? if(!$small = "/{$arg['modpath']}:img/{$lines['id']}/tn:". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "/fn:{$k}". ($lines[$k] ? "" : "/rand:". time()). "/w:109/h:109/null/img.png"): mpre("Ошибка формирования маленького изображения") ?>
 													<? elseif(!$lines[$k]):// mpre("Нет изображения") ?>
-															<img class="minPreview" src="<?=$small?>"  title="<?=$v?>">
+														<img class="minPreview" src="<?=$small?>"  title="<?=$v?>">
 													<? elseif(!$big = "/{$arg['modpath']}:img/{$lines['id']}/tn:". substr($_GET['r'], strlen("{$conf['db']['prefix']}{$arg['modpath']}_")). "/fn:{$k}". ($lines[$k] ? "" : "/rand:". time()). "/w:600/h:800/null/img.png"): mpre("Ошибка формирования большого изображения") ?>
 													<? else: ?>
 														<a target="blank" href="<?=$big?>">
