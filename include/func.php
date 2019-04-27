@@ -1215,7 +1215,14 @@ function mpdbf($tn, $post = null, $and = false){
 			}else if(!$fnd = mpdbf($table, $find, 1)){ mpre("ОШИБКА получения списка условий");
 			}else if(!$count = ql($sql = "SELECT COUNT(*) AS `cnt` FROM {$table} WHERE ". $fnd, 0, 'cnt')){// mpre("Список записей по условиям выборки - пуст", $find, $sql);
 			}else if(!$INDEX = qn($sql = "SELECT * FROM {$table} WHERE ". $fnd)){ mpre("Список записей по условиям выборки - пуст", $find, $sql);
-			}else if(1 < count($INDEX)){ mpre("Множественные изменения таблицы запрещены количество записей {$count} подходящих под условия {$fnd}");
+			//}else if(1 < count($INDEX)){ mpre("Множественные изменения таблицы <a href='/telegram:admin/r:{$table}'>{$table}</a> запрещены количество записей {$count} подходящих под условия {$fnd}");
+			}else if($href = call_user_func(function($href = "") use($INDEX, $table, $find){ // Получение двойных значений
+					if(1 >= count($INDEX)){ //mpre("Одно значение выборки допустимо");
+					//}else if(!$href = "/telegram:admin/r:{$table}"){ mpre("ОШИБКА формирования ссылки на двойное условие");
+					}else if(!$WHERE = array_map(function($key, $val){ return "where[{$key}]={$val}"; }, array_keys($find), $find)){ mpre("ОШИБКА получения условий для формирования условий");
+					}else if(!$href = "/telegram:admin/r:{$table}?". implode("&", $WHERE)){ mpre("ОШИБКА формирования ссылки на двойное условие");
+					}else{ return $href; }
+				})){ mpre("Множественные изменения таблицы <a href='{$href}'>{$table}</a> запрещены количество записей {$count} подходящих под условия {$fnd}");
 			}else{ //mpre("Параметры под условия выборки", $INDEX);
 			} return $INDEX;
 		}))){ mpre("ОШИБКА получения записей подходящих под условия");
