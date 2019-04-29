@@ -1798,10 +1798,16 @@ function pre(){
 	} return get(func_get_args(), 0);
 } function mpre(){// print_r(func_get_args());
 	global $conf, $arg;
-	if((!$gid = get($conf, 'user', 'gid')) || (!array_search("Администратор", $gid))){ return first(func_get_args()); // print_r("Отображение доступно только администраторам");
-	}else{// mpre(debug_backtrace());
-		return call_user_func_array("pre", func_get_args());
-	}
+	if(!$func_get_args = func_get_args()){ print_r("ОШИБКА получения параметров функции");
+	}else if(call_user_func(function() use($func_get_args){ // Сохранение в лог
+			if(!$message = get($func_get_args, 0)){ print_r("ОШИБКА получения сообщения");
+			}else if("string" != gettype($message)){ //print_r("В лог выводим только текстовые сообщения");
+			}else{ //print_r("Сообщение в лог");
+				error_log($message);
+			}
+		})){ print_r("ОШИБКА сохранения уведомления в лог");
+	}else if((!$gid = get($conf, 'user', 'gid')) || (!array_search("Администратор", $gid))){ return first(func_get_args()); // print_r("Отображение доступно только администраторам");
+	}else{ return call_user_func_array("pre", func_get_args()); }
 }
 
 function mpquot($data){ # экранирование символов при использовании в запросах к базе данных
