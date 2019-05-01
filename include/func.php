@@ -257,6 +257,7 @@ function cache($content = false){
 			}, (get($conf, "themes_cache") ?: 86400*10))){ pre("Ошибка установки заговлоков");
 		}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ pre("Ошибка определения адреса");
 		}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg", "/sitemap.xml", "/robots.txt"/*, "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
+		}elseif(array_key_exists("HTTP_CACHE_CONTROL", $_SERVER)){ //pre("Обновление в мобильной версии браузера");
 		}elseif($_POST || array_key_exists("sess", $_COOKIE)){// pre("Активная сессия");
 		}elseif(get($_SERVER, 'HTTP_IF_MODIFIED_SINCE') || (http_response_code() == 304)){ mpre("Кешированная страница. Отдаем только статус");
 //			error_log(implode("/", $sys_getloadavg). " <== 301 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
