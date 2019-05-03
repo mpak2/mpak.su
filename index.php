@@ -146,7 +146,6 @@ if(!call_user_func(function(){ # Переменные окружения
 	})){ exit(inc('include/install.php')); # Запускаем процесс установки
 }elseif(!is_array($_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']))){ mpre("ОШИБКА получения параметров адресной строки");
 }elseif(!$sess = users_sess()){// pre("Добавляем сессию");
-//}elseif(true){ pre($sess, $_COOKIE);
 }elseif(!$guest = get($conf, 'settings', 'default_usr')){ mpre("Имя пользователя гость не указано");
 }elseif(!is_array($conf['user'] = (rb('users-', 'id', $sess['uid']) ?: rb('users-', 'name', "[{$guest}]")))){ pre("ОШИБКА выборки пользователя");
 }elseif(!$conf['user'] += ['uid'=>(($sess['uid'] > 0) ? get($conf, 'user', 'id') : -$sess['id']), 'sess'=>$sess]){ pre("ОШИБКА сохранения сессии в системных переменных");
@@ -169,23 +168,25 @@ if(!call_user_func(function(){ # Переменные окружения
 	if(!empty($_SERVER['HTTP_REFERER'])){
 		exit(header("Location: ". ($conf['settings']['users_logoff_location'] ? $conf['settings']['users_logoff_location'] : $_SERVER['HTTP_REFERER'])));
 	} qw($sql = "DELETE FROM {$conf['db']['prefix']}users_sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление сессий');
-}elseif(!is_array($user = call_user_func(function($user = []) use(&$sess){ # Авторизация
+}elseif(!is_array($conf['user'] = call_user_func(function($user = []) use($sess){ # Авторизация
 		if(!$_POST && !get($_COOKIE, "sess")){// pre("Сессия выключена");
 		}elseif(!$_POST || (get($_POST, 'reg') != 'Аутентификация')){// pre("Нет запроса на аутентификацию");
 		}elseif(!strlen($_POST['name'])){ pre("Имя не задано");
 		}elseif(!strlen($_POST['pass'])){ pre("Пароль не задан");
-		}elseif(!$mphash = mphash($_POST['name'], $_POST['pass'])){pre("Ошибка получения хэша пароля");
-		}elseif(!$users_type = rb("users-type", "name", $w = "[Логин]")){ mpre("Тип авторизации не найден {$w}");
+		}elseif(!$mphash = mphash($_POST['name'], $_POST['pass'])){ pre("Ошибка получения хэша пароля");
+		}elseif(!$users_type = rb("users-type", "name", $w = "[Логин]")){ pre("Тип авторизации не найден {$w}");
 		}elseif(!$user = rb("users-", "type_id", "name", $users_type["id"], $n = "[". mpquot($_POST['name']). "]")){ pre("ОШИБКА пользователь `{$_POST['name']}` не найден");
 		}elseif($user["pass"] != $mphash){ sleep(1); pre("Не верный пароль `{$user['name']}`");
 		}elseif(!$sess = fk("users-sess", ['id'=>$sess['id']], null, ['uid'=>$user['id']])){ pre("Ошибка редактирования сессии", $user);
-		}elseif(!$conf['user']['sess'] = $sess){ pre("ОШИБКА сохранения сессии в системных переменных");
 		}elseif(!$user = fk("users-", ['id'=>$user['id']], null, ['last_time'=>time()])){ pre("Ошибка установки времени входа пользователю");
+		}elseif(!$sess["uid"] = $user["id"]){ pre("ОШИБКА установки пользователя сессии");
+		}elseif(!$user['sess'] = $sess){ pre("ОШИБКА сохранения сессии в системных переменных");
 		}else{// pre("Успешная авторизация");
 		} return $user;
 	}, $conf['user']))){ mpre("ОШИБКА авторизации"); // exit(header("Location: {$_SERVER['REQUEST_URI']}")); # При авторизации обновляем страницу (избавляемся от пост запроса)
-}elseif(!is_array($conf['user'] = call_user_func(function($user) use($sess, $conf){ # Получаем свойства пользователя
-		if($sess['uid'] <= 0){// pre("Пользователь является гостем");
+}elseif(!is_array($conf['user'] = call_user_func(function($user) use($conf){ # Получаем свойства пользователя
+		if(!$sess = get($user, "sess")){ pre("ОШИБКА получения сессии пользователя");
+		}elseif(0 >= $sess["uid"]){// pre("Пользователь является гостем");
 		}elseif(!$user = ql($sql = "SELECT *, `id` AS `uid`, `name` AS `uname` FROM `{$conf['db']['prefix']}users` WHERE `id`=". (int)$sess['uid'], 0)){ pre("ОШИБКА выборки пользователя сессии из базы");
 		}elseif(!$user['uid'] = ($user['name'] == $conf['settings']['default_usr'] ? -$sess['id'] : $user['uid'])){ pre("Устанавливаем в идентификатор пользователя номер сессии с минусом");
 		}elseif(!$user['sess'] = $sess){ pre("ОШИБКА восстановления сессии");
