@@ -14,7 +14,6 @@ if(!call_user_func(function(){ # Переменные окружения
     ini_set('display_errors', 1);
     date_default_timezone_set('Europe/Moscow');
     header('Content-Type: text/html; charset=utf-8');
-    header("Cache-Control:no-cache, must-revalidate;");
     setlocale (LC_ALL, "Russian"); putenv("LANG=ru_RU");
     return error_reporting(E_ALL /*& ~E_NOTICE & ~E_STRICT*/);
   })){ mpre("ОШИБКА Установка системных переменных и уровня отчета ошибок");
@@ -161,13 +160,17 @@ if(!call_user_func(function(){ # Переменные окружения
 		}else{// mpre("Свойства страницы", $seo);
 		} return $seo;
 	})){ mpre("ОШИБКА установки свойств главной страницы");
-}elseif(isset($_GET['logoff'])){ # Закрытие авторизации
-	qw("UPDATE {$conf['db']['prefix']}users_sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя');
-	setcookie("{$conf['db']['prefix']}modified_since", "", 0, "/");
-	setcookie('sess', null, -1, '/');
-	if(!empty($_SERVER['HTTP_REFERER'])){
-		exit(header("Location: ". ($conf['settings']['users_logoff_location'] ? $conf['settings']['users_logoff_location'] : $_SERVER['HTTP_REFERER'])));
-	} qw($sql = "DELETE FROM {$conf['db']['prefix']}users_sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление сессий');
+}else if(call_user_func(function() use($conf){ // Отключение авторизации на сайте
+		if(!array_key_exists('logoff', $_GET)){ //pre("Признак выхода не найден");
+		}else if(!qw("UPDATE {$conf['db']['prefix']}users_sess SET sess = '!". mpquot($sess['sess']). "' WHERE id=". (int)$sess['id'], 'Выход пользователя')){ pre("ОШИБКА удаления авторизации из таблицы сессий");
+		//}else if(!setcookie("{$conf['db']['prefix']}modified_since", "", 0, "/")){ mpre("Установка флага запрета модификации");
+		}else if(!setcookie('sess', null, -1, '/')){ pre("ОШИБКА удаления кукисы сессии");
+		}else if(!$users_logoff_location = get($conf, 'settings', 'users_logoff_location') ?: $_SERVER['HTTP_REFERER']){ pre("ОШИБКА получения страницы перенаправления");
+		}else{ //pre("Страница перенаправления", $users_logoff_location); //pre("Выход");
+			exit(header("Location: {$users_logoff_location}"));
+			//qw($sql = "DELETE FROM {$conf['db']['prefix']}users_sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление старых сессий');
+		}
+	})){ mpre("ОШИБКА выключения сессии");
 }elseif(!is_array($conf['user'] = call_user_func(function($user = []) use($sess){ # Авторизация
 		if(!$_POST && !get($_COOKIE, "sess")){// pre("Сессия выключена");
 		}elseif(!$_POST || (get($_POST, 'reg') != 'Аутентификация')){// pre("Нет запроса на аутентификацию");
@@ -417,4 +420,6 @@ if(!call_user_func(function(){ # Переменные окружения
 			cache($content);
 		} return $content;
 	})){ mpre("Ошибка кеширования содержимого страницы");
-}else{ echo $content; }
+}else{ header("Cache-Control:no-cache, must-revalidate;");
+	echo $content;
+}
