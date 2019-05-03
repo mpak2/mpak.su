@@ -292,7 +292,7 @@ if(array_key_exists("null", $_GET)){// mpre("Таблица для записи 
 			}
 			foreach($tpl['tables'] as $table){
 				if(!$table = strpos($table, ".") ? last(explode(".", $table)) : $table){ mpre("ОШИБКА получения имени таблицы");
-				}else if(!$ft = substr($table, strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))){ mpre("ОШИБКА получения короткого имени таблицы");
+				}else if(!$ft = substr($table, strlen("{$conf['db']['prefix']}{$arg['modpath']}_"))){ //mpre("ОШИБКА получения короткого имени таблицы");
 				}else if($fields = fields($table)){
 					if(get($fields, ($t = "{$tab}_id"))){
 						$tpl['counter']["_{$ft}"] = array_column(ql("SELECT `{$t}`, COUNT(*) AS cnt FROM `{$conf['db']['prefix']}{$arg['modpath']}". ($ft ? "_{$ft}" : ""). "` WHERE `{$t}` IN (". in($tpl['lines']). ") GROUP BY `{$t}`"), "cnt", $t);

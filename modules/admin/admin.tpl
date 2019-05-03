@@ -19,7 +19,7 @@
 		<? if(!$r = get($tpl, 'tables', $k)): mpre("ОШИБКА получения полного имени таблицы") ?>
 		<? //elseif(!$tab = substr($r, strlen($conf['db']['prefix']))): mpre("ОШИБКА расчета имени таблицы") ?>
 		<? elseif(!$tab = strpos($r, '.') ? $r : substr($r, strlen($conf['db']['prefix']))): mpre("ОШИБКА получения короткого имени таблицы") ?>
-		<? elseif(!is_string($tb = (strpos($r, '.') ? $tab : substr($tab, strlen("{$arg['modpath']}_"))))): mpre("ОШИБКА получения короткого имени таблицы `{$r}`", gettype($tb)) ?>
+		<? elseif(!is_string($tb = (strpos($r, '.') ? $tab : substr($tab, strlen("{$arg['modpath']}_"))))): //mpre("ОШИБКА получения короткого имени таблицы `{$r}`", gettype($tb)) ?>
 		<? elseif(!$tabl = strpos($r, '.') ? $tab : "{$arg['modpath']}-{$tb}"): mpre("ОШИБКА получения имени таблицы в адресе") ?>
 		<? elseif(!$href = "/{$arg['modpath']}:{$arg['fn']}/r:{$tabl}"): mpre("ОШИБКА формирования адреса перехода") ?>
 		<? elseif(!$name = (get($conf, 'settings', $tab) ?: $tb)): mpre("ОШИБКА формирования имени вкладки") ?>
