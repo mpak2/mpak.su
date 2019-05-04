@@ -58,34 +58,45 @@ function base64($img, $w, $h, $c = 0){
 # Подключение хранилища по параметрам указанным в конфигурационном файле
 function conn($init = null){
 	global $conf;
-	try{// die(!pre($conf['db']));
-		if(!$type = ($init ? first(explode(":", $init)) : $conf['db']['type'])){ pre("Тип подключения не определен");
-		}elseif(!$name = ($init ? last(explode(":", $init)) : $conf['db']['name'])){ pre("Файл не установлен");
-		}elseif("sqlite" == $type){
-			if(!$realpath = realpath($name)){ mpre("Файл с БД не найден `{$name}`");
-			}elseif(!$options = [PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_PERSISTENT=>false, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>3/*, PDO::SQLITE_MAX_EXPR_DEPTH=>0*/]){ mpre("ОШИБКА задания опций подключения");
-			}else if(!is_writable($name)){ die(!pre("ОШИБКА файл БД доступен только на чтение", $name));
-			}else{// mpre("Реальный путь до файла бд", $name);
-				$conf['db']['conn'] = new PDO($init ?: "{$conf['db']['type']}:{$realpath}", null, null, $options);
-				$conf['db']['conn']->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
-			}
-		}else{// pre($conf['db']);
-			if(!is_string($host = (get($conf, 'db', 'host') ? "host={$conf['db']['host']}" : ""))){ pre("ОШИБКА получения хоста из конфигурации");
-			}elseif(!is_string($unix_socket = (get($conf, 'db', 'unix_socket') ? "unix_socket={$conf['db']['unix_socket']}" : ""))){ pre("ОШИБКА получения хоста из конфигурации");
-			}elseif(!is_string($addr_conf = ($unix_socket ?: $host))){ pre("ОШИБКА получения адреса подключения host/unix_socket");
-			}elseif(!$addr_def = (($default_socket = ini_get("pdo_mysql.default_socket")) ? "unix_socket={$default_socket}" : "host=localhost")){ pre("ОШИБКА получения конфигурационного адреса для подключения");
-			}elseif(!$addr = $addr_conf ?: $addr_def){ pre("ОШИБКА установки адреса если не указан локальный");
-			}elseif(!$init = ($init ?: "{$conf['db']['type']}:{$addr};dbname={$conf['db']['name']};charset=UTF8")){ pre("ОШИБКА составления строки подключения к БД");
-			}elseif(!$conf['db']['conn'] = new PDO($init, $conf['db']['login'], $conf['db']['pass'])){ pre("ОШИБКА подключения к базе данных");
-			}elseif(!$TABLES = tables()){ pre("ОШИБКА получения списка таблиц");
-			}else{// pre($init, $conf['db']['login'], $TABLES);
-				$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
-			}
-		}// return $conf['db']['conn'];
-	}catch(Exception $e){ cache(0);
-		die(!pre("Ошибка подключения к базе данных {$init}", $conf['db']['login'], str_repeat('*',strlen($conf['db']['pass']))));
-	} 
-	return $conf['db']['conn'];
+	if(!$type = ($init ? first(explode(":", $init)) : $conf['db']['type'])){ pre("Тип подключения не определен");
+	}elseif(!$name = ($init ? last(explode(":", $init)) : $conf['db']['name'])){ pre("Файл не установлен");
+	}elseif(!$options = [PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_PERSISTENT=>false, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>3/*, PDO::SQLITE_MAX_EXPR_DEPTH=>0*/]){ mpre("ОШИБКА задания опций подключения");
+	}elseif("sqlite" == $type){
+		if(!$realpath = realpath($name)){ mpre("Файл с БД не найден `{$name}`");
+		}else if(!is_writable($name)){ die(!pre("ОШИБКА файл БД доступен только на чтение", $name));
+		}else if(!$init = ($init ?: "{$conf['db']['type']}:{$realpath}")){ pre("ОШИБКА установки пути до файла БД");
+		}else if(!$conf['db']['conn'] = call_user_func(function($conn = null) use($init, $conf, $options){ // Подключение к базе данных
+				try {
+					$conn = new PDO($init, $conf['db']['login'], $conf['db']['pass'], $options);
+					$conn->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
+//						$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+					return $conn;
+				} catch (PDOException $e) { echo pre('Подключение не удалось', $init);
+				}
+			})){ mpre("ОШИБКА подключения к базе данных", $init);
+		}else{ //mpre("Реальный путь до файла бд", $name);
+			$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
+		}
+	}else{// pre($conf['db']);
+		if(!is_string($host = (get($conf, 'db', 'host') ? "host={$conf['db']['host']}" : ""))){ pre("ОШИБКА получения хоста из конфигурации");
+		}elseif(!is_string($unix_socket = (get($conf, 'db', 'unix_socket') ? "unix_socket={$conf['db']['unix_socket']}" : ""))){ pre("ОШИБКА получения хоста из конфигурации");
+		}elseif(!is_string($addr_conf = ($unix_socket ?: $host))){ pre("ОШИБКА получения адреса подключения host/unix_socket");
+		}elseif(!$addr_def = (($default_socket = ini_get("pdo_mysql.default_socket")) ? "unix_socket={$default_socket}" : "host=localhost")){ pre("ОШИБКА получения конфигурационного адреса для подключения");
+		}elseif(!$addr = $addr_conf ?: $addr_def){ pre("ОШИБКА установки адреса если не указан локальный");
+		}elseif(!$init = ($init ?: "{$conf['db']['type']}:{$addr};dbname={$conf['db']['name']};charset=UTF8")){ pre("ОШИБКА составления строки подключения к БД");
+		}else if(!$conf['db']['conn'] = call_user_func(function($conn = null) use($init, $conf, $options){ // Подключение к базе данных
+				try {
+					$conn = new PDO($init, $conf['db']['login'], $conf['db']['pass'], $options);
+//						$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+					return $conn;
+				} catch (PDOException $e) { echo pre('Подключение не удалось', $init);
+				}
+			})){ mpre("ОШИБКА подключения к базе данных", $init);
+		}elseif(!$TABLES = tables()){ pre("ОШИБКА получения списка таблиц");
+		}else{// pre($init, $conf['db']['login'], $TABLES);
+			$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
+		}
+	} return $conf['db']['conn'];
 }
 //компиляция less в css и сжатие css
 function MpLessCompile($teme_folder){
