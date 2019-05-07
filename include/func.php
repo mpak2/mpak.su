@@ -68,14 +68,12 @@ function conn($init = null){
 		}else if(!$conf['db']['conn'] = call_user_func(function($conn = null) use($init, $conf, $options){ // Подключение к базе данных
 				try {
 					$conn = new PDO($init, $conf['db']['login'], $conf['db']['pass'], $options);
-					$conn->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
-//						$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 					return $conn;
 				} catch (PDOException $e) { echo pre('Подключение не удалось', $init);
 				}
 			})){ mpre("ОШИБКА подключения к базе данных", $init);
 		}else{ //mpre("Реальный путь до файла бд", $name);
-			$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
+			$conn->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
 		}
 	}else{// pre($conf['db']);
 		if(!is_string($host = (get($conf, 'db', 'host') ? "host={$conf['db']['host']}" : ""))){ pre("ОШИБКА получения хоста из конфигурации");
