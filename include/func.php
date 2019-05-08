@@ -73,7 +73,7 @@ function conn($init = null){
 				}
 			})){ mpre("ОШИБКА подключения к базе данных", $init);
 		}else{ //mpre("Реальный путь до файла бд", $name);
-			$conn->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
+			$conf['db']['conn']->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
 		}
 	}else{// pre($conf['db']);
 		if(!is_string($host = (get($conf, 'db', 'host') ? "host={$conf['db']['host']}" : ""))){ pre("ОШИБКА получения хоста из конфигурации");
