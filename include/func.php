@@ -1813,7 +1813,7 @@ function pre(){
 			if(!$message = get($func_get_args, 0)){ print_r("ОШИБКА получения сообщения");
 			}else if("string" != gettype($message)){ //print_r("В лог выводим только текстовые сообщения");
 			}else{ //print_r("Сообщение в лог");
-				error_log($message);
+				//error_log($message);
 			}
 		})){ print_r("ОШИБКА сохранения уведомления в лог");
 	}else if((!$gid = get($conf, 'user', 'gid')) || (!array_search("Администратор", $gid))){ return first(func_get_args()); // print_r("Отображение доступно только администраторам");
