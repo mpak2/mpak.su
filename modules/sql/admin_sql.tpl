@@ -330,12 +330,15 @@
 								})(jQuery, document.currentScript)
 							</script>
 							<p>
-								<select name="query" style="width:100%;">
-									<option></option>
-									<? foreach(rb("query") as $query): ?>
-										<option><?=$query['query']?></option>
-									<? endforeach; ?>
-								</select>
+								<? if(!$QUERY = rb("query")): mpre("ОШИБКА выбборки списка запросов") ?>
+								<? else: //mpre($QUERY) ?>
+									<select name="query" style="width:100%;">
+										<option></option>
+										<? foreach($QUERY as $query): ?>
+											<option><?=$query['name']?></option>
+										<? endforeach; ?>
+									</select>
+								<? endif; ?>
 							</p>
 							<p><textarea name="sql" style="width:100%; height:100px;" placeholder="Текст запроса"><? if(get($conf, 'db', 'type') == 'sqlite'): ?><?="SELECT * FROM sqlite_master WHERE tbl_name='{$_GET['r']}'"?><? else: ?><?=($_GET['r'] ? "SHOW CREATE TABLE `{$_GET['r']}`" : "")?><? endif; ?></textarea></p>
 							<p><button>Выполнить</button></p>

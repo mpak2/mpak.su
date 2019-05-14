@@ -22,7 +22,15 @@ if($dump = get($_REQUEST, 'dump')){
 	if(!$_POST){ mpre("Пост запрос не задан");
 	}else{
 		if($sql = get($_POST, 'sql')){// mpre($sql);
-			if(get($conf, "settings", "mp_sql_query") && !($query = fk("query", null, $w = array("query"=>$sql), $w))){ mpre("ОШИБКА добавления запроса в таблицу истории");
+			/*if(get($conf, "settings", "mp_sql_query") && !($query = fk("query", null, $w = array("query"=>$sql), $w))){ mpre("ОШИБКА добавления запроса в таблицу истории");
+			}else*/ if(!is_array($query = call_user_func(function($query = []) use($conf, $sql){ // Сохранение запроса
+					if(!get($conf, "settings", $t = "sql_query")){ mpre("ОШИБКА таблица для сохранения запроса не установлена `{$t}`");
+					}else if(!$FIELDS = fields($t = "sql-query")){ mpre("ОШИБКА получения полей таблицы `{$t}`");
+					}else if(!$fields = get($FIELDS, "name")){ mpre("ОШИБКА поле для запросов `name` в таблице <a href='/sql:admin/r:sql-query'>{$conf["db"]["prefix"]}sql_query</a> не найдено.");
+					}else if(!$query = fk("sql-query", null, ["name"=>$sql])){ mpre("ОШИБКА сохранения запроса в истории");
+					}else{ mpre("Сохраняем запрос", $sql);
+					} return $query;
+				}))){ mpre("ОШИБКА сохранения запроса");
 			}elseif(!$microtime = microtime(true)){ mpre("ОШИБКА засечки времени выполнения запроса");
 			}elseif(!$result = qw($sql)){ mpre("Ошибка выполнения запроса");
 			}elseif(!$microtime = microtime(true)-$microtime){ mpre("ОШИБКА получения времени выполнения запроса");
