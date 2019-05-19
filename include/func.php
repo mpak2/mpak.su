@@ -1554,32 +1554,43 @@ function mpager($count, $id = null, $null=null, $cur=null /* Номер паги
 			}else{ return $url; }
 		})){ mpre("ОШИБКА изменения адреса страницы для стрниц с выключенны отображением шаблона");
 	}elseif(!$url = (strpos($url, "?") ? $url : $url. "?")){ mpre("ОШИБКА добавления вопроса");
-	}else{// mpre($url);
-	}
-	
-	if(2 > $count = ceil($count)) return;
-	$return = "<script>$(function(){ $(\".pager\").find(\"a[href='". urldecode($REQUEST_URI). "']\").addClass(\"active\").css(\"font-weight\", \"bold\"); })</script>";
-	$return .=  "<div class=\"pager\">";
-	$mpager['first'] = $url;
-
-	$return .= "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>";
-	$mpager['prev'] = $url. ($cur > 1 ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur-1) : "/{$p}:".($cur-1)) : '');
-	for($i = max(0, min($cur-5, $count-10)); $i < ($max = min($count, max($cur+5, 10))); $i++){
-		$mpager[ $i+1 ] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:$i") : '');
-		$return .=  '&nbsp;'. ("<a href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:$i") : ''). "\">".($i+1)."</a>");
-	}
-	$return .=  '&nbsp;';
-	$return .=  "<a rel=\"next\" href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : "/{$p}:".($cur+1)) : '')."\">вперед &#8594;</a>";
-	$mpager['next'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". min($max-1, $cur+1)) : '');
-	$mpager['last'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($count-1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". ($count-1)) : '');
-	$return .= "</div>";
-	if((($theme = get($conf, 'settings', 'theme')) && ($fn = mpopendir("themes/{$theme}/mpager.tpl"))) || ($fn = mpopendir("themes/zhiraf/mpager.tpl"))){
+	}elseif(2 > $count = ceil($count)){ return;
+	}else if(!$mpager = call_user_func(function() use($url, $p, $cur, $count){ // Свойства пагинатора
+			$mpager = [
+				'first'=>$url,
+				'prev'=>$url. ($cur > 1 ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur-1) : "/{$p}:".($cur-1)) : ''),
+			];
+			for($i = max(0, min($cur-5, $count-10)); $i < ($max = min($count, max($cur+5, 10))); $i++){
+				$mpager[ $i+1 ] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:$i") : '');
+			}
+			$mpager['last'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($count-1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". ($count-1)) : '');
+			$mpager['next'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". min($max-1, $cur+1)) : '');
+			return $mpager;
+		})){ mpre("ОШИБКА получения свойств пагинатора");
+	}elseif((($theme = get($conf, 'settings', 'theme')) && ($fn = mpopendir("themes/{$theme}/mpager.tpl"))) || ($fn = mpopendir("themes/zhiraf/mpager.tpl"))){
 		ob_start();
 		include($fn);
 		$return = ob_get_contents();
 		ob_end_clean();
 		return $return;
-	}else{ return $return; }
+	}else{// mpre($url);
+		$return = "<script>$(function(){ $(\".pager\").find(\"a[href='". urldecode($REQUEST_URI). "']\").addClass(\"active\").css(\"font-weight\", \"bold\"); })</script>";
+		$return .=  "<div class=\"pager\">";
+		//$mpager['first'] = $url;
+
+		$return .= "<a rel=\"prev\" href=\"$url".($cur > 1 ? "/{$p}:".($cur-1) : '')."\">&#8592; назад</a>";
+		//$mpager['prev'] = $url. ($cur > 1 ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur-1) : "/{$p}:".($cur-1)) : '');
+		for($i = max(0, min($cur-5, $count-10)); $i < ($max = min($count, max($cur+5, 10))); $i++){
+			//$mpager[ $i+1 ] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:$i") : '');
+			$return .=  '&nbsp;'. ("<a href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=$i" : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:$i") : ''). "\">".($i+1)."</a>");
+		}
+		$return .=  '&nbsp;';
+		$return .=  "<a rel=\"next\" href=\"$url".($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : "/{$p}:".($cur+1)) : '')."\">вперед &#8594;</a>";
+		//$mpager['next'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($cur+1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". min($max-1, $cur+1)) : '');
+		//$mpager['last'] = $url. ($i ? (strpos($url, '&') || strpos($url, '?') ? "&{$p}=".($count-1) : (substr($url, -1, 1) == "/" ? "" : "/"). "{$p}:". ($count-1)) : '');
+		$return .= "</div>";
+		return $return;
+	}
 }
 
 function mphash($user, $pass){
@@ -1810,13 +1821,13 @@ function pre(){
 } function mpre(){// print_r(func_get_args());
 	global $conf, $arg;
 	if(!$func_get_args = func_get_args()){ print_r("ОШИБКА получения параметров функции");
-	}else if(call_user_func(function() use($func_get_args){ // Сохранение в лог
+	/*}else if(call_user_func(function() use($func_get_args){ // Сохранение в лог
 			if(!$message = get($func_get_args, 0)){ print_r("ОШИБКА получения сообщения");
 			}else if("string" != gettype($message)){ //print_r("В лог выводим только текстовые сообщения");
 			}else{ //print_r("Сообщение в лог");
 				//error_log($message);
 			}
-		})){ print_r("ОШИБКА сохранения уведомления в лог");
+		})){ print_r("ОШИБКА сохранения уведомления в лог");*/
 	}else if((!$gid = get($conf, 'user', 'gid')) || (!array_search("Администратор", $gid))){ return first(func_get_args()); // print_r("Отображение доступно только администраторам");
 	}else{ return call_user_func_array("pre", func_get_args()); }
 }

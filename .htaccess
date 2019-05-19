@@ -92,3 +92,9 @@
 	ExpiresByType image/x-icon "access 1 year"
 </IfModule>
 ## EXPIRES CACHING ##
+
+# Защита гит директории
+<Directory .git>
+    order allow,deny
+    deny from all
+</Directory>

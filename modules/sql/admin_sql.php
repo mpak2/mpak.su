@@ -28,7 +28,7 @@ if($dump = get($_REQUEST, 'dump')){
 					}else if(!$FIELDS = fields($t = "sql-query")){ mpre("ОШИБКА получения полей таблицы `{$t}`");
 					}else if(!$fields = get($FIELDS, "name")){ mpre("ОШИБКА поле для запросов `name` в таблице <a href='/sql:admin/r:sql-query'>{$conf["db"]["prefix"]}sql_query</a> не найдено.");
 					}else if(!$query = fk("sql-query", null, ["name"=>$sql])){ mpre("ОШИБКА сохранения запроса в истории");
-					}else{ mpre("Сохраняем запрос", $sql);
+					}else{ mpre("Сохраняем запрос `{$conf["db"]["prefix"]}sql_query`", $sql);
 					} return $query;
 				}))){ mpre("ОШИБКА сохранения запроса");
 			}elseif(!$microtime = microtime(true)){ mpre("ОШИБКА засечки времени выполнения запроса");
