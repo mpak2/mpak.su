@@ -335,7 +335,7 @@
 									<select name="query" style="width:100%;">
 										<option></option>
 										<? foreach($QUERY as $query): ?>
-											<option><?=$query['name']?></option>
+											<option><?=(get($query, 'name') ?: $query["query"])?></option>
 										<? endforeach; ?>
 									</select>
 								<? endif; ?>

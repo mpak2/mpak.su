@@ -973,7 +973,7 @@ function erb($src, $key = null){
 			} return count($func_get_args);
 		}))){ mpre("Ошибка определения границы значений", $func_get_args);
 	}elseif(!$FIELDS = array_slice($func_get_args, 0, $line)){ mpre("Ошибка определения массива полей");
-	}elseif((!$VALUE = array_slice($func_get_args, $line)) &&0){ mpre("Ошибка определения массива значений");
+	}elseif((!$VALUE = array_slice($func_get_args, $line)) &0){ mpre("Ошибка определения массива значений");
 	}elseif((!$VALUES = array_map(function($val){
 			if(!is_string($val)){ return $val;
 			}elseif((substr($val, 0, 1) == "[") && (substr($val, -1, 1) == "]")){// mpre("Парсинг значений со специальными ограничителями");
@@ -1053,7 +1053,7 @@ function erb($src, $key = null){
 			}
 		}, $src)) : call_user_func(function($src) use(&$tpl, $min, $conf, $_FIELDS, $_VALUES, $limit, $arg, $func_get_args){ # Выборка данных из БД по условиям
 			if(!is_array($WHERE = array_filter(array_map(function($field, $value) use($_FIELDS, $_VALUES, $func_get_args){
-					if(is_numeric($value)){ return "`{$field}`=". (int)$value;
+					if(is_numeric($value) && is_int($value)){ return "`{$field}`=". (int)$value;
 					}elseif(is_string($value)){ return "`{$field}`=\"{$value}\"";
 					}elseif($value === true){ return null;
 					}elseif(is_null($value)){ return "`{$field}` IS NULL";
@@ -1061,7 +1061,7 @@ function erb($src, $key = null){
 					}elseif(!is_array($value)){ mpre("Ошибочный тип данных в значении", gettype($value));
 					}elseif(empty($value)){ return "NULL"; // mpre("Пустой массив");
 					}elseif(!is_array($IN = array_map(function($val) use($field, $func_get_args){
-							if(is_numeric($val)){ return "`{$field}`={$val}";
+							if(is_numeric($val) && is_int($val)){ return "`{$field}`={$val}";
 							}elseif("NULL" === $val){ return "`{$field}` IS {$val}";
 							}else{ return "`{$field}` = \"{$val}\""; }
 						}, array_keys($value)))){ mpre("Ошибка обработки значений массива", $_FIELDS, $_VALUES, $func_get_args);

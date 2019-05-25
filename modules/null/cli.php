@@ -31,16 +31,16 @@ if(!$conf = call_user_func(function($conf = []){ // Подключение ко�
 		}else{// mpre($argv);
 		} return $argv;
 	})){ mpre("ОШИБКА получения аргументов");
-}elseif(!is_array($command = call_user_func(function($command, $cmd = "phpinfo", $name = "Отображение настроек системы и загруженых модулей") use($argv){ // Связывание новой таблицы и списка источников
+}elseif(!is_array($command = call_user_func(function($command = [], $cmd = "phpinfo", $name = "Отображение настроек системы и загруженых модулей") use($argv){ // Связывание новой таблицы и списка источников
 		if(array_key_exists($cmd, $command)){ mpre("Дублирование команды {$cmd}");
-		}else if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ return $command;
-		}else{ // pre(Информация о системе");
+		}else if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ //mpre("Пропускам выполнение команды {$cmd}");
+		}else{ pre($name. " (". $cmd. ")");
 			phpinfo();
-		}
-	}, $command))){ pre($command. " (". $argv[1]. ")");
+		} return $command;
+	}))){ mpre("ОШИБКА выполнения команды", $argv);
 }elseif(!is_array($command = call_user_func(function($command, $cmd = "parse", $name = "Парсинг страниц") use($argv){ // Связывание новой таблицы и списка источников
 		if(array_key_exists($cmd, $command)){ mpre("Дублирование команды {$cmd}");
-		}else if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ return $command;
+		}else if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ //mpre("Пропускам выполнение команды {$cmd}");
 		}else if(!include("phar://index.phar/include/class/simple_html_dom.php")){ mpre("ОШИБКА подключения класса simple_html_dom");
 		}elseif(!$html = new simple_html_dom()){ mpre("Ошибка создания обьекта парсера");
 		}elseif(!array_map(function($video_sources) use($html){
@@ -52,12 +52,12 @@ if(!$conf = call_user_func(function($conf = []){ // Подключение ко�
 					mpre($video_sources);
 				}
 			}, $VIDEO_SOURCES)){ mpre("ОШИБКА парсинга страниц");
-		}else{ mpre("Парсинг страниц")
-		}
-	}, $command))){ pre($command. " (". $argv[1]. ")");;
+		}else{ pre($name. " (". $cmd. ")");
+		} return $command;
+	}, $command))){ mpre("ОШИБКА выполнения команды", $argv);
 }elseif(!is_array($command = call_user_func(function($command, $cmd = "peer", $name = "Загрузка информации о каналах") use($argv){ // Связывание новой таблицы и списка источников
 		if(array_key_exists($cmd, $command)){ mpre("Дублирование команды {$cmd}");
-		}else if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ return $command;
+		}else if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ //mpre("Пропускам выполнение команды {$cmd}");
 		}else if(!include($f = "include/madeline.php")){ mpre("ОШИБКА подключения библиотеки {$f}");
 		}else if(!$api_info = ['api_id'=>827,'api_hash'=>"595"]){ mpre("ОШИБКА задания параметров api");
 		}else if(!$MadelineProto = new \danog\MadelineProto\API(['app_info'=>$api_info, 'authorization'=>[ 'default_temp_auth_key_expires_in'=>86400]])){ mpre("ОШИБКА создание обьекта madeline");
@@ -79,7 +79,7 @@ if(!$conf = call_user_func(function($conf = []){ // Подключение ко�
 				} return $telegram_peer_new;
 			}, $TELEGRAM_PEER_NEW)){ mpre("ОШИБКА перебора списка групп");
 		}else{ //mpre($TELEGRAM_PEER); //$me = $MadelineProto->get_self();
-		}
+		} return $command;
 	}, $command))){ pre($command. " (". $argv[1]. ")");
-}else{ mpre("Укажите параметр запуска параметров монсоли", $command, $argv); }
+}else{ mpre("Список доступных параметров", $command); }
 
