@@ -4,7 +4,16 @@
 	<? elseif($dump = get($tpl, 'dump')): ?>		
 		<h1>mysqldump</h1>
 		<pre style="margin:5px; padding:5px; border-top:2px solid #ddd; border-bottom:2px solid #ddd;"><?=$dump?></pre>
-	<? else: ?>
+	<? elseif(!$table = get($_GET, 'r')): mpre("ОШИБКА получения имени таблицы") ?>
+	<? elseif(!$INDEXES = indexes($table)): mpre("ОШИБКА получения списка полей таблицы") ?>
+	<? elseif(!$FIELDS = fields($table)): mpre("ОШИБКА получения списка полей таблицы") ?>
+	<? elseif(!$indexes = array_map(function($index){ // Получение имен полей из имен индексов
+			if(!$parts = explode("-", $index, 2)){ mpre("ОШИБКА разбивки имени ключа на составляющие");
+			}else{ return get($parts, 1); }
+		}, array_keys($INDEXES))): mpre("ОШИБКА поулчения имен полей из индексов") ?>
+	<? elseif(!$INDEXES = array_combine($indexes, $INDEXES)): mpre("ОШИБКА установки индексов по именам полей") ?>
+	<? elseif(!$types = array("INTEGER", "REAL", "TEXT")): mpre("ОШИБКА установки типов полей") ?>
+	<? else: //mpre($FIELDS) ?>
 		<div class="table" style="width:100%;">
 			<div>
 				<span style="min-width:40%;">
@@ -49,7 +58,7 @@
 									таблица `<b><?=(get($conf, 'settings', implode("_", array_slice($ar, 1))) ?: get($_GET, 'r'))?></b>`
 									<a href="/<?=last(array_slice($ar, 1, 1))?>:admin/r:<?=$_GET['r']?>">
 										<?=$table?>
-									</a>
+									</a> (Старый интерфейс <a href="/sql:admin_sql_old/r:<?=$_GET["r"]?>">admin_sql_old</a>)
 								</span>
 							<? endif; ?>
 						</form>
@@ -74,16 +83,25 @@
 											<span>
 												<select name="f[<?=$field?>][type]">
 													<option></option>
-													<? foreach($tpl['types'] as $fd): ?>
-														<option <?=((get($tpl, 'fields', $field, 'Type') == $fd) || (get($tpl, 'fields', $field, 'type') == $fd) ? "selected" : "")?>><?=$fd?></option>
+													<? foreach($types as $fd): ?>
+														<option <?=((get($FIELDS, $field, 'Type') == $fd) || (get($FIELDS, $field, 'type') == $fd) ? "selected" : "")?>><?=$fd?></option>
 													<? endforeach; ?>
 												</select>
 											</span>
 											<span>
 												<input type="text" value="<?=$default?>" name="f[<?=$field?>][default]" style="width:60px;" placeholder="Значение">
 											</span>
-											<span><input type="text" value="<?=get($fields, $field, 'Comment')?>" name="f[<?=$field?>][comment]" placeholder="Коментарий" <?=(get($conf, 'db', 'type') == 'mysql' ? "" : "disabled")?>></span>
-											<span><input type="checkbox" name="f[<?=$field?>][index]" <?=((get($tpl, 'indexes', $field) || get($tpl, 'indexes', substr($_GET['r'], strlen($conf['db']['prefix'])). "-{$field}")) ? "checked" : "")?>></span>
+											<span>
+												<input type="text" value="<?=get($fields, $field, 'Comment')?>" name="f[<?=$field?>][comment]" placeholder="Коментарий" <?=(get($conf, 'db', 'type') == 'mysql' ? "" : "disabled")?>>
+											</span>
+											<span style="width:50px;">
+												<input type="checkbox" name="f[<?=$field?>][unique]"<?=(get($INDEXES, "{$field}-unique") ? "checked" : "")?> placeholder="Уникальность">
+												<span title="Уникальное поле">Уник</span>
+											</span>
+											<span>
+												<input type="checkbox" name="f[<?=$field?>][index]" <?=(get($INDEXES, $field) ? "checked" : "")?>>
+												<span title="Поле индекса">Ключ</span>
+											</span>
 										</div>
 									<? endif; ?>
 								<? endforeach; ?>
@@ -98,14 +116,21 @@
 									</span>
 									<span>
 										<select name="$[type]">
-											<? foreach($tpl['types'] as $fd): ?>
+											<? foreach($types as $fd): ?>
 												<option><?=$fd?></option>
 											<? endforeach; ?>
 										</select>
 									</span>
-									<span><input type="text" name="$[default]" style="width:60px;" placeholder="Значение"></span>
+									<span><input type="text" name="$[default]" disabled style="width:60px;" placeholder="Значение"></span>
 									<span><input type="text" name="$[comment]" placeholder="Коментарий" <?=(get($conf, 'db', 'type') == 'mysql' ? "" : "disabled")?>></span>
-									<span><input type="checkbox" name="$[index]"></span>
+									<span>
+										<input type="checkbox" disabled name="$[unique]" placeholder="Уникальность">
+										<span title="Уникальное поле">Уник</span>
+									</span>
+									<span>
+										<input type="checkbox" disabled name="$[index]" placeholder="Индекс">
+										<span title="Поле индекса">Ключ</span>
+									</span>
 								</div>
 							</div>
 							<p><button>Сохранить</button></p>
@@ -120,20 +145,6 @@
 						<? else:// mpre($sql, $FOREIGN_KEYS) ?>
 							<form method="post">
 								<div class="table" style="white-space:nowrap;">
-									<script sync>
-/*										(function($, script){
-											$(script).parent().on("click", "button", function(e){
-												var field = $(e.currentTarget).parents("[field]").attr("field");
-												var on_update = $(e.currentTarget).parents("[field]").find("select[name=on_update] option:selected").attr("value");
-												var on_delete = $(e.currentTarget).parents("[field]").find("select[name=on_delete] option:selected").attr("value");
-												console.log("field:", field, "on_update:", on_update, "on_delete:", on_delete);
-												$.post("/<?=$arg['modpath']?>:<?=$arg['fn']?>/r:<?=$_GET['r']?>/null", {foreign:field, on_update:on_update, on_delete:on_delete}, function(data){
-													console.log("data:", data);
-													document.location.reload(true);
-												}, "json").fail(function(error){ alert(error.responseText); })
-											})
-										})(jQuery, document.currentScript)*/
-									</script>
 									<div class="th">
 										<span>Поле</span>
 										<span>Таблица</span>
