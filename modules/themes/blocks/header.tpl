@@ -6,7 +6,7 @@
 	div.table {display:table; width:100%; vertical-align:top; border-collapse:collapse;}
 	div.table > div {display:table-row;}
 	div.table > div > span {display:table-cell; padding:3px; vertical-align:top;}
-	div.table > div.th > span {background-color:#444; color:white;}
+	div.table > div.th > span, div.table > div > span.th {background-color:#444; color:white; border: 1px solid #aaa; text-align:center;}
 
 	div.table.border { border-collapse:collapse; }
 	div.table.border > div > span { border:1px solid gray; }
