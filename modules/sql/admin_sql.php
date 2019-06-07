@@ -168,7 +168,7 @@ if($dump = get($_REQUEST, 'dump')){
 						}else if(!$field = "`{$name}`"){ mpre("ОШИБКА составления формата запроса поля");
 						}else{ return $field; }
 					}, $FIELDS))){ mpre("Получение списка имен и типов новых полей");
-				}else if(!$sql = "INSERT INTO `{$table}` (". implode(", ", $_fields). ") SELECT ". implode(", ", $_fields). " FROM `{$table}`"){ mpre("ОШИБКА составления запроса на копирование резервных данных");
+				}else if(!$sql = "INSERT INTO `{$table}` (". implode(", ", $_fields). ") SELECT ". implode(", ", $_fields). " FROM `backup`"){ mpre("ОШИБКА составления запроса на копирование резервных данных");
 				}else{ //mpre("Запрос на перенос данных", $sql);
 				} return $sql;
 			})){ mpre("ОШИБКА добавления запроса на создание обновленной таблицы");
