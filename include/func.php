@@ -242,6 +242,7 @@ function cache($content = false, $row = []){ // Сохраненные в кеш
 	}else if(!is_array($row = call_user_func(function($row = []) use($conf, $content, $cache_dir, $cache_log){ // Сохранение в кеш
 			if(!$content){ //pre("Нет кеша для сохранения");
 			//}else if(get($conf, "user"))){ //pre("Не сохраняем для зарегистрированного пользователя");
+			}elseif(get($_COOKIE, 'sess')){// pre("Зарегистрированный пользователь");
 			}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ pre("Ошибка составления имени файла");
 			}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2]) && (rand(0, $sys_getloadavg[0]) <= 1)*/){// mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
 			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){// mpre("Ошибка определения адреса {$_SERVER['REQUEST_URI']}");
@@ -250,7 +251,6 @@ function cache($content = false, $row = []){ // Сохраненные в кеш
 			}elseif(!is_array($seo_cat = rb("seo-cat", "id", get($conf, "settings", "canonical", "cat_id")))){ pre("ОШИБКА получения СЕО категории страницы");
 			}elseif(!is_numeric($themes_cache = (get($conf, 'themes_cache') ?: 86400))){ pre("ОШИБКА получения времени кеша темы");
 			}elseif(!is_numeric($seo_cache = get($seo_cat, "cache") ?: $themes_cache)){ pre("ОШИБКА получения времени кеширования");
-			}elseif(get($_COOKIE, 'sess')){// pre("Зарегистрированный пользователь");
 			/*	if(class_exists("Memcached")){ // mpre("Класс Мемкаш не доступен");
 					if(!$Memcached = new Memcached()){ mpre("Ошибка создания обьекта мемкаш");
 					}elseif(!$Memcached->addServer('localhost', 11211)){ mpre("Ошибка подключения к серверу мемкаш");
@@ -324,6 +324,7 @@ function cache($content = false, $row = []){ // Сохраненные в кеш
 		}, $row))){ pre("ОШИБКА Отображения сохраненной ранее страницы при таймауте");
 	}else if(!is_array($row = call_user_func(function($row) use($conf, $content, $cache_dir, $cache_log){ // Отображение сохраненной ранее страницы
 			if($row){ //pre("Запись уже добавлена");
+			}else if("no-cache" == get($_SERVER, "HTTP_PRAGMA")){ mpre("Обновление по Ctrl+Shift+R");
 			/*}elseif(array_key_exists("null", $_GET)){// pre("null");
 			}elseif(get($_COOKIE, 'sess')){// pre("Зарегистрированный пользователь");
 			}elseif(!call_user_func(function($age){
@@ -331,6 +332,7 @@ function cache($content = false, $row = []){ // Сохраненные в кеш
 					header("Expires: ". gmdate('D, d M Y H:i:s T'));
 					return true;
 				}, (get($conf, "themes_cache") ?: 86400*10))){ pre("Ошибка установки заговлоков");*/
+			}elseif(get($_COOKIE, 'sess')){// pre("Зарегистрированный пользователь");
 			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ pre("Ошибка определения адреса");
 			}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg", "/sitemap.xml", "/robots.txt"/*, "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
 			//}elseif(array_key_exists("HTTP_CACHE_CONTROL", $_SERVER)){ // Отключает кеширование у картинок //pre("Обновление в мобильной версии браузера");
