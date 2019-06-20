@@ -234,127 +234,126 @@ function MpGenUniquePath($dir="/tmp"){
 # Кеширование данных. Функция подключается в index.php два раза.
 # Первый раз с пустым параметром cache() второй с содержимым страницы в конце. Содержимое страницы кешируется
 # Есть еще один режим cache(0) который вызывает если возник таймаут при подключении базы данных
-function cache($content = false){
+function cache($content = false, $row = []){ // Сохраненные в кеше данные или добавление если content не пуст
 	global $conf;
 	if(!array_search("pdo_sqlite", get_loaded_extensions())){// mpre("В списке доступных модулей не sqlite");
-	}else if(!$content){// pre("Отдаем кеш из sqlite");
-		if(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
-//		}elseif(true){ mpre("Заголовки", get($_SERVER, 'HTTP_IF_MODIFIED_SINCE'));
-		}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
-//		}elseif(true){ mpre($conf["canonical"]);
-		}elseif(is_numeric($content)){ # mpre("Ошибка подключения баз данных");
-			if(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ pre("Ошибка составления имени файла");
-			}elseif(!$conn = conn("sqlite:{$conn_file}")){// pre("Ошибка создания подключения sqlite");
-			}elseif(!$HTTP_HOST = idn_to_utf8($_SERVER['HTTP_HOST'])){ pre("Ошибка определения русскоязычного имени домена");
-			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Ошибка определения адреса");
-			}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ pre("Ошибка создания запроса");
-			}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])*/){ // mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
-			}else{
-//				error_log(implode("/", $sys_getloadavg). " <<! http://{$HTTP_HOST}{$REQUEST_URI}\n", 3, $cache_log);
-				foreach(explode("\n", $row['headers']) as $header){
-					header($header);
-				} header('Content-Encoding: gzip');
-				exit($row['content']);
-			}
-		}elseif(array_key_exists("null", $_GET)){// pre("null");
-		}elseif($_COOKIE['sess']){// pre("Зарегистрированный пользователь");
-
-		}elseif(!call_user_func(function($age){
-				header("Cache-Control: must-revalidate,max-age={$age}");
-				header("Expires: ". gmdate('D, d M Y H:i:s T'));
-				return true;
-			}, (get($conf, "themes_cache") ?: 86400*10))){ pre("Ошибка установки заговлоков");
-		}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ pre("Ошибка определения адреса");
-		}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg", "/sitemap.xml", "/robots.txt"/*, "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
-		}elseif(array_key_exists("HTTP_CACHE_CONTROL", $_SERVER)){ //pre("Обновление в мобильной версии браузера");
-		}elseif($_POST || array_key_exists("sess", $_COOKIE)){// pre("Активная сессия");
-		}elseif(get($_SERVER, 'HTTP_IF_MODIFIED_SINCE') || (http_response_code() == 304)){ mpre("Кешированная страница. Отдаем только статус");
-//			error_log(implode("/", $sys_getloadavg). " <== 301 http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-			exit(header('HTTP/1.0 304 Not Modified'));
-/*		}elseif(!call_user_func(function() use($conf, $REQUEST_URI, $sys_getloadavg, $cache_log){ # Отображение ранее сохраненной в мемкаше страницы
-				if(!class_exists(Memcached)){ mpre("Класс не найден Memcached");
-				}elseif(!$Memcached = new Memcached()){ exit(!!pre("Ошибка создания обьекта мемкаш"));
-				}elseif(!$Memcached->addServer('localhost', 11211)){ exit(!!pre("Ошибка подключения к сервису мемкаш"));
-				}elseif(!$key = "{$conf['settings']['http_host']}{$REQUEST_URI}"){ mpre("Ошибка составления ключа кеша");
-				}elseif(!$cache = $Memcached->get($key)){ // pre("Сохраненная страница в мемкаше не найден");
-				}else{ header('Content-Encoding: gzip');
-					header('Last-Modified: '. gmdate("r"));
-					header('Expires: '.gmdate('r', time() + 86400*10));
-					error_log(implode("/", $sys_getloadavg). " <~~ ". http_response_code(). " http://{$key}\n", 3, $cache_log);
-					exit($cache);
+	}elseif(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ pre("Ошибка установки временной директории кеша");
+	}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ pre("Ошибка формирования пути лог файла кешей");
+	}else if(!is_array($row = call_user_func(function($row = []) use($conf, $content, $cache_dir, $cache_log){ // Сохранение в кеш
+			if(!$content){ //pre("Нет кеша для сохранения");
+			//}else if(get($conf, "user"))){ //pre("Не сохраняем для зарегистрированного пользователя");
+			}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ pre("Ошибка составления имени файла");
+			}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2]) && (rand(0, $sys_getloadavg[0]) <= 1)*/){// mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
+			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){// mpre("Ошибка определения адреса {$_SERVER['REQUEST_URI']}");
+			}elseif(!$gzen = gzencode($content)){ pre("Ошибка архивирования кода страницы");
+			}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg", "/sitemap.xml", "/robots.txt"/*, "/favicon.ico",*/])){ //pre("Не кешируем системные файлы");
+			}elseif(!is_array($seo_cat = rb("seo-cat", "id", get($conf, "settings", "canonical", "cat_id")))){ pre("ОШИБКА получения СЕО категории страницы");
+			}elseif(!is_numeric($themes_cache = (get($conf, 'themes_cache') ?: 86400))){ pre("ОШИБКА получения времени кеша темы");
+			}elseif(!is_numeric($seo_cache = get($seo_cat, "cache") ?: $themes_cache)){ pre("ОШИБКА получения времени кеширования");
+			}elseif(get($_COOKIE, 'sess')){// pre("Зарегистрированный пользователь");
+			/*	if(class_exists("Memcached")){ // mpre("Класс Мемкаш не доступен");
+					if(!$Memcached = new Memcached()){ mpre("Ошибка создания обьекта мемкаш");
+					}elseif(!$Memcached->addServer('localhost', 11211)){ mpre("Ошибка подключения к серверу мемкаш");
+					}else{ $Memcached->delete("{$_SERVER['HTTP_HOST']}{$REQUEST_URI}"); }
 				}
-			})){ mpre("Ошибка выборки данных из мемкаша");*/
-//			}elseif(($Memcached = new Memcached()) && ($Memcached->addServer('localhost', 11211)) && ($cache = $Memcached->get($REQUEST_URI))){
-		}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ mpre("Ошибка составления имени файла");
-		}elseif(!file_exists($conn_file) && !touch($conn_file) /*&& !chmod($conn_file, 0777)*/){ mpre("Файл бд кеша не найден {$conn_file}");
-		}elseif(!$conn = conn("sqlite:{$conn_file}")){ mpre("Ошибка сохдания подключения sqlite");
-		}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ mpre("Ошибка создания запроса");
-		}elseif(!$row = mpql($RES, 0)){ mpre("Ошибка извлечения строк");
-		}elseif(empty($row)){ # mpre("Ранее результат небыл создан");
-		}elseif(get($row, 'time') < time()){ mpre("Кеш устарел", (time() - get($row, 'time')));
-			mpqw("DELETE FROM `cache` WHERE id=". (int)$row['id']);
-		}elseif(call_user_func(function($header){ header($header); }, explode("\n", $row['headers']))){ mpre("Ошибка установки заговловков");
-		}else{ header('Content-Encoding: gzip');
-			exit($row['content']);
-		}
-	}else{ # Сохраняем кеш в sqlite
-		if(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ mpre("Ошибка установки временной директории кеша");
-		}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ print_r("Ошибка формирования пути лог файла кешей");
-		}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ mpre("Ошибка составления имени файла");
-		}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2]) && (rand(0, $sys_getloadavg[0]) <= 1)*/){// mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
-		}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){// mpre("Ошибка определения адреса {$_SERVER['REQUEST_URI']}");
-		}elseif(!$gzen = gzencode($content)){ mpre("Ошибка архивирования кода страницы");
-		}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg", "/sitemap.xml", "/robots.txt"/*, "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
-		}elseif(!is_array($seo_cat = rb("seo-cat", "id", get($conf, "settings", "canonical", "cat_id")))){ mpre("ОШИБКА получения СЕО категории страницы");
-		}elseif(!is_numeric($themes_cache = (get($conf, 'themes_cache') ?: 600))){ mpre("ОШИБКА получения времени кеша темы");
-		}elseif(!is_numeric($seo_cache = get($seo_cat, "cache") ?: $themes_cache)){ mpre("ОШИБКА получения времени кеширования");
-		}elseif(get($_COOKIE, 'sess')){// pre("Зарегистрированный пользователь");
-			if(class_exists("Memcached")){ // mpre("Класс Мемкаш не доступен");
-				if(!$Memcached = new Memcached()){ mpre("Ошибка создания обьекта мемкаш");
-				}elseif(!$Memcached->addServer('localhost', 11211)){ mpre("Ошибка подключения к серверу мемкаш");
-				}else{ $Memcached->delete("{$_SERVER['HTTP_HOST']}{$REQUEST_URI}"); }
-			}
-		}elseif((class_exists("Memcached")) && ($Memcached = new Memcached()) && ($Memcached->addServer('localhost', 11211)) && ($cache = $Memcached->set("{$_SERVER['HTTP_HOST']}{$REQUEST_URI}", $gzen))){
-			header('Content-Encoding: gzip');
-//			error_log(implode("/", $sys_getloadavg). " ~~> ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-			exit($gzen);
-		}elseif(!file_exists($conn_file) && !touch($conn_file) && !mkdir(dirname($conn_file))){ mpre("Файл бд кеша не найден {$conn_file}");
-		}elseif(!$conn = conn("sqlite:{$conn_file}")){
-		}elseif(!($TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name")) && !($TABLES = call_user_func(function() use($conf, $conn){
-				if(!(qw($sql = "CREATE TABLE cache(id INTEGER PRIMARY KEY, time INTEGER, uri TEXT, headers TEXT, content BLOB)", "Создание таблицы кешей", null, null, $conn)) &0){ mpre("Ошибка создания таблицы кешей {$sql}");
-				}elseif(qw($sql = "CREATE INDEX `cache-uri` ON `cache` (`uri`);", "Создание ключей", null, null, $conn) &0){ mpre("Ошибка создания ключей таблицы {$sql}");
-				}elseif(!$TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name")){ mpre("Ошибка проверки таблицы стилей");
-				}else{ return $TABLES; }
-			}))){ mpre("Параметры таблицы не определены");
-		}elseif(http_response_code() != 200){// pre("Кешируем только корректно отдаваемые страницы");
-			$conn->query("DELETE FROM `cache` WHERE `uri`='{$REQUEST_URI}'");
-//			error_log(implode("/", $sys_getloadavg). " <<< ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);	
-		}elseif($conf['user']['sess']['uid']){// mpre("Сохранение действует только для гостей");
-			$conn->query("DELETE FROM `cache` WHERE `uri`='{$REQUEST_URI}'");
-//			error_log(implode("/", $sys_getloadavg). " xxx ". ($conf['user']['sess']['uid'] <= 0 ? "{$guest['uname']}{$conf['user']['sess']['id']}" : $conf['user']['uname']). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-		}elseif(!$cache_exists = call_user_func(function($PARAMS) use($conf, $conn){
-				try{
+			}elseif(!call_user_func(function($age){
+					header("Cache-Control: must-revalidate,max-age={$age}");
+					header("Expires: ". gmdate('D, d M Y H:i:s T'));
+					return true;
+				}, $themes_cache)){ pre("Ошибка установки заговлоков");
+			}elseif((class_exists("Memcached")) && ($Memcached = new Memcached()) && ($Memcached->addServer('localhost', 11211)) && ($cache = $Memcached->set("{$_SERVER['HTTP_HOST']}{$REQUEST_URI}", $gzen))){
+				header('Content-Encoding: gzip');
+	//			error_log(implode("/", $sys_getloadavg). " ~~> ". http_response_code(). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+				exit($gzen);*/
+			}elseif(!file_exists($conn_file) && !touch($conn_file) && !mkdir(dirname($conn_file))){ pre("Файл бд кеша не найден {$conn_file}");
+			}elseif(!$conn = conn("sqlite:{$conn_file}")){ pre("ОШИБКА получения соединения с БД");
+			}elseif(!($TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name")) && !($TABLES = call_user_func(function() use($conf, $conn){
+					if(!(qw($sql = "CREATE TABLE cache(id INTEGER PRIMARY KEY, time INTEGER, uri TEXT, headers TEXT, content BLOB)", "Создание таблицы кешей", null, null, $conn)) &0){ mpre("Ошибка создания таблицы кешей {$sql}");
+					}elseif(qw($sql = "CREATE INDEX `cache-uri` ON `cache` (`uri`);", "Создание ключей", null, null, $conn) &0){ mpre("Ошибка создания ключей таблицы {$sql}");
+					}elseif(!$TABLES = qn("SELECT * FROM sqlite_master WHERE type='table'", "name")){ mpre("Ошибка проверки таблицы стилей");
+					}else{ return $TABLES; }
+				}))){ pre("Параметры таблицы не определены");
+			}else if(call_user_func(function() use($REQUEST_URI){ // Удаление ошибочных страниц
+					if(http_response_code() == 200){ //pre("Ошибки не найдены на странице");
+					}else if(!$conf['user']['sess']['uid']){ pre("Удаляем для зарегистрированных пользователей");
+					}else if(!$conn->query("DELETE FROM `cache` WHERE `uri`='{$REQUEST_URI}'")){ pre("ОШИБКА удаления страниц");
+					}else{ pre("Удален неш с некешированной страницы");
+					}
+				})){ pre("ОШИБКА удаления ошибочных страниц");
+			}else if(!$PARAMS = [['name'=>'time', 'value'=>time()+$seo_cache, 'type'=>PDO::PARAM_INT], ['name'=>'uri', 'value'=>$REQUEST_URI, 'type'=>PDO::PARAM_STR], ['name'=>'headers', 'value'=>implode("\n", headers_list()), 'type'=>PDO::PARAM_STR], ['name'=>'content', 'value'=>$gzen, 'type'=>PDO::PARAM_LOB],]){ pre("ОШИБКА установки значений");
+			}elseif(!$row = call_user_func(function($row) use($conf, $PARAMS, $conn){
 					if(!$uri = rb($PARAMS, 'name', '[uri]', 'value')){ pre("Ошибка получения адреса страницы", $PARAMS);
 					}elseif(!$result = $conn->query("SELECT * FROM `cache` WHERE `uri`='{$uri}' ORDER BY `id` DESC LIMIT 1")){ pre("Ошибка создания запроса");
-					}elseif($cache = $result->fetch(PDO::FETCH_ASSOC)){// pre("Обновление страницы");
-						$TYPES = ['id'=>PDO::PARAM_INT, 'time'=>PDO::PARAM_INT, 'headers'=>PDO::PARAM_STR, 'content'=>PDO::PARAM_LOB];
-						$result = $conn->prepare("UPDATE `cache` SET `time`=:time, `headers`=:headers, `content`=:content WHERE `id`=:id");
-						foreach($PARAMS as $params){
-							$result->bindValue($params['name'], $params['value'], $params['type']);
-						} $result->execute();
-						return $cache['id'];
-					}else{ # Добавление новой записи
-						$result = $conn->prepare("INSERT INTO cache (time, uri, headers, content) VALUES (:time, :uri, :headers, :content)");
-						foreach($PARAMS as $params){
-							$result->bindValue($params['name'], $params['value'], $params['type']);
-						} $result->execute();
-						return -$conn->lastInsertId();
-					}
-				}catch(Exception $e){ mpre($e); return false; }
-			},[['name'=>'time', 'value'=>time()+$seo_cache, 'type'=>PDO::PARAM_INT], ['name'=>'uri', 'value'=>$REQUEST_URI, 'type'=>PDO::PARAM_STR], ['name'=>'headers', 'value'=>implode("\n", headers_list()), 'type'=>PDO::PARAM_STR], ['name'=>'content', 'value'=>$gzen, 'type'=>PDO::PARAM_LOB],])){ mpre("Ошибка установки запроса");
-		}else{// return error_log(implode("/", $sys_getloadavg). " ". ($cache_exists > 0 ? "<=>" : ">>>"). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
-		}
-	}
+					}else if(!is_array($cache = ($result->fetch(PDO::FETCH_ASSOC) ?: []))){ pre("ОШИБКА получения уже добавленных данных в базу");
+					//}else if(true){ pre($cache);
+					}else if(!$PARAMS = array_merge([['name'=>'id', 'value'=>get($cache, "id"), 'type'=>PDO::PARAM_INT]], $PARAMS)){ pre("ОШИБКА добавления идентификатора записи");
+					}else if(!$row = call_user_func(function($row) use($conn, $PARAMS){ // Новая запись
+							if($row){ pre("Данные уже обновлены");
+							}else if(!$result = $conn->prepare("INSERT OR REPLACE INTO `cache` (id, time, uri, headers, content) VALUES (:id, :time, :uri, :headers, :content)")){ pre("ОШИБКА формирования запроса добавления страницы");
+							}else if(!array_map(function($params) use(&$result){ // Установка значений запроса
+									$result->bindValue($params['name'], $params['value'], $params['type']);
+								}, $PARAMS)){ pre("ОШИБКА установки значений запросов");
+							}else if(!$result->execute()){ pre("ОШИБКА выполнения запроса к БД");
+							}else if(!$row = array_column($PARAMS, "value", "name")){ pre("ОШИБКА получения значений полей");
+							}else{ //pre("Сохранение данных", $row);
+							} return $row;
+						}, $row)){ pre("ОШИБКА добавления информации о новой странице");
+					}else{ //mpre("Сохраненные данные", $row);
+					} return $row;
+				}, $row)){ pre("Ошибка установки запроса");
+			}else{ //pre("Добавленные данные", $row); // return error_log(implode("/", $sys_getloadavg). " ". ($cache_exists > 0 ? "<=>" : ">>>"). " http://". ($conf['settings']['http_host']. $REQUEST_URI). "\n", 3, $cache_log);
+			} return $row;
+		}))){ pre("ОШИБКА добавления данных в базу");
+	}else if(!is_array($row = call_user_func(function($row) use($conf, $content, $cache_dir, $cache_log){ // Таймаут базы данных
+			if($content){ //pre("Входные данные для кеша");
+			}else if($row){ //pre("Запись уже добавлена");
+			}else if(!is_numeric($content)){ mpre("ОШИБКА Таймаут приходит число 0");
+			}else{ mpre("Таймаут базы данных");
+				if(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ pre("Ошибка составления имени файла");
+				}elseif(!$conn = conn("sqlite:{$conn_file}")){// pre("Ошибка создания подключения sqlite");
+				}elseif(!$HTTP_HOST = idn_to_utf8($_SERVER['HTTP_HOST'])){ pre("Ошибка определения русскоязычного имени домена");
+				}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ mpre("Ошибка определения адреса");
+				}elseif(!$RES = mpqw("SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ pre("Ошибка создания запроса");
+				}elseif(!($sys_getloadavg = array_map(function($avg){ return number_format($avg, 2); }, sys_getloadavg())) /*&& ($sys_getloadavg[0] <= $sys_getloadavg[1]) && ($sys_getloadavg[1] <= $sys_getloadavg[2])*/){ // mpre("Процессор загрузен меньше среднего значения за 10 и 15 минут");
+				}else if(!array_map(function($header){ // Вывод списка заголовков
+						header($header);
+					}, explode("\n", $row['headers']))){ mpre("ОШИБКА вывода заголовков");
+				}else{
+				}
+			} return $row;
+		}, $row))){ pre("ОШИБКА Отображения сохраненной ранее страницы при таймауте");
+	}else if(!is_array($row = call_user_func(function($row) use($conf, $content, $cache_dir, $cache_log){ // Отображение сохраненной ранее страницы
+			if($row){ //pre("Запись уже добавлена");
+			/*}elseif(array_key_exists("null", $_GET)){// pre("null");
+			}elseif(get($_COOKIE, 'sess')){// pre("Зарегистрированный пользователь");
+			}elseif(!call_user_func(function($age){
+					header("Cache-Control: must-revalidate,max-age={$age}");
+					header("Expires: ". gmdate('D, d M Y H:i:s T'));
+					return true;
+				}, (get($conf, "themes_cache") ?: 86400*10))){ pre("Ошибка установки заговлоков");*/
+			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ pre("Ошибка определения адреса");
+			}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg", "/sitemap.xml", "/robots.txt"/*, "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
+			//}elseif(array_key_exists("HTTP_CACHE_CONTROL", $_SERVER)){ // Отключает кеширование у картинок //pre("Обновление в мобильной версии браузера");
+			//}else if(true){ pre("cache");
+			//}elseif($_POST || array_key_exists("sess", $_COOKIE)){// pre("Активная сессия");
+			}elseif(get($_SERVER, 'HTTP_IF_MODIFIED_SINCE') || (http_response_code() == 304)){ mpre("Кешированная страница. Отдаем только статус");
+				exit(header('HTTP/1.0 304 Not Modified'));
+			}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ mpre("Ошибка составления имени файла");
+			}elseif(!file_exists($conn_file) && !touch($conn_file) /*&& !chmod($conn_file, 0777)*/){ mpre("Файл бд кеша не найден {$conn_file}");
+			}elseif(!$conn = conn("sqlite:{$conn_file}")){ mpre("Ошибка сохдания подключения sqlite");
+			}elseif(!$RES = mpqw($sql = "SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ mpre("Ошибка создания запроса");
+//			}else if(true){ pre($sql);
+			}elseif(!$_row = mpql($RES, 0)){ mpre("Ошибка извлечения строк");
+			}elseif(empty($_row)){ # mpre("Ранее результат небыл создан");
+//			}elseif(get($_row, 'time') < time()){ mpre("Кеш устарел", (time() - get($_row, 'time')));
+//				mpqw("DELETE FROM `cache` WHERE id=". (int)$_row['id']);
+			}elseif(call_user_func(function($header){ header($header); }, explode("\n", $$_row['headers']))){ mpre("Ошибка установки заговловков");
+			}else{
+				return $_row;
+			} return $row;
+		}, $row))){ pre("ОШИБКА Сохраненное ранее содержимое страницы");
+	}else{ //pre("Кеширование страницы", $content, $row);
+	} return $row;
 }
 
 
@@ -1264,7 +1263,7 @@ function mpdbf($tn, $post = null, $and = false){
 			}else{ //mpre("Добавление", $find, $sql, $INDEX);
 			} return $INDEX;
 		}, $INDEX))){ mpre("ОШИБКА добавления нового значения");
-	}else if(!$INDEX){ pre("Пустой результат");
+	}else if(!$INDEX){ mpre("Пустой результат");
 	}else{ //mpre("Полное имя таблицы", $table);
 		return $key ? $INDEX[$key] : first($INDEX);
 	} return [];

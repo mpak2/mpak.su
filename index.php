@@ -114,9 +114,22 @@ if(!call_user_func(function(){ # Переменные окружения
 }elseif(!$conf['settings']['microtime'] = microtime(true)){ mpre("Фиксация начала запуска скрипта");
 }elseif($cache = call_user_func(function() use($conf){ # Проверяем существует ли кеш в базе. Если есть - выдаем закешированную страницу
 		if(get($conf, 'settings', 'users_cashe_disacled')){ mpre("Кеш отключен");
-		}elseif(!$cache = cache()){// mpre("Кеш не найден в базе");
+		}elseif(!$cache = cache()){ //pre("Кеш не найден в базе");
+		}else if(call_user_func(function() use($cache){ // Кешированные данные
+				ignore_user_abort(true);
+				set_time_limit(0);
+				ob_start();
+				echo $cache["content"];
+				header('Content-Encoding: gzip');
+				header('Connection: close');
+				header('Content-Length: '.ob_get_length());
+				ob_end_flush();
+				ob_flush();
+				flush();
+			})){ pre("ОШИБКА вывода кешированных данных");
+		}else if(time() > $cache["time"]){ //pre("Обновляем страницу ", array_diff_key($cache, array_flip(["content"])));
 		}else{ return $cache; }
-	})){ exit($cache); mpre("Выдаем сохраненную версию если страница кеширована ранее"); 
+	})){ exit(0); //mpre("ОШИБКА отображение сохраененного ранее кеша"); 
 }elseif(!$conf['db']['conn'] = call_user_func(function($conn = null) use($conf){ # Подключение к базе данных
 		if(($conf['db']['type'] == 'sqlite') && !is_writable($conf['db']['name'])){ die(!pre("ОШИБКА Файл БД `{$conf['db']['name']}` не доступен для записи", "ERROR DB file `{$conf['db']['name']} ' error is not writable"));
 		}elseif(!$conn = conn()){ pre("ОШИБКА подключения к базе данных");
@@ -137,7 +150,7 @@ if(!call_user_func(function(){ # Переменные окружения
 	}, $_SERVER["REQUEST_URI"])){ mpre("ОШИБКА установки адреса");
 }elseif(!$tables = call_user_func(function($tables = []) use($conf){ # Определяем режим установки по наличию таблиы в базе данных и свойствам администратора
 		if(array_key_exists('null', $_GET)){ return pre("Пропускаем проверку списка таблиц на ресурсах");
-		}elseif(!$tables = tables()){ pre("База данных не пуста");
+		}elseif(!$tables = tables()){ mpre("База данных не пуста");
 		}elseif($conf["db"]["type"] != "sqlite"){ //pre("Для mysql установка только с пустой базой", $conf["db"]["type"]);
 		}elseif(!get($conf, "settings", "admin_usr")){ return !mpre("Не установлен администратор");
 		}else{ mpre("Список таблиц базы", $tables);
@@ -381,7 +394,12 @@ if(!call_user_func(function(){ # Переменные окружения
 			$conf["content"] = modules($conf["content"]); $zblocks = blocks();
 		} return $zblocks;
 	})) and !get($conf,"deny")){ mpre("Ошибка установки порядка следования расчетов блоков");
-}elseif(array_key_exists('null', $_GET)){ echo $conf["content"];
+}else if($content = call_user_func(function($content){
+		if(!array_key_exists('null', $_GET)){ //mpre("Не ресурс");
+		}else{ cache($content);
+			return $content;
+		}
+	}, $conf["content"])){ echo $content;
 }elseif(!$tc = call_user_func(function() use($conf){ # Содержимое шаблона
 		if(!$ind = (get($_GET, 'index') ?: (get($conf, 'settings', 'index') ?: "index"))){ mpre("Ошибка определения имени главного файла");
 		}elseif(!$file = mpopendir($f = "themes/{$conf['settings']['theme']}/{$ind}.html")){ mpre("Содержимоге файла не найдено", $f);
@@ -420,6 +438,7 @@ if(!call_user_func(function(){ # Переменные окружения
 			cache($content);
 		} return $content;
 	})){ mpre("Ошибка кеширования содержимого страницы");
-}else{ header("Cache-Control:no-cache, must-revalidate;");
+}else{ //header("Cache-Control:no-cache, must-revalidate;");
+	//pre("test");
 	echo $content;
 }
