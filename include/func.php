@@ -60,7 +60,7 @@ function conn($init = null){
 	global $conf;
 	if(!$type = ($init ? first(explode(":", $init)) : $conf['db']['type'])){ pre("Тип подключения не определен");
 	}elseif(!$name = ($init ? last(explode(":", $init)) : $conf['db']['name'])){ pre("Файл не установлен");
-	}elseif(!$options = [PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_PERSISTENT=>false, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>3/*, PDO::SQLITE_MAX_EXPR_DEPTH=>0*/]){ mpre("ОШИБКА задания опций подключения");
+	}elseif(!$options = [PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING/* ERRMODE_SILENT */, PDO::ATTR_PERSISTENT=>true, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>10/*, PDO::SQLITE_MAX_EXPR_DEPTH=>0*/]){ mpre("ОШИБКА задания опций подключения");
 	}elseif("sqlite" == $type){
 		if(!$realpath = realpath($name)){ mpre("Файл с БД не найден `{$name}`");
 		}else if(!is_writable($name)){ die(!pre("ОШИБКА файл БД доступен только на чтение", $name));
@@ -240,7 +240,16 @@ function cache($content = false, $row = []){ // Сохраненные в кеш
 	}elseif(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ pre("Ошибка установки временной директории кеша");
 	}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ pre("Ошибка формирования пути лог файла кешей");
 	}else if(!is_array($row = call_user_func(function($row = []) use($conf, $content, $cache_dir, $cache_log){ // Сохранение в кеш
-			if(!$content){ //pre("Нет кеша для сохранения");
+			//pre($conf["db"]["conn"]);
+			if(!$conn = $GLOBALS["conf"]["db"]["conn"]){ mpre("ОШИБКА получения обьекта БД");
+			}else if(call_user_func(function(){ // Проверка страницы на ошибки к БД
+// 					if(!$pdo = new PDO()){ pre("ОШИБКА обьявления класса PDO");
+// 					}else{ pre($pdo->errorInfo());
+// 					}
+					//pre(PDO::errorInfo());
+				})){ pre("ОШИБКА БД");
+			//}elseif(true){ pre($conn->errorCode(), $conn->errorInfo()); // , PDO::errorInfo()
+			}elseif(!$content){ //pre("Нет кеша для сохранения");
 			//}else if(get($conf, "user"))){ //pre("Не сохраняем для зарегистрированного пользователя");
 			}elseif(get($_COOKIE, 'sess')){// pre("Зарегистрированный пользователь");
 			}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ pre("Ошибка составления имени файла");
@@ -324,7 +333,7 @@ function cache($content = false, $row = []){ // Сохраненные в кеш
 		}, $row))){ pre("ОШИБКА Отображения сохраненной ранее страницы при таймауте");
 	}else if(!is_array($row = call_user_func(function($row) use($conf, $content, $cache_dir, $cache_log){ // Отображение сохраненной ранее страницы
 			if($row){ //pre("Запись уже добавлена");
-			}else if("no-cache" == get($_SERVER, "HTTP_PRAGMA")){ mpre("Обновление по Ctrl+Shift+R");
+			}else if("no-cache" == get($_SERVER, "HTTP_PRAGMA")){ //mpre("Обновление по Ctrl+Shift+R");
 			/*}elseif(array_key_exists("null", $_GET)){// pre("null");
 			}elseif(get($_COOKIE, 'sess')){// pre("Зарегистрированный пользователь");
 			}elseif(!call_user_func(function($age){
@@ -332,7 +341,7 @@ function cache($content = false, $row = []){ // Сохраненные в кеш
 					header("Expires: ". gmdate('D, d M Y H:i:s T'));
 					return true;
 				}, (get($conf, "themes_cache") ?: 86400*10))){ pre("Ошибка установки заговлоков");*/
-			}elseif(get($_COOKIE, 'sess')){// pre("Зарегистрированный пользователь");
+			//}elseif(get($_COOKIE, 'sess')){// pre("Зарегистрированный пользователь");
 			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ pre("Ошибка определения адреса");
 			}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg", "/sitemap.xml", "/robots.txt"/*, "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
 			//}elseif(array_key_exists("HTTP_CACHE_CONTROL", $_SERVER)){ // Отключает кеширование у картинок //pre("Обновление в мобильной версии браузера");
@@ -1705,20 +1714,12 @@ function mpqw($sql){ # Все аргументы разбираются по т�
 		}, array_slice(func_get_args(), 1)))){ mpre("ОШИБКА выборки параметров");
 	}elseif(!$mt = microtime(true)){ mpre("ОШИБКА установки времени начала запроса");
 	}elseif(!$conn = ((rb($ARGS, 'type', '[object]', 'arg')) ?: $conf['db']['conn'])){ mpre("ОШИБКА определения соединения");
-/*	}elseif(!$conn = call_user_func(function($conn = null) use($ARGS, $conf){ # Передан или параметром или берем из массива
-			if($conn = rb($ARGS, 'type', '[object]', 'arg')){ mpre("Соединение передано параметром");
-			}else if(!$conn = get($conf, "db", "conn")){ mpre("ОШИБКА параметр соединения не задан");
-//			}else if(true){ mpre(gettype($conn), $conn);
-			}else if(is_array($conn)){ $conn = last($conn);
-			}else{
-			} return $conn;
-		})){ mpre("ОШИБКА получения объекта соединения");*/
-	}elseif(!$result = call_user_func(function($ARGS) use($sql, $conn, &$conf, $mt){// mpre($ARGS);
+	}elseif(!$result = call_user_func(function($ARGS) use($sql, &$conn, &$conf, $mt){// mpre($ARGS);
 			if(!$params = rb($ARGS, 'type', '[array]', 'arg')){// mpre("Параметры не заданы");
 				if(!$conf['db']['sql'][] = array('info'=>'', 'sql'=>$sql)){ mpre("ОШИБКА добавления информации о запросе");
 //				}elseif($result = $conn->query($sql)){ return $result;
 				}elseif($result = call_user_func(function() use(&$conf, $conn, $sql, $mt){ # Сохранение времени выполнения запроса к БД
-						if(!$result = $conn->query($sql)){// mpre("ОШИБКА типа данных возвращаемого статуса запроса", gettype($result));
+						if(!$result = $conn->query($sql)){ mpre("ОШИБКА типа данных возвращаемого статуса запроса", $conn->errorInfo(), $conn->errorCode());
 						}elseif(!$microtime = number_format(microtime(true)-$mt, 6)){ mpre("ОШИБКА расчета времени выполнения");
 						}elseif(!is_numeric($max = (get($conf, 'db', 'sql') ? last(array_keys(array_keys($conf['db']['sql']))) : 0))){ mpre("ОШИБКА получения последней информации о запросе");
 						}elseif(!$conf['db']['sql'][$max]["time"] = $microtime){ mpre("ОШИБКА установки времени выполнения запроса");
