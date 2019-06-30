@@ -60,7 +60,8 @@ function conn($init = null){
 	global $conf;
 	if(!$type = ($init ? first(explode(":", $init)) : $conf['db']['type'])){ pre("Тип подключения не определен");
 	}elseif(!$name = ($init ? last(explode(":", $init)) : $conf['db']['name'])){ pre("Файл не установлен");
-	}elseif(!$options = [PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING/* ERRMODE_SILENT */, PDO::ATTR_PERSISTENT=>true, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>10/*, PDO::SQLITE_MAX_EXPR_DEPTH=>0*/]){ mpre("ОШИБКА задания опций подключения");
+	}elseif(!is_bool($persistent = (("no-cache" == get($_SERVER, "Pragma") || $_POST) ? false : true))){ mpre("ОШИБКА получения признака постоянного соединения");
+	}elseif(!$options = [PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING/* ERRMODE_SILENT */, PDO::ATTR_PERSISTENT=>$persistent, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>10/*, PDO::SQLITE_MAX_EXPR_DEPTH=>0*/]){ mpre("ОШИБКА задания опций подключения");
 	}elseif("sqlite" == $type){
 		if(!$realpath = realpath($name)){ mpre("Файл с БД не найден `{$name}`");
 		}else if(!is_writable($name)){ die(!pre("ОШИБКА файл БД доступен только на чтение", $name));
@@ -341,7 +342,7 @@ function cache($content = false, $row = []){ // Сохраненные в кеш
 					header("Expires: ". gmdate('D, d M Y H:i:s T'));
 					return true;
 				}, (get($conf, "themes_cache") ?: 86400*10))){ pre("Ошибка установки заговлоков");*/
-			//}elseif(get($_COOKIE, 'sess')){// pre("Зарегистрированный пользователь");
+			}elseif(get($_COOKIE, 'sess')){// pre("Зарегистрированный пользователь");
 			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ pre("Ошибка определения адреса");
 			}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg", "/sitemap.xml", "/robots.txt"/*, "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
 			//}elseif(array_key_exists("HTTP_CACHE_CONTROL", $_SERVER)){ // Отключает кеширование у картинок //pre("Обновление в мобильной версии браузера");
