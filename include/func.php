@@ -1720,7 +1720,7 @@ function mpqw($sql){ # Все аргументы разбираются по т�
 				if(!$conf['db']['sql'][] = array('info'=>'', 'sql'=>$sql)){ mpre("ОШИБКА добавления информации о запросе");
 //				}elseif($result = $conn->query($sql)){ return $result;
 				}elseif($result = call_user_func(function() use(&$conf, $conn, $sql, $mt){ # Сохранение времени выполнения запроса к БД
-						if(!$result = $conn->query($sql)){ mpre("ОШИБКА типа данных возвращаемого статуса запроса", $conn->errorInfo(), $conn->errorCode());
+						if(!$result = $conn->query($sql)){ //mpre("ОШИБКА типа данных возвращаемого статуса запроса", $conn->errorInfo(), $conn->errorCode());
 						}elseif(!$microtime = number_format(microtime(true)-$mt, 6)){ mpre("ОШИБКА расчета времени выполнения");
 						}elseif(!is_numeric($max = (get($conf, 'db', 'sql') ? last(array_keys(array_keys($conf['db']['sql']))) : 0))){ mpre("ОШИБКА получения последней информации о запросе");
 						}elseif(!$conf['db']['sql'][$max]["time"] = $microtime){ mpre("ОШИБКА установки времени выполнения запроса");
