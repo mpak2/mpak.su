@@ -31,14 +31,21 @@ if(!$conf = call_user_func(function($conf = []){ // Подключение ко�
 		}else{// mpre($argv);
 		} return $argv;
 	})){ mpre("ОШИБКА получения аргументов");
-}elseif(!is_array($command = call_user_func(function($command = [], $cmd = "phpinfo", $name = "Отображение настроек системы и загруженых модулей") use($argv){ // Связывание новой таблицы и списка источников
+}elseif(!$command = call_user_func(function($command = [], $cmd, $name) use($argv){ // Связывание новой таблицы и списка источников
 		if(array_key_exists($cmd, $command)){ mpre("Дублирование команды {$cmd}");
 		}else if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ //mpre("Пропускам выполнение команды {$cmd}");
-		}else{ pre($name. " (". $cmd. ")");
-			phpinfo();
+		}else{ phpinfo();
+			return [];
 		} return $command;
-	}))){ mpre("ОШИБКА выполнения команды", $argv);
-}elseif(!is_array($command = call_user_func(function($command, $cmd = "parse", $name = "Парсинг страниц") use($argv){ // Связывание новой таблицы и списка источников
+	}, [], $c = "phpinfo", $n = "Отображение настроек системы и загруженых модулей")){ pre($c. " ($n)");
+}elseif(!$command = call_user_func(function($command, $cmd, $name) use($argv){ // Связывание новой таблицы и списка источников
+		if(array_key_exists($cmd, $command)){ mpre("Дублирование команды {$cmd}");
+		}else if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ mpre("Пропускам выполнение команды {$cmd}");
+		}else{
+			return [];
+		} return $command;
+	}, $command, $c = "post", $n = "Тест апи биморф")){ pre($c. " ($n)");
+}elseif(!is_array($command = call_user_func(function($command, $cmd, $name) use($argv){ // Связывание новой таблицы и списка источников
 		if(array_key_exists($cmd, $command)){ mpre("Дублирование команды {$cmd}");
 		}else if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ //mpre("Пропускам выполнение команды {$cmd}");
 		}else if(!include("phar://index.phar/include/class/simple_html_dom.php")){ mpre("ОШИБКА подключения класса simple_html_dom");
@@ -52,10 +59,11 @@ if(!$conf = call_user_func(function($conf = []){ // Подключение ко�
 					mpre($video_sources);
 				}
 			}, $VIDEO_SOURCES)){ mpre("ОШИБКА парсинга страниц");
-		}else{ pre($name. " (". $cmd. ")");
+		}else{ //pre($name. " (". $cmd. ")");
+			return [];
 		} return $command;
-	}, $command))){ mpre("ОШИБКА выполнения команды", $argv);
-}elseif(!is_array($command = call_user_func(function($command, $cmd = "peer", $name = "Загрузка информации о каналах") use($argv){ // Связывание новой таблицы и списка источников
+	}, $command, "parse", "Парсинг страниц"))){ pre($c. " ($n)");
+}elseif(!is_array($command = call_user_func(function($command, $cmd, $name) use($argv){ // Связывание новой таблицы и списка источников
 		if(array_key_exists($cmd, $command)){ mpre("Дублирование команды {$cmd}");
 		}else if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ //mpre("Пропускам выполнение команды {$cmd}");
 		}else if(!include($f = "include/madeline.php")){ mpre("ОШИБКА подключения библиотеки {$f}");
@@ -74,12 +82,12 @@ if(!$conf = call_user_func(function($conf = []){ // Подключение ко�
 				}else if(!$type = get($info, "type")){ mpre("ОШИБКА определения идентификатора");
 				}else if(!$name = get($info, "Chat", "title")){ mpre("ОШИБКА определния имени канала");
 				}else if(!$telegram_peer_new = fk("telegram-peer_new", ["id"=>$telegram_peer_new["id"]], null, ["type"=>$type, "count"=>$count, "peer"=>$peer, "api"=>$api, "name"=>$name])){ mpre("ОШИБКА обновления группы");
-				}else{ mpre("Группа", $telegram_peer_new);
-					sleep(30);
+				}else{ //mpre("Группа", $telegram_peer_new);
+					return [];
 				} return $telegram_peer_new;
 			}, $TELEGRAM_PEER_NEW)){ mpre("ОШИБКА перебора списка групп");
 		}else{ //mpre($TELEGRAM_PEER); //$me = $MadelineProto->get_self();
 		} return $command;
-	}, $command))){ pre($command. " (". $argv[1]. ")");
+	}, $command, "peer", "Загрузка информации о каналах"))){ pre($c. " ($n)");
 }else{ mpre("Список доступных параметров", $command); }
 

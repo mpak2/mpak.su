@@ -114,6 +114,7 @@ if(!call_user_func(function(){ # Переменные окружения
 }elseif(!$conf['settings']['microtime'] = microtime(true)){ mpre("Фиксация начала запуска скрипта");
 }elseif($cache = call_user_func(function() use($conf){ # Проверяем существует ли кеш в базе. Если есть - выдаем закешированную страницу
 		if(get($conf, 'settings', 'users_cashe_disacled')){ mpre("Кеш отключен");
+		}elseif($_POST){ //exit(pre($_POST));
 		}elseif(!$cache = cache()){ //pre("Кеш не найден в базе");
 		}else if(call_user_func(function() use($cache){ // Кешированные данные
 				ignore_user_abort(true);
@@ -128,7 +129,8 @@ if(!call_user_func(function(){ # Переменные окружения
 				flush();
 			})){ pre("ОШИБКА вывода кешированных данных");
 		}else if(time() > $cache["time"]){ //pre("Обновляем страницу ", array_diff_key($cache, array_flip(["content"])));
-		}else{ return $cache; }
+		}else{ return $cache;
+		}
 	})){ exit(0); //mpre("ОШИБКА отображение сохраененного ранее кеша"); 
 }elseif(!$conf['db']['conn'] = call_user_func(function($conn = null) use($conf){ # Подключение к базе данных
 		if(($conf['db']['type'] == 'sqlite') && !is_writable($conf['db']['name'])){ die(!pre("ОШИБКА Файл БД `{$conf['db']['name']}` не доступен для записи", "ERROR DB file `{$conf['db']['name']} ' error is not writable"));
@@ -184,8 +186,9 @@ if(!call_user_func(function(){ # Переменные окружения
 			//qw($sql = "DELETE FROM {$conf['db']['prefix']}users_sess WHERE last_time < ".(time() - $conf['settings']['sess_time']), 'Удаление старых сессий');
 		}
 	})){ mpre("ОШИБКА выключения сессии");
+//}else if(true){ pre($_POST);
 }elseif(!is_array($conf['user'] = call_user_func(function($user = []) use($sess){ # Авторизация
-		if(!$_POST && !get($_COOKIE, "sess")){// pre("Сессия выключена");
+		if(!$_POST){// pre("Сессия выключена");
 		}elseif(!$_POST || (get($_POST, 'reg') != 'Аутентификация')){// pre("Нет запроса на аутентификацию");
 		}elseif(!strlen($_POST['name'])){ pre("Имя не задано");
 		}elseif(!strlen($_POST['pass'])){ pre("Пароль не задан");
@@ -197,11 +200,12 @@ if(!call_user_func(function(){ # Переменные окружения
 		}elseif(!$user = fk("users-", ['id'=>$user['id']], null, ['last_time'=>time()])){ pre("Ошибка установки времени входа пользователю");
 		}elseif(!$sess["uid"] = $user["id"]){ pre("ОШИБКА установки пользователя сессии");
 		}elseif(!$user['sess'] = $sess){ pre("ОШИБКА сохранения сессии в системных переменных");
-		}else{// pre("Успешная авторизация");
+		}else{ exit(header("Location: {$_SERVER['REQUEST_URI']}")); // pre("Успешная авторизация");
 		} return $user;
 	}, $conf['user']))){ mpre("ОШИБКА авторизации"); // exit(header("Location: {$_SERVER['REQUEST_URI']}")); # При авторизации обновляем страницу (избавляемся от пост запроса)
 }elseif(!is_array($conf['user'] = call_user_func(function($user) use($conf){ # Получаем свойства пользователя
 		if(!$sess = get($user, "sess")){ pre("ОШИБКА получения сессии пользователя");
+		//}else if(true){ pre(123);
 		}elseif(0 >= $sess["uid"]){// pre("Пользователь является гостем");
 		}elseif(!$user = ql($sql = "SELECT *, `id` AS `uid`, `name` AS `uname` FROM `{$conf['db']['prefix']}users` WHERE `id`=". (int)$sess['uid'], 0)){ pre("ОШИБКА выборки пользователя сессии из базы");
 		}elseif(!$user['uid'] = ($user['name'] == $conf['settings']['default_usr'] ? -$sess['id'] : $user['uid'])){ pre("Устанавливаем в идентификатор пользователя номер сессии с минусом");
@@ -210,7 +214,7 @@ if(!call_user_func(function(){ # Переменные окружения
 		}elseif(!$USERS_GRP = rb("users-grp", "id", "id", rb($USERS_MEM, "grp_id"))){ pre("ОШИБКА получения списка групп пользователя");
 		}elseif(!$USERS_GRP += ((array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) ? rb("users-grp", "name", "id", "[Администратор]") : [])){ pre("ОШИБКА устанвоки прав доступа группы Администратор");
 		}elseif(!$user['gid'] = array_column($USERS_GRP, "name", "id")){ pre("ОШИБКА пользователь не состоит в группах");
-		}else{// pre("Авторизованный пользователь", $user);
+		}else{ //pre($conf['user']); // pre("Авторизованный пользователь", $user);
 		} return $user;
 	}, $conf['user']))){ pre("ОШИБКА получения текущего пользователя");
 }elseif(!$conf['modules'] = call_user_func(function() use($conf){ # Выборка свойств модулей и их свойств
