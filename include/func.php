@@ -1217,7 +1217,7 @@ function mpdbf($tn, $post = null, $and = false){
 	} return implode(($and ? " AND " : ', '), (array)$f);
 } function fk($table, $find, $insert = array(), $update = array(), $key = false, $log = false){
 	global $conf, $arg;
-	if(!$table = call_user_func(function($table) use($conf){ // Получаем полное имя по короткому формату без префикса или с именем раздела через тире
+	if(!$table = call_user_func(function($table) use($conf, $arg){ // Получаем полное имя по короткому формату без префикса или с именем раздела через тире
 			if(strpos($table, '-')){ $table = $conf['db']['prefix']. implode("_", array_filter(explode("-", $table)));
 			}else if(!preg_match("#^{$conf['db']['prefix']}.*#iu",$table)){ $table = "{$conf['db']['prefix']}{$arg['modpath']}_{$table}";	
 			}else{ //mpre("Полный размер имени таблицы");
