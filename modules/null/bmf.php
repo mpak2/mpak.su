@@ -81,5 +81,11 @@ if(!$conf = call_user_func(function($conf = []){ // Подключение ко�
 			return [];
 		} return $command;
 	}, $command, $c = "post", $n = "Тест апи биморф")){ pre($c. " ($n)");
+}elseif(!$command = call_user_func(function($command, $cmd, $name, $stats = []) use($argv){ // Связывание новой таблицы и списка источников
+		if(array_key_exists($cmd, $command)){ mpre("Дублирование команды {$cmd}");
+		}else if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ mpre("Пропускам выполнение команды {$cmd}");
+		}else{
+		} return $command;
+	}, $command, $c = "sha1", $n = "Подбор хеша")){ pre($c. " ($n)");
 }else{ mpre("Список доступных параметров", $command); }
 

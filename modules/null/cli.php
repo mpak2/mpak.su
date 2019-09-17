@@ -31,23 +31,13 @@ if(!$conf = call_user_func(function($conf = []){ // Подключение ко�
 		}else{// mpre($argv);
 		} return $argv;
 	})){ mpre("ОШИБКА получения аргументов");
-}elseif(!$command = call_user_func(function($command = [], $cmd, $name) use($argv){ // Связывание новой таблицы и списка источников
-		if(array_key_exists($cmd, $command)){ mpre("Дублирование команды {$cmd}");
-		}else if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ //mpre("Пропускам выполнение команды {$cmd}");
+}elseif(!call_user_func(function($command, $cmd, $name) use($argv){ // Связывание новой таблицы и списка источников
+		if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ return $command; //mpre("Пропускам выполнение команды {$cmd}");
 		}else{ phpinfo();
-			return [];
-		} return $command;
-	}, [], $c = "phpinfo", $n = "Отображение настроек системы и загруженых модулей")){ pre($c. " ($n)");
-}elseif(!$command = call_user_func(function($command, $cmd, $name) use($argv){ // Связывание новой таблицы и списка источников
-		if(array_key_exists($cmd, $command)){ mpre("Дублирование команды {$cmd}");
-		}else if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ mpre("Пропускам выполнение команды {$cmd}");
-		}else{
-			return [];
-		} return $command;
-	}, $command, $c = "post", $n = "Тест апи биморф")){ pre($c. " ($n)");
-}elseif(!is_array($command = call_user_func(function($command, $cmd, $name) use($argv){ // Связывание новой таблицы и списка источников
-		if(array_key_exists($cmd, $command)){ mpre("Дублирование команды {$cmd}");
-		}else if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ //mpre("Пропускам выполнение команды {$cmd}");
+		}
+	}, $command[$cmd = "phpinfo"] = $name = "Параметры php"], $cmd, $name)){ pre($cmd. " ($name)");
+}elseif(!call_user_func(function($command, $cmd, $name) use($argv){ // Связывание новой таблицы и списка источников
+		if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ return $command; //mpre("Пропускам выполнение команды {$cmd}");
 		}else if(!include("phar://index.phar/include/class/simple_html_dom.php")){ mpre("ОШИБКА подключения класса simple_html_dom");
 		}elseif(!$html = new simple_html_dom()){ mpre("Ошибка создания обьекта парсера");
 		}elseif(!array_map(function($video_sources) use($html){
@@ -62,32 +52,6 @@ if(!$conf = call_user_func(function($conf = []){ // Подключение ко�
 		}else{ //pre($name. " (". $cmd. ")");
 			return [];
 		} return $command;
-	}, $command, "parse", "Парсинг страниц"))){ pre($c. " ($n)");
-}elseif(!is_array($command = call_user_func(function($command, $cmd, $name) use($argv){ // Связывание новой таблицы и списка источников
-		if(array_key_exists($cmd, $command)){ mpre("Дублирование команды {$cmd}");
-		}else if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ //mpre("Пропускам выполнение команды {$cmd}");
-		}else if(!include($f = "include/madeline.php")){ mpre("ОШИБКА подключения библиотеки {$f}");
-		}else if(!$api_info = ['api_id'=>827,'api_hash'=>"595"]){ mpre("ОШИБКА задания параметров api");
-		}else if(!$MadelineProto = new \danog\MadelineProto\API(['app_info'=>$api_info, 'authorization'=>[ 'default_temp_auth_key_expires_in'=>86400]])){ mpre("ОШИБКА создание обьекта madeline");
-		//}else if(!$MadelineProto->bot_login('818:AAGk')){ mpre("ОШИБКА авторизации ботом");
-		}else if(!$MadelineProto->start()){ mpre("ОШИБКА подключения к api");
-		}else if(!$TELEGRAM_PEER_NEW = rb("telegram-peer_new", "count", "id", array_flip(["NULL"]))){ mpre("ОШИБКА получения списка источников");
-		}else if(!$TELEGRAM_PEER_NEW = array_map(function($telegram_peer_new) use($MadelineProto){ // Проверка свойств группы
-				if(!$alias = get($telegram_peer_new, 'alias')){ mpre("Не указано peer значение", $telegram_peer_new);
-				}else if(!$info = $MadelineProto->get_full_info($alias)){ mpre("ОШИБКА получения инфомрации о группе"); //https://docs.madelineproto.xyz/API_docs/types/InputChannel.html
-				//}else if(!$peer = get($channels, "full", "participants_count")){ mpre("ОШИБКА определения направления");
-				}else if(!$count = get($info, "full", "participants_count")){ mpre("ОШИБКА определения количества подписчиков");
-				}else if(!$peer = get($info, "channel_id")){ mpre("ОШИБКА определения идентификатора");
-				}else if(!$api = get($info, "bot_api_id")){ mpre("ОШИБКА определения идентификатора");
-				}else if(!$type = get($info, "type")){ mpre("ОШИБКА определения идентификатора");
-				}else if(!$name = get($info, "Chat", "title")){ mpre("ОШИБКА определния имени канала");
-				}else if(!$telegram_peer_new = fk("telegram-peer_new", ["id"=>$telegram_peer_new["id"]], null, ["type"=>$type, "count"=>$count, "peer"=>$peer, "api"=>$api, "name"=>$name])){ mpre("ОШИБКА обновления группы");
-				}else{ //mpre("Группа", $telegram_peer_new);
-					return [];
-				} return $telegram_peer_new;
-			}, $TELEGRAM_PEER_NEW)){ mpre("ОШИБКА перебора списка групп");
-		}else{ //mpre($TELEGRAM_PEER); //$me = $MadelineProto->get_self();
-		} return $command;
-	}, $command, "peer", "Загрузка информации о каналах"))){ pre($c. " ($n)");
+	}, $command[$cmd = "parse"] = $name = "Парсинг страниц")){ pre($cmd. " ($name)");
 }else{ mpre("Список доступных параметров", $command); }
 

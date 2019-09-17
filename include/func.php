@@ -1824,7 +1824,7 @@ function pre(){
 				//error_log($message);
 			}
 		})){ print_r("ОШИБКА сохранения уведомления в лог");*/
-	}else if((!$gid = get($conf, 'user', 'gid')) || (!array_search("Администратор", $gid))){ return first(func_get_args()); // print_r("Отображение доступно только администраторам");
+	}else if(($gid = get($conf, 'user', 'gid')) && (!array_search("Администратор", $gid))){ return first(func_get_args()); // print_r("Отображение доступно только администраторам");
 	}else{ return call_user_func_array("pre", func_get_args()); }
 }
 
