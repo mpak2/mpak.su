@@ -309,7 +309,7 @@ function cache($content = false, $row = []){ // Сохраненные в кеш
 	}else if(!is_array($row = call_user_func(function($row) use($conf, $content, $cache_dir, $cache_log){ // Таймаут базы данных
 			if($content){ //pre("Входные данные для кеша");
 			}else if($row){ //pre("Запись уже добавлена");
-			}else if(!is_numeric($content)){ mpre("ОШИБКА Таймаут приходит число 0");
+			}else if(!is_numeric($content)){ //mpre("ОШИБКА Таймаут приходит число 0");
 			}else{ mpre("Таймаут базы данных");
 				if(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ pre("Ошибка составления имени файла");
 				}elseif(!$conn = conn("sqlite:{$conn_file}")){// pre("Ошибка создания подключения sqlite");

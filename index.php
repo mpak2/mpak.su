@@ -155,7 +155,7 @@ if(!call_user_func(function(){ # Переменные окружения
 		}elseif(!$tables = tables()){ mpre("База данных не пуста");
 		}elseif($conf["db"]["type"] != "sqlite"){ //pre("Для mysql установка только с пустой базой", $conf["db"]["type"]);
 		}elseif(!get($conf, "settings", "admin_usr")){ return !mpre("Не установлен администратор");
-		}else{ mpre("Список таблиц базы", $tables);
+		}else{ //mpre("Список таблиц базы", $tables);
 		} return $tables;
 	})){ exit(inc('include/install.php')); # Запускаем процесс установки
 }elseif(!is_array($_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']))){ mpre("ОШИБКА получения параметров адресной строки");
@@ -212,7 +212,7 @@ if(!call_user_func(function(){ # Переменные окружения
 		}elseif(!$user['sess'] = $sess){ pre("ОШИБКА восстановления сессии");
 		}elseif(!$USERS_MEM = rb("users-mem", "uid", "id", $user['uid'])){ pre("ОШИБКА получения списка членства пользователя в группах");
 		}elseif(!$USERS_GRP = rb("users-grp", "id", "id", rb($USERS_MEM, "grp_id"))){ pre("ОШИБКА получения списка групп пользователя");
-		}elseif(!$USERS_GRP += ((array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) ? rb("users-grp", "name", "id", "[Администратор]") : [])){ pre("ОШИБКА устанвоки прав доступа группы Администратор");
+		//}elseif(!$USERS_GRP += ((array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) ? rb("users-grp", "name", "id", "[Администратор]") : [])){ pre("ОШИБКА устанвоки прав доступа группы Администратор");
 		}elseif(!$user['gid'] = array_column($USERS_GRP, "name", "id")){ pre("ОШИБКА пользователь не состоит в группах");
 		}else{ //pre($conf['user']); // pre("Авторизованный пользователь", $user);
 		} return $user;
