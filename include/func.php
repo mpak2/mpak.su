@@ -4,12 +4,12 @@
 function users_sess($sess = null){
 	global $conf;
 	if(!$guest = ['id'=>0, "uname"=>"гость", "pass"=>"nopass", "reg_time"=>0, "last_time"=>time()]){ pre("Ошибка создания пользователя");
-	}elseif(!$hash = ($_COOKIE["sess"] ?: md5("{$_SERVER['REMOTE_ADDR']}:".microtime()))){ pre("ОШИБКА расчета хеша кукисы");
+	}elseif(!$hash = (get($_COOKIE, "sess") ?: md5("{$_SERVER['REMOTE_ADDR']}:".microtime()))){ pre("ОШИБКА расчета хеша кукисы");
 	}elseif(!$url = mpquot(urldecode($_SERVER['REQUEST_URI']))){ pre("ОШИБКА расчета адреса текущей страницы");
 //	}elseif(!is_string($ref = mpquot(mpidn(urldecode(get($_SERVER, 'HTTP_REFERER')))))){ pre("ОШИБКА расчета реферальной ссылки");
 	}elseif(!$_sess = array('id'=>0, 'uid'=>$guest['id'], "refer"=>0, 'last_time'=>time(), 'count'=>0, 'count_time'=>0, 'cnull'=>0, 'sess'=>$hash, /*'ref'=>$ref,*/ 'ip'=>mpquot($_SERVER['REMOTE_ADDR']), 'agent'=>mpquot($_SERVER['HTTP_USER_AGENT']), 'url'=>$url)){ pre("Ошибка создания пустой сессии");
 	}elseif(!is_numeric($uid = get($conf, 'user', 'uid') > 1 ? $conf['user']['uid'] : $guest['id'])){ pre("ОШИБКА установки идентификтаора пользователя");
-	}elseif(!$sql = "SELECT * FROM {$conf['db']['prefix']}users_sess WHERE `ip`='{$_sess['ip']}' AND last_time>=".(time()-86400)." AND `agent`=\"{$_sess['agent']}\" AND ". ($_COOKIE["sess"] ? "sess=\"{$_sess['sess']}\"" : "uid=". $uid)." ORDER BY id DESC"){ mpre("ОШИБКА составления запроса поиска сессии");
+	}elseif(!$sql = "SELECT * FROM {$conf['db']['prefix']}users_sess WHERE `ip`='{$_sess['ip']}' AND last_time>=".(time()-86400)." AND `agent`=\"{$_sess['agent']}\" AND ". (get($_COOKIE, "sess") ? "sess=\"{$_sess['sess']}\"" : "uid=". $uid)." ORDER BY id DESC"){ mpre("ОШИБКА составления запроса поиска сессии");
 	}elseif($sess = (get($_COOKIE, "sess") ? mpql(mpqw($sql), 0) : [])){ return $sess;// pre("ОШИБКА получения сессии");
 	}elseif(empty($_POST) && !get($_SERVER, 'HTTP_PRAGMA')){ return $_sess; pre("Пропускаем гостей так как нет запросов и обновлений");
 	}elseif(!qw($sql = "INSERT INTO {$conf['db']['prefix']}users_sess (`". implode("`, `", array_keys(array_diff_key($_sess, array_flip(['id'])))). "`) VALUES ('". implode("', '", array_values(array_diff_key($_sess, array_flip(['id'])))). "')", function($error){
