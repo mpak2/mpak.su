@@ -162,7 +162,7 @@ if(!call_user_func(function(){ # Переменные окружения
 }elseif(!$sess = users_sess()){// pre("Добавляем сессию");
 }elseif(!$guest = get($conf, 'settings', 'default_usr')){ mpre("Имя пользователя гость не указано");
 }elseif(!is_array($conf['user'] = (rb('users-', 'id', $sess['uid']) ?: rb('users-', 'name', "[{$guest}]")))){ pre("ОШИБКА выборки пользователя");
-}elseif(!$conf['user'] += ['uid'=>(($sess['uid'] > 0) ? get($conf, 'user', 'id') : -$sess['id']), 'sess'=>$sess]){ pre("ОШИБКА сохранения сессии в системных переменных");
+}elseif(!$conf['user'] += ['uid'=>(($sess['uid'] > 0) ? get($conf, 'user', 'id') : -$sess['id']), 'sess'=>$sess, 'gid'=>[]]){ pre("ОШИБКА сохранения сессии в системных переменных");
 }elseif(!$conf['settings'] += call_user_func(function($seo = []) use($conf){ # Устанавливаем свойства главной страницы
 		if(array_key_exists("m", $_GET)){// mpre("Не главная страница");
 		}elseif(!$seo_index = rb("seo-index", "name", "[/]")){ /*&& array_key_exists("themes_index", $redirect)*/
@@ -205,7 +205,6 @@ if(!call_user_func(function(){ # Переменные окружения
 	}, $conf['user']))){ mpre("ОШИБКА авторизации"); // exit(header("Location: {$_SERVER['REQUEST_URI']}")); # При авторизации обновляем страницу (избавляемся от пост запроса)
 }elseif(!is_array($conf['user'] = call_user_func(function($user) use($conf){ # Получаем свойства пользователя
 		if(!$sess = get($user, "sess")){ pre("ОШИБКА получения сессии пользователя");
-		//}else if(true){ pre(123);
 		}elseif(0 >= $sess["uid"]){// pre("Пользователь является гостем");
 		}elseif(!$user = ql($sql = "SELECT *, `id` AS `uid`, `name` AS `uname` FROM `{$conf['db']['prefix']}users` WHERE `id`=". (int)$sess['uid'], 0)){ pre("ОШИБКА выборки пользователя сессии из базы");
 		}elseif(!$user['uid'] = ($user['name'] == $conf['settings']['default_usr'] ? -$sess['id'] : $user['uid'])){ pre("Устанавливаем в идентификатор пользователя номер сессии с минусом");
@@ -222,7 +221,7 @@ if(!call_user_func(function(){ # Переменные окружения
 		}elseif(!$_MODULES = array_map(function($modules_index) use($conf){
 				if(!$modules = $modules_index){ pre("ОШИБКА установки свойств модуля");
 				}elseif(!$modules["modname"] = mb_strtolower((get($modules, 'name') ?: $modules['folder']), 'UTF-8')){ pre("Приведение к формату имени хоста");
-				}elseif(!is_numeric($modules['admin_access'] = ((array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) ? 5 : (int)$modules_index['admin_access']))){ pre("ОШИБКА установки прав доступа к разделу", $modules_index);
+				}elseif(!is_numeric($modules['admin_access'] = ((array_search(get($conf, 'user', 'uname'), explode(',', $conf['settings']['admin_usr'])) !== false) ? 5 : (int)$modules_index['admin_access']))){ pre("ОШИБКА установки прав доступа к разделу", $modules_index);
 				}else{ return $modules; }
 			}, $MODULES_INDEX)){ mpre("ОШИБКА получения свойств модулей");
 		}elseif(!$MODULES = $_MODULES + rb($_MODULES, "folder") + rb($_MODULES, "modname")){ mpre("Варианты доступа к свойствам раздела");

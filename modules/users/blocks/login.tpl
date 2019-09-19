@@ -2,7 +2,7 @@
 
 if (array_key_exists('confnum', $arg) && $arg['confnum']) return;
 
-if ($conf['user']['uname'] != $conf['settings']['default_usr']){
+if (get($conf, 'user', 'uname') != $conf['settings']['default_usr']){
 	$gname = array_flip($conf['user']['gid']);
 	$gid  = $conf['user']['gid'];
 }

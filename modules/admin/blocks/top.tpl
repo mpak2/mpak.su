@@ -24,7 +24,7 @@ $http_host = (new idna_convert())->decode($_SERVER['HTTP_HOST']);
 			</div>
 		</div>
 	<div class="exit">
-		Здравствуйте, <?=$conf['user']['name']?> | <a href="/?logoff">выход</a>
+		Здравствуйте, <?=get($conf, 'user', 'name')?> | <a href="/?logoff">выход</a>
 	</div>
 	<ul class="nl">
 		<? foreach(rb("{$conf['db']['prefix']}admin_index") as $admin): ?>

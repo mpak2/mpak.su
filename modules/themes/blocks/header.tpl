@@ -169,7 +169,7 @@
 	<? endforeach; ?>
 <? endif; ?>
 
-<? if(!array_search("Администратор", $conf['user']['gid'])): mpre("Раздел предназначен только администраторам") ?>
+<? if(!array_search("Администратор", $conf['user']['gid'])): //mpre("Раздел предназначен только администраторам") ?>
 <? elseif(($themes_index = get($conf, 'themes', 'index')) &&0):// mpre("Хост сайта не найден") ?>
 <? elseif(($canonical = get($conf, 'settings', 'canonical')) &&0): mpre("Канонический адрес не задан") ?>
 <? elseif(!$alias = seo_alias($canonical)): mpre("ОШИБКА получения алиаса категории адреса") ?>

@@ -623,7 +623,7 @@ if (!function_exists('modules')){
 				}, $v))){
 			}elseif(!$gmax = ($MODULES_INDEX_GACCESS ? max(array_column($MODULES_INDEX_GACCESS, 'admin_access')) : 1)){ mpre("Ошибка максимального разрешения для группы");
 			}elseif(!$umax = ($MODULES_INDEX_UACCESS ? max(array_column($MODULES_INDEX_UACCESS, 'admin_access')) : 1)){ mpre("Ошибка максимального разрешения для пользователя");
-			}elseif(!is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < $access)){// mpre("Недостаточно прав доступа к разделу", $umax, $gmax, $access);
+			}elseif(!is_numeric(array_search(get($conf, 'user', 'uname'), explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < $access)){// mpre("Недостаточно прав доступа к разделу", $umax, $gmax, $access);
 				if(!mpopendir($f = "modules/admin/deny.tpl")){ pre("Не найдена страница запрета доступа");
 					header("HTTP/1.0 403 admin_access Denied");
 					exit(header("Location: /users:login"));
@@ -708,7 +708,7 @@ if(!function_exists('blocks')){
 				}elseif((!$_BLOCKS_INDEX_GACCESS = rb($BLOCKS_INDEX_GACCESS, "index_id", "id", $block['id'])) &0){ mpre("Разрешения группы для конкретного блока");
 				}elseif(!is_numeric($gmax = ($_BLOCKS_INDEX_GACCESS ? max(array_column($_BLOCKS_INDEX_GACCESS, 'admin_access')) : $access))){ mpre("Ошибка максимального разрешения для группы");
 				}elseif(!is_numeric($umax = ($_BLOCKS_INDEX_UACCESS ? max(array_column($_BLOCKS_INDEX_UACCESS, 'admin_access')) : $access))){ mpre("Ошибка максимального разрешения для пользователя");
-				}elseif(!is_numeric(array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < 1)){ mpre("Недостаточно прав доступа к блоку");
+				}elseif(!is_numeric(array_search(get($conf, 'user', 'uname'), explode(',', $conf['settings']['admin_usr']))) && (max($umax, $gmax) < 1)){ mpre("Недостаточно прав доступа к блоку");
 				}elseif($conf["settings"]["bid"] = $bid){ pre("Блок к которому мы обращаемся в параметрах блока");// $result = $cb;
 				}elseif(!is_string($cb = call_user_func(function($block) use($arg){ # Получения содержимого блока
 						ob_start();
@@ -821,7 +821,7 @@ function aedit($href, $echo = true, $title = null){ # Установка на п
 	if(!$append = preg_match("#\?#iu",$href) ? "&" : "?"){ mpre("ОШИБКА установки разделителя");
 	}elseif(get($conf, 'settings', 'admin_go_to_save') && (!$href .= "{$append}go_to_save=".urlencode($_SERVER['REQUEST_URI']))){ mpre("ОШИБКА добавления адреса сохранения");
 	}elseif(!$echo){ return $href;
-	}elseif(!array_search("Администратор", $conf['user']['gid'])){ mpre("Выводим только администраторам");
+	}elseif(!array_search("Администратор", $conf['user']['gid'])){// mpre("Выводим только администраторам");
 	}else{
 			echo "<div class=\"aedit\" style=\"position:relative; left:-20px; z-index:700; float:right;\"><span style=\"float:right; margin-left:5px; position:absolute;\"><a href=\"{$href}\" title=\"". $title. "\" ><img src=\"/img/aedit.png\" style='max-width:10px; max-height:10px; width:10px; height:10px;'></a></span></div>";
 	}
