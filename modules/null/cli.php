@@ -31,13 +31,13 @@ if(!$conf = call_user_func(function($conf = []){ // Подключение ко�
 		}else{// mpre($argv);
 		} return $argv;
 	})){ mpre("ОШИБКА получения аргументов");
-}elseif(!call_user_func(function($command, $cmd, $name) use($argv){ // Связывание новой таблицы и списка источников
-		if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ return $command; //mpre("Пропускам выполнение команды {$cmd}");
-		}else{ phpinfo();
+}elseif(!call_user_func(function($name, $cmd, $command) use($argv){ // Связывание новой таблицы и списка источников
+		if(array_search($name, $command) != get($argv, 1)){ return $command; //mpre("Пропускам выполнение команды {$cmd}");
+ 		}else{ phpinfo();
 		}
-	}, $command[$cmd = "phpinfo"] = $name = "Параметры php"], $cmd, $name)){ pre($cmd. " ($name)");
-}elseif(!call_user_func(function($command, $cmd, $name) use($argv){ // Связывание новой таблицы и списка источников
-		if(array_search($command[$cmd] = $name, $command) != get($argv, 1)){ return $command; //mpre("Пропускам выполнение команды {$cmd}");
+	}, $command[$cmd = "phpinfo"] = $name = "Параметры php", $cmd, $command)){ pre($cmd. " ($name)");
+}elseif(!call_user_func(function($name, $cmd, $command) use($argv){ // Связывание новой таблицы и списка источников
+		if(array_search($name, $command) != get($argv, 1)){ return $command; //mpre("Пропускам выполнение команды {$cmd}");
 		}else if(!include("phar://index.phar/include/class/simple_html_dom.php")){ mpre("ОШИБКА подключения класса simple_html_dom");
 		}elseif(!$html = new simple_html_dom()){ mpre("Ошибка создания обьекта парсера");
 		}elseif(!array_map(function($video_sources) use($html){
@@ -50,8 +50,7 @@ if(!$conf = call_user_func(function($conf = []){ // Подключение ко�
 				}
 			}, $VIDEO_SOURCES)){ mpre("ОШИБКА парсинга страниц");
 		}else{ //pre($name. " (". $cmd. ")");
-			return [];
-		} return $command;
+		}
 	}, $command[$cmd = "parse"] = $name = "Парсинг страниц")){ pre($cmd. " ($name)");
 }else{ mpre("Список доступных параметров", $command); }
 
