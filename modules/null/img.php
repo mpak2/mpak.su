@@ -7,13 +7,16 @@ if(get($_GET, 'tn')){
 	}elseif(!$file_name = (($img = get($index, $fn)) ? mpopendir("include"). "/{$img}" : mpopendir("img/no.". ($exp = "png")))){ mpre("ОШИБКА получения пути до файла");
 	}elseif(!array_search($exp = strtolower(last(explode('.', $file_name))), array(1=>"jpg", "jpeg", "png", "gif"))){
 		$file_name = mpopendir($f = "img/no.". ($exp = "png"));
+	}else if(!$img = mprs($file_name, (get($_GET, "w") ?: 100), (get($_GET, "h") ?: 100), (get($_GET, "c") ?: 0))){ mpre("ОШИБКА формирования изображения");
 	}else{ header("Content-type: image/{$exp}");
-		echo mprs($file_name, (get($_GET, "w") ?: 0), (get($_GET, "h") ?: 0), (get($_GET, "c") ?: 0));
+		echo $img;
 	}
 }elseif(array_key_exists('', $_GET) && ($file_name = mpopendir("modules/{$arg['modpath']}/img/". basename($_GET[''])))){
-	if(!ob_get_length()){
-		header ("Content-type: image/". last(explode('.', $file_name)));
-	} echo mprs($file_name, (get($_GET, "w") ?: 0), (get($_GET, "h") ?: 0), (get($_GET, "c") ?: 0));
+	if(!$img = mprs($file_name, (get($_GET, "w") ?: 100), (get($_GET, "h") ?: 100), (get($_GET, "c") ?: 0))){ mpre("ОШИБКА формирования статисческого изображения");
+	}else if(!$exp = last(explode('.', $file_name))){ mpre("ОШИБКА получения расширения файла");
+	}else{ header ("Content-type: image/{$exp}");
+		echo $img;
+	}
 }else{
 	echo "<ul>";
 	foreach(mpreaddir("modules/{$arg['modpath']}/img", true) as $n=>$img){

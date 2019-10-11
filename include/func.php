@@ -1862,98 +1862,108 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 	$keys = array_keys($ar = explode('.', $file_name));
 	$ext = $ar[max($keys)];
 	$cache_name = (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/images";
-	$host_name = strpos('www.', $_SERVER['SERVER_NAME']) === 0 ? substr($_SERVER['SERVER_NAME'], 4) : $_SERVER['SERVER_NAME'];
+	//$host_name = strpos('www.', $_SERVER['SERVER_NAME']) === 0 ? substr($_SERVER['SERVER_NAME'], 4) : $_SERVER['SERVER_NAME'];
 	$fl_name = (int)$max_width. "x". (int)$max_height. "x". (int)$crop. "_" .basename($file_name);
 	$prx = basename(dirname($file_name));
-	if(!array_key_exists('nologo', $_GET) && (strtotime(get($_SERVER, 'HTTP_IF_MODIFIED_SINCE')) >= filectime($file_name))){
-		exit(header('HTTP/1.0 304 Not Modified'));
-	}else if((get($_SERVER, 'HTTP_PRAGMA') != "no-cache") && file_exists("$cache_name/$host_name/$prx/$fl_name") && (($filectime = filectime("$cache_name/$host_name/$prx/$fl_name")) > ($sfilectime = filectime($file_name)))){
-//		header('Last-Modified: '. date("r", $filectime));
-//		header("Expires: ".gmdate("r", time() + 86400*10));
-		return file_get_contents("$cache_name/$host_name/$prx/$fl_name");
-	}else if($src = imagecreatefromstring(file_get_contents($file_name))){
-//		header('Last-Modified: '. date("r", filectime($file_name)));
-//		header("Expires: ".gmdate("r", time() + 86400*10));
-		$width = imagesx($src);
-		$height = imagesy($src);
-		if(!array_key_exists('water', $_GET) && (empty($max_width) || empty($max_height) || (($width <= $max_width) && ($height <= $max_height)))){
-			$content = file_get_contents($file_name);
-		}else{
-			if($crop){
-				$cdst = array($max_width, $max_height);
-				$max = max($max_width/$width, $max_height/$height);
-				$irs = array(4=>($width-$max_width/$max)/2, ($height-$max_height/$max)/2, $max_width, $max_height, ($max_width/$max), ($max_height/$max),);
-			}else{
-				$x_ratio = $max_width / $width;
-				$y_ratio = $max_height / $height;
-				if ( ($width <= $max_width) && ($height <= $max_height) ){
-					$tn_width = $width;
-					$tn_height = $height;
-				}elseif (($x_ratio * $height) < $max_height){
-					$tn_height = ceil($x_ratio * $height);
-					$tn_width = $max_width;
-				}else{
-					$tn_width = ceil($y_ratio * $width);
-					$tn_height = $max_height;
-				}
-				$irs = array(4=>0, 5=>0, $tn_width, $tn_height, $width, $height,);
-				$cdst = array($tn_width, $tn_height);
+	if(!$host_name = call_user_func(function($host_name){ // Имя хоста
+			if(0 !== strpos('www.', $host_name)){ //mpre("www перед именем хоста не найдено");
+			}else if(!$host_name = substr($_SERVER['SERVER_NAME'], 4)){ mpre("ОШИБКА удаления www из имени хоста");
+			}else{ //mpre("Удаление www из имени хоста");
+			} return $host_name;
+		}, (get($_SERVER, 'SERVER_NAME') ?: "localhost"))){ mpre("ОШИБКА расчета имени хоста");
+	}else if(call_user_func(function() use($file_name){ // Выдаем ответ что файл не модифицирован
+			if(array_key_exists('nologo', $_GET)){ mpre("Не выдаем лого");
+			}else if(!$since = get($_SERVER, 'HTTP_IF_MODIFIED_SINCE')){ //mpre("Время модификации не задано");
+			}else if(!$time = strtotime($since)){ mpre("ОШИБКА опредления последнего актуального времени");
+			}else if(!$filectime = filectime($file_name)){ mpre("ОШИБКА определения времени файла");
+			}else if($time < $filectime){ mpre("Файл просрочен");
+			}else{ return true;
 			}
-			$dst = imagecreatetruecolor($cdst[0], $cdst[1]);
-			imagealphablending($dst, false);
-			imagesavealpha($dst, true);
-			imagecopyresampled($dst, $src, 0, 0, $irs[4], $irs[5], $irs[6], $irs[7], $irs[8], $irs[9]);
-			if (
-				!array_key_exists('nowater', $_GET) &&
-				!empty($conf['settings']['theme_logo']) &&
-				(imagesx($dst) >= 200) &&
-				(imagesy($dst) >= 200) &&
-				!isset($_GET['m']['themes']) &&
-				($lg = explode(':', $conf['settings']['theme_logo'])) &&
-				($f = mpopendir("themes/{$conf['settings']['theme']}/". array_shift($lg))) &&
-				$logo = imagecreatefromstring(file_get_contents($f))
-			){
-				imagealphablending($dst, true);
-				$w = array_shift($lg); $h = array_shift($lg);
-				imagecopyresampled($dst, $logo, ($w < 0 ? imagesx($dst)-imagesx($logo)+$w : $w), ($h < 0 ? imagesy($dst)-imagesy($logo)+$h : $h), 0, 0, imagesx($logo), imagesy($logo), imagesx($logo), imagesy($logo));
+		})){ exit(header('HTTP/1.0 304 Not Modified'));
+	}else if($cache_file = call_user_func(function() use($file_name, $cache_name, $host_name, $prx, $fl_name){ // Получение файла из кеша
+			if(get($_SERVER, 'HTTP_PRAGMA') == "no-cache"){ //mpre("Признак отключения кеширования");
+			}else if(!$cache_name = "{$cache_name}/{$host_name}/{$prx}/{$fl_name}"){ mpre("ОШИБКА получения пути до файла");
+			}else if(!file_exists($cache_name)){ //mpre("Файл {$cache_name} не найден");
+			}else if(!$filectime = filectime($cache_name)){ mpre("ОШИБКА определения даты обновления файла");
+			}else if(!$sfilectime = filectime($file_name)){ mpre("ОШИБКА обновления даты файла");
+			}else if($filectime <= $sfilectime){ mpre("Обновление уже неактуально");
+			}else{ return $cache_name;
 			}
-			if(!$f = $func[ strtolower($ar[max($keys)]) ]){ mpre("Ошибка получения функции сжатия изображения");
-			}elseif(!$q = (get($_GET, 'q') ?: 80)){ mpre("Ошибка получения качества изображения");
-			}elseif(($f == "imagepng") && (!$q = (int)$q/10)){ mpre("Ошибка изменения параметра качетсва для функции png");
-			}else{
-				ob_start();
-					$keys = array_keys($ar = explode('.', $file_name));
-					$f($dst, null, $q);
-					$content = ob_get_contents();
-				ob_end_clean();
-			} ImageDestroy($src); ImageDestroy($dst);
-		}
-		if(!file_exists("$cache_name/$host_name/$prx")){
-			if($idna = mpopendir('include/idna_convert.class.inc')){
-				require_once($idna);
+		})){ return file_get_contents($cache_file);
+	}else if(!$src = imagecreatefromstring(file_get_contents($file_name))){ mpre("ОШИБКА получения содержимого изображения {$file_name}");
+	}else if($content = call_user_func(function() use($src, $crop, $max_width, $max_height, $func, $file_name){ // Содержимое изображения
+			if(!$width = imagesx($src)){ mpre("ОШИБКА определения ширины изображения");
+			}else if(!$height = imagesy($src)){ mpre("ОШИБКА определения высоты изображения");
+			}else if(![$cdst, $irs] = call_user_func(function($data = [[], []]) use($crop, $width, $height, $max_width, $max_height){ // Точки итогового изображения
+					if($crop){
+						$cdst = array($max_width, $max_height);
+						$max = max($max_width/$width, $max_height/$height);
+						$irs = array(4=>($width-$max_width/$max)/2, ($height-$max_height/$max)/2, $max_width, $max_height, ($max_width/$max), ($max_height/$max),);
+					}else{
+						$x_ratio = $max_width / $width;
+						$y_ratio = $max_height / $height;
+						if ( ($width <= $max_width) && ($height <= $max_height) ){
+							$tn_width = $width;
+							$tn_height = $height;
+						}elseif (($x_ratio * $height) < $max_height){
+							$tn_height = ceil($x_ratio * $height);
+							$tn_width = $max_width;
+						}else{
+							$tn_width = ceil($y_ratio * $width);
+							$tn_height = $max_height;
+						}
+						$irs = array(4=>0, 5=>0, $tn_width, $tn_height, $width, $height,);
+						$cdst = array($tn_width, $tn_height);
+					} return [$cdst, $irs];
+				})){ mpre("ОШИБКА формирования параметров итогового изображения");
+			}else if(!$dst = imagecreatetruecolor($cdst[0], $cdst[1])){ mpre("ОШИБКА создания итогового изображения");
+			}else if(!imagealphablending($dst, false)){ mpre("ОШИБКА установки блендинга");
+			}else if(!imagesavealpha($dst, true)){ mpre("ОШИБКА устанвоки прозрачности итогового изображения");
+			}else if(!imagecopyresampled($dst, $src, 0, 0, $irs[4], $irs[5], $irs[6], $irs[7], $irs[8], $irs[9])){ mpre("ОШИБКА копирования изображения");
+			}else if(!$ext = strtolower(last(explode(".", $file_name)))){ mpre("ОШИБКА получения расширения файла");
+			}else if(!$_func = get($func, $ext)){ mpre("Ошибка получения функции сжатия изображения");
+			}else if(!$quality = call_user_func(function($quality = 80) use($_func){ // Качество изображения
+					if(!$quality = (get($_GET, 'q') ?: $quality)){ mpre("ОШИБКА получения качества из аднесной строки");
+					}else if(!$quality = ($_func == "imagepng" ? $quality/10 : $quality)){ mpre("ОШИБКА коррекции значения качества для разных функций");
+					}else{ //mpre("Качество изображения для функции {$_func} установлено {$quality}");
+					} return $quality;
+				})){ mpre("ОШИБКА расчета качества изображения");
+			}else if(!$content = call_user_func(function() use($dst, $_func, $quality){ // Содержимое изображения
+					ob_start();
+						$_func($dst, null, $quality);
+						$content = ob_get_contents();
+					ob_end_clean();
+					return $content;
+				})){ mpre("ОШИБКА получения содержимого изображения");
+			}else{ //exit($content);
+				/*if (
+					!array_key_exists('nowater', $_GET) &&
+					!empty($conf['settings']['theme_logo']) &&
+					(imagesx($dst) >= 200) &&
+					(imagesy($dst) >= 200) &&
+					!isset($_GET['m']['themes']) &&
+					($lg = explode(':', $conf['settings']['theme_logo'])) &&
+					($f = mpopendir("themes/{$conf['settings']['theme']}/". array_shift($lg))) &&
+					$logo = imagecreatefromstring(file_get_contents($f))
+				){
+					imagealphablending($dst, true);
+					$w = array_shift($lg); $h = array_shift($lg);
+					imagecopyresampled($dst, $logo, ($w < 0 ? imagesx($dst)-imagesx($logo)+$w : $w), ($h < 0 ? imagesy($dst)-imagesy($logo)+$h : $h), 0, 0, imagesx($logo), imagesy($logo), imagesx($logo), imagesy($logo));
+				}*/
+				ImageDestroy($src); ImageDestroy($dst);
 			}
-			$IDN = new idna_convert();
-			if(is_writeable("$cache_name/$host_name")){
-				mkdir("$cache_name/$host_name/$prx", 0755, 1);
-				if($host_name != $IDN->decode($host_name) && !file_exists("$cache_name/". $IDN->decode($host_name))){
-					symlink("$cache_name/$host_name", "$cache_name/". $IDN->decode($host_name));
-				}
-			}
-		}
-		if(is_writeable("$cache_name/$host_name/$prx")){
-			file_put_contents("$cache_name/$host_name/$prx/$fl_name", $content);
-		}
-		if(function_exists("mpevent")){
-			mpevent("Формирование изображения", $fl_name, $conf['user']['uid']);
-		} return $content;
+			/*if(is_writeable("$cache_name/$host_name/$prx")){
+				file_put_contents("$cache_name/$host_name/$prx/$fl_name", $content);
+			}*/ return $content;
+		})){ return $content;
 	}else{
-		$src = imagecreate (65, 65);
-		$bgc = imagecolorallocate ($src, 255, 255, 255);
+		$src = imagecreate(65, 65);
+		$bgc = imagecolorallocate($src, 255, 255, 255);
 		$tc = imagecolorallocate ($src, 0, 0, 0);
-		imagefilledrectangle ($src, 0, 0, 150, 30, $bgc);
+		imagefilledrectangle($src, 0, 0, 150, 30, $bgc);
 		header("Content-type: image/jpeg");
 		header('Last-Modified: '. date("r"));
-		mpevent("Ошибка открытия изображения", $file_name, $conf['user']['uid']);
+		//mpevent("Ошибка открытия изображения", $file_name, $conf['user']['uid']);
 		imagestring($src, 1, 5, 30, (file_exists($file_name) ? "GD Error" : "HeTKapmuHku"), $tc);
 		return ImageJpeg($src);
 	}
