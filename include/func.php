@@ -1865,7 +1865,8 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 	//$host_name = strpos('www.', $_SERVER['SERVER_NAME']) === 0 ? substr($_SERVER['SERVER_NAME'], 4) : $_SERVER['SERVER_NAME'];
 	$fl_name = (int)$max_width. "x". (int)$max_height. "x". (int)$crop. "_" .basename($file_name);
 	$prx = basename(dirname($file_name));
-	if(!$host_name = call_user_func(function($host_name){ // Имя хоста
+	if(!file_exists($file_name)){ mpre("ОШИБКА файл изображения не найден", $file_name);
+	}else if(!$host_name = call_user_func(function($host_name){ // Имя хоста
 			if(0 !== strpos('www.', $host_name)){ //mpre("www перед именем хоста не найдено");
 			}else if(!$host_name = substr($_SERVER['SERVER_NAME'], 4)){ mpre("ОШИБКА удаления www из имени хоста");
 			}else{ //mpre("Удаление www из имени хоста");
@@ -1895,10 +1896,16 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 			if(!$width = imagesx($src)){ mpre("ОШИБКА определения ширины изображения");
 			}else if(!$height = imagesy($src)){ mpre("ОШИБКА определения высоты изображения");
 			}else if(![$cdst, $irs] = call_user_func(function($data = [[], []]) use($crop, $width, $height, $max_width, $max_height){ // Точки итогового изображения
-					if($crop){
+					if(2 == $crop){ // Добавить полей до размеров
+						$cdst = array($max_width, $max_height);
+						//$irs = array(2=>0, 3=>($max_height-$max_height*$height/$width)/2, 4=>0, 0, $max_width, $max_height*$height/$width, $width, $height,);
+						$w = ($width > $height ? 1 : $width/$height);
+						$h = ($width > $height ? $height/$width : 1);
+						$irs = array(2=>($max_width-$max_width*$w)/2, 3=>($max_height-$max_height*$h)/2, 4=>0, 5=>0, $max_width*$w, $max_height*$h, $width, $height,);
+					}else if($crop){
 						$cdst = array($max_width, $max_height);
 						$max = max($max_width/$width, $max_height/$height);
-						$irs = array(4=>($width-$max_width/$max)/2, ($height-$max_height/$max)/2, $max_width, $max_height, ($max_width/$max), ($max_height/$max),);
+						$irs = array(2=>0, 3=>0, 4=>($width-$max_width/$max)/2, ($height-$max_height/$max)/2, $max_width, $max_height, ($max_width/$max), ($max_height/$max),);
 					}else{
 						$x_ratio = $max_width / $width;
 						$y_ratio = $max_height / $height;
@@ -1912,14 +1919,17 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 							$tn_width = ceil($y_ratio * $width);
 							$tn_height = $max_height;
 						}
-						$irs = array(4=>0, 5=>0, $tn_width, $tn_height, $width, $height,);
+						$irs = array(2=>0, 3=>0, 4=>0, 5=>0, $tn_width, $tn_height, $width, $height,);
 						$cdst = array($tn_width, $tn_height);
 					} return [$cdst, $irs];
 				})){ mpre("ОШИБКА формирования параметров итогового изображения");
 			}else if(!$dst = imagecreatetruecolor($cdst[0], $cdst[1])){ mpre("ОШИБКА создания итогового изображения");
+			}else if(!$white = imagecolorallocate($dst, 255, 255, 255)){ mpre("ОШИБКА создания белого цвета");
+			}else if(!imagefill($dst, 0, 0, $white)){ mpre("ОШИБКА заливки белым цветом");
+			//}else if(!imagecolorallocate($dst, 255, 255, 255)){ mpre("ОШИБКА заливки фона изобаржения");
 			}else if(!imagealphablending($dst, false)){ mpre("ОШИБКА установки блендинга");
 			}else if(!imagesavealpha($dst, true)){ mpre("ОШИБКА устанвоки прозрачности итогового изображения");
-			}else if(!imagecopyresampled($dst, $src, 0, 0, $irs[4], $irs[5], $irs[6], $irs[7], $irs[8], $irs[9])){ mpre("ОШИБКА копирования изображения");
+			}else if(!imagecopyresampled($dst, $src, $irs[2], $irs[3], $irs[4], $irs[5], $irs[6], $irs[7], $irs[8], $irs[9])){ mpre("ОШИБКА копирования изображения");
 			}else if(!$ext = strtolower(last(explode(".", $file_name)))){ mpre("ОШИБКА получения расширения файла");
 			}else if(!$_func = get($func, $ext)){ mpre("Ошибка получения функции сжатия изображения");
 			}else if(!$quality = call_user_func(function($quality = 80) use($_func){ // Качество изображения
