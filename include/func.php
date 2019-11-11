@@ -66,7 +66,7 @@ function conn($init = null){
 		if(!$realpath = realpath($name)){ mpre("Файл с БД не найден `{$name}`");
 		}else if(!is_writable($name)){ die(!pre("ОШИБКА файл БД доступен только на чтение", $name));
 		}else if(!$init = ($init ?: "{$conf['db']['type']}:{$realpath}")){ pre("ОШИБКА установки пути до файла БД");
-		}else if(!$conf['db']['conn'] = call_user_func(function($conn = null) use($init, $conf, $options){ // Подключение к базе данных
+		}else if(!$conn = call_user_func(function($conn = null) use($init, $conf, $options){ // Подключение к базе данных
 				try {
 					$conn = new PDO($init, $conf['db']['login'], $conf['db']['pass'], $options);
 					return $conn;
@@ -74,7 +74,7 @@ function conn($init = null){
 				}
 			})){ mpre("ОШИБКА подключения к базе данных", $init);
 		}else{ //mpre("Реальный путь до файла бд", $name);
-			$conf['db']['conn']->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
+			$conn->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
 		}
 	}else{// pre($conf['db']);
 		if(!is_string($host = (get($conf, 'db', 'host') ? "host={$conf['db']['host']}" : ""))){ pre("ОШИБКА получения хоста из конфигурации");
@@ -83,7 +83,7 @@ function conn($init = null){
 		}elseif(!$addr_def = (($default_socket = ini_get("pdo_mysql.default_socket")) ? "unix_socket={$default_socket}" : "host=localhost")){ pre("ОШИБКА получения конфигурационного адреса для подключения");
 		}elseif(!$addr = $addr_conf ?: $addr_def){ pre("ОШИБКА установки адреса если не указан локальный");
 		}elseif(!$init = ($init ?: "{$conf['db']['type']}:{$addr};dbname={$conf['db']['name']};charset=UTF8")){ pre("ОШИБКА составления строки подключения к БД");
-		}else if(!$conf['db']['conn'] = call_user_func(function($conn = null) use($init, $conf, $options){ // Подключение к базе данных
+		}else if(!$conn = call_user_func(function($conn = null) use($init, $conf, $options){ // Подключение к базе данных
 				try {
 					$conn = new PDO($init, $conf['db']['login'], $conf['db']['pass'], $options);
 //						$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -93,9 +93,9 @@ function conn($init = null){
 			})){ mpre("ОШИБКА подключения к базе данных", $init);
 		}elseif(!$TABLES = tables()){ pre("ОШИБКА получения списка таблиц");
 		}else{// pre($init, $conf['db']['login'], $TABLES);
-			$conf['db']['conn']->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
+			$conn->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
 		}
-	} return $conf['db']['conn'];
+	} return $conn;
 }
 //компиляция less в css и сжатие css
 function MpLessCompile($teme_folder){
@@ -963,6 +963,7 @@ function erb($src, $key = null){
 	if((!$func_get_args = array_slice(func_get_args(), 1)) &&0){ mpre("Ошибка получения списка параметров функции");
 	}elseif(is_numeric(!$limit = (is_numeric($key) ? array_shift($func_get_args) : null))){ mpre("Определяем лимит сообщений");
 	}elseif(empty($func_get_args) && (!$func_get_args = ['id'])){ mpre("Задание дефолтного значения");
+	//}else if(true){ mpre($func_get_args);
 	}elseif(!is_numeric($line = call_user_func(function() use($func_get_args){
 			foreach($func_get_args as $key=>$val){
 				if(is_numeric($val)){ return $key; mpre("Числовое значение");
@@ -1199,18 +1200,14 @@ function mpdbf($tn, $post = null, $and = false){
 			$f[] = "`$k`=\"". mpquot(strtr($v, $html_mpquot)). "\"";
 		}elseif(array_key_exists($k, $fields)){
 			if(is_array($v)){
-				if(mp_is_assoc($v)){
-					$f[] = "`$k` IN (". mpquot(strtr(implode(",", $v), $html_mpquot)). ")";
-				}else{
-					$f[] = "`$k`=\"". mpquot(strtr(implode(",", $v), $html_mpquot)). "\"";
+				if(mp_is_assoc($v)){ $f[] = "`$k` IN (". mpquot(strtr(implode(",", $v), $html_mpquot)). ")";
+				//}else if(is_null($v)){ $f[] = "`$k`=NULL";
+				}else{ $f[] = "`$k`=\"". mpquot(strtr(implode(",", $v), $html_mpquot)). "\"";
 				}
 			}else{
-				if($v === null){
-					$f[] = ($and ? "`$k` IS NULL" : "`$k`=NULL");
-				}elseif(is_int($v) || ($v == "NULL")){
-					$f[] = "`$k`=". $v;
-				}else{
-					$f[] = "`$k`=\"". mpquot(strtr($v, $html_mpquot)). "\"";
+				if($v === null){ $f[] = ($and ? "`$k` IS NULL" : "`$k`=NULL");
+				}elseif(is_int($v) || ($v == "NULL")){ $f[] = "`$k`=". $v;
+				}else{ $f[] = "`$k`=\"". mpquot(strtr($v, $html_mpquot)). "\"";
 				}
 			}
 		}
@@ -1243,6 +1240,7 @@ function mpdbf($tn, $post = null, $and = false){
 	}else if(!is_array($INDEX = call_user_func(function($INDEX) use($table, $find, $update, $fields){ // Обновляем записи таблицы
 			if(1 != count($INDEX)){ //mpre("Не верное количество для обновления");
 			}else if(!$update){ //mpre("Данные обновления не указаны. Не обновляем");
+			//}else if(true){ mpre($fields);
 			}else if(!$selected = array_intersect_key(first($INDEX), $update)){ mpre("ОШИБКА получения значений из базы");
 			}else if(!$updated = array_intersect_key($update, $fields)){ mpre("ОШИБКА получения списка обновляемых данных");
 			}else if($updated == $selected){ //mpre("Значения обовления равны. Не обновляем");
@@ -1258,11 +1256,13 @@ function mpdbf($tn, $post = null, $and = false){
 	}else if(!is_array($INDEX = call_user_func(function($INDEX) use($conf, $find, $table, $insert){ // Добавление новой записи
 			if(count($INDEX)){ //mpre("Не добавляем если количество подходящих под условия больше одного", $find);
 			}else if(!$insert){ mpre("Параметры добавления не указаны");
-			}else if(!$ins = mpdbf($table, $insert)){ mpre("ОШИБКА получения параметров добавления записи");
-			}elseif(!$mpdbf = $insert+array("time"=>time(), "uid"=>get($conf, 'user', 'uid'), 'sid'=>get($conf, 'user', 'sess', 'id'))){ mpre("ОШИБКА добавления дефолтных значений");
+			//}else if(!$ins = mpdbf($table, $insert)){ mpre("ОШИБКА получения параметров добавления записи");
+			}else if(!$ins = array_map(function($val){ return (is_null($val) ? "NULL" : "\"". mpquot($val). "\""); }, $insert)){ mpre("ОШИБКА установки значений");
+			}elseif(!$mpdbf = $ins+array("time"=>time(), "uid"=>get($conf, 'user', 'uid'), 'sid'=>get($conf, 'user', 'sess', 'id'))){ mpre("ОШИБКА добавления дефолтных значений");
+			//}else if(true){ mpre($ins, $insert, $mpdbf);
 			}else if(!$fields = fields($table)){ mpre("ОШИБКА получения полей таблицы `{$table}`");
 			}elseif(!$values = array_map(function($val){ return mpquot($val); }, array_intersect_key($mpdbf, $fields))){ mpre("ОШИБКА составления значений запроса");
-			}else if(!$sql = "INSERT INTO ". mpquot($table). " (`". implode("`, `", array_keys($values)). "`) VALUES (\"". implode("\", \"", array_values($values)). "\")"){ mpre("ОШИБКА составления запроса на добавление");
+			}else if(!$sql = "INSERT INTO ". mpquot($table). " (`". implode("`, `", array_keys($values)). "`) VALUES (". implode(", ", array_values($values)). ")"){ mpre("ОШИБКА составления запроса на добавление");
 			}else if(!qw($sql)){ mpre("ОШИБКА добавления записи в базу данных");
 			}else if(!$INDEX = qn("SELECT * FROM {$table} WHERE id=". $conf['db']['conn']->lastInsertId())){ mpre("ОШИБКА получения последней добавленной записи");
 			}else{ //mpre("Добавление", $find, $sql, $INDEX);
@@ -1509,7 +1509,7 @@ function hid($tn, $href, $id = false, $fn = "img", $exts = array('image/png'=>'.
 	global $conf, $arg;
 	if(!$data = file_get_contents($href)){ pre("Ошибка загрузки файла", $href);
 	}elseif(!($ext = '.'. preg_replace("/[\W]+.*/", '', preg_replace("/.*?\./", '', $href))) && (array_search(strtolower($ext), $exts) || isset($exts['*']))){ pre("Запрещенное к загрузке расширение", $ext);
-	}elseif(!$el = fk($tn, $w = ($id ? ["id"=>$id] : null), $w = ['id'=>NULL])){ mpre("Ошибка получения идентификатора элемента {$tn}");
+	}elseif(!$el = fk($tn, $w = ($id ? ["id"=>$id] : null), $w = ['id'=>null])){ mpre("Ошибка получения идентификатора элемента {$tn}");
 	}elseif(!$f = "{$tn}-{$fn}_". (int)$el['id']. $ext){ mpre("Ошибка формирования имени файла");
 	}elseif((!$ufn = mpopendir('include/images')) && (!$ufn = realpath('include/images'))){ mpre("Директория с изображениями не определена");
 	}elseif(!file_put_contents("$ufn/$f", $data)){ mpre("Ошибка сохранения файла");
@@ -1518,7 +1518,7 @@ function hid($tn, $href, $id = false, $fn = "img", $exts = array('image/png'=>'.
 }
 function fid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png', 'image/pjpeg'=>'.jpg', 'image/jpeg'=>'.jpg', 'image/gif'=>'.gif', 'image/bmp'=>'.bmp')){// pre($fn, $prefix, normalize_files_array());
 	global $conf;
-	if(!$file = get(normalize_files_array(),$fn,intval($prefix))){ pre("ОШИБКА получения имени закачанного файла", ['fn'=>$fn, 'prefix'=>$prefix]);
+	if(!$file = get(normalize_files_array(),$fn,intval($prefix))){ pre("ОШИБКА получения имени закачанного файла", ['fn'=>$fn, 'prefix'=>$prefix], normalize_files_array());
 	}elseif($file['error']){ mpre("ОШИБКА загрузки файла");
 	}elseif(!$folder = preg_match_all("#^image/\w+$#iu",$file['type']) ? 'images' : 'files'){ pre("ОШИБКА выбора имени директории для хранения файла");
 	}elseif((!$ext = get($exts, $file['type'])) && !get($exts, '*')){ pre("Тип загрузаемого файла `{$file['type']}` не найден среди разрешенных", $ext);
@@ -1707,7 +1707,7 @@ function mpqw($sql){ # Все аргументы разбираются по т�
 			}else{ return ['type'=>$type, 'arg'=>$arg]; }
 		}, array_slice(func_get_args(), 1)))){ mpre("ОШИБКА выборки параметров");
 	}elseif(!$mt = microtime(true)){ mpre("ОШИБКА установки времени начала запроса");
-	}elseif(!$conn = ((rb($ARGS, 'type', '[object]', 'arg')) ?: $conf['db']['conn'])){ mpre("ОШИБКА определения соединения");
+	}elseif(!$conn = ((rb($ARGS, 'type', '[object]', 'arg')) ?: $conf['db']['conn'])){ mpre("ОШИБКА определения соединения", $sql);
 	}elseif(!$result = call_user_func(function($ARGS) use($sql, &$conn, &$conf, $mt){// mpre($ARGS);
 			if(!$params = rb($ARGS, 'type', '[array]', 'arg')){// mpre("Параметры не заданы");
 				if(!$conf['db']['sql'][] = array('info'=>'', 'sql'=>$sql)){ mpre("ОШИБКА добавления информации о запросе");

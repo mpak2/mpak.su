@@ -120,10 +120,10 @@ if(!call_user_func(function(){ # Переменные окружения
 				ignore_user_abort(true);
 				set_time_limit(0);
 				ob_start();
-				echo $cache["content"];
-				header('Content-Encoding: gzip');
-				header('Connection: close');
-				header('Content-Length: '.ob_get_length());
+					echo $cache["content"];
+					header('Content-Encoding: gzip');
+					header('Connection: close');
+					header('Content-Length: '.ob_get_length());
 				ob_end_flush();
 				ob_flush();
 				flush();
