@@ -28,6 +28,6 @@
 	<? else: mpre("Данный адрес `{$_SERVER['REQUEST_URI']}`", "Раздел `{$mod}` Файл `{$fn}`", "Путь от корня сайта до php файла <br /><b>modules/{$mod}/{$fn}.php</b>", "Путь от корня сайта до файла шаблона <br /><b>modules/{$mod}/{$fn}.tpl</b>", "Входящие GET параметры страницы", array_diff_key($_GET, array_flip(['m']))) ?>
 		<div style="margin-top:10%;">ошибка <span style="font-size:404%;">404</span></div>
 		<div style="margin-top:3%;">Страница, которую вы пытаетесь посмотреть тут нет. Попробуйте <a href="/">начать с начала</a>.</div>
-		<img src="/<?=$arg['modpath']?>:img/null/404.png">
+		<img src="/<?=$arg['modpath']?>:img/w:600/h:600/null/404.png">
 	<? endif; ?>
 </div>
