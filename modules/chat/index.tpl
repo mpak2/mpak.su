@@ -1,20 +1,32 @@
-<? if (isset($_GET['chat'])): # Чат ?>
+<? if(!$usr = fk("usr", $w = ["uid"=>$conf["user"]["uid"]], $w+= ["time"=>time()])): mpre("ОШИБКА обновления информации о пользователе") ?>
+<? elseif(call_user_func(function(){ // Добавление сообщения
+		if(!$_POST){ //mpre("Не запрос");
+		}else if(!$text = get($_POST, "text")){ mpre("Сообщение не найдено");
+		}else if(!$index = fk("{$arg['modpath']}-index", null, $w = ["name"=>get($_POST,'text')])){ mpre("ОШИБКА добавления сообщения");
+		}else{ mpre("Сообщение добавлено", $index);
+		}
+	})): mpre("ОШИБКА добавления сообщения") ?>
+<? elseif(!is_array($USR = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_usr WHERE time>". (time()-$conf['settings']['sess_time'])))): mpre("ОШИБКА получения списка пользователей") ?>
+<? elseif(!is_array($INDEX = qn("SELECT * FROM {$conf['db']['prefix']}{$arg['modpath']}_index ORDER BY id DESC LIMIT ". (intval(get($_GET,'cnt')) ?: 20)))): mpre("ОШИБКА выборки списка сообщений") ?>
+<? elseif(!$uid = qn("SELECT * FROM {$conf['db']['prefix']}users WHERE id IN (". in(rb($USR, "uid")). ") OR id IN (". in(rb($INDEX, "uid")). ")")): mpre("ОШИБКА получения пользователя") ?>
+<? elseif(!ksort($INDEX)): mpre("ОШИБКА обратной сортировки списка сообщений") ?>
+<? elseif(isset($_GET['chat'])): # Чат ?>
 	<div class="table">
 		<div>
 			<span>
 				<div class="table">
-					<? foreach($tpl['index'] as $index): ?>
+					<? foreach($INDEX as $index): //mpre($index); ?>
 						<div>
-							<span>
+							<span style="width:50px;">
 								<nobr>
-									<div title="<?=date('d.m.Y', $index['time'])?>"><?=date('H:i', $index['time'])?></div>
+									<div title="<?=date('d.m.Y', $index['time'])?>"><?=date('Y.m.d H:i', $index['time'])?></div>
 								</nobr>
 							</span>
-							<span>
+							<span style="width:50px; text-align:right;">
 								<? if($index['uid'] > 0): ?>
 									<nobr>
 										<a href="/users/<?=$index['uid']?>">
-											<?=($tpl['uid'][ $index['uid'] ]['chat_usr'] ? "<b>{$tpl['uid'][ $index['uid'] ]['chat_usr']}</b>" : $tpl['uid'][ $index['uid'] ]['name'])?>
+											<?=(($chat_usr = get($uid, $index['uid'], 'chat_usr')) ? "<b>{$chat_usr}</b>" : $uid[ $index['uid'] ]['name'])?>
 										</a>
 									</nobr>
 								<? else: ?>
@@ -23,27 +35,27 @@
 							</span>
 							<span style="width:10px">&nbsp;</span>
 							<span>
-								<? if($personal = $tpl['usr:personal'][ $index['chat_usr'] ]): ?>
+								<? //if($personal = $tpl['usr:personal'][ $index['chat_usr'] ]): ?>
 									<span style="font-weight:bold; font-style:italic;"> &raquo;
-										<? if($personal['uid'] > 0): ?>
-											<?=($tpl['uid'][ $personal['uid'] ]['chat_usr'] ?: $tpl['uid'][ $personal['uid'] ]['name'])?>
-										<? else: ?>
-											<?=$conf['settings']['default_usr']. $personal['uid']?>
-										<? endif; ?>
+										<? //if($personal['uid'] > 0): ?>
+											<?//=($uid[ $personal['uid'] ]['chat_usr'] ?: $uid[ $personal['uid'] ]['name'])?>
+										<? //else: ?>
+											<?//=$conf['settings']['default_usr']. $personal['uid']?>
+										<? //endif; ?>
 									</span>
-								<? endif; ?>
-								<?=$index['text']?>
+								<? //endif; ?>
+								<?=$index['name']?>
 							</span>
 						</div>
 					<? endforeach; ?>
 				</div>
 			</span>
-			<span class="usr" usr_id="<?=rb($tpl['usr'], "uid", $conf['user']['uid'], "id")?>">
-				<? foreach($tpl['usr'] as $usr): ?>
-					<div usr_id="<?=$usr['id']?>" class="<?=(rb($tpl['usr'], "uid", "usr_id", $conf['user']['uid'], $usr['id']) ? "active" : "")?>">
+			<span class="usr" usr_id="">
+				<? foreach($USR as $usr): ?>
+					<div usr_id="<?=$usr['id']?>" class="<?=(rb($USR, "uid", "usr_id", $conf['user']['uid'], $usr['id']) ? "active" : "")?>">
 						<a class="personal" href="javascript:">
 							<? if($usr['uid'] > 0): ?>
-								<nobr><?=($tpl['uid'][ $usr['uid'] ]['chat_usr'] ? "<b>{$tpl['uid'][ $usr['uid'] ]['chat_usr']}</b>" : $tpl['uid'][ $usr['uid'] ]['name'])?></nobr>
+								<nobr><?=get($uid, $usr['uid'], 'name')?></nobr>
 							<? else: ?>
 								<?=$conf['settings']['default_usr']. $usr['uid']?>
 							<? endif; ?>

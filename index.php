@@ -151,7 +151,7 @@ if(!call_user_func(function(){ # Переменные окружения
 		} return $REUEST_URI;
 	}, $_SERVER["REQUEST_URI"])){ mpre("ОШИБКА установки адреса");
 }elseif(!$tables = call_user_func(function($tables = []) use($conf){ # Определяем режим установки по наличию таблиы в базе данных и свойствам администратора
-		if(array_key_exists('null', $_GET)){ return pre("Пропускаем проверку списка таблиц на ресурсах");
+		if(array_key_exists('null', $_GET)){ return true; pre("Пропускаем проверку списка таблиц на ресурсах");
 		}elseif(!$tables = tables()){ mpre("База данных не пуста");
 		}elseif($conf["db"]["type"] != "sqlite"){ //pre("Для mysql установка только с пустой базой", $conf["db"]["type"]);
 		}elseif(!get($conf, "settings", "admin_usr")){ return !mpre("Не установлен администратор");

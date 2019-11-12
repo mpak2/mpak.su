@@ -327,34 +327,16 @@ function cache($content = false, $row = []){ // Сохраненные в кеш
 	}else if(!is_array($row = call_user_func(function($row) use($conf, $content, $cache_dir, $cache_log){ // Отображение сохраненной ранее страницы
 			if($row){ //pre("Запись уже добавлена");
 			}else if("no-cache" == get($_SERVER, "HTTP_PRAGMA")){ //mpre("Обновление по Ctrl+Shift+R");
-			/*}elseif(array_key_exists("null", $_GET)){// pre("null");
-			}elseif(get($_COOKIE, 'sess')){// pre("Зарегистрированный пользователь");
-			}elseif(!call_user_func(function($age){
-					header("Cache-Control: must-revalidate,max-age={$age}");
-					header("Expires: ". gmdate('D, d M Y H:i:s T'));
-					return true;
-				}, (get($conf, "themes_cache") ?: 86400*10))){ pre("Ошибка установки заговлоков");*/
-			//}else if(true){ pre(123);
 			}elseif(get($_COOKIE, 'sess')){// pre("Зарегистрированный пользователь");
 			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){ pre("Ошибка определения адреса");
 			}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg", "/sitemap.xml", "/robots.txt"/*, "/favicon.ico",*/])){ // mpre("Не кешируем системные файлы");
-			//}elseif(array_key_exists("HTTP_CACHE_CONTROL", $_SERVER)){ // Отключает кеширование у картинок //pre("Обновление в мобильной версии браузера");
-			//}else if(true){ pre("cache");
-			//}elseif($_POST || array_key_exists("sess", $_COOKIE)){// pre("Активная сессия");
 			}elseif(get($_SERVER, 'HTTP_IF_MODIFIED_SINCE') || (http_response_code() == 304)){ mpre("Кешированная страница. Отдаем только статус");
 				exit(header('HTTP/1.0 304 Not Modified'));
 			}elseif(!$conn_file = "{$cache_dir}/{$conf['settings']['http_host']}.sqlite"){ mpre("Ошибка составления имени файла");
 			}elseif(!file_exists($conn_file) && !touch($conn_file) /*&& !chmod($conn_file, 0777)*/){ mpre("Файл бд кеша не найден {$conn_file}");
 			}elseif(!$conn = conn("sqlite:{$conn_file}")){ mpre("Ошибка сохдания подключения sqlite");
-			}elseif(!$RES = mpqw($sql = "SELECT * FROM cache WHERE uri='{$REQUEST_URI}' ORDER BY id DESC LIMIT 1", "uri")){ mpre("Ошибка создания запроса");
-//			}else if(true){ pre($sql);
-			}elseif(!$_row = mpql($RES, 0)){ mpre("Ошибка извлечения строк");
-			}elseif(empty($_row)){ # mpre("Ранее результат небыл создан");
-//			}elseif(get($_row, 'time') < time()){ mpre("Кеш устарел", (time() - get($_row, 'time')));
-//				mpqw("DELETE FROM `cache` WHERE id=". (int)$_row['id']);
-			}elseif(call_user_func(function($header){ header($header); }, explode("\n", $$_row['headers']))){ mpre("Ошибка установки заговловков");
-			}else{
-				return $_row;
+			}elseif(!$result = $conn->query("SELECT * FROM `cache` WHERE `uri`='{$REQUEST_URI}' ORDER BY `id` DESC LIMIT 1")){ pre("Ошибка создания запроса");
+			}else if(!is_array($row = ($result->fetch(PDO::FETCH_ASSOC) ?: []))){ pre("ОШИБКА получения уже добавленных данных в базу");			}else{ //mpre($row);
 			} return $row;
 		}, $row))){ pre("ОШИБКА Сохраненное ранее содержимое страницы");
 	}else{ //pre("Кеширование страницы", $content, $row);
@@ -1261,7 +1243,8 @@ function mpdbf($tn, $post = null, $and = false){
 			}elseif(!$mpdbf = $ins+array("time"=>time(), "uid"=>get($conf, 'user', 'uid'), 'sid'=>get($conf, 'user', 'sess', 'id'))){ mpre("ОШИБКА добавления дефолтных значений");
 			//}else if(true){ mpre($ins, $insert, $mpdbf);
 			}else if(!$fields = fields($table)){ mpre("ОШИБКА получения полей таблицы `{$table}`");
-			}elseif(!$values = array_map(function($val){ return mpquot($val); }, array_intersect_key($mpdbf, $fields))){ mpre("ОШИБКА составления значений запроса");
+			//}elseif(!$values = array_map(function($val){ return mpquot($val); }, array_intersect_key($mpdbf, $fields))){ mpre("ОШИБКА составления значений запроса");
+			}else if(!$values = array_intersect_key($mpdbf, $fields)){ mpre("ОШИБКА составления значений запроса");
 			}else if(!$sql = "INSERT INTO ". mpquot($table). " (`". implode("`, `", array_keys($values)). "`) VALUES (". implode(", ", array_values($values)). ")"){ mpre("ОШИБКА составления запроса на добавление");
 			}else if(!qw($sql)){ mpre("ОШИБКА добавления записи в базу данных");
 			}else if(!$INDEX = qn("SELECT * FROM {$table} WHERE id=". $conf['db']['conn']->lastInsertId())){ mpre("ОШИБКА получения последней добавленной записи");
