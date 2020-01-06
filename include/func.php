@@ -1266,7 +1266,8 @@ function mpdbf($tn, $post = null, $and = false){
 
 function mpevent($name, $description = null){ # Сохранение информации о событии
 	global $conf, $argv;
-	if(get($conf, 'settings', 'users_event_disabled')){ //mpre("Пропускаем добавление события");
+	if(isset($argv)){ mpre("Консольный скрипт");
+	}else if(get($conf, 'settings', 'users_event_disabled')){ //mpre("Пропускаем добавление события");
 	}elseif(!$name){ mpre("Имя события не указано");
 	}elseif(!$debug_backtrace = debug_backtrace()){ mpre("Ошибка создания списка вызовов функций");
 	}elseif(!$users_event = fk("users-event", $w = array("name"=>$name), $w += array("hide"=>1, "up"=>time()))){ mpre("Ошибка добавления события в базу событий (для отключения \$conf[settings][users_event_disabled]=true)");
