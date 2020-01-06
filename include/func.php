@@ -60,11 +60,16 @@ function conn($init = null){
 	global $conf;
 	if(!$type = ($init ? first(explode(":", $init)) : $conf['db']['type'])){ pre("Тип подключения не определен");
 	}elseif(!$name = ($init ? last(explode(":", $init)) : $conf['db']['name'])){ pre("Файл не установлен");
-	}elseif(!is_bool($persistent = (("no-cache" == get($_SERVER, "Pragma") || $_POST) ? false : true))){ mpre("ОШИБКА получения признака постоянного соединения");
+	}elseif(!is_bool($persistent = (($_POST || array_search("no-cache", $_SERVER)) ? false : true))){ mpre("ОШИБКА получения признака постоянного соединения");
 	}elseif(!$options = [PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING/* ERRMODE_SILENT*/ , PDO::ATTR_PERSISTENT=>$persistent, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>10/*, PDO::SQLITE_MAX_EXPR_DEPTH=>0*/]){ mpre("ОШИБКА задания опций подключения");
 	}elseif("sqlite" == $type){
 		if(!$realpath = realpath($name)){ mpre("Файл с БД не найден `{$name}`");
-		}else if(!is_writable($name)){ die(!pre("ОШИБКА файл БД доступен только на чтение", $name));
+		//}else if(!is_writable($name)){ pre("Внимание: файл БД доступен только на чтение", $name);
+		}else if(call_user_func(function() use($name){ // Уведомление о недоступности записи в файл БД
+				if(is_writable($name)){ //mpre("Файл доступен для записи", $name);
+				}else{ pre("Внимание: файл БД доступен только на чтение", $name);
+				}
+			})){ mpre("ОШИБКА отображения уведомления о недоступности записи в файл БД");
 		}else if(!$init = ($init ?: "{$conf['db']['type']}:{$realpath}")){ pre("ОШИБКА установки пути до файла БД");
 		}else if(!$conn = call_user_func(function($conn = null) use($init, $conf, $options){ // Подключение к базе данных
 				try {
@@ -238,8 +243,10 @@ function MpGenUniquePath($dir="/tmp"){
 function cache($content = false, $row = []){ // Сохраненные в кеше данные или добавление если content не пуст
 	global $conf;
 	if(!array_search("pdo_sqlite", get_loaded_extensions())){// mpre("В списке доступных модулей не sqlite");
-	}elseif(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ pre("Ошибка установки временной директории кеша");
-	}elseif(!$cache_log = dirname($cache_dir). "/cache.log"){ pre("Ошибка формирования пути лог файла кешей");
+	}else if(true){ //mpre("Кеширование времено закрыто");
+	}else if(get($conf, 'settings', 'themes_cache_disabled')){ //mpre("Кеш отключен");
+	}else if(!$cache_dir = !empty($conf['fs']['cache']) ? mpopendir($conf['fs']['cache']) : (ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : "/tmp"). "/cache"){ pre("Ошибка установки временной директории кеша");
+	}else if(!$cache_log = dirname($cache_dir). "/cache.log"){ pre("Ошибка формирования пути лог файла кешей");
 	}else if(!is_array($row = call_user_func(function($row = []) use($conf, $content, $cache_dir, $cache_log){ // Сохранение в кеш
 			//pre($conf["db"]["conn"]);
 			if(!$content){ //pre("Нет кеша для сохранения");
@@ -1259,9 +1266,10 @@ function mpdbf($tn, $post = null, $and = false){
 
 function mpevent($name, $description = null){ # Сохранение информации о событии
 	global $conf, $argv;
-	if(!$name){ mpre("Имя события не указано");
+	if(get($conf, 'settings', 'users_event_disabled')){ //mpre("Пропускаем добавление события");
+	}elseif(!$name){ mpre("Имя события не указано");
 	}elseif(!$debug_backtrace = debug_backtrace()){ mpre("Ошибка создания списка вызовов функций");
-	}elseif(!$users_event = fk("users-event", $w = array("name"=>$name), $w += array("hide"=>1, "up"=>time()))){ mpre("Ошибка добавления события в базу событий");
+	}elseif(!$users_event = fk("users-event", $w = array("name"=>$name), $w += array("hide"=>1, "up"=>time()))){ mpre("Ошибка добавления события в базу событий (для отключения \$conf[settings][users_event_disabled]=true)");
 	}elseif(get($users_event, 'hide')){ return []; mpre("Событие выключено");
 	}elseif(!$event_logs = fk("users-event_logs", null, ["event_id"=>$users_event['id'], "themes-index"=>get($conf, "themes", "index", "id"), 'description'=>(is_string($description) ? $description : "")])){// mpre("ОШИБКА добавления события");
 	}elseif(!$settings_name = 'users_event_values'){ mpre("Название параметра для значений логов");
