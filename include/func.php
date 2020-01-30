@@ -66,7 +66,9 @@ function conn($init = null){
 		if(!$realpath = realpath($name)){ mpre("Файл с БД не найден `{$name}`");
 		//}else if(!is_writable($name)){ pre("Внимание: файл БД доступен только на чтение", $name);
 		}else if(call_user_func(function() use($name){ // Уведомление о недоступности записи в файл БД
-				if(is_writable($name)){ //mpre("Файл доступен для записи", $name);
+				if(!$_POST){ //pre("Не проверяем права доступа без запроса");
+				}else if(is_writable($name)){ //mpre("Файл доступен для записи", $name);
+				}else if(!chmod($name, 0777)){ mpre("ОШИБКА установки прав доступа на запись");
 				}else{ pre("Внимание: файл БД доступен только на чтение", $name);
 				}
 			})){ mpre("ОШИБКА отображения уведомления о недоступности записи в файл БД");

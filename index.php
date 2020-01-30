@@ -87,12 +87,12 @@ if(!call_user_func(function(){ # Переменные окружения
 			}
 		});
 	})){ mpre("ОШИБКА устанвоки режима вывода ошибок");
-}elseif(call_user_func(function() use(&$conf){ // Запуск скрипта из консоли php -f index.php /pages:index/2 - Путь до скрипта в файловой системе
+}else if(call_user_func(function() use(&$conf){ // Запуск скрипта из консоли php -f index.php /pages:index/2 - Путь до скрипта в файловой системе
 		if(empty($argv)){// mpre("Только при запуске из консоли");
 		}elseif(count($argv)>1){ mpre("Аргументы командной строки не указаны пример - php -f index.php /pages:index/2");
 		}elseif(!$conf['user']['gid'] = array(1=>"Администратор")){ mpre("Установка прав администратора");
+		}else if(!conn()){ die(!mpre("ОШИБКА соединения с базой данных"));
 		}elseif(!$link = get($argv, 1)){ die(!mpre("Не указана ссылка консольной утилиты"));
-		}elseif(!conn()){ die(!mpre("ОШИБКА соединения с базой данных"));
 		}elseif(!$uri = get($match, 1)){ die(!mpre("ОШИБКА получения ссылки из параметров регулярного выржения"));
 		}elseif(!chdir(__DIR__)){ mpre("ОШИБКА Установки текущей директории");
 		}elseif(!$get = mpgt($uri)){ mpre("ОШИБКА получения параметров адресной строки");
@@ -133,8 +133,7 @@ if(!call_user_func(function(){ # Переменные окружения
 		}
 	})){ exit(0); //mpre("ОШИБКА отображение сохраененного ранее кеша"); 
 }elseif(!$conf['db']['conn'] = call_user_func(function($conn = null) use($conf){ # Подключение к базе данных
-		if(($conf['db']['type'] == 'sqlite') && !is_writable($conf['db']['name'])){ die(!pre("ОШИБКА Файл БД `{$conf['db']['name']}` не доступен для записи", "ERROR DB file `{$conf['db']['name']} ' error is not writable"));
-		}elseif(!$conn = conn()){ pre("ОШИБКА подключения к базе данных");
+		if(!$conn = conn()){ pre("ОШИБКА подключения к базе данных");
 		}elseif(!empty($conf['db']['error'])){ pre("ОШИБКА подключения к базе данных", $conf['db']['error']);
 		}else{// mpre("Соединение с базой данных прошло успешно", $conn);
 		} return $conn;
