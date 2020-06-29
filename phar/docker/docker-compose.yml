@@ -1,0 +1,35 @@
+version: '3'
+services:
+  web:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    image: "docker"
+    ports:
+#      - "${MY_DOCKER_IP:-127.0.0.1}:80:80"
+      - "80:80"
+    volumes:
+      - /var/www/html/:/var/www/html/
+    command: '/usr/sbin/apache2ctl -D FOREGROUND'
+#    hostname: xn--90aomiky
+#    domainname: xn--90aomiky.xn--p1ai
+#    network_mode: "host"
+#    networks:
+#      - web
+#    extra_hosts:
+#      - xn--90aomiky.xn--p1ai:31.134.136.186
+#    environment:
+#      - "EXTERNAL_IP=${EXTERNAL_IP:-31.134.136.186}"
+#    command: agent -server -advertise 31.134.136.186 -bootstrap
+
+#  test:
+#    image: "docker"
+#    ports:
+#      - "${MY_DOCKER_IP:-127.0.0.2}:80:80"
+#    hostname: 31.134.136.186
+#    domainname: 31.134.136.186
+#    #network_mode: "host"
+#    command: '/usr/sbin/apache2ctl -D FOREGROUND'
+#    environment:
+#      - "EXTERNAL_IP=${EXTERNAL_IP:-31.134.136.186}"
+#    command: agent -server -advertise ${EXTERNAL_IP} -bootstrap
