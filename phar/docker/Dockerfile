@@ -10,13 +10,13 @@ ENV TZ=Europe/Moscow
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt install -y apache2
-RUN apt install -y php7.0
-RUN apt install -y php7.2-mysql
-RUN apt install -y libapache2-mod-php7.2
+RUN apt install -y php
+RUN apt install -y php-mysql
+RUN apt install -y libapache2-mod-php
 RUN apt install -y curl
 RUN apt install -y php-mbstring
 RUN apt install -y php-mysql
-RUN apt install -y php7.2-sqlite
+RUN apt install -y php7.4-sqlite3
 RUN apt install -y php-gd
 RUN apt install -y php-intl
 RUN apt install -y php-xml
@@ -24,8 +24,8 @@ RUN apt install -y php-curl
 
 #RUN apt install -y php7.0-ffmpeg
 
-RUN sed -i "s/short_open_tag = Off/short_open_tag = On/" /etc/php/7.2/apache2/php.ini
-RUN sed -i "s/short_open_tag = Off/short_open_tag = On/" /etc/php/7.2/cli/php.ini
+RUN sed -i "s/short_open_tag = Off/short_open_tag = On/" /etc/php/7.4/apache2/php.ini
+RUN sed -i "s/short_open_tag = Off/short_open_tag = On/" /etc/php/7.4/cli/php.ini
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 RUN echo "IncludeOptional /var/www/*.conf" >> /etc/apache2/apache2.conf
@@ -38,7 +38,7 @@ RUN sed -i "s/<\/Directory>/\tAllow from all\n\t<\/Directory>/g" /etc/apache2/si
 RUN sed -i "s/<\/Directory>/\tRequire all granted\n\t<\/Directory>/g" /etc/apache2/sites-available/000-default.conf
 RUN mv /etc/apache2/sites-enabled/000-default.conf /tmp
 RUN cd /etc/apache2/sites-enabled/; ln -s ../sites-available/000-default.conf 000-default.conf
-RUN a2enmod php7.2
+RUN a2enmod php7.4
 RUN a2enmod rewrite
 #RUM apt install -y certbot
 #RUN a2enmod python-certbot-apache
