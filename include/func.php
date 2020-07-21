@@ -549,7 +549,7 @@ function inc($file_name, $variables = [], $req = false){ global $conf, $tpl;
 	}elseif(!$path[0] && (!$path = array_slice($path, 1))){ mpre("Ошибка правки смещения при первом левом слеше");
 	}elseif(!$path[0] == "modules"){ mpre("Файл не из директории с модулями `{$file_name}`", $path);
 	}elseif(($mod = get($conf, 'modules', $path[1])) &&0){ mpre("Директория раздела не установлена", $path);
-	}elseif(!$arg = array("modpath"=>$path[1], 'modname'=>$mod['modname'], "admin_access"=>$mod['admin_access'], "fn"=>first(explode(".", get($path, 2))))){ mpre("Ошибка установки аргументов файла");
+	}elseif(!$arg = array("modpath"=>get($path, 1), 'modname'=>get($mod, 'modname'), "admin_access"=>get($mod, 'admin_access'), "fn"=>first(explode(".", get($path, 2))))){ mpre("Ошибка установки аргументов файла");
 	}elseif($_RETURN = false){ mpre("Установка значения возврата");
 	}elseif(!is_string($content = call_user_func(function($file, $content = '') use(&$conf, &$tpl, &$_RETURN, $arg, $file_name, $match, $variables, $req){
 			if(($modules_start = get($conf, 'settings', 'modules_start')) && (!$modules_start = strtr($modules_start, ['{path}'=>$file]))){ mpre("Установка путь до файла в подсказку");
@@ -1081,7 +1081,8 @@ function erb($src, $key = null){
 			}elseif(!$file = (get($func, $f = 'file') ?: $f)){ mpre("ОШИБКА получения имени файла");
 			}elseif(!$line = (get($func, $f = 'line') ?: $f)){ mpre("ОШИБКА получения имени файла");
 			}elseif(!$pager_id = crc32("{$file}:{$line}")){ mpre("ОШИБКА формирования идентификатора постраничного отображения");
-			}elseif(!$p = ((strpos(get($_SERVER, 'HTTP_HOST'), "xn--") === 0) && ($arg['fn'] != "admin")) ? "стр" : "p"){ mpre("ОШИБКА формирования переменной с номером пагинатора");
+			}elseif(!$HTTP_HOST = get($_SERVER, "HTTP_HOST")){ mpre("ОШИБКА получения имени хоста");
+			}elseif(!$p = ((strpos($HTTP_HOST, "xn--") === 0) && (get($arg, 'fn') != "admin")) ? "стр" : "p"){ mpre("ОШИБКА формирования переменной с номером пагинатора");
 			}elseif(!$p = "{$p}{$pager_id}"){ mpre("ОШИБКА формирования имени переменной в адресе");
 
 			}elseif((!$LIMIT = ($limit ? " LIMIT ". (get($_GET, $p)*$limit). ",". abs($limit) : "")) &0){ mpre("Условия лимита");
