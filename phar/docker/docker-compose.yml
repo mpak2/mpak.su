@@ -1,12 +1,41 @@
 version: '3'
 services:
-  www:
-    build:
-      context: ./www/
-      dockerfile: ./Dockerfile
-    image: "docker"
-    ports:
-      - "80:80"
+  nginx:
+    image: nginx:latest
     volumes:
-      - /var/www/html/:/var/www/html/
-    command: '/usr/sbin/apache2ctl -D FOREGROUND'
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - 80:80
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    environment:
+      - LC_ALL=C.UTF-8
+    restart: always
+#  www:
+#    build:
+#      context: ./www/
+#      dockerfile: ./Dockerfile
+#    ports:
+#      - 8080:80
+#    #volumes:
+#    #  - /var/www/html/:/var/www/html/
+#    #command: '/usr/sbin/apache2ctl -D FOREGROUND'
+#    restart: always
+  ftp:
+    image: bogem/ftp
+    ports:
+      - 20:20
+      - 21:21
+      - 47400-47470:47400-47470
+    environment:
+      - LC_ALL=C.UTF-8
+      - FTP_USER=bob
+      - FTP_PASS=pass
+      - PASV_ADDRESS=31.134.136.186
+    restart: always
+#networks:
+#  default:
+#    external:
+#      name: nginx
+
+
