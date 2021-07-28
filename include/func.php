@@ -1081,7 +1081,7 @@ function erb($src, $key = null){
 			}elseif(!$file = (get($func, $f = 'file') ?: $f)){ mpre("ОШИБКА получения имени файла");
 			}elseif(!$line = (get($func, $f = 'line') ?: $f)){ mpre("ОШИБКА получения имени файла");
 			}elseif(!$pager_id = crc32("{$file}:{$line}")){ mpre("ОШИБКА формирования идентификатора постраничного отображения");
-			}elseif(!$HTTP_HOST = get($_SERVER, "HTTP_HOST")){ mpre("ОШИБКА получения имени хоста");
+			}elseif(!is_string($HTTP_HOST = (get($_SERVER, "HTTP_HOST") ?:""))){ mpre("ОШИБКА получения имени хоста");
 			}elseif(!$p = ((strpos($HTTP_HOST, "xn--") === 0) && (get($arg, 'fn') != "admin")) ? "стр" : "p"){ mpre("ОШИБКА формирования переменной с номером пагинатора");
 			}elseif(!$p = "{$p}{$pager_id}"){ mpre("ОШИБКА формирования имени переменной в адресе");
 
