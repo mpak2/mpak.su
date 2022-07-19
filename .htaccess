@@ -95,8 +95,3 @@
 </IfModule>
 ## EXPIRES CACHING ##
 
-# Защита гит директории
-<Directory .git>
-    order allow,deny
-    deny from all
-</Directory>
