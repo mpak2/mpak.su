@@ -59,7 +59,8 @@ if(!call_user_func(function(){ # Переменные окружения
 		}
 	})){ mpre("ОШИБКА установки пути к автозагрузке");
 }elseif(call_user_func(function(){ # Отображение нефатальных ошибок только под администратором
-		set_error_handler(function($errno, $errmsg, $filename, $linenum, $vars){
+		//set_error_handler(function($errno, $errmsg, $filename, $linenum, $vars){
+		/*set_error_handler(function('some_handler',-1 & ~E_NOTICE & ~E_USER_NOTICE){
 			global $conf;
 			if(!$errortype = array(
 					1   =>  "Ошибка",
@@ -85,7 +86,8 @@ if(!call_user_func(function(){ # Переменные окружения
 			}else{ mpre($file_info, $type_num, $error, $info['sql']);
 				mpevent($type, $error, ["Файл"=>$file_info, "Номер ошибки"=>$type_num, "Ошибка"=>$error, "Запрос"=>$info['sql']]);
 			}
-		});
+		});*/
+
 	})){ mpre("ОШИБКА устанвоки режима вывода ошибок");
 }else if(call_user_func(function() use(&$conf){ // Запуск скрипта из консоли php -f index.php /pages:index/2 - Путь до скрипта в файловой системе
 		if(empty($argv)){// mpre("Только при запуске из консоли");
@@ -153,10 +155,10 @@ if(!call_user_func(function(){ # Переменные окружения
 		if(array_key_exists('null', $_GET)){ return true; pre("Пропускаем проверку списка таблиц на ресурсах");
 		}elseif(!$tables = tables()){ mpre("База данных не пуста");
 		}elseif($conf["db"]["type"] != "sqlite"){ //pre("Для mysql установка только с пустой базой", $conf["db"]["type"]);
-		}elseif(!get($conf, "settings", "admin_usr")){ return !mpre("Не установлен администратор");
+		}elseif(!get($conf, "settings", "admin_usr")){ mpre("Не установлен администратор"); return []; /*exit(inc('include/install.php'));*/
 		}else{ //mpre("Список таблиц базы", $tables);
 		} return $tables;
-	})){ exit(inc('include/install.php')); # Запускаем процесс установки
+})){ exit(inc('include/install.php')); # Запускаем процесс установки
 }elseif(!is_array($_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']))){ mpre("ОШИБКА получения параметров адресной строки");
 }elseif(!$sess = users_sess()){// pre("Добавляем сессию");
 }elseif(!$guest = get($conf, 'settings', 'default_usr')){ mpre("Имя пользователя гость не указано");
@@ -210,7 +212,8 @@ if(!call_user_func(function(){ # Переменные окружения
 		}elseif(!$user['sess'] = $sess){ pre("ОШИБКА восстановления сессии");
 		}elseif(!$USERS_MEM = rb("users-mem", "uid", "id", $user['uid'])){ pre("ОШИБКА получения списка членства пользователя в группах");
 		}elseif(!$USERS_GRP = rb("users-grp", "id", "id", rb($USERS_MEM, "grp_id"))){ pre("ОШИБКА получения списка групп пользователя");
-		//}elseif(!$USERS_GRP += ((array_search($conf['user']['uname'], explode(',', $conf['settings']['admin_usr'])) !== false) ? rb("users-grp", "name", "id", "[Администратор]") : [])){ pre("ОШИБКА устанвоки прав доступа группы Администратор");
+		}elseif(!is_string($uname =get($conf ,"user" ,"uname") ?:"")){ pre("Пользователь не установлен");
+		}elseif(!$USERS_GRP += ((array_search($uname, explode(',', $conf['settings']['admin_usr'])) !== false) ? rb("users-grp", "name", "id", "[Администратор]") : [])){ pre("ОШИБКА устанвоки прав доступа группы Администратор");
 		}elseif(!$user['gid'] = array_column($USERS_GRP, "name", "id")){ pre("ОШИБКА пользователь не состоит в группах");
 		}else{ //pre($conf['user']); // pre("Авторизованный пользователь", $user);
 		} return $user;
@@ -220,7 +223,7 @@ if(!call_user_func(function(){ # Переменные окружения
 		}elseif(!$_MODULES = array_map(function($modules_index) use($conf){
 				if(!$modules = $modules_index){ pre("ОШИБКА установки свойств модуля");
 				}elseif(!$modules["modname"] = mb_strtolower((get($modules, 'name') ?: $modules['folder']), 'UTF-8')){ pre("Приведение к формату имени хоста");
-				}elseif(!is_numeric($modules['admin_access'] = ((array_search(get($conf, 'user', 'uname'), explode(',', $conf['settings']['admin_usr'])) !== false) ? 5 : (int)$modules_index['admin_access']))){ pre("ОШИБКА установки прав доступа к разделу", $modules_index);
+				//}elseif(!is_numeric($modules['admin_access'] = ((array_search(get($conf, 'user', 'uname'), explode(',', $conf['settings']['admin_usr'])) !== false) ? 5 : (int)$modules_index['admin_access']))){ pre("ОШИБКА установки прав доступа к разделу", $modules_index);
 				}else{ return $modules; }
 			}, $MODULES_INDEX)){ mpre("ОШИБКА получения свойств модулей");
 		}elseif(!$MODULES = $_MODULES + rb($_MODULES, "folder") + rb($_MODULES, "modname")){ mpre("Варианты доступа к свойствам раздела");

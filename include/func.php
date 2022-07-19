@@ -733,9 +733,11 @@ if(!function_exists('blocks')){
 				}elseif(!is_string($result[$key] = strtr($block_text, $section))){ mpre("Ошибка установки содержимого блока", $block);
 				}elseif(get($block, 'alias') && ($n = "<!-- [block:{$block['alias']}] -->") && !is_string($result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"])){ # Ошибка установки содержимого по алиасу
 				}elseif(($n = "<!-- [blocks:". $block['reg_id'] . "] -->") && !is_string($result[$n] = get($result, $n). $result["<!-- [block:{$block['id']}] -->"])){ mpre("Ошибка добавления блока по номеру группы");
-				}elseif(!is_string($section_start = strtr(get($conf, 'settings', $t = 'blocks_start'), $section))){ mpre("ОШИБКА замены тега `{$t}`");
-				}elseif(!is_string($section_stop = strtr(get($conf, 'settings', $t = 'blocks_stop'), $section))){ mpre("ОШИБКА замены тега `{$t}`");
-				}else{// mpre($block);
+				//}elseif(!is_string($section_start = strtr(get($conf, 'settings', $t = 'blocks_start'), $section))){ mpre("ОШИБКА замены тега `{$t}`");
+				}else if(!is_string($section_start =get($conf, 'settings', $t = 'blocks_start') ?:"")){ mpre("ОШИБКА старт блока не установлен");
+				//}elseif(!is_string($section_stop = strtr(get($conf, 'settings', $t = 'blocks_stop'), $section))){ mpre("ОШИБКА замены тега `{$t}`");
+				}else if(!is_string($section_stop =get($conf, 'settings', $t = 'blocks_stop') ?:"")){ mpre("ОШИБКА старт блока не установлен");
+				}else{ //mpre($section);
 					$result[$key] = $section_start. $cb. $section_stop;
 				}
 			} return $result;
@@ -1093,6 +1095,7 @@ function erb($src, $key = null){
 			}elseif(is_numeric($limit) && ($limit <= 0) && !mpre($sql)){ mpre("Отображение запроса");
 			}elseif(!is_array($SRC = qn($sql))){ mpre("Ошибка выполнения запроса", $sql);
 //			}elseif(strpos($sql, "news_index") && !mpre($p, $sql, $SRC)){
+			}else if(!is_array($tpl =is_array($tpl) ?$tpl :[])){ mpre("Уведомление");
 			}elseif(!is_string($tpl['pager'] = call_user_func(function() use($limit, $sql, $pager_id, $tpl, $tab, $where, $order){ # Получаем описание на постраничные переходы
 					if(!$limit){ return (get($tpl, 'pager') ?: "");
 					}elseif(!$sql = $sql = "SELECT COUNT(*) AS cnt FROM {$tab}". ($where ? " WHERE {$where}" : ""). ($order ? " ORDER BY {$order}" : "")){ mpre("ОШИБКА формирования адреса для постраничной выборки");
