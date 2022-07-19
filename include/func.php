@@ -1339,7 +1339,8 @@ function mpgt($REQUEST_URI, $get = array()){
 	} if(!empty($part[1])){
 		$param = explode(':', $part[1], 2);// mpre($param);
 		$val = array_pop($param);// mpre($val); exit;
-		$get += array(urldecode(array_shift($param))=>urldecode($val));
+		$name =$param ?urldecode(array_shift($param)) :"";
+		$get += array($name=>urldecode($val));
 		$get['null'] = '';
 	}
 	$part = explode('/', $part[0], 3);
