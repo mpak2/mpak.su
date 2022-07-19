@@ -174,13 +174,14 @@
 			})): mpre("Не указано имя таблицы для создания <a href='/{$arg['modpath']}:admin/r:{$arg['modpath']}-index'>Создать</a>"); ?>
 		<? elseif(call_user_func(function() use($table, $conf, $tpl, $arg){ // Отображение кнопки добавить таблицу
 				if(array_search($table, $tpl['tables']) !== false){ //mpre("Таблица уже создана");
-				}else if($conf['modules']['sql']['admin_access'] <= 4){ mpre("Права доступа недостаточные для создания таблицы");
+				//}else if($conf['modules']['sql']['admin_access'] <= 4){ mpre("Права доступа недостаточные для создания таблицы");
 				}else{ ?>
 					<div style="margin:10px;">
 						<script>
 							(function($, script){
 								$(script).parent().on("click", "button.table", function(e){
 									if(value = prompt("Название таблицы")){
+										//alert(123);
 										$.post("/sql:admin_sql/null", {table:"<?=$table?>"}, function(data){
 											$.post("/settings:admin/r:mp_settings/null", {modpath:"<?=$arg['modpath']?>", name:"<?=substr($table, strlen($conf['db']['prefix']))?>", value:value, aid:4}, function(data){
 												console.log("post:", data);
