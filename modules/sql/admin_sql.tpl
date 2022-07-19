@@ -5,13 +5,13 @@
 		<h1>mysqldump</h1>
 		<pre style="margin:5px; padding:5px; border-top:2px solid #ddd; border-bottom:2px solid #ddd;"><?=$dump?></pre>
 	<? elseif(!$table = get($_GET, 'r')): mpre("ОШИБКА получения имени таблицы") ?>
-	<? elseif(!$INDEXES = indexes($table)): mpre("ОШИБКА получения списка полей таблицы") ?>
+	<? elseif(!is_array($INDEXES = indexes($table))): mpre("ОШИБКА получения списка индексов таблицы" ,$table) ?>
 	<? elseif(!$FIELDS = fields($table)): mpre("ОШИБКА получения списка полей таблицы") ?>
-	<? elseif(!$indexes = array_map(function($index){ // Получение имен полей из имен индексов
+	<? elseif(!is_array($indexes = array_map(function($index){ // Получение имен полей из имен индексов
 			if(!$parts = explode("-", $index, 2)){ mpre("ОШИБКА разбивки имени ключа на составляющие");
 			}else{ return get($parts, 1); }
-		}, array_keys($INDEXES))): mpre("ОШИБКА поулчения имен полей из индексов") ?>
-	<? elseif(!$INDEXES = array_combine($indexes, $INDEXES)): mpre("ОШИБКА установки индексов по именам полей") ?>
+		}, array_keys($INDEXES)))): mpre("ОШИБКА поулчения имен полей из индексов" ,$INDEXES) ?>
+	<? elseif(!is_array($INDEXES = array_combine($indexes, $INDEXES))): mpre("ОШИБКА установки индексов по именам полей" ,$INDEXES) ?>
 	<? elseif(!$types = array("INTEGER", "REAL", "TEXT")): mpre("ОШИБКА установки типов полей") ?>
 	<? else: //mpre($FIELDS) ?>
 		<div class="table" style="width:100%;">
