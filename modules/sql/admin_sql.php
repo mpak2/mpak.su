@@ -201,7 +201,8 @@ if($dump = get($_REQUEST, 'dump')){
 				}else if(!is_array($SQL = array_filter(array_map(function($index) use($FIELDS, $_FIELDS_, $INDEXES){ // Восстановление индексов
 						if(!$name = get($index, "name")){ mpre("ОШИБКА получения имени индекса");
 						}else if(!$parts = explode("-", $name, 2)){ mpre("ОШИБКА получения составляющих частей имени индекса");
-						}else if(!$_parts = explode("-", get($parts, 1), 2)){ mpre("ОШИБКА получения признака уникального индекса");
+						//}else if(!mpre(gettype(get($parts ,1)) ?:"")){ mpre("Уведомление");
+						}else if(!$_parts = explode("-", get($parts, 1) ?:"", 2)){ mpre("ОШИБКА получения признака уникального индекса");
 						}else if(!$sql = call_user_func(function($sql = "") use($index, $_parts, $FIELDS, $_FIELDS_){ // Получение запроса на восстановление индекса
 								if(!$sql = get($index, 'sql') ?: ""){ //mpre("Зпрос на восстановление индекса не задан");
 								}else if(!$_name = get($_parts, 0)){ mpre("ОШИБКА получения имени поля");
