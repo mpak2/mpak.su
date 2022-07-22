@@ -162,14 +162,23 @@ if($dump = get($_REQUEST, 'dump')){
 				} return $sql;
 			})){ mpre("ОШИБКА получение запроса на создание временной таблицы");
 		}else if(!$transaction = array_merge($transaction, ["PRAGMA foreign_keys=OFF"])){ mpre("ОШИБКА добавления списка запросов");
-		}else if(!$transaction[] = call_user_func(function($sql = "") use($table, $FIELDS){ // Запрос создания обновленнойтаблицы
-				if(!$_fields = array_filter(array_map(function($field){ // Список полей новой таблицы
+		}else if(!$transaction[] = call_user_func(function($sql = "") use($table, $FIELDS){ // Запрос создания обновленной таблицы
+				if(!$_fields_from = array_filter(array_map(function($field){ // Список полей новой таблицы
 						if(!$name = get($field, "name")){ mpre("ОШИБКА имя поля не задано");
+						//}else if(!$field_name =get($_POST ,"f" ,$name ,"name")){ mpre("Новое имя поля");
 						}else if(!$field = "`{$name}`"){ mpre("ОШИБКА составления формата запроса поля");
-						}else{ return $field; }
+						}else{ //mpre($_POST ,"Список полей");
+						}return $field;
 					}, $FIELDS))){ mpre("Получение списка имен и типов новых полей");
-				}else if(!$sql = "INSERT INTO `backup` (". implode(", ", $_fields). ") SELECT ". implode(", ", $_fields). " FROM `{$table}`"){ mpre("ОШИБКА составления запроса на копирование резервных данных");
-				}else{ //mpre("Запрос на перенос данных", $sql);
+				}else if(!$_fields_to = array_filter(array_map(function($field){ // Список полей новой таблицы
+						if(!$name = get($field, "name")){ mpre("ОШИБКА имя поля не задано");
+						}else if(!$field_name =get($_POST ,"f" ,$name ,"name")){ mpre("Новое имя поля");
+						}else if(!$field = "`{$field_name}`"){ mpre("ОШИБКА составления формата запроса поля");
+						}else{ //mpre($_POST ,"Список полей");
+						}return $field;
+					}, $FIELDS))){ mpre("Получение списка имен и типов новых полей");
+				}else if(!$sql = "INSERT INTO `backup` (". implode(", ", $_fields_to). ") SELECT ". implode(", ", $_fields_from). " FROM `{$table}`"){ mpre("ОШИБКА составления запроса на копирование резервных данных");
+				}else{ //mpre($_POST ,"Запрос на перенос данных name=" .$name, $sql);
 				} return $sql;
 			})){ mpre("ОШИБКА добавления запроса на создание обновленной таблицы");
 		}else if(!$transaction = array_merge($transaction, ["PRAGMA foreign_keys=ON", "DROP TABLE `{$table}`", "ALTER TABLE `backup` RENAME TO `{$table}`"])){ mpre("ОШИБКА добавления списка запросов");
