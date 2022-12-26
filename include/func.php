@@ -549,7 +549,17 @@ function inc($file_name, $variables = [], $req = false){ global $conf, $tpl;
 	}elseif(!$path[0] && (!$path = array_slice($path, 1))){ mpre("Ошибка правки смещения при первом левом слеше");
 	}elseif(!$path[0] == "modules"){ mpre("Файл не из директории с модулями `{$file_name}`", $path);
 	}elseif(($mod = get($conf, 'modules', $path[1])) &&0){ mpre("Директория раздела не установлена", $path);
-	}elseif(!$arg = array("modpath"=>get($path, 1), 'modname'=>get($mod, 'modname'), "admin_access"=>get($mod, 'admin_access'), "fn"=>first(explode(".", get($path, 2))))){ mpre("Ошибка установки аргументов файла");
+	//}elseif(!$arg = array("modpath"=>get($path, 1), 'modname'=>get($mod, 'modname'), "admin_access"=>get($mod, 'admin_access'), "fn"=>first(explode(".", get($path, 2))))){ mpre("Ошибка установки аргументов файла");
+//}elseif(!mpre("Пути" ,get($path ,2))){ mpre("ОШИБКА путей");
+	}else if(!is_string($fn =call_user_func(function($fn ="")use($path){ // first(explode(".", get($path, 2)))
+		if(!$file_name =last($path)){ mpre("Уведомление");
+		}else if(!$NAME =explode("." ,$file_name)){ err("Список частей файла");
+		}else if(!$fn =first($NAME)){ err("Первая часть");
+		}else{ //mpre("Список путей file_name={$file_name}" ,$path ,$fn ,$NAME);
+		}return $fn; }))){ mpre("ОШИБКА пути");
+	//}elseif(!is_string($fn = array_key_exists(2 ,$path) ?first(get($path ,2)) :"")){ mpre("ОШИБКА получения пути");
+	//}elseif($split =preg_split(".", get($path, 2))){ mpre("ОШИБКА разделения");
+	}elseif(!$arg = array("modpath"=>get($path, 1), 'modname'=>get($mod, 'modname'), "admin_access"=>get($mod, 'admin_access'), "fn"=>$fn)){ mpre("Ошибка установки аргументов файла");
 	}elseif($_RETURN = false){ mpre("Установка значения возврата");
 	}elseif(!is_string($content = call_user_func(function($file, $content = '') use(&$conf, &$tpl, &$_RETURN, $arg, $file_name, $match, $variables, $req){
 			if(($modules_start = get($conf, 'settings', 'modules_start')) && (!$modules_start = strtr($modules_start, ['{path}'=>$file]))){ mpre("Установка путь до файла в подсказку");
