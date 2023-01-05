@@ -781,7 +781,7 @@
 													<a href="<?=$href?>"><?=$href?></a>
 												<? endif; ?>
 											<? else: ?>
-												<?=htmlspecialchars(strip_tags($v))?>
+												<?=$v?>
 											<? endif; ?>
 										</span>
 									<? endforeach; ?>
