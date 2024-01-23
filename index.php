@@ -161,6 +161,7 @@ if(!call_user_func(function(){ # Переменные окружения
 })){ exit(inc('include/install.php')); # Запускаем процесс установки
 }elseif(!is_array($_REQUEST += $_GET += mpgt($_SERVER['REQUEST_URI']))){ mpre("ОШИБКА получения параметров адресной строки");
 }elseif(!$sess = users_sess()){// pre("Добавляем сессию");
+//}else if(!mpre("Уведомление")){ mpre("Уведомление");
 }elseif(!$guest = get($conf, 'settings', 'default_usr')){ mpre("Имя пользователя гость не указано");
 }elseif(!is_array($conf['user'] = (rb('users-', 'id', $sess['uid']) ?: rb('users-', 'name', "[{$guest}]")))){ pre("ОШИБКА выборки пользователя");
 }elseif(!$conf['user'] += ['uid'=>(($sess['uid'] > 0) ? get($conf, 'user', 'id') : -$sess['id']), 'sess'=>$sess, 'gid'=>[]]){ pre("ОШИБКА сохранения сессии в системных переменных");
@@ -207,7 +208,7 @@ if(!call_user_func(function(){ # Переменные окружения
 }elseif(!is_array($conf['user'] = call_user_func(function($user) use($conf){ # Получаем свойства пользователя
 		if(!$sess = get($user, "sess")){ pre("ОШИБКА получения сессии пользователя");
 		}elseif(0 >= $sess["uid"]){// pre("Пользователь является гостем");
-		}elseif(!$user = ql($sql = "SELECT *, `id` AS `uid`, `name` AS `uname` FROM `{$conf['db']['prefix']}users` WHERE `id`=". (int)$sess['uid'], 0)){ pre("ОШИБКА выборки пользователя сессии из базы");
+		}elseif(!$user = ql($sql = "SELECT *, id AS uid, name AS uname FROM {$conf['db']['prefix']}users WHERE id=". (int)$sess['uid'], 0)){ pre("ОШИБКА выборки пользователя сессии из базы");
 		}elseif(!$user['uid'] = ($user['name'] == $conf['settings']['default_usr'] ? -$sess['id'] : $user['uid'])){ pre("Устанавливаем в идентификатор пользователя номер сессии с минусом");
 		}elseif(!$user['sess'] = $sess){ pre("ОШИБКА восстановления сессии");
 		}elseif(!$USERS_MEM = rb("users-mem", "uid", "id", $user['uid'])){ pre("ОШИБКА получения списка членства пользователя в группах");
@@ -263,11 +264,11 @@ if(!call_user_func(function(){ # Переменные окружения
 	}, $conf["settings"]["http_host"]))){ mpre("ОШИБКА выборки хоста сайта");
 }elseif(!$conf['settings']['theme'] = call_user_func(function($theme) use($conf){ # Установка темы сайта
 		if("admin" == last(explode("/", $_SERVER['REQUEST_URI']))){ $theme = "zhiraf";// mpre("Админ раздел внутри директории");
-		}elseif(array_filter(array_flip($_GET['m']), function($v){ return ("admin" == $v); })){ $theme = "zhiraf"; // mpre("Мдуль админка");
-		}elseif(array_filter($_GET['m'], function($fn){ return (0 === strpos($fn, "admin")); })){ $theme = "zhiraf"; // mpre("Страница админка");
+		}elseif(array_filter(array_flip(get($_GET ,'m') ?:[]), function($v){ return ("admin" == $v); })){ $theme = "zhiraf"; // mpre("Мдуль админка");
+		}elseif(array_filter(get($_GET ,'m') ?:[], function($fn){ return (0 === strpos($fn, "admin")); })){ $theme = "zhiraf"; // mpre("Страница админка");
 		}elseif(get($_GET, "theme")){ $theme = $_GET["theme"]; //mpre("Ошибка установки темы из адреса");
 		}elseif(get($conf, 'user', 'theme')){ $theme = $conf['user']['theme'];
-		}elseif(get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:*")){ $theme = get($conf, 'settings', $w);
+		}elseif(get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:*")){ $theme = get($conf, 'settings', $w); //mpre("Тема" ,$theme);
 		}elseif(get($conf, 'themes', 'index', 'theme')){ $theme = $conf['themes']['index']['theme'];
 		}elseif(get($conf, 'settings', $w = "theme/{$conf['settings']['modpath']}:{$conf['settings']['fn']}")){ $theme = get($conf, 'settings', $w);
 		}elseif(get($conf, 'settings', $w = "theme/*:{$conf['settings']['fn']}")){ $theme = get($conf, 'settings', $w);
@@ -370,7 +371,7 @@ if(!call_user_func(function(){ # Переменные окружения
 }elseif(!is_array($conf["settings"] += call_user_func(function($modules = []) use($conf){
 		foreach(mpql(mpqw("SELECT * FROM {$conf['db']['prefix']}modules_index_gaccess ORDER BY sort", 'Права доступа группы к модулю', function($error) use($conf){
 			if(strpos($error, "Unknown column 'sort'")){
-				qw(mpre("ALTER TABLE `mp_modules_index_gaccess` ADD `sort` int(11) NOT NULL  COMMENT '' AFTER `id`"));
+				qw(mpre("ALTER TABLE mp_modules_index_gaccess ADD sort int(11) NOT NULL  COMMENT '' AFTER `id`"));
 				qw(mpre("UPDATE `mp_modules_index_gaccess` SET sort=id"));
 			}elseif(strpos($error, "doesn't exist")){
 				qw(mpre("ALTER TABLE {$conf['db']['prefix']}modules_gaccess RENAME {$conf['db']['prefix']}modules_index_gaccess"));
@@ -399,37 +400,18 @@ if(!call_user_func(function(){ # Переменные окружения
 			$conf["content"] = modules($conf["content"]); $zblocks = blocks();
 		} return $zblocks;
 	})) and !get($conf,"deny")){ mpre("Ошибка установки порядка следования расчетов блоков");
-}else if($content = call_user_func(function($content){
-		if(!array_key_exists('null', $_GET)){ //mpre("Не ресурс");
-		}else{ cache($content);
-			return $content;
-		}
-	}, $conf["content"])){ echo $content;
-}elseif(!$tc = call_user_func(function() use($conf){ # Содержимое шаблона
-		if(!$ind = (get($_GET, 'index') ?: (get($conf, 'settings', 'index') ?: "index"))){ mpre("Ошибка определения имени главного файла");
+}elseif(!$tc = call_user_func(function($tc ="<!-- [modules] -->") use($conf){ # Содержимое шаблона
+		if(array_key_exists("null", $_GET)){ //mpre("Не подключаем шаблон");
+		//}else if(!mpre("Тема" ,$conf['settings']['theme'])){ mpre("Уведомление");
+		}else if(!$ind = (get($_GET, 'index') ?: (get($conf, 'settings', 'index') ?: "index"))){ mpre("Ошибка определения имени главного файла");
 		}elseif(!$file = mpopendir($f = "themes/{$conf['settings']['theme']}/{$ind}.html")){ mpre("Содержимоге файла не найдено", $f);
-//		}elseif(true){ die($file);
 		}elseif(!get($conf, 'settings', 'theme_exec') && (!$tc = file_get_contents($file))){ mpre("Ошибка получения содержимого файла шаблона");
 		}else{// mpre("Запускаем шаблон на исполнение");
 			ob_start(); inc($f); $tc = ob_get_clean();
+			//mpre("Тема" ,$tc);
 		} return $tc;
 	})){ mpre("ОШИБКА содржимого шаблона");
-}else if(call_user_func(function() use($conf){ # Подключение LESS
-		if(!get($conf, "settings", "themes_less_compile")){ // Параметр включения less
-		}elseif(!$teme_config = mpopendir($json = "themes/{$conf['settings']['theme']}/config.json")){ mpre("Конфиг LESS не найден", $json);
-		}elseif(!$teme_config = file_get_contents($teme_config)){ mpre("ОШИБКА подключения конфига LESS", $teme_config);
-		}elseif(!isJSON($teme_config)){ mpre("Содержимое файла не определено как JSON", $teme_config);
-		}else if(!$teme_config = json_decode($teme_config,true)){ mpre("ОШИБКА разбора содержимого конфига LESS", $teme_config);
-		}else{
-			if(get($teme_config,'less_compile')){
-				MpLessCompile(mpopendir("themes/{$conf['settings']['theme']}/"));
-			}
-			if(get($teme_config,'js_auto_mini')){
-				MpJsAutoMini(mpopendir("themes/{$conf['settings']['theme']}/"));
-			} ob_start(); inc($f); $tc = ob_get_clean();
-		}
-	})){ mpre("ОШИБКА подключения less");
-}elseif(!$conf['settings']['microtime'] = substr(microtime(true)-$conf['settings']['microtime'], 0, 8)){ mpre("Ошибка расчета времени генерирования страницы");
+}elseif(!$conf['settings']['microtime'] = substr(microtime(true) -$conf['settings']['microtime'], 0, 8)){ mpre("Ошибка расчета времени генерирования страницы");
 }elseif(!$content = call_user_func(function($content) use($conf, $tc, $zblocks){ # Установка параметров свойств сайта
 		if(!$content = str_replace('<!-- [modules] -->', $content, $tc)){ mpre("Ошибка замены содержимого модуля");
 		}elseif(!$content = strtr($content, (array)$zblocks)){ mpre("Ошибка установки содержимоого блоков");
@@ -440,10 +422,9 @@ if(!call_user_func(function(){ # Переменные окружения
 }elseif(!$content = call_user_func(function() use($conf, $content){ # Если не запрещено перед выдачей кешируем страницу
 		if(get($conf, 'settings', 'users_cashe_disacled')){ mpre("Кеширование запрещено");
 		}else{// mpre("Кеширование старницы");
-			cache($content);
+			//cache($content);
 		} return $content;
 	})){ mpre("Ошибка кеширования содержимого страницы");
 }else{ //header("Cache-Control:no-cache, must-revalidate;");
-	//pre("test");
 	echo $content;
 }
