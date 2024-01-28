@@ -3,16 +3,20 @@
 # Создание пользовательской сессии
 function users_sess($sess = null){
 	global $conf;
+	//mpre($_SERVER["REMOTE_ADDR"]);
 	if(!$guest = ['id'=>0, "uname"=>"гость", "pass"=>"nopass", "reg_time"=>0, "last_time"=>time()]){ pre("Ошибка создания пользователя");
 	}elseif(!$hash = (get($_COOKIE, "sess") ?: md5("{$_SERVER['REMOTE_ADDR']}:".microtime()))){ pre("ОШИБКА расчета хеша кукисы");
 	}elseif(!$url = mpquot(urldecode($_SERVER['REQUEST_URI']))){ pre("ОШИБКА расчета адреса текущей страницы");
 //	}elseif(!is_string($ref = mpquot(mpidn(urldecode(get($_SERVER, 'HTTP_REFERER')))))){ pre("ОШИБКА расчета реферальной ссылки");
-	}elseif(!$_sess = array('id'=>0, 'uid'=>$guest['id'], "refer"=>0, 'last_time'=>time(), 'count'=>0, 'count_time'=>0, 'cnull'=>0, 'sess'=>$hash, /*'ref'=>$ref,*/ 'ip'=>mpquot($_SERVER['REMOTE_ADDR']), 'agent'=>mpquot($_SERVER['HTTP_USER_AGENT']), 'url'=>$url)){ pre("Ошибка создания пустой сессии");
+	}elseif(!$_sess = array('id'=>0, 'uid'=>$guest['id'], "refer"=>0, 'last_time'=>time(), 'count'=>0, 'count_time'=>0, 'cnull'=>0, 'sess'=>$hash, /*'ref'=>$ref,*/ 'ip'=>mpquot($_SERVER['REMOTE_ADDR']), 'agent'=>mpquot(get($_SERVER ,'HTTP_USER_AGENT')), 'url'=>$url)){ pre("Ошибка создания пустой сессии");
 	}elseif(!is_numeric($uid = get($conf, 'user', 'uid') > 1 ? $conf['user']['uid'] : $guest['id'])){ pre("ОШИБКА установки идентификтаора пользователя");
-	}elseif(!$sql = "SELECT * FROM {$conf['db']['prefix']}users_sess WHERE `ip`='{$_sess['ip']}' AND last_time>=".(time()-86400)." AND `agent`=\"{$_sess['agent']}\" AND ". (get($_COOKIE, "sess") ? "sess=\"{$_sess['sess']}\"" : "uid=". $uid)." ORDER BY id DESC"){ mpre("ОШИБКА составления запроса поиска сессии");
+	}elseif(!$sql = "SELECT * FROM {$conf['db']['prefix']}users_sess WHERE ip='{$_sess['ip']}' AND last_time>='".(time()-86400)."' AND agent='{$_sess['agent']}' AND ". (get($_COOKIE, "sess") ? "sess='{$_sess['sess']}'" : "uid='". $uid ."'")." ORDER BY id DESC"){ mpre("ОШИБКА составления запроса поиска сессии");
+	//}else if(!mpre("Запрос" ,$sql)){ mpre("Уведомление");
+	//}else if(!mpre("Запрос" ,$sql)){ mpre("Уведомление");
 	}elseif($sess = (get($_COOKIE, "sess") ? mpql(mpqw($sql), 0) : [])){ return $sess;// pre("ОШИБКА получения сессии");
 	}elseif(empty($_POST) && !get($_SERVER, 'HTTP_PRAGMA')){ return $_sess; pre("Пропускаем гостей так как нет запросов и обновлений");
-	}elseif(!qw($sql = "INSERT INTO {$conf['db']['prefix']}users_sess (`". implode("`, `", array_keys(array_diff_key($_sess, array_flip(['id'])))). "`) VALUES ('". implode("', '", array_values(array_diff_key($_sess, array_flip(['id'])))). "')", function($error){
+	}elseif(!qw($sql = "INSERT INTO {$conf['db']['prefix']}users_sess (". implode(", ", array_keys(array_diff_key($_sess, array_flip(['id'])))). ") VALUES ('". implode("', '", array_values(array_diff_key($_sess, array_flip(['id'])))). "')",
+		function($error){ # На случаи ошибки
 			if(strpos($error, "doesn't exist")){ qw("ALTER TABLE mp_sess RENAME mp_users_sess");
 			}else{ pre("ОШИБКА не обработана"); }
 		})){ pre("ОШИБКА добавления сессии в базу");
@@ -61,8 +65,8 @@ function conn($init = null){
 	if(!$type = ($init ? first(explode(":", $init)) : $conf['db']['type'])){ pre("Тип подключения не определен");
 	}elseif(!$name = ($init ? last(explode(":", $init)) : $conf['db']['name'])){ pre("Файл не установлен");
 	}elseif(!is_bool($persistent = (($_POST || array_search("no-cache", $_SERVER)) ? false : true))){ mpre("ОШИБКА получения признака постоянного соединения");
-	}elseif(!$options = [PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING/* ERRMODE_SILENT*/ , PDO::ATTR_PERSISTENT=>$persistent, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>10/*, PDO::SQLITE_MAX_EXPR_DEPTH=>0*/]){ mpre("ОШИБКА задания опций подключения");
-	}elseif("sqlite" == $type){
+	}elseif(!$options = [PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING/* ERRMODE_SILENT*/ , PDO::ATTR_PERSISTENT=>$persistent, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT=>3/*, PDO::SQLITE_MAX_EXPR_DEPTH=>0*/]){ mpre("ОШИБКА задания опций подключения");
+	}elseif("sqlite" == $type){ //mpre("Подключение БД" ,$conf['db']);
 		if(!$realpath = realpath($name)){ mpre("Файл с БД не найден `{$name}`");
 		//}else if(!is_writable($name)){ pre("Внимание: файл БД доступен только на чтение", $name);
 		}else if(call_user_func(function() use($name){ // Уведомление о недоступности записи в файл БД
@@ -83,7 +87,7 @@ function conn($init = null){
 		}else{ //mpre("Реальный путь до файла бд", $name);
 			$conn->exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=MEMORY;');
 		}
-	}else{// pre($conf['db']);
+	}elseif("mysql" == $type){
 		if(!is_string($host = (get($conf, 'db', 'host') ? "host={$conf['db']['host']}" : ""))){ pre("ОШИБКА получения хоста из конфигурации");
 		}elseif(!is_string($unix_socket = (get($conf, 'db', 'unix_socket') ? "unix_socket={$conf['db']['unix_socket']}" : ""))){ pre("ОШИБКА получения хоста из конфигурации");
 		}elseif(!is_string($addr_conf = ($unix_socket ?: $host))){ pre("ОШИБКА получения адреса подключения host/unix_socket");
@@ -102,7 +106,25 @@ function conn($init = null){
 		}else{// pre($init, $conf['db']['login'], $TABLES);
 			$conn->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
 		}
-	} return $conn;
+	}else{// pre($conf['db']);
+		//if(!$init = ($init ?: "{$conf['db']['type']}:localhost;dbname={$conf['db']['name']}")){ pre("ОШИБКА составления строки подключения к БД");
+		if(!$init = ($init ?: "pgsql:host=localhost;port=5432;dbname={$conf['db']['name']};")){ pre("ОШИБКА составления строки подключения к БД");
+		}else if(!$conn = call_user_func(function($conn = null) use($init, $conf, $options){ // Подключение к базе данных
+				try {
+					$conn = new PDO($init, $conf['db']['login'], $conf['db']['pass'], $options);
+//						$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+						//mpre("Подключение" ,gettype($conn));
+					return $conn;
+				} catch (PDOException $e) { echo pre('Подключение не удалось', $init);
+				}
+			})){ mpre("ОШИБКА подключения к базе данных", $init);
+		}else if(!$conf["db"]["conn"] =$conn){ mpre("Установка");
+		}elseif(!is_array($TABLES = tables())){ pre("ОШИБКА получения списка таблиц");
+		//}else if(!mpre("Соединение" ,gettype($conn) ,$TABLES)){ mpre("Уведомление");
+		}else{ //pre($init, $conf['db']['login'], $TABLES);
+			//$conn->exec("set names utf8"); # Prior to PHP 5.3.6, the charset option was ignored
+		} return $conn;
+	}return $conn;
 }
 //компиляция less в css и сжатие css
 function MpLessCompile($teme_folder){
@@ -259,7 +281,8 @@ function cache($content = false, $row = []){ // Сохраненные в кеш
 			}elseif(!$REQUEST_URI = urldecode($_SERVER['REQUEST_URI'])){// mpre("Ошибка определения адреса {$_SERVER['REQUEST_URI']}");
 			}elseif(!$gzen = gzencode($content)){ pre("Ошибка архивирования кода страницы");
 			}elseif(array_search($_SERVER['REQUEST_URI'], [1=>"/admin", "/users:login", "/users:reg", "/sitemap.xml", "/robots.txt"/*, "/favicon.ico",*/])){ //pre("Не кешируем системные файлы");
-			}elseif(!is_array($seo_cat = rb("seo-cat", "id", get($conf, "settings", "canonical", "cat_id")))){ pre("ОШИБКА получения СЕО категории страницы");
+			}else if(!$cat_id =get($conf, "settings", "canonical", "cat_id")){ mpre("Категория страницы не найдена");
+			}elseif(!is_array($seo_cat = rb("seo-cat", "id", $cat_id))){ pre("ОШИБКА получения СЕО категории страницы");
 			}elseif(!is_numeric($themes_cache = (get($conf, 'themes_cache') ?: 86400))){ pre("ОШИБКА получения времени кеша темы");
 			}elseif(!is_numeric($seo_cache = get($seo_cat, "cache") ?: $themes_cache)){ pre("ОШИБКА получения времени кеширования");
 			/*	if(class_exists("Memcached")){ // mpre("Класс Мемкаш не доступен");
@@ -451,12 +474,7 @@ function first($ar, $cur = null){
 		}else{// mpre($next);
 			return $next;
 		}
-//	}elseif($keys = array_keys($ar)){
-//		return ;
 	}elseif($ar){
-//		reset($ar);
-//		($first_key = key($ar));
-//		pre("Проверка");
 		$keys = array_keys($ar); $first_key = get($ar, array_shift($keys));
 		return $first_key;
 	}else{ return null; }
@@ -480,8 +498,8 @@ function first($ar, $cur = null){
 function tables($table = null, $modpath = null){
 	global $conf;
 	if(!$tpl['tables'] = call_user_func(function($tables = []) use($conf){ // Список таблиц БД
-			if($conf['db']['type'] == "mysql"){ $tables = qn("SHOW TABLES", "Tables_in_{$conf['db']['name']}");
-			}else if($conf['db']['type'] != "sqlite"){ mpre("ОШИБКА определения типа базы данных");
+			if($conf['db']['type'] == "mysql"){ $tables = qn("SHOW TABLES", "Tables_in_{$conf['db']['name']}"); #mpre($tables);
+			}else if($conf['db']['type'] == "pgsql"){ $_tables =ql("SELECT table_name AS name ,* FROM information_schema.tables WHERE table_schema='public'"); $tables =rb($_tables ,"name"); #array_column($_tables ,"table_name"); #mpre("ОШИБКА определения типа базы данных");
 			}else if(!$tables = qn("SELECT * FROM sqlite_master WHERE type='table'", "name")){ mpre("ОШИБКА выборки списка таблиц sqlite");
 			}else{ //pre($tables);
 			} return $tables;
@@ -502,16 +520,23 @@ function tables($table = null, $modpath = null){
 			}
 		}, $tab)){ mpre("Ошибка формирования полного имени таблицы");
 	}elseif($conf['db']['type'] == "sqlite"){
-		if(!$table_info = (strpos($table, ".") ? first(explode(".", $table)). ".table_info" : "table_info")){ mpre("ОШИБКА получения схемы");
+		if(!$table_info = (strpos($table, ".") ? first(explode(".", $table)). ".table_xinfo" : "table_xinfo")){ mpre("ОШИБКА получения схемы");
 		}else if(!$table = (strpos($table, ".") ? last(explode(".", $table)) : $table)){ mpre("ОШИБКА получения имени таблицы");
 		}else if(!$sql = "pragma {$table_info} ('". $table. "')"){ mpre("ОШИБКА получения запроса получения схемы таблицы");
 		}else if(!$tpl['fields'] = qn($sql, "name")){ mpre("ОШИБКА получения схемы", $sql);
 		}else if($type){
 			$tpl['fields'] = array_column($tpl['fields'], "type", "name");
 		}
+	}elseif($conf['db']['type'] == "pgsql"){
+		if(!$sql = "SELECT column_name AS name, data_type AS type FROM information_schema.columns WHERE table_name ='{$table}';"){ mpre("ОШИБКА получения запроса получения схемы таблицы");
+		//}else if(!mpre("Запрос полей" ,$sql ,ql($sql))){ mpre("Уведомление");
+		}else if(!$tpl['fields'] = qn($sql, "name")){ mpre("ОШИБКА получения схемы", $sql);
+		}else if($type){
+			$tpl['fields'] = array_column($tpl['fields'], "type", "name");
+		}
 	}else{
 		$tpl['fields'] = qn("SHOW FULL COLUMNS FROM `". $table. "`", "Field");
-	} return $tpl['fields'];
+	}return $tpl['fields'];
 }
 
 function indexes($table_name){
@@ -523,8 +548,11 @@ function indexes($table_name){
 			}else{ return $table; }
 		}, $table_name)){ mpre("ОШИБКА получения имени таблицы");
 	}else if($conf['db']['type'] == "sqlite"){
-//		mpre($sql = "SELECT * FROM sqlite_master WHERE type='index' AND tbl_name='". mpquot($table). "'", qn($sql));
 		return qn("SELECT * FROM sqlite_master WHERE type='index' AND tbl_name='". mpquot($table). "'", "name");
+	}else if($conf['db']['type'] == "pgsql"){
+		$index =qn("SELECT * FROM pg_indexes");
+		//mpre("Индексы" ,$index);
+		return $index; 
 	}else if($conf['db']['type'] == "mysql"){
 		return qn("SHOW INDEXES IN {$table}", "Column_name");
 	}
@@ -554,7 +582,7 @@ function inc($file_name, $variables = [], $req = false){ global $conf, $tpl;
 	}else if(!is_string($fn =call_user_func(function($fn ="")use($path){ // first(explode(".", get($path, 2)))
 		if(!$file_name =last($path)){ mpre("Уведомление");
 		}else if(!$NAME =explode("." ,$file_name)){ err("Список частей файла");
-		}else if(!$fn =first($NAME)){ err("Первая часть");
+		}else if(!$fn =first($NAME)){ //mpre("Первая часть");
 		}else{ //mpre("Список путей file_name={$file_name}" ,$path ,$fn ,$NAME);
 		}return $fn; }))){ mpre("ОШИБКА пути");
 	//}elseif(!is_string($fn = array_key_exists(2 ,$path) ?first(get($path ,2)) :"")){ mpre("ОШИБКА получения пути");
@@ -570,7 +598,7 @@ function inc($file_name, $variables = [], $req = false){ global $conf, $tpl;
 					($req ? require($file) : include($file));
 					return ob_get_clean();
 				}, $file)) &&0){ mpre("Ошибка получения вывода файла");
-			}elseif(!array_search("Администратор", get($conf, 'user', 'gid'))){ return $content; mpre("Не администраторам не доступны подсказки");
+			}elseif(!array_search("Администратор", get($conf, 'user', 'gid') ?:[])){ return $content; mpre("Не администраторам не доступны подсказки");
 			}elseif(!preg_match("#(.*)(\.tpl|\.html)$#", $file_name, $match)){ return $content; mpre("Только шаблоны оборачиваются подсказками");
 			}elseif(array_key_exists("null", $_GET)){ return $content; mpre("Оборачиваем подсказки только на страницы с шаблоном");
 			}elseif(!$content = "{$modules_start}{$content}{$modules_stop}"){ mpre("Ошибка добавления тегов подсказок администратору");
@@ -601,18 +629,19 @@ function seo($href, $return = true){
 if (!function_exists('modules')){
 	function modules($content){ # Загрузка содержимого модуля
 		global $conf, $arg, $tpl;
-		foreach($_GET['m'] as $k=>$v){ $k = urldecode($k);
+		foreach(get($_GET ,'m') ?:[] as $k=>$v){ $k = urldecode($k);
 			if(!$mod = (get($conf, 'modules', $k) ?: rb(get($conf, 'modules'), "modname", "[{$k}]"))){// pre("Модуль `{$k}` недоступен", $v);
 				ob_start();
 					inc("modules/themes/404", array('arg'=>array('modpath'=>'themes', 'fn'=>404)));
 				$content .= ob_get_contents(); ob_end_clean();
 			}elseif(!$mod['link'] = (is_link($f = mpopendir("modules/{$mod['folder']}")) ? readlink($f) : $mod['folder'])){ pre("Ошибка определения ссылки на раздел");
 			}elseif(!ini_set("include_path" ,mpopendir("modules/{$mod['link']}"). ":./modules/{$mod['link']}:". ini_get("include_path"))){ pre("Сбой добавления локального пути до скриптов");
-			}elseif((!$MODULES_INDEX_UACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM `{$conf['db']['prefix']}modules_index_uaccess` WHERE `mid`=". (int)$mod['id']. " AND `uid`=". (int)$conf['user']['uid'], "Запрос прав доступа пользователя к разделу", function($error) use($conf){
+			}elseif((!$MODULES_INDEX_UACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM {$conf['db']['prefix']}modules_index_uaccess WHERE mid='". (int)$mod['id']. "' AND uid='". (int)$conf['user']['uid'] ."'", "Запрос прав доступа пользователя к разделу", function($error) use($conf){
 					if(!strpos($error, "Unknown column 'admin_access'")){ pre("Неопределенная ошибка", $error);
 					}else{ qw(mpre("ALTER TABLE `{$conf['db']['prefix']}modules_index_uaccess` CHANGE `access` `admin_access` int(11) NOT NULL")); }
 				}))) &0){ mpre("Разрешения для группы");
-			}elseif((!$MODULES_INDEX_GACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM `{$conf['db']['prefix']}modules_index_gaccess` WHERE `mid`=". (int)$mod['id']. " AND `gid` IN (". in($conf['user']['gid']). ")", "Запрос прав доступа групп пользователя", function($error) use($conf){
+			//}else if(!mpre("Список" ,$conf['user']['gid'])){ mpre("Уведомление");
+			}elseif((!$MODULES_INDEX_GACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM {$conf['db']['prefix']}modules_index_gaccess WHERE mid='". (int)$mod['id']. "' AND gid IN (". in($conf['user']['gid']). ")", "Запрос прав доступа групп пользователя", function($error) use($conf){
 					if(!strpos($error, "Unknown column 'admin_access'")){ pre("Неопределенная ошибка", $error);
 					}else{ qw(mpre("ALTER TABLE `{$conf['db']['prefix']}modules_index_gaccess` CHANGE `access` `admin_access` int(11) NOT NULL")); }
 				}))) &0){ mpre("Разрешения для группы");
@@ -674,7 +703,7 @@ if(!function_exists('blocks')){
 		global $conf, $arg;
 		$result = [];// mpre($bid);
 		if(!$conf['db']['info'] = "Выборка шаблонов блоков"){ pre("Установка описания запросам");
-		}elseif(!$BLOCKS = mpql(mpqw($sql = "SELECT *, `admin_access` as admin_access FROM {$conf['db']['prefix']}blocks_index WHERE hide=0". ($bid ? " AND id=". (int)$bid : " ORDER BY sort"), "Запрос списка блоков", function($error) use($conf){
+		}elseif(!$BLOCKS = mpql(mpqw($sql = "SELECT *, admin_access as admin_access FROM {$conf['db']['prefix']}blocks_index WHERE hide='0'". ($bid ? " AND id=". (int)$bid : " ORDER BY sort"), "Запрос списка блоков", function($error) use($conf){
 				if(strpos($error, "Unknown column 'admin_access'")){
 					qw(pre("ALTER TABLE `mp_blocks_index` CHANGE `access` `admin_access` smallint(6) NOT NULL COMMENT ''"));
 					qw(pre("ALTER TABLE `mp_blocks_index` ADD INDEX (`admin_access`)"));
@@ -684,16 +713,16 @@ if(!function_exists('blocks')){
 				}
 			}))){ pre("Список блоков не найден");
 //		}elseif(true){ mpre($BLOCKS);
-		}elseif(!$BLOCKS_REG = mpqn(mpqw("SELECT *, `name` as name FROM {$conf['db']['prefix']}blocks_reg", "Запрос списка регионов", function($error, $conf){
+		}elseif(!$BLOCKS_REG = mpqn(mpqw("SELECT *, name as name FROM {$conf['db']['prefix']}blocks_reg", "Запрос списка регионов", function($error, $conf){
 				if(strpos($error, "Unknown column 'name' in 'field list'")){
 					qw(pre("ALTER TABLE {$conf['db']['prefix']}blocks_reg CHANGE `description` `name` varchar(255)", $error));
 				}else{ mpre("Ошибка не определена", $error); }
 			}))){ pre("Список регионов блоков не задан");
-		}elseif((!$BLOCKS_INDEX_UACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM `{$conf['db']['prefix']}blocks_index_uaccess` WHERE `uid`=". (int)get($conf, 'user', 'uid'), "Запрос прав доступа пользователя к разделу", function($error) use($conf){
+		}elseif((!$BLOCKS_INDEX_UACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM {$conf['db']['prefix']}blocks_index_uaccess WHERE uid='". (int)get($conf, 'user', 'uid') ."'", "Запрос прав доступа пользователя к разделу", function($error) use($conf){
 				if(!strpos($error, "Unknown column 'admin_access'")){ pre("Неопределенная ошибка", $error);
 				}else{ qw(mpre("ALTER TABLE `{$conf['db']['prefix']}blocks_index_uaccess` CHANGE `access` `admin_access` int(11) NOT NULL")); }
 			}))) &0){ mpre("Разрешения для пользователя");
-		}elseif((!$BLOCKS_INDEX_GACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM `{$conf['db']['prefix']}blocks_index_gaccess` WHERE `gid` IN (". in($conf['user']['gid']). ")", "Запрос прав доступа групп пользователя", function($error) use($conf){
+		}elseif((!$BLOCKS_INDEX_GACCESS = mpqn(mpqw("SELECT *, admin_access AS admin_access FROM {$conf['db']['prefix']}blocks_index_gaccess WHERE gid IN (". in($conf['user']['gid']). ")", "Запрос прав доступа групп пользователя", function($error) use($conf){
 				if(!strpos($error, "Unknown column 'admin_access'")){ pre("Неопределенная ошибка", $error);
 				}else{ qw(mpre("ALTER TABLE `{$conf['db']['prefix']}blocks_index_gaccess` CHANGE `access` `admin_access` int(11) NOT NULL")); }
 		}))) &0){ mpre("Разрешения для группы");
@@ -811,13 +840,12 @@ function mpzam($ar, $name = null, $prefix = "{", $postfix = "}", $separator = ":
 	}; return $f($ar);
 }
 function in($ar, $flip = false){ # Формирует из массива строку с перечисляемыми ключами для подставки в запрос
-	if(!is_array($ar) || empty($ar)){
-		$ar = array(0);
-	}else if($flip){
-		 $ar = array_flip($ar);
-	} return implode(",", array_map(function($key){
-		return (is_numeric($key) || ($key == "NULL")) ? $key : "\"". mpquot($key). "\"";
-	}, array_keys($ar)));
+	//mpre("список" ,$ar);
+	if(!is_array($ar) || empty($ar)){ $ar = array(0);
+	}else if($flip){ $ar = array_flip($ar);
+	} return "'" .implode("','", array_map(function($key){
+		return (is_numeric($key) || ($key == "NULL")) ? $key : "". mpquot($key). "";
+	}, array_keys($ar))) ."'";
 }
 function aedit($href, $echo = true, $title = null){ # Установка на пользовательскую старницу ссылки в административные разделы. В качестве аргумента передается ссылка, выводится исходя из прав пользователя на сайте
 	global $arg, $conf;
@@ -861,15 +889,17 @@ if(!function_exists("mb_ord")){
 	}
 }
 # Вызов библиотеки curl Для хранения файла кукисов используется текущая директория. Первым параметром передается адрес запрос, вторым пост если требуется
-function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $headers = array(), $proxy = null){
+function mpcurl($href, $post = [], $headers = array(), $temp = "", $referer = null, $proxy = null){
 	$ch = curl_init();
 	if($proxy){
 		curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
 		curl_setopt($ch, CURLOPT_PROXY, $proxy); //если нужен прокси
 	}
-//	curl_setopt ($ch , CURLOPT_FOLLOWLOCATION , true);
-	curl_setopt($ch, CURLOPT_COOKIEFILE, $temp);//tempnam(ini_get('upload_tmp_dir'), "curl_cookie_")
-	curl_setopt($ch, CURLOPT_COOKIEJAR, $temp); //В какой файл записывать
+	curl_setopt ($ch , CURLOPT_FOLLOWLOCATION , true);
+	if($temp){
+		curl_setopt($ch, CURLOPT_COOKIEFILE, $temp);//tempnam(ini_get('upload_tmp_dir'), "curl_cookie_")
+		curl_setopt($ch, CURLOPT_COOKIEJAR, $temp); //В какой файл записывать
+	}
 	curl_setopt($ch, CURLOPT_URL, $href); //куда шлем
 	if($post){
 		curl_setopt($ch, CURLOPT_POST, 1);
@@ -878,7 +908,9 @@ function mpcurl($href, $post = null, $temp = "cookie.txt", $referer = null, $hea
 	if ($referer) curl_setopt($ch, CURLOPT_REFERER, $referer);
 	curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0; MyIE2; .NET CLR 1.1.4322)");
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-	curl_setopt($ch, CURLOPT_HTTPHEADER, $headers); 
+	if($headers){
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers); 
+	}
 	curl_setopt($ch, CURLOPT_HEADER, 0);
 	curl_setopt($ch, CURLOPT_NOBODY, 0);
 	$result=curl_exec ($ch);
@@ -966,7 +998,6 @@ function erb($src, $key = null){
 	if((!$func_get_args = array_slice(func_get_args(), 1)) &&0){ mpre("Ошибка получения списка параметров функции");
 	}elseif(is_numeric(!$limit = (is_numeric($key) ? array_shift($func_get_args) : null))){ mpre("Определяем лимит сообщений");
 	}elseif(empty($func_get_args) && (!$func_get_args = ['id'])){ mpre("Задание дефолтного значения");
-	//}else if(true){ mpre($func_get_args);
 	}elseif(!is_numeric($line = call_user_func(function() use($func_get_args){
 			foreach($func_get_args as $key=>$val){
 				if(is_numeric($val)){ return $key; mpre("Числовое значение");
@@ -994,6 +1025,7 @@ function erb($src, $key = null){
 			if(gettype($src) != "string"){// mpre("Проверяем ключи только у таблиц физически присутствующих в базе (Сроковой тип имени таблицы)");
 			}elseif(!$_FIELDS){// mpre("Поля не указаны");
 			}elseif(rand(0, 1000)%100){// mpre("Один процент на проверку наличия ключей условия выборки в таблице");
+			}else if(true){ //mpre("Не добавляем ключи");
 			}elseif(!$table = call_user_func(function($table_name) use($conf){
 					if(strpos($table_name, $conf['db']['prefix']) === 0){ return $table_name;
 					}elseif(!strpos($table_name, '-')){ return "{$conf['db']['prefix']}{$table_name}";
@@ -1060,23 +1092,25 @@ function erb($src, $key = null){
 				} return $src;
 			}
 		}, $src)) : call_user_func(function($src) use(&$tpl, $min, $conf, $_FIELDS, $_VALUES, $limit, $arg, $func_get_args){ # Выборка данных из БД по условиям
+			//if(!mpre("Список" ,$_VALUES ,$_FIELDS)){ mpre("Уведомление");
 			if(!is_array($WHERE = array_filter(array_map(function($field, $value) use($_FIELDS, $_VALUES, $func_get_args){
-					if(is_numeric($value) && is_int($value)){ return "`{$field}`=". (int)$value;
-					}elseif(is_string($value)){ return "`{$field}`=\"{$value}\"";
+					if(is_numeric($value) && is_int($value)){ return "`{$field}`='". (int)$value ."'";
+					}elseif(is_numeric($value)){ return "id" ==$field ?"`{$field}`={$value}" :"`{$field}`='{$value}'";
+					}elseif(is_string($value)){ return "id" ==$field ?"`{$field}`=" .(int)$value :"`{$field}`='{$value}'";
 					}elseif($value === true){ return null;
-					}elseif(is_null($value)){ return "`{$field}` IS NULL";
+					}elseif(is_null($value)){ return "id" ==$field ?"`{$field}`=0" :"`{$field}`=''"; //return "`{$field}` IS NULL";
 					}elseif(is_bool($value)){ return ($value ? "TRUE" : "FALSE");
 					}elseif(!is_array($value)){ mpre("Ошибочный тип данных в значении", gettype($value));
 					}elseif(empty($value)){ return "NULL"; // mpre("Пустой массив");
+					//}else if(!mpre("Массив" ,$value)){ mpre("Уведомление");
 					}elseif(!is_array($IN = array_map(function($val) use($field, $func_get_args){
-							if(is_numeric($val) && is_int($val)){ return "`{$field}`={$val}";
-							}elseif("NULL" === $val){ return "`{$field}` IS {$val}";
-							}else{ return "`{$field}` = \"{$val}\""; }
+							if(is_numeric($val) && is_int($val)){ return "`{$field}`='{$val}'";
+							}elseif("NULL" === $val){ return "`{$field}` IS NULL";
+							}else{ return "id" ==$field ?"`id`=0" :"`{$field}`='{$val}'"; }
 						}, array_keys($value)))){ mpre("Ошибка обработки значений массива", $_FIELDS, $_VALUES, $func_get_args);
 					}elseif(!$IN){ return null;
 					}else{ return "(". implode(" OR ", $IN). ")"; }
 				}, $_FIELDS, $_VALUES)))){ mpre("Получения условий WHERE");
-//			}elseif(true){ mpre($WHERE);
 			}elseif(!is_string($where = implode(" AND ", $WHERE))){ mpre("Ошибка составления всех условий в строку");
 			}elseif(!$tab = call_user_func(function($src) use($conf, $arg){
 					if(strpos($src, ".")){ /*mpre($src);*/ return $src; // mpre("Короткое имя таблицы без модуля", $src);
@@ -1095,26 +1129,33 @@ function erb($src, $key = null){
 			}elseif(!$pager_id = crc32("{$file}:{$line}")){ mpre("ОШИБКА формирования идентификатора постраничного отображения");
 			}elseif(!is_string($HTTP_HOST = (get($_SERVER, "HTTP_HOST") ?:""))){ mpre("ОШИБКА получения имени хоста");
 			}elseif(!$p = ((strpos($HTTP_HOST, "xn--") === 0) && (get($arg, 'fn') != "admin")) ? "стр" : "p"){ mpre("ОШИБКА формирования переменной с номером пагинатора");
-			}elseif(!$p = "{$p}{$pager_id}"){ mpre("ОШИБКА формирования имени переменной в адресе");
-
-			}elseif((!$LIMIT = ($limit ? " LIMIT ". (get($_GET, $p)*$limit). ",". abs($limit) : "")) &0){ mpre("Условия лимита");
+			//}elseif(!$p = "{$p}{$pager_id}"){ mpre("ОШИБКА формирования имени переменной в адресе");
+			//}elseif((!$LIMIT = ($limit ? " LIMIT ". (get($_GET, $p)*$limit). ("pgsql" ==$conf["db"]["type"] ?" OFFSET " :","). abs($limit) : "")) &0){ mpre("Условия лимита");
+			}else if(!is_string($LIMIT =call_user_func(function($LIMIT ="")use($limit ,$p ,$conf){ # Лимит
+				if(!$limit){ //mpre("Лимит не задан");
+				}else if(!is_numeric($offset =get($_GET, $p)*$limit)){ mpre("Лимит не задан");
+				}else if(!$LIMIT =" " .("pgsql" ==$conf["db"]["type"] ?"LIMIT {$limit} OFFSET {$offset}" :"LIMIT {$limit}" .($offset ?",{$offset}" :""))){ mpre("ОШИБКА получения строки лимита");
+				}return $LIMIT; }))){ mpre("ОШИБКА получения лимита");
 			}elseif(!$modp = substr($tab, strlen($conf['db']['prefix']))){ mpre("Ошибка вычисления строки модуля");
 			}elseif(!is_string($order = get($conf, 'settings', "{$modp}=>order") ?: "")){ mpre("Расчет поля сортировки");
-			}elseif(!$sql = "SELECT * FROM {$tab}". ($where ? " WHERE {$where}" : ""). ($order ? " ORDER BY {$order}" : ""). $LIMIT){ mpre("Ошибка составления запроса к базе");
-//			}elseif(true){ mpre($sql);
+			}elseif(!$sql = "SELECT * FROM `{$tab}`". ($where ? " WHERE {$where}" : ""). ($order ? " ORDER BY {$order}" : ""). $LIMIT){ mpre("Ошибка составления запроса к базе");
 			}elseif(is_numeric($limit) && ($limit <= 0) && !mpre($sql)){ mpre("Отображение запроса");
 			}elseif(!is_array($SRC = qn($sql))){ mpre("Ошибка выполнения запроса", $sql);
 //			}elseif(strpos($sql, "news_index") && !mpre($p, $sql, $SRC)){
 			}else if(!is_array($tpl =is_array($tpl) ?$tpl :[])){ mpre("Уведомление");
-			}elseif(!is_string($tpl['pager'] = call_user_func(function() use($limit, $sql, $pager_id, $tpl, $tab, $where, $order){ # Получаем описание на постраничные переходы
-					if(!$limit){ return (get($tpl, 'pager') ?: "");
-					}elseif(!$sql = $sql = "SELECT COUNT(*) AS cnt FROM {$tab}". ($where ? " WHERE {$where}" : ""). ($order ? " ORDER BY {$order}" : "")){ mpre("ОШИБКА формирования адреса для постраничной выборки");
-					}elseif(!$res = ql($sql)){ mpre("ОШИБКА выполнения запроса на выборку количества записей");
-					}elseif(!is_numeric($count = get($res, 0, "cnt"))){ mpre("Ошибка подсчета количества страниц в пагинаторе", $res);
+			}elseif(!is_string($tpl['pager'] = call_user_func(function($pager ="") use($limit, $sql, $pager_id, $tpl, $tab, $where, $order){ # Получаем описание на постраничные переходы
+					//if(true){ mpre("Не формируем постарничные переходы");
+					if(!$pager =""){ //mpre("Пропускаем формирование пагинатора");
+					}elseif(!$limit){ return (get($tpl, 'pager') ?: "");
+					}elseif(!$sql ="SELECT COUNT(id) AS cnt FROM `{$tab}`". ($where ? " WHERE {$where}" : ""). ($order &&false ? " GROUP BY `id` ORDER BY `{$order}`" : "")){ mpre("ОШИБКА формирования адреса для постраничной выборки");
+					//}else if(!mpre("Запрос COUNT" ,$where ,$sql)){ mpre("Уведомление");
+					}elseif(!is_array($res = ql($sql))){ mpre("ОШИБКА выполнения запроса на выборку количества записей" ,$sql ,$res);
+					}elseif(!is_numeric($count = get($res, 0, "cnt") ?:0)){ mpre("Ошибка подсчета количества страниц в пагинаторе", $res);
 					}elseif(!is_numeric($cnt = $cnt = $count/$limit)){ mpre("ОШИБКА получения номера страницы постраничного отображения");
 //			}elseif(strpos($sql, "news_index") && !mpre($sql, $pager_id)){
 					}elseif($pager = mpager($cnt, $pager_id)){ return $pager;
-					}else{ return ""; }
+					}else{ return "";
+					}return $pager;
 				}))){ mpre("ОШИБКА формирования списка ссылок на постраничные переходы");
 			}elseif(is_numeric($limit) && ($limit<0) && mpre($sql)){ mpre("Отображение запроса к базе данных");
 			}else{ return $SRC; }
@@ -1125,7 +1166,8 @@ function erb($src, $key = null){
 		}else{ array_unshift($_VALUES, last($SRC));
 			return call_user_func_array("get", $_VALUES); # Поле по последнему ключу
 		}
-	}elseif(!$SRC = call_user_func(function($SRC, $_FIELDS, $_SRC = []) use($func_get_args){
+	//}else if(!mpre("FIELDS" ,$_FIELDS)){ mpre("Уведомление");
+	}elseif(!$SRC = call_user_func(function($SRC, $_SRC = []) use($_FIELDS ,$func_get_args){
 //			if((1 == count($_FIELDS)) && ("id" == get($_FIELDS, 0))){ return $SRC;
 			if(call_user_func(function($_FIELDS) use($SRC){
 					if(1 != count($_FIELDS)){// mpre("Количество полей не равно одному");
@@ -1141,15 +1183,15 @@ function erb($src, $key = null){
 				foreach($SRC as $src){
 					$TMP = &$_SRC;
 					foreach($_FIELDS as $_fields){
-						if(!array_key_exists($_fields, $src)){ mpre("Значение поля `{$_fields}` не установлено", $src,$func_get_args);
+						if(!array_key_exists($_fields, $src)){ mpre("Значение поля `{$_fields}` не установлено" ,$_FIELDS, $src,$func_get_args);
 						}elseif(!array_key_exists($src[$_fields], $TMP)){ $TMP[ $src[$_fields] ] = [];
 						} $TMP = &$TMP[ $src[$_fields] ];
 					} $TMP = $src;
 				} return $_SRC;
 			}
-		}, ($limit ? array_slice($SRC, 0, $limit, true) : $SRC), $_FIELDS)){// mpre("Ошибка формирования ключей по дополнительным полям");
-		return [];
-	}else{ return $SRC; }
+		}, ($limit ? array_slice($SRC, 0, $limit, true) : $SRC))){// mpre("Ошибка формирования ключей по дополнительным полям");
+	}else{
+	}return $SRC;
 } function rb($src, $key = 'id'){
 	global $conf, $arg, $tpl;
 	$func_get_args = func_get_args();
@@ -1171,8 +1213,7 @@ function arb($index,$params,$return=null){
 	}
 	foreach($params as $key => $param){
 		if(!is_int($key)){array_push($buff,$param);}
-	}
-	if(is_string($return)){array_push($buff,$return);}
+	}if(is_string($return)){array_push($buff,$return);}
 	return call_user_func_array('rb',$buff);
 }
 
@@ -1205,14 +1246,14 @@ function mpdbf($tn, $post = null, $and = false){
 			$f[] = "`$k`=\"". mpquot(strtr($v, $html_mpquot)). "\"";
 		}elseif(array_key_exists($k, $fields)){
 			if(is_array($v)){
-				if(mp_is_assoc($v)){ $f[] = "`$k` IN (". mpquot(strtr(implode(",", $v), $html_mpquot)). ")";
+				if(mp_is_assoc($v)){ $f[] = "`$k` IN ('". mpquot(strtr(implode("','", $v), $html_mpquot)). "')";
 				//}else if(is_null($v)){ $f[] = "`$k`=NULL";
-				}else{ $f[] = "`$k`=\"". mpquot(strtr(implode(",", $v), $html_mpquot)). "\"";
+				}else{ $f[] = "`$k`='". mpquot(strtr(implode(",", $v), $html_mpquot)). "'";
 				}
 			}else{
 				if($v === null){ $f[] = ($and ? "`$k` IS NULL" : "`$k`=NULL");
-				}elseif(is_int($v) || ($v == "NULL")){ $f[] = "`$k`=". $v;
-				}else{ $f[] = "`$k`=\"". mpquot(strtr($v, $html_mpquot)). "\"";
+				}elseif(is_int($v) || ($v == "NULL")){ $f[] = "`$k`='{$v}'";
+				}else{ $f[] = "`$k`='". mpquot(strtr($v, $html_mpquot)). "'";
 				}
 			}
 		}
@@ -1228,8 +1269,9 @@ function mpdbf($tn, $post = null, $and = false){
 	}else if(!$fields = fields($table)){ mpre("ОШИБКА получения списка полей таблицы");
 	}else if(!is_array($INDEX = call_user_func(function($INDEX = []) use($table, $find){ // Расчет количества записей подходящих под условия
 			if(!$find){ //mpre("Условие не указано - не обновляем");
-			}else if(!$fnd = mpdbf($table, $find, 1)){ mpre("ОШИБКА получения списка условий");
-			}else if(!$count = ql($sql = "SELECT COUNT(*) AS `cnt` FROM {$table} WHERE ". $fnd, 0, 'cnt')){// mpre("Список записей по условиям выборки - пуст", $find, $sql);
+			}else if(!$fnd = mpdbf($table, $find, 1)){ mpre("ОШИБКА получения списка условий {$table}" ,$find);
+			//}else if(!mpre("Значения" ,$find ,array_flip($find))){ mpre("Уведомление");
+			}else if(!$count = ql($sql = "SELECT COUNT(*) AS cnt FROM `{$table}` WHERE ". $fnd ." GROUP BY `" .implode("`,`" ,array_keys($find)) ."`", 0, 'cnt')){// mpre("Список записей по условиям выборки - пуст", $find, $sql);
 			}else if(!$INDEX = qn($sql = "SELECT * FROM {$table} WHERE ". $fnd)){ mpre("Список записей по условиям выборки - пуст", $find, $sql);
 			//}else if(1 < count($INDEX)){ mpre("Множественные изменения таблицы <a href='/telegram:admin/r:{$table}'>{$table}</a> запрещены количество записей {$count} подходящих под условия {$fnd}");
 			}else if($href = call_user_func(function($href = "") use($INDEX, $table, $find){ // Получение двойных значений
@@ -1252,7 +1294,7 @@ function mpdbf($tn, $post = null, $and = false){
 			}else if(!$_update = array_diff_assoc($updated, $selected)){ mpre("ОШИБКА получения только различающихся данных");
 			}else if(!$upd = mpdbf($table, $_update)){ mpre("ОШИБКА получения списка условий", $update, $select, $_update);
 			}else if(!$sql = "UPDATE `{$table}` SET {$upd} WHERE `id` IN (". in($INDEX). ")"){ mpre("ОШИБКА получения запроса на выборку списка записей таблицы");
-			}else if(!qw($sql)){ mpre("ОШИБКА добавления записи в базу данных");
+			}else if(!qw($sql)){ mpre("ОШИБКА добавления записи в базу данных" ,$sql);
 			}else if(!$INDEX = qn("SELECT * FROM `{$table}` WHERE `id` IN (". in($INDEX). ")")){ mpre("ОШИБКА выборки обновленных данных");
 			}else{ //mpre("Обновление", $updated, $_update, $sql, $INDEX);
 			} return $INDEX;
@@ -1260,21 +1302,21 @@ function mpdbf($tn, $post = null, $and = false){
 	//}else if(true){ mpre($find, $INDEX);
 	}else if(!is_array($INDEX = call_user_func(function($INDEX) use($conf, $find, $table, $insert){ // Добавление новой записи
 			if(count($INDEX)){ //mpre("Не добавляем если количество подходящих под условия больше одного", $find);
-			}else if(!$insert){ mpre("Параметры добавления не указаны");
+			}else if(!$insert){ //mpre("Параметры добавления не указаны");
 			//}else if(!$ins = mpdbf($table, $insert)){ mpre("ОШИБКА получения параметров добавления записи");
-			}else if(!$ins = array_map(function($val){ return (is_null($val) ? "NULL" : "\"". mpquot($val). "\""); }, $insert)){ mpre("ОШИБКА установки значений");
+			}else if(!$ins = array_map(function($val){ return (is_null($val) ? "" : mpquot($val)); }, $insert)){ mpre("ОШИБКА установки значений");
 			}elseif(!$mpdbf = $ins+array("time"=>time(), "uid"=>get($conf, 'user', 'uid'), 'sid'=>get($conf, 'user', 'sess', 'id'))){ mpre("ОШИБКА добавления дефолтных значений");
 			//}else if(true){ mpre($ins, $insert, $mpdbf);
 			}else if(!$fields = fields($table)){ mpre("ОШИБКА получения полей таблицы `{$table}`");
 			//}elseif(!$values = array_map(function($val){ return mpquot($val); }, array_intersect_key($mpdbf, $fields))){ mpre("ОШИБКА составления значений запроса");
 			}else if(!$values = array_intersect_key($mpdbf, $fields)){ mpre("ОШИБКА составления значений запроса");
-			}else if(!$sql = "INSERT INTO ". mpquot($table). " (`". implode("`, `", array_keys($values)). "`) VALUES (". implode(", ", array_values($values)). ")"){ mpre("ОШИБКА составления запроса на добавление");
+			}else if(!$sql = "INSERT INTO ". mpquot($table). " (`". implode("`, `", array_keys($values)). "`) VALUES ('". implode("', '", array_values($values)). "')"){ mpre("ОШИБКА составления запроса на добавление");
 			}else if(!qw($sql)){ mpre("ОШИБКА добавления записи в базу данных");
 			}else if(!$INDEX = qn("SELECT * FROM {$table} WHERE id=". $conf['db']['conn']->lastInsertId())){ mpre("ОШИБКА получения последней добавленной записи");
 			}else{ //mpre("Добавление", $find, $sql, $INDEX);
-			} return $INDEX;
+			}return $INDEX;
 		}, $INDEX))){ mpre("ОШИБКА добавления нового значения");
-	}else if(!$INDEX){ mpre("Пустой результат");
+	}else if(!$INDEX){ //mpre("Пустой результат");
 	}else{ //mpre("Полное имя таблицы", $table);
 		return $key ? $INDEX[$key] : first($INDEX);
 	} return [];
@@ -1546,7 +1588,7 @@ function fid($tn, $fn, $id = 0, $prefix = null, $exts = array('image/png'=>'.png
 	}
 }
 
-function mpager($count, $id = null, $null=null, $cur=null /* Номер пагинатора */){ # Формируем пагинатор по идентификатору
+function mpager($count, $id = 0, $null=null, $cur=null /* Номер пагинатора */){ # Формируем пагинатор по идентификатору
 	global $conf, $arg;// mpre("mpager");
 	if(!$p = ((strpos(get($_SERVER, 'HTTP_HOST'), "xn--") === 0) && ($arg['fn'] != "admin")) ? "стр" : "p"){ mpre("ОШИБКА формирования переменной с номером пагинатора");
 	}elseif(!$p = "{$p}". (empty($id) ? "" : $id)){ mpre("ОШИБКА формирования имени переменной в адресе");
@@ -1616,7 +1658,7 @@ function mpct($file_name, $arg = array(), $vr = 1){
 		if (file_exists($file = "$v/$file_name")) break;
 	if (!file_exists($file = "$v/$file_name")) return false;
 	$conf['settings']['data-file'] = $file;
-	$func_name = create_function('$arg', "global \$conf, \$tpl;\n". strtr(file_get_contents($file), $vr ? array('<? die;'=>'', '<?'=>'', '?>'=>'') : array()));
+	$func_name = create_function('$arg', "global \$conf, \$tpl;\n". strtr(file_get_contents($file), array()));
 	ob_start(); $func_name($arg);
 	$content = ob_get_contents(); ob_end_clean();
 	return $content;
@@ -1668,27 +1710,34 @@ function mpql($dbres, $ln = null, $fd = null){
 			mpre($e->getMessage());
 		}
 	} return $result;
-} function ql($sql, $ln = null, $fd = null){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата
-	$microtime = microtime(true);
-	if(!($r = mpmc($key = "ql:". md5($sql)))){
-		if($mpqw = mpqw($sql)){
-			$r = mpql($mpqw, $ln, $fd);
-			if(($mt = (microtime(true) - $microtime)) > .3){
+} function ql($sql, $ln = null, $fd = null ,$r =null){ # Выполнение запроса к базе данных. В случае превышения лимита времени кеширование результата
+	//$microtime = microtime(true);
+	//if(!($r = mpmc($key = "ql:". md5($sql)))){
+		if(!$mpqw = mpqw($sql)){ mpre("ОШИБКА выборки" ,$sql);
+		}else{
+			return $r = mpql($mpqw, $ln, $fd);
+			/*if(($mt = (microtime(true) - $microtime)) > .3){
 				mpevent("Кеширование списка", $sql);
 				mpmc($key, $r);
-			}
-		} return $r;
-	}
+			}*/
+		}return $r;
+	//}
 } function mpqn($dbres, $x = "id", $y = null, $n = null, $z = null){
 	$result = array();
-	if($dbres){
+	if(!$dbres){ mpre("Ресурс на найден");
+	}else{
 		while($line = $dbres->fetch(PDO::FETCH_ASSOC)){
+			//if(!mpre("Линия {$x}" ,$line)){ mpre("Уведолмение");
 			if($z){
 				$result[ $line[$x] ][ $line[$y] ][ $line[$n] ][ $line[$z] ] = $line;
 			}elseif($n){
 				$result[ $line[$x] ][ $line[$y] ][ $line[$n] ] = $line;
 			}elseif($y){
 				$result[ $line[$x] ][ $line[$y] ] = $line;
+			/*}else if(call_user_func(function()use($line ,$x){ # Доп информация
+				if(array_key_exists($x ,$line)){ //mpre("Уведомление");
+				}else{ mpre("Ключ не найден {$x}" ,$line);
+				}})){ mpre("ОШИБКА вывода дополнительной информации");*/
 			}else{
 				$result[ $line[$x] ] = $line;
 			}
@@ -1712,30 +1761,37 @@ function mpql($dbres, $ln = null, $fd = null){
 function mpqw($sql){ # Все аргументы разбираются по типам
 	global $conf;
 	if(!is_array($ARGS = array_map(function($arg){
-			if(!$type = (is_callable($arg) ? "function" : gettype($arg))){ mpre("ОШИБКА получения типа аргумента");
-			}else{ return ['type'=>$type, 'arg'=>$arg]; }
+		if(!$type = (is_callable($arg) ? "function" : gettype($arg))){ mpre("ОШИБКА получения типа аргумента");
+		}else{ return ['type'=>$type, 'arg'=>$arg]; }
 		}, array_slice(func_get_args(), 1)))){ mpre("ОШИБКА выборки параметров");
+	}else if(!$sql =call_user_func(function()use($sql ,$conf){ # Разница запросов
+		if("pgsql" !=$conf["db"]["type"]){ //mpre("Изменения только для постгрес");
+		}else if(!$sql =strtr($_sql =$sql ,["\"\""=>"\"\"" ,"\\\""=>"\\\"" ,"''"=>"''" ,"`"=>"\"" ,"\""=>"'"])){ mpre("ОШИБКА изменения запроса");
+		//}else if("SELECT COUNT(*) AS cnt FROM \"mp_telegram_bot_from\" WHERE \"tg\"='1066150033' GROUP BY 'tg'" !=$sql){ //mpre("ПРопускаем");
+		}else if(!is_numeric(strpos($sql ,$m ="telegram_bot_chat"))){ //error_log("Не совпадение запроса с маской {$m} {$sql}");
+		}else{ //mpre("Конвертация запрос sql" ,$_sql ,$sql ,debug_backtrace()); #);
+		}return $sql; })){ mpre("Разница запросов баз данных");
 	}elseif(!$mt = microtime(true)){ mpre("ОШИБКА установки времени начала запроса");
 	}elseif(!$conn = ((rb($ARGS, 'type', '[object]', 'arg')) ?: $conf['db']['conn'])){ mpre("ОШИБКА определения соединения", $sql);
+	}else if(call_user_func(function()use($sql){ # Логирование запросов к таблице
+		if(true){ //mpre("Не логируем запросы");
+		}else if(!mpre("Запрос" ,$sql)){ mpre("Уведомление");
+		}else if(!is_numeric(strpos($sql ,$m ="telegram_bot_chat"))){ //error_log("Не совпадение запроса с маской {$m} {$sql}");
+		//}else if(!mpre("Запрос" ,$sql)){ mpre("Уведомление");
+		}else{ //error_log(__FILE__ .":" .__LINE__ ." sql: " .$sql);
+		}})){ mpre("Логироание запросов к таблице");
 	}elseif(!$result = call_user_func(function($ARGS) use($sql, &$conn, &$conf, $mt){// mpre($ARGS);
 			if(!$params = rb($ARGS, 'type', '[array]', 'arg')){// mpre("Параметры не заданы");
-				if(!$conf['db']['sql'][] = array('info'=>'', 'sql'=>$sql)){ mpre("ОШИБКА добавления информации о запросе");
-//				}elseif($result = $conn->query($sql)){ return $result;
-				}elseif($result = call_user_func(function() use(&$conf, $conn, $sql, $mt){ # Сохранение времени выполнения запроса к БД
-						if(!$result = $conn->query($sql)){ //mpre("ОШИБКА типа данных возвращаемого статуса запроса", $conn->errorInfo(), $conn->errorCode());
-						}elseif(!$microtime = number_format(microtime(true)-$mt, 6)){ mpre("ОШИБКА расчета времени выполнения");
-						}elseif(!is_numeric($max = (get($conf, 'db', 'sql') ? last(array_keys(array_keys($conf['db']['sql']))) : 0))){ mpre("ОШИБКА получения последней информации о запросе");
-						}elseif(!$conf['db']['sql'][$max]["time"] = $microtime){ mpre("ОШИБКА установки времени выполнения запроса");
-						}else{// pre("Тип данных", gettype($result));
-						} return $result;
-					}, $conn)){ return $result;
-//				}elseif(!mpre("Максимум", $conf['db']['sql'][$max])){ mpre("ОШИБКА уведомления");
+				if(false){ mpre("Уведомление");
+				//}else if(!error_log("sql: " .$sql)){ mpre("ОШИБКА уведомления о медленном запросе");
+				}else if($result = $conn->query($sql)){ //mpre($sql ,debug_backtrace()); //mpre("ОШИБКА типа данных возвращаемого статуса запроса", $conn->errorInfo(), $conn->errorCode());
+				}else if(!mpre("Список вызовов" ,$sql ,debug_backtrace())){ mpre("ОШИБКА списка вызовов");
 				}elseif(!$callback = rb($ARGS, 'type', '[function]', 'arg')){ return $result;
 				}elseif(!$info = $conn->errorInfo()){ mpre("ОШИБКА получения информации о запросе");
 				}elseif(!$error = get($info, 2)){ mpre("Не удалось получить текст ошибки запроса");
 				}elseif(!$result = call_user_func($callback, $error)){ return $result;
 				}else{ mpre("Запрос не дал результата", $error);
-				}
+				}return $result;
 			}elseif(!$result = $conn->prepare($sql)){ mpre("Подготовка к запросу");
 			}elseif(!array_map(function($name, $value) use(&$result){
 					return $result->bindValue(":{$name}", $value);
@@ -1745,16 +1801,12 @@ function mpqw($sql){ # Все аргументы разбираются по т�
 				return $result;
 			}
 		}, $ARGS)){// mpre("ОШИБКА получения результата выполнения запроса");
-	}elseif(call_user_func(function($mt) use($conf, $sql, $ARGS){
-			if(!get($conf, 'settings', 'analizsql_log')){// mpre("Лог выполнения отключен");
-			}elseif(!$microtime = microtime(true)-$mt){ mpre("ОШИБКА расчета времени выполнения");
-			}elseif(!$info = (rb($ARGS, 'type', '[string]', 'arg') ?: get($conf, 'db', 'info'))){ //mpre("Описание запроса не задано");
-			}elseif(!$conf['db']['sql'][] = $mess = array('info'=>$info, 'time'=>$microtime, 'sql'=>$sql)){ mpre("ОШИБКА добавления информации в лог");
-			}elseif(!get($conf, 'settings', 'sqlanaliz_time_log')){// pre("Лимиты выполнения запроса не заданы");
-			}elseif($microtime <= $conf['settings']['sqlanaliz_time_log']){// mpre("Время запроса в пределах нормы");
-			}else{ mpre("Долгий запрос к базе данных", $sql, $mess); }
-		}, $mt)){ mpre("ОШИБКА сохранения информации о времени выполнения запроса");
-	}elseif(!is_numeric($count = $result->rowCount())){ mpre("ОШИБКА получения количества изменений");
+	}else if(call_user_func(function()use($sql ,$mt){ # Отчет о времени выполнения
+		if(!$microtime = number_format(microtime(true)-$mt ,4 ,"." ,"")){ mpre("ОШИБКА расчета времени выполнения");
+		}else if(0.5 >$microtime){ //mpre("Время запроса в пределах нормы");
+		}else if(!error_log(__FILE__ .":". __LINE__ ." {$microtime} " .$sql)){ mpre("ОШИБКА уведомления о медленном запросе");
+		}else{ mpre("Уведомление о мделенном запросе {$microtime}" ,$sql);
+		}})){ mpre("ОШИБКА установки времени выполнения запроса");
 	}else{ return $result; }
 } function qw($sql, $info = null, $callback = null, $params = null, $conn = null){
 	global $conf;
@@ -1840,23 +1892,27 @@ function pre(){
 function mpquot($data){ # экранирование символов при использовании в запросах к базе данных
 	global $conf;
 	if(ini_get('magic_quotes_gpc')){ # Волшебные кавычки для входных данных GET/POST/Cookie. magic_quotes_gpc = On
-		$data = stripslashes($data);
+		//$data = stripslashes($data);
 	}
-	
-	$data = str_replace("\\", "\\\\", $data); 
-	$data = str_replace("\x00", "\\x00", $data); 
-	$data = str_replace("\x1a", "\\x1a", $data); 
+	//mpre($conf["db"]["type"]);
 	if(!$data){// mpre("Содержимое не задано");
 	}elseif($conf['db']['type'] == 'sqlite'){ # sqlite
+		$data = str_replace("\\", "\\\\", $data); 
+		$data = str_replace("\x00", "\\x00", $data); 
+		$data = str_replace("\x1a", "\\x1a", $data); 
 		$data = strtr($data, ["'"=>"''", '"'=>'""']);
+	}elseif($conf['db']['type'] == 'pgsql'){ # postgres
+		//mpre("Замена для pgsql");
+		//$data = pg_escape_string($data);
+		//$data = str_replace("'", "''", $data);
+		//mpre("Экранирование psql");
+		$data =strtr($data ,["''"=>"''" ,"\\\""=>"\\\"" ,"'"=>"''" ,"\\"=>"\\\\" ,"\""=>"\"\"" ,"\"\""=>"\\\"\\\""]); // ,"\"\""=>"\"\""
 	}else{ # mysql
-		$data = str_replace("'", "\'", $data); 
-		$data = str_replace('"', '\"', $data); 
-		$data = str_replace("\r", "\\r", $data); 
-		$data = str_replace("\n", "\\n", $data); 
-	} 
-	
-	return $data;
+		//$data = str_replace("'", "\'", $data); 
+		//$data = str_replace('"', '\"', $data); 
+		//$data = str_replace("\r", "\\r", $data); 
+		//$data = str_replace("\n", "\\n", $data); 
+	}return $data;
 }
 
 # Изменение размеров изображения. ($max_width и $max_height) высота и ширина. Параметр $crop это способ обработки. Обрезать или вписать в размер
@@ -1910,11 +1966,11 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 						//$irs = array(2=>0, 3=>($max_height-$max_height*$height/$width)/2, 4=>0, 0, $max_width, $max_height*$height/$width, $width, $height,);
 						$w = ($width > $height ? 1 : $width/$height);
 						$h = ($width > $height ? $height/$width : 1);
-						$irs = array(2=>($max_width-$max_width*$w)/2, 3=>($max_height-$max_height*$h)/2, 4=>0, 5=>0, $max_width*$w, $max_height*$h, $width, $height,);
+						$irs = array(2=>($max_width-$max_width*$w)/2, 3=>round(($max_height-$max_height*$h)/2), 4=>0, 5=>0, $max_width*$w, $max_height*$h, $width, $height,);
 					}else if($crop){
 						$cdst = array($max_width, $max_height);
 						$max = max($max_width/$width, $max_height/$height);
-						$irs = array(2=>0, 3=>0, 4=>($width-$max_width/$max)/2, ($height-$max_height/$max)/2, $max_width, $max_height, ($max_width/$max), ($max_height/$max),);
+						$irs = array(2=>0, 3=>0, 4=>($width-$max_width/$max)/2, round(($height-$max_height/$max)/2), $max_width, $max_height, round($max_width/$max), round($max_height/$max),);
 					}else{
 						$x_ratio = $max_width / $width;
 						$y_ratio = $max_height / $height;
@@ -1938,6 +1994,7 @@ function mprs($file_name, $max_width=0, $max_height=0, $crop=0){
 			//}else if(!imagecolorallocate($dst, 255, 255, 255)){ mpre("ОШИБКА заливки фона изобаржения");
 			}else if(!imagealphablending($dst, false)){ mpre("ОШИБКА установки блендинга");
 			}else if(!imagesavealpha($dst, true)){ mpre("ОШИБКА устанвоки прозрачности итогового изображения");
+			//}else if(!mpre("Размеры" ,$irs)){ mpre("Уведомление");
 			}else if(!imagecopyresampled($dst, $src, $irs[2], $irs[3], $irs[4], $irs[5], $irs[6], $irs[7], $irs[8], $irs[9])){ mpre("ОШИБКА копирования изображения");
 			}else if(!$ext = strtolower(last(explode(".", $file_name)))){ mpre("ОШИБКА получения расширения файла");
 			}else if(!$_func = get($func, $ext)){ mpre("Ошибка получения функции сжатия изображения");

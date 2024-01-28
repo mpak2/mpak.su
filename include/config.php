@@ -1,7 +1,7 @@
 <?
 
 $conf['db']['conn'] = null;
-$conf['db']['type'] = 'sqlite';# mysql/sqlite
+$conf['db']['type'] = 'sqlite';# mysql/sqlite/psql
 $conf['db']['prefix'] = 'mp_';
 //$conf['db']['unix_socket'] = "/var/run/mysqld/mysqld.sock";
 //$conf['db']['host'] = 'localhost';

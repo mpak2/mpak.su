@@ -3,7 +3,7 @@
 if(!chdir(__DIR__)){ pre("ОШИБКА установки текущей директории");
 }elseif(!include($f = "../include/func.php")){ print_r("Не найден файл $f");
 }elseif(!$conf['user']['gid'] = array(1=>"Администратор")){ pre("Устанавливаем администратора");
-}elseif(!setlocale(LC_CTYPE, 'ru_RU.utf-8')){ pre("ОШИБКА Установка нужной для сборки локали");
+}elseif(!setlocale(LC_CTYPE, $l ='ru_RU.utf-8')){ pre("ОШИБКА Установка нужной для сборки локали {$l} $ apt-get install locales $ nano /etc/environment LANG=\"ru_RU.UTF-8\" $ nano /etc/locale.gen");
 }elseif(ini_get('phar.readonly') === '1'){ pre("Установите параметр php.ini phar.readonly Off `sudo sed -i \"s/;phar.readonly = On/phar.readonly = Off/\" /etc/php/7.2/cli/php.ini`");
 }elseif(!$phar = "index.phar"){ pre("Ошибка установки имени файла");
 }elseif(file_exists($phar) && !rename($phar, (ini_get('upload_tmp_dir') ?: "/tmp/"). $phar)){ pre("Ошибка переноса старой копии файла во временную директорию");
