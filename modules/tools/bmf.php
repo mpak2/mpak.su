@@ -152,14 +152,17 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 	}})){ mpre("ОШИБКА загрузки данных");
 }else if(call_user_func(function()use($ARGV ,$conf){ # Обучение данных
 	if(!$epoch =get($ARGV ,"epoch")){ //mpre("Не указано количество эпох");
-	}else if(!qw("CREATE TABLE IF NOT EXISTS limb (id INTEGER PRIMARY KEY AUTOINCREMENT ,bit_id INT ,limb_id INT ,lvl INT ,val EVAL(0,1) ,_bit_id INT ,bits TEXT ,_bin TEXT ,UNIQUE(bit_id,limb_id,val));")){ mpre("ОШИБКА создания таблицы данных");
-	//}else if(!qw("CREATE UNIQUE INDEX IF NOT INDEX `limb-limb_id-lvl-val` ON limb(limb_id ,lvl ,val);")){ mpre("ОШИБКА формирования уникального индекса");
 	}else if(!qw("CREATE INDEX IF NOT EXISTS `link-bit_id` ON link(bit_id);")){ mpre("ОШИБКА формирования уникального индекса");
 	}else if(!qw("CREATE INDEX IF NOT EXISTS `link-data_id` ON link(data_id);")){ mpre("ОШИБКА формирования уникального индекса");
 	}else if(!qw("CREATE INDEX IF NOT EXISTS `link-data_id-bit_id` ON link(data_id ,bit_id);")){ mpre("ОШИБКА формирования уникального индекса");
+	}else if(!qw("CREATE INDEX IF NOT EXISTS `link-data_id-bit_id_val` ON link(data_id ,bit_id ,val);")){ mpre("ОШИБКА формирования уникального индекса");
 	}else if(!qw("CREATE INDEX IF NOT EXISTS `link-bit_id-limb_id` ON link(bit_id ,limb_id);")){ mpre("Создание ключа");
 	}else if(!qw("CREATE INDEX IF NOT EXISTS `link-limb_id-val` ON link(limb_id ,val);")){ mpre("Создание ключа");
+	}else if(!qw("CREATE INDEX IF NOT EXISTS `link-limb_id` ON link(limb_id);")){ mpre("Создание ключа");
 	//}else if(!qw("PRAGMA temp_store=MEMORY;")){ mpre("Указываем временное хранилище в памяти");
+	}else if(!qw("CREATE TABLE IF NOT EXISTS limb (id INTEGER PRIMARY KEY AUTOINCREMENT ,bit_id INT ,limb_id INT ,lvl INT ,val EVAL(0,1) ,_bit_id INT ,bits TEXT ,_bin TEXT ,UNIQUE(bit_id,limb_id,val));")){ mpre("ОШИБКА создания таблицы данных");
+	//}else if(!qw("CREATE INDEX IF NOT EXISTS `limb-limb_id` ON limb(limb_id);")){ mpre("ОШИБКА формирования уникального индекса");
+	//}else if(!qw("CREATE UNIQUE INDEX IF NOT INDEX `limb-limb_id-lvl-val` ON limb(limb_id ,lvl ,val);")){ mpre("ОШИБКА формирования уникального индекса");
 	}else if(!$DATA =rb("data")){ mpre("Данных для обучения не найдено data {$conf["db"]["name"]}");
 	}else if(!$VALUE =rb("value")){ mpre("Данных для обучения не найдено");
 	}else if(!$_VALUE =rb($VALUE ,"learn" ,"id" ,1)){ mpre("ОШИБКА выборки обучаеых значений");
@@ -203,7 +206,7 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 				}return $LINK; })){ mpre("ОШИБКА получения локального списка ссылок результата");
 			}else{ //mpre("Список ссылок для обучения {$bit["name"]}" ,$limb ,$LINK);
 			}return $LINK; }))){ mpre("ОШИБКА выборки списка ссылок для обучения");*/
-		}else if(!is_array($_bit =call_user_func(function($_bit =[])use($data ,$limb ,$bit ,$link ,$cnt ,$val ,$_val){ # Расчет подходящего бита
+		}else if(!is_array($_bit =call_user_func(function($_bit =[])use($_epoch ,$data ,$limb ,$bit ,$link ,$cnt ,$val ,$_val){ # Расчет подходящего бита
 			if(!$limb |($val ==$_val)){ //mpre("Значения совпали не расчитываем подходящий бит");
 			}else if($_bit =($_bit_id =get($limb ,"_bit_id")) ?rb("bit" ,"id" ,$_bit_id) :$_bit){ //mpre("Расчетный бит установлен ранее");
 			}else if($limb["_bit_id"]){ //mpre("Бит разделитель установлен ранее");
@@ -220,7 +223,7 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 			}else if(!$microtime =microtime(true)){ mpre("ОШИБКА засечения времени");
 			}else if(!is_array($stat =[])){ mpre("ОШИБКА устанвоки массива статистики");
 			//}else if(!is_string($sql ="")){ mpre("ОШИБКА устанвоки запроса");
-			}else if(!$STAT =array_map(function($_bit ,$_stat =[])use(&$stat ,$data ,$bit ,$limb ,$_bits ,$cnt ,$microtime){ # Расчет бит
+			}else if(!$STAT =array_map(function($_bit ,$_stat =[])use(&$stat ,$_epoch ,$data ,$bit ,$limb ,$_bits ,$cnt ,$microtime){ # Расчет бит
 				if(is_numeric(array_search($_bit["id"] ,$_bits))){ //mpre("Пропускаем расчеты");
 				}else if(!$where =$limb ?"l1.limb_id={$limb["id"]}" :"TRUE"){ mpre("ОШИБКА установки условия выборки ссылок");
 				}else if(!$sql =preg_replace("#\n\t+#" ," " ,"SELECT l1.data_id ,l0.bit_id ,l1.val AS val1 , l0.val AS val0 ,SUM(l0.val =l1.val) AS sum ,
@@ -235,7 +238,19 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 					COUNT(l1.id) AS count
 					FROM link AS l1 LEFT JOIN link AS l0 ON (l1.data_id =l0.data_id) AND l0.bit_id=" .(int)$_bit["id"] ." WHERE {$where} AND l1.bit_id=" . (int)$bit["id"] ."")){ mpre("ОШИБКА составления запроса");
 				}else if(!$_stat =ql($sql ,0)){ mpre("ОШИБКА выборки статистики");
-				}else if(!is_array($_stat =call_user_func(function($alg ="вес")use($_stat){ # Расчет статистики статистики минимального сигнала ~48
+				}else if(!is_array($_stat =call_user_func(function($alg ="масса")use($_stat){ # Расчет статистики статистики минимального сигнала ~19.38
+					if(array_key_exists("v" ,$_stat)){ //mpre("Значение уже расчитано");
+					}else if(($_alg =get($GLOBALS ,"ARGV" ,"alg")) &&($_alg !=$alg)){ //mpre("Выбран другой алгоритм");
+					}else if(!is_numeric($_stat["v1"] =$_stat["m11"] -$_stat["m10"])){ mpre("ОШИБКА расчета единицы");
+					}else if(!is_numeric($_stat["v0"] =$_stat["m00"] -$_stat["m01"])){ mpre("ОШИБКА расчета нуля");
+					}else if(!is_numeric($_stat["_v"] =$_stat["v0"] +$_stat["v1"])){ mpre("ОШИБКА расчета общего результата");
+					}else if(!is_numeric($_stat["v"] =abs($_stat["_v"]))){ mpre("ОШИБКА расчета общего результата");
+					}else if(!is_numeric($_stat["_v1"] =$_stat["m11"] +$_stat["m10"])){ mpre("ОШИБКА расчета единицы");
+					}else if(!is_numeric($_stat["_v0"] =$_stat["m00"] +$_stat["m01"])){ mpre("ОШИБКА расчета нуля");
+					}else if(!is_string($_stat["v"] .=";-" .floor(abs($_stat["_v0"] -$_stat["_v1"])))){ mpre("ОШИБКА расчета общего результата");
+					}else{ //mpre("Расчет результата" ,$_stat);
+					}return $_stat; }))){ mpre("ОШИБКА расчета статистики");
+				/*}else if(!is_array($_stat =call_user_func(function($alg ="вес")use($_stat){ # Расчет статистики статистики минимального сигнала ~20.38
 					if(array_key_exists("v" ,$_stat)){ //mpre("Значение уже расчитано");
 					}else if(($_alg =get($GLOBALS ,"ARGV" ,"alg")) &&($_alg !=$alg)){ //mpre("Выбран другой алгоритм");
 					}else if(!is_numeric($_stat["v1"] =$_stat["m11"] -$_stat["m10"])){ mpre("ОШИБКА расчета единицы");
@@ -243,27 +258,7 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 					}else if(!is_numeric($_stat["_v"] =$_stat["v0"] +$_stat["v1"])){ mpre("ОШИБКА расчета общего результата");
 					}else if(!is_numeric($_stat["v"] =abs($_stat["_v"]))){ mpre("ОШИБКА расчета общего результата");
 					}else{ //mpre("Расчет результата" ,$_stat);
-					}return $_stat; }))){ mpre("ОШИБКА расчета статистики");
-				}else if(!is_array($_stat =call_user_func(function($alg ="минимум")use($_stat){ # Расчет статистики статистики минимального сигнала ~48
-					if(array_key_exists("v" ,$_stat)){ //mpre("Значение уже расчитано");
-					}else if(($_alg =get($GLOBALS ,"ARGV" ,"alg")) &&($_alg !=$alg)){ //mpre("Выбран другой алгоритм");
-					}else if(!is_numeric($_stat["v1"] =$_stat["m11"] -$_stat["m01"])){ mpre("ОШИБКА расчета единицы");
-					}else if(!is_numeric($_stat["v0"] =$_stat["m10"] -$_stat["m00"])){ mpre("ОШИБКА расчета нуля");
-					}else if(!is_numeric($_stat["_v"] =($_stat["z1"] >$_stat["z0"]) ?$_stat["v0"] :$_stat["v1"])){ mpre("ОШИБКА расчета общего результата");
-					}else if(!is_numeric($_stat["v"] =abs($_stat["_v"]))){ mpre("ОШИБКА расчета общего результата");
-					}else if(!is_numeric($_stat["_v_"] =($_stat["z1"] >$_stat["z0"]) ?$_stat["v1"] :$_stat["v0"])){ mpre("ОШИБКА расчета общего результата");
-					}else if(!is_string($_stat["v"] .=";" .(($_stat["_v"] > 0) - ($_stat["_v"] < 0)) *-$_stat["_v_"])){ mpre("ОШИБКА расчета общего результата");
-					}else if(!is_string($_stat["_v"] .= ";" .$_stat["_v_"])){ mpre("ОШИБКА расчета общего результата");
-					}else{ //mpre("Расчет результата" ,$_stat);
-					}return $_stat; }))){ mpre("ОШИБКА расчета статистики");
-				}else if(!is_array($_stat =call_user_func(function($alg ="дубль")use($_stat){ # Расчет статистики разницы между рукавами общей плюсов и минусов ~220
-					if(array_key_exists("v" ,$_stat)){ //mpre("Значение уже расчитано");
-					}else if(($_alg =get($GLOBALS ,"ARGV" ,"alg")) &&($_alg !=$alg)){ mpre("Выбран другой алгоритм {$_alg}");
-					}else if(!is_numeric($_stat["v1"] =$_stat["m11"] -$_stat["m01"])){ mpre("ОШИБКА расчета единицы");
-					}else if(!is_numeric($_stat["v0"] =$_stat["m00"] -$_stat["m10"])){ mpre("ОШИБКА расчета нуля");
-					}else if(!is_numeric($_stat["_v"] =$_stat["v1"] +$_stat["v0"])){ mpre("ОШИБКА расчета общего результата");
-					}else if(!is_numeric($_stat["v"] =$_stat["_v"])){ mpre("ОШИБКА расчета общего результата");
-					}return $_stat; }))){ mpre("ОШИБКА расчета статистики");
+					}return $_stat; }))){ mpre("ОШИБКА расчета статистики");*/
 				}else if(!array_key_exists("v" ,$_stat)){ exit(mpre("ОШИБКА выбора алгоритма расчета статистики alg=" .get($GLOBALS ,"ARGV" ,"alg")));
 				}else if(!is_array($stat =call_user_func(function($_stat_ =[])use($data ,$stat ,$_stat){ # выбор значения
 					if(!is_array($_stat_ =$stat ?:$_stat_)){ mpre("ОШИБКА Установка значения");
@@ -272,8 +267,7 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 					}else if(!$_stat_ =$stat ?:$_stat){ mpre("ОШИБКА установки дефолтного значения");
 					}else if(!$_V_ =explode(";" ,$_stat_["v"])){ mper("ОШИБКА разделения значений");
 					}else if(!$_V =explode(";" ,$_stat["v"])){ mper("ОШИБКА разделения значений");
-					}else if(!$_stat_ =(($_V[0] >$_V_[0]) /*&&(0 <$_V[1])*/) ?$_stat :$_stat_){ //mpre("Выбранный уже текущего");
-					}else if(!$_stat_ =(array_key_exists(1 ,$_V_) &&($_V_[0] ==$_V[0]) &&($_V[1] >$_V_[1])) ?$_stat :$_stat_){ mpre("ОШИБКА расчтета дополнительного условия");
+					}else if(!$_stat_ =(array_sum($_V) >array_sum($_V_)) ?$_stat :$_stat_){ //mpre("Выбранный уже текущего");
 					}else{ //mpre("Выбор текущего" ,$_stat_ ,$_stat ,$_V_ ,$_V);
 					}return $_stat_; }))){ mpre("ОШИБКА выбора подходящего значения data_id:{$data["id"]} _bit_id:{$_bit["id"]}" ,$_bits ,$_stat);
 				//}else if(!array_key_exists("--verbose" ,$GLOBALS["ARGV"])){ //mpre("Не выводим подробную информацию");
@@ -289,7 +283,7 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 					}else if(!is_numeric($sec =$_time %60)){ mpre("ОШИБКА расчета значения секунд");
 					}else if(!$time =($min <10 ?"0" :"") .$min .":" .($sec <10 ?"0" :"") .$sec){ mpre("ОШИБКА расчета времени");
 					}return $time; })){ mpre("ОШИБКА расчета времени");
-				}else if(!mpre("Статистика: data_id:{$data["id"]} {$bit["name"]} alg:" .get($GLOBALS ,"ARGV" ,"alg") ." _bit_id:{$_bit["id"]} {$time} lvl:{$lvl} {$cnt}/{$count}/{$_stat["v"]}/{$v}" ,$_sign ."\n\t" .$sign)){ mpre("Уведомление");
+				}else if(!mpre("Статистика: epoch:{$_epoch} data_id:{$data["id"]} {$bit["name"]} alg:" .get($GLOBALS ,"ARGV" ,"alg") ." _bit_id:{$_bit["id"]} {$time} lvl:{$lvl} {$cnt}/{$count}/{$_stat["v"]}/{$v}" ,$_sign ."\n\t" .$sign)){ mpre("Уведомление");
 				//}else if(!mpre("Статистика:" ,$_stat ,$stat)){ mpre("Уведомление");
 				//}else if(get($stat ,"bit_id") !=$_stat["bit_id"]){ //mpre("Не обновленное значение");
 				//}else if(!$LINK =ql(strtr($sql ,["SUM"=>"" ,"COUNT"=>""]))){ mpre("ОШИБКА выборк данных");
