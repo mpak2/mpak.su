@@ -14,7 +14,7 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
    }else{ //mpre("Аргументы консоли" ,$argv ,$ARGV);
    }return $ARGV; }))){ mpre("ОШИБКА получения входящих консольных параметров");
 //}else if(print_r($ARGV)){ 
-}else if(!$conf = call_user_func(function($_conf = [])use($ARGV){ // Подключение компонентов
+/*}else if(!$conf = call_user_func(function($_conf = [])use($ARGV){ // Подключение компонентов
    if(array_key_exists('conf', $GLOBALS)){ $_conf = $GLOBALS["conf"]; // mpre("Используем соединение основной системы");
    }elseif(!$DIR = explode("/", __DIR__)){ print_r("Ошибка определения текущей директории");
    }elseif(!$offset = array_search($d = "f188f47e-89d3-4f09-bc2b-560d9f2edbf4", $DIR)){ print_r("Директория с проектом не найдена `{$d}`"); print_r($DIR);
@@ -27,7 +27,7 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
       }else{ return pre(null, "Директория не найдена `{$file}`"); }
    }){ print_r("Функция подключения файлов");
    }elseif(!$inc($f = "include/func.php")){ print_r("Ошибка подключения `{$f}`");
-   }elseif(!$short_open_tag = ini_get("short_open_tag")){ pre("Установите параметр `short_open_tag`\nsed -i \"s/short_open_tag = .*/short_open_tag = On/\" /etc/php/7.0/cli/php.ini");
+   }elseif(!$short_open_tag = ini_get("short_open_tag")){ pre("Установите параметр `short_open_tag`\nsed -i \"s/short_open_tag = .short_open_tag = On/\" /etc/php/7.0/cli/php.ini");
 	//}else if(!mpre("Конфигурация" ,$conf)){ mpre("Уведомление");
    }elseif(!$inc($f = "include/config.php" ,1)){ pre("Ошибка подключения `{$f}`");
    }elseif(!$modpath = (isset($argv) ? basename(dirname(dirname(__FILE__))) : basename(dirname(__FILE__)))){ mpre("Ошибка вычисления имени модуля");
@@ -44,7 +44,42 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
    }elseif(!$_conf['db']['conn'] = conn()){ mpre("Ошибка подключения БД попробуйте установить `apt install php-sqlite3`");
 	//}else if(!mpre("Конфигурация {$modpath}" ,$conf)){ mpre("Уведомление");
    }else{ //mpre("Добашняя директория". $folder);
+   }return $_conf; })){ print_r("ОШИБКА подключения к БД");*/
+}else if(!$conf = call_user_func(function($_conf = [])use($ARGV){ // Подключение компонентов
+   if(array_key_exists('conf', $GLOBALS)){ $_conf = $GLOBALS["conf"]; // mpre("Используем соединение основной системы");
+	}else if(!$_dir =getcwd()){ mpre("Уведомление");
+	//}else if(!$_dir =__DIR__){ mpre("ОШИБКА сохранения текущей директории");
+	//}else if(!$conf["db"]["open_basedir"] = $_dir){ mpre("ОШИБКА установки текущей директории");
+   }elseif(!$DIR = explode("/", __DIR__)){ print_r("Ошибка определения текущей директории");
+   }elseif(!$offset = array_search($d = "git", $DIR)){ print_r("Директория с проектом не найдена `{$d}`"); print_r($DIR);
+   }elseif(!$folder = implode("/", array_slice($DIR, 0, $offset+1))){ print_r("Ошибка выборка директории");
+   }elseif(!$dir = implode("/", array_slice($DIR, $offset+1))){ print_r("Ошибка выборка директории");
+   }elseif(!chdir($folder)){ print_r("Ошибка установки директории `{$dir}`");
+   }elseif(!$inc = function($file ,$to_phar =0) use(&$conf, $dir){
+      if(!$to_phar &&($f = realpath($file)) && include($f)){ return $f;
+      }elseif(($f = "phar://index.phar/{$file}") && file_exists($f) && include($f)){ return $f;
+      }else{ return pre(null, "Директория не найдена `{$file}`"); }
+   }){ print_r("Функция подключения файлов");
+   }elseif(!$inc($f = "include/func.php")){ print_r("Ошибка подключения `{$f}`");
+   }elseif(!$short_open_tag = ini_get("short_open_tag")){ pre("Установите параметр `short_open_tag`\nsed -i \"s/short_open_tag = .*/short_open_tag = On/\" /etc/php/7.0/cli/php.ini");
+   }elseif(!$inc($f = "include/config.php" ,1)){ pre("Ошибка подключения `{$f}`");
+   }elseif(!$modpath = (isset($argv) ? basename(dirname(dirname(__FILE__))) : basename(dirname(__FILE__)))){ mpre("Ошибка вычисления имени модуля");
+   }elseif(!$arg = ['modpath'=>$modpath, "fn"=>implode(".", array_slice(explode(".", basename(__FILE__)), 0, -1))]){ mpre("Установка аргументов");
+   }elseif(isset($argv)){ pre("Запуск из веб интерфейса");
+	}else if(!$db =$ARGV[""]){ mpre("ОШИБКА имя БД не задано");
+	}else if(!$_conf =$conf){ mpre("ОШИБКА получения локальной конфигурации");
+   }elseif(!$_conf['user']['gid'] = array(1=>"Администратор")){ mpre("Устанавливаем администратора");
+   }elseif(!$GLOBALS["conf"] = $_conf){ mpre("ОШИБКА сохранеения данных в глобальной переменной");
+   }elseif(!$_conf['db']['name'] =$db){ mpre("Ошибка подключения БД попробуйте установить `apt install php-sqlite3`");
+	}else if(!touch($_conf['db']['name'])){ mpre("ОШИБКА создания файла БД");
+	//}else if(!mpre("Директория" ,realpath($_conf['db']['name']))){ mpre("Уведомление");
+	//}else if(!mpre("Создание файла" ,$_conf['db']['name'] ,$conf)){ mpre("Уведомление");
+   }elseif(!is_string($_conf['db']['prefix'] ="")){ mpre("Ошибка подключения БД попробуйте установить `apt install php-sqlite3`");
+	}else if(!$GLOBALS["conf"] =$_conf){ mpre("ОШИБКА устаноки глобальной переменной");
+   }elseif(!$_conf['db']['conn'] = conn()){ mpre("Ошибка подключения БД попробуйте установить `apt install php-sqlite3`");
+   }else{ //mpre("Добашняя директория". $folder);
    }return $_conf; })){ print_r("ОШИБКА подключения к БД");
+//}else if(!mpre("КОнфигурация" ,$conf)){ mpre("Уведомление");
 }else if(call_user_func(function()use($ARGV ,$conf){ # Загрузка данных
 	if(call_user_func(function()use($ARGV){ # Обнуление базы данных
 		if(!array_key_exists("--drop" ,$ARGV)){ //mpre("Не обнуляем базу данных");
@@ -94,7 +129,6 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 		}return $data; } ,$_DATA)){ mpre("ОШИБКА загрузки данных в базу");
 	}else if(!array_map(function($_data)use(&$SIGN){ # Статистика значений
 		if(!$_value =array_merge($_data[0] ,$_data[1])){ mpre("ОШИБКА обьединения значений");
-		//}else if(!mpre("ОБьединение значений" ,$_data ,$_value)){ mpre("Уведомление");
 		}else if(!array_map(function($learn ,$VALS)use(&$SIGN ,$_data){ # Перебор наборов данных
 			if(false){ mpre("Уведомление");
 			}else if(!$_val =array_map(function($name ,$val ,$_val ="")use(&$SIGN ,$_data ,$learn){ # Расчет значений
@@ -108,11 +142,9 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 			}} ,array_keys($_data) ,$_data)){ mpre("ОШИБКА перебора наборов данных");
 		}else{ //mpre("Обьединенные значения" ,$_data ,$_value ,$_val);
 		}} ,$_DATA)){ mpre("ОШИБКА сбора статистики о значениях");
-	//}else if(!mpre("Размеры сигналов" ,$SIGN)){ mpre("Уведомление");
 	}else if(!$VALUE =array_map(function($name ,$sign ,$value =[]){ # Сохранение максимальных значений
 		if(!is_numeric($bin =decbin(get($sign ,"max") ?:0))){ mpre("ОШИБКА полученя значения");
 		}else if(!is_array($value =rb("value" ,"name" ,"[$name]"))){ mpre("ОШИБКА выборки старого значения");
-		//}else if($value && ($value["len"] >strlen($bin))){ exit(mpre("ОШИБКА старое значение больше нового"));
 		}else if(!$len =$value ?max($value["len"] ,strlen($bin)) :strlen($bin)){ mpre("ОШИБКА расчета размера");
 		}else if(!$value =fk("value" ,$w =["name"=>$name] ,$w +=["learn"=>$sign["learn"] ,"len"=>$len ,"min"=>$sign["min"] ,"max"=>$sign["max"]] ,$w)){ mpre("ОШИБКА сохраения значения");
 		}else if(!array_map(function($nn)use($value ,$name){ # Добавление сигналов
@@ -137,15 +169,12 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 		}else if(!$LEARN =array_map(function($bit ,$learn =[] ,$val ="")use($data ,$value ,$bin){ # Создание ссылок битов
 			if(!is_numeric($pos =$value["len"] -$bit["nn"])){ mpre("ОШИБКА расчета ");
 			}else if(!is_numeric($val =substr($bin ,$pos ,1))){ mpre("ОШИБКА выборки значения бита");
-			}else if(!$link =fk("link" ,$w =["data_id"=>$data["id"] ,"bit_id"=>$bit["id"]] ,$w +=["val"=>$val])){ mpre("ОШИБКА создания ссылки на результат данных");
-			#}else if(!qw("INSERT INTO link (data_id ,bit_id ,val) VALUES ({$data["id"]} ,{$bit["id"]} ,{$val})")){ mpre("ОШИБКА добавления значения");
+			}else if(!qw("INSERT OR IGNORE INTO link (data_id ,bit_id ,val) VALUES ({$data["id"]} ,{$bit["id"]} ,{$val})")){ mpre("ОШИБКА добавления значения");
 			}else{ //mpre("Расчет значения ссылки data_id:{$data["id"]} bit_id:{$bit["id"]} bit:{$bin} nn:{$bit["nn"]} val:{$val}");
 			}return $learn; } ,$BIT)){ mpre("ОШИБКА создания ссылок битов");
 		}else if(!qw("END TRANSACTION;")){ mpre("ОШИБКА запуска транзакции");
 		}else{ //mpre("Загрузка значений data_id:{$data["id"]}");
 		}} ,$VALUE); mpre("Загрузка значений data_id:{$data["id"]}"); } ,$DATA)){ mpre("ОШИБКА добавления ссылки на результат");
-	//}else if(!qw("PRAGMA temp_store 0;")){ mpre("Указываем временное хранилище в памяти");
-	//}else if(!qw("PRAGMA synchronous 2;")){ mpre("Указываем синхронизацию");
 	}else if(!qw("PRAGMA SYNCHRONOUS=NORMAL;")){ mpre("Указываем синхронизацию");
 	}else if(!qw("PRAGMA temp_store=DEFAULT;")){ mpre("Указываем временное хранилище в памяти");
 	}else{ //mpre("Загрузка данных {$count["cnt"]}=>" .count($_DATA) ,$VALUE);
@@ -159,22 +188,32 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 	}else if(!qw("CREATE INDEX IF NOT EXISTS `link-bit_id-limb_id` ON link(bit_id ,limb_id);")){ mpre("Создание ключа");
 	}else if(!qw("CREATE INDEX IF NOT EXISTS `link-limb_id-val` ON link(limb_id ,val);")){ mpre("Создание ключа");
 	}else if(!qw("CREATE INDEX IF NOT EXISTS `link-limb_id` ON link(limb_id);")){ mpre("Создание ключа");
-	//}else if(!qw("PRAGMA temp_store=MEMORY;")){ mpre("Указываем временное хранилище в памяти");
 	}else if(!qw("CREATE TABLE IF NOT EXISTS limb (id INTEGER PRIMARY KEY AUTOINCREMENT ,bit_id INT ,limb_id INT ,lvl INT ,val EVAL(0,1) ,_bit_id INT ,bits TEXT ,_bin TEXT ,UNIQUE(bit_id,limb_id,val));")){ mpre("ОШИБКА создания таблицы данных");
-	//}else if(!qw("CREATE INDEX IF NOT EXISTS `limb-limb_id` ON limb(limb_id);")){ mpre("ОШИБКА формирования уникального индекса");
-	//}else if(!qw("CREATE UNIQUE INDEX IF NOT INDEX `limb-limb_id-lvl-val` ON limb(limb_id ,lvl ,val);")){ mpre("ОШИБКА формирования уникального индекса");
 	}else if(!$DATA =rb("data")){ mpre("Данных для обучения не найдено data {$conf["db"]["name"]}");
+	//}else if(!$DATA =qn("SELECT * FROM data ORDER BY id DESC")){ mpre("ОШИБКА выборки примеров в обратном значении");
 	}else if(!$VALUE =rb("value")){ mpre("Данных для обучения не найдено");
 	}else if(!$_VALUE =rb($VALUE ,"learn" ,"id" ,1)){ mpre("ОШИБКА выборки обучаеых значений");
 	}else if(!$_BIT =rb("bit" ,"value_id" ,"nn")){ mpre("ОШИБКА выборки списка битов");
 	}else if(!array_map(function($_epoch)use($DATA ,$_VALUE ,$_BIT){ array_map(function($data)use($_epoch ,$_VALUE ,$_BIT){ array_map(function($value)use($_epoch ,$data ,$_BIT){ array_map(function($bit)use($_epoch ,$data ,$value){ # Перебор обучающих данных
 		if(!$name =$value["name"]){ mpre("Уведомление");
 		}else if(!$nn =$bit["nn"]){ mpre("ОШИБКА расчета номера сигнала");
-		}else if(!$bit =rb("bit" ,"value_id" ,"nn" ,$value["id"] ,$nn)){ //mpre("Бит найден в кеше");
+		}else if(!$bit =rb("bit" ,"value_id" ,"nn" ,$value["id"] ,$nn)){ exit(mpre("ОШИБКА Бит найден в кеше"));
 		}else if(!$link =call_user_func(function($link =[])use($data ,$bit ,$value){ # Выборка и проверка ссылки
 			if(!$link =rb("link" ,"data_id" ,"bit_id" ,$data["id"] ,$bit["id"])){ exit(mpre("ОШИБКА получения ссылки"));
-			}else if(!$limb_id =$link["limb_id"]){ //mpre("Решение еще не установлено");
-			}else if(!$_limb =rb("limb" ,"id" ,$limb_id)){ mpre("ОШИБКА выборки нулевого результата");
+			}else if(!is_array($_limb =($limb_id =$link["limb_id"]) ?rb("limb" ,"id" ,$limb_id) :[])){ mpre("ОШИБКА выборки нулевого результата");
+			/*}else if(!is_array($_limb =call_user_func(function()use($_limb ,$bit ,$data){ # Нахождение решения
+				if($_limb){ //mpre("Уже установлено");
+				}else if(!$bit["limb_id"]){ //mpre("Нулевое решение не задано");
+				}else if(!$limb =rb("limb" ,"id" ,$bit["limb_id"])){ mpre("ОШИБКА выборки нулевого решения");
+				}else if(!$_limb =call_user_func(function($pass =true)use($limb ,$data){ while(!($pass =!$pass)){ # Расчет текущего решения
+					if(!$link =rb("link" ,"data_id" ,"bit_id" ,$data["id"] ,$bit["id"])){ mpre("ОШИБКА выборки значения");
+					}else if($limb){ mpre("Уведомление");
+					}else if(!($pass =$pass)){ mpre("Инвертирование сигнала продолжения цикла");
+					}else{ mpre("Поиск значения" ,$_limb);
+					}}return $_limb; })){ mpre("ОШИБКА расчета текущего решения");
+				}else{ mpre("Нахождение значения" ,$_limb);
+				}return $_limb; }))){ mpre("ОШИБКА нахождения оторванного значения");*/
+			}else if(!$_limb &&$bit["limb_id"]){ exit(mpre("ОШИБКА значение не найдено" ,$link ,$_limb ,$bit));
 			}else if(!$_bit_id =get($_limb ,"_bit_id")){ //mpre("Крайний результат");
 			}else if(!$_link =rb("link" ,"data_id" ,"bit_id" ,$data["id"] ,$_bit_id)){ mpre("ОШИБКА выборки значения бита");
 			}else if(!is_numeric($val =$_link["val"])){ mpre("ОШИБКА расчта значения бита результата");
@@ -192,20 +231,6 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 		}else if(!is_numeric($lvl =get($limb ,"lvl") ?:0)){ mpre("ОШИБКА расчета уровня");
 		}else if(!is_numeric($cnt =$limb ?ql("SELECT COUNT(*) AS cnt FROM link WHERE limb_id=" .$limb["id"] ,0 ,"cnt") :0)){ mpre("ОШИБКА выборки количества задействованных элементов");
 		}else if(!mpre("Расчет epoch:{$_epoch} alg=" .get($GLOBALS ,"ARGV" ,"alg") ." data_id:{$data["id"]} value_id:{$value["id"]} {$bit["name"]} nn:{$nn} lvl:{$lvl} cnt:{$cnt} _val:{$_val} val:{$val} " .($val ==$_val ?"=== Совпадение ===" :"!!! Разница !!!"))){ mpre("Уведомление");
-		/*}else if(!is_array($LINK =call_user_func(function($LINK =[])use($limb ,$bit ,$val ,$_val){ # Список ссылок для обучения
-			if($limb &&($val ==$_val)){ //mpre("Значения совпали не расчитываем подходящий бит");
-			}else if(!is_array($LINK =call_user_func(function($LINK =[])use($limb ,$bit){ # Список полных данных
-				if($limb){ //mpre("Не пустая ссылка");
-				}else if(!$LINK =rb("link" ,"bit_id" ,"id" ,$bit["id"])){ mpre("ОШИБКА получения списка ссылок");
-				}else{ //mpre("Выборка данных для изменения" ,$limb);
-				}return $LINK; }))){ mpre("ОШИБКА выборки списка затрагиваемых данных");
-			}else if(!$LINK =call_user_func(function()use($LINK ,$limb ,$bit){ # Локальный список результата
-				if($LINK){ //mpre("Список получен ранее");
-				}else if(!$LINK =rb("link" ,"bit_id" ,"limb_id" ,"id" ,$bit["id"] ,$limb["id"])){ mpre("ОШИБКА выборки ссылок результата");
-				}else{ //mpre("Получение локального списка" ,$LINK);
-				}return $LINK; })){ mpre("ОШИБКА получения локального списка ссылок результата");
-			}else{ //mpre("Список ссылок для обучения {$bit["name"]}" ,$limb ,$LINK);
-			}return $LINK; }))){ mpre("ОШИБКА выборки списка ссылок для обучения");*/
 		}else if(!is_array($_bit =call_user_func(function($_bit =[])use($_epoch ,$data ,$limb ,$bit ,$link ,$cnt ,$val ,$_val){ # Расчет подходящего бита
 			if(!$limb |($val ==$_val)){ //mpre("Значения совпали не расчитываем подходящий бит");
 			}else if($_bit =($_bit_id =get($limb ,"_bit_id")) ?rb("bit" ,"id" ,$_bit_id) :$_bit){ //mpre("Расчетный бит установлен ранее");
@@ -213,28 +238,20 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 			}else if(!is_array($_bits =explode("," ,(get($limb ,"bits") ?:"")))){ mpre("ОШИБКА получения списка битов");
 			}else if(!$VALUE =rb("value" ,"learn" ,"id" ,0)){ mpre("ОШИБКА выборки обучаемых значений");
 			}else if(!$BIT =rb("bit" ,"value_id" ,"id" ,$VALUE)){ mpre("ОШИБКА выборки бит обучения");
-			/*}else if(!is_numeric($cnt =call_user_func(function($cnt =0)use($limb ,$val ,$_val){ # Количество ссылок у результата
-				if(!$limb){ //mpre("Нулевой результат");
-				}else if($val ==$_val){ //mpre("Значения совпадают");
-				}else if(!$count =ql("SELECT COUNT(*) AS cnt FROM link WHERE limb_id=" .(int)$limb["id"])){ mpre("ОШИБКА расчета количества элементов" ,$count);
-				}else if(!is_numeric($cnt =get($count ,0 ,"cnt"))){ mpre("ОШИБКА результат не найден" ,$count);
-				}else{ //mpre("Расчет количества {$cnt}" ,$count ,$limb ,$LINK);
-				}return $cnt; }))){ mpre("ОШИБКА расчета количества ссылок");*/
 			}else if(!$microtime =microtime(true)){ mpre("ОШИБКА засечения времени");
 			}else if(!is_array($stat =[])){ mpre("ОШИБКА устанвоки массива статистики");
-			//}else if(!is_string($sql ="")){ mpre("ОШИБКА устанвоки запроса");
 			}else if(!$STAT =array_map(function($_bit ,$_stat =[])use(&$stat ,$_epoch ,$data ,$bit ,$limb ,$_bits ,$cnt ,$microtime){ # Расчет бит
 				if(is_numeric(array_search($_bit["id"] ,$_bits))){ //mpre("Пропускаем расчеты");
 				}else if(!$where =$limb ?"l1.limb_id={$limb["id"]}" :"TRUE"){ mpre("ОШИБКА установки условия выборки ссылок");
 				}else if(!$sql =preg_replace("#\n\t+#" ," " ,"SELECT l1.data_id ,l0.bit_id ,l1.val AS val1 , l0.val AS val0 ,SUM(l0.val =l1.val) AS sum ,
 					SUM(IIF(1 =l0.val, 1, 0)) AS s1 ,
-					SUM(IIF(1 <>l0.val, 1, 0)) AS s0 ,
+					SUM(IIF(0 =l0.val, 1, 0)) AS s0 ,
 					SUM(IIF((1 =l0.val) & (1 =l1.val) ,1 ,0)) AS m11 ,
-					SUM(IIF((1 =l0.val) & (1 <>l1.val) ,1 ,0)) AS m10 ,
-					SUM(IIF((1 <>l0.val) & (1 =l1.val) ,1 ,0)) AS m01 ,
-					SUM(IIF((1 <>l0.val) & (1 <>l1.val) ,1 ,0)) AS m00 ,
+					SUM(IIF((1 =l0.val) & (0 =l1.val) ,1 ,0)) AS m10 ,
+					SUM(IIF((0 =l0.val) & (1 =l1.val) ,1 ,0)) AS m01 ,
+					SUM(IIF((0 =l0.val) & (0 =l1.val) ,1 ,0)) AS m00 ,
 					SUM(IIF(1 =l1.val, 1, 0)) AS z1 ,
-					SUM(IIF(1 <>l1.val, 1, 0)) AS z0 ,
+					SUM(IIF(0 =l1.val, 1, 0)) AS z0 ,
 					COUNT(l1.id) AS count
 					FROM link AS l1 LEFT JOIN link AS l0 ON (l1.data_id =l0.data_id) AND l0.bit_id=" .(int)$_bit["id"] ." WHERE {$where} AND l1.bit_id=" . (int)$bit["id"] ."")){ mpre("ОШИБКА составления запроса");
 				}else if(!$_stat =ql($sql ,0)){ mpre("ОШИБКА выборки статистики");
@@ -354,14 +371,14 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 }else if(call_user_func(function()use($ARGV){ # Расчет
 	if(!$_data =call_user_func(function($_data =""){ # Данные из консоли
 		if(!is_string($_data =get($GLOBALS ,"ARGV" ,"data") ?:"")){ //mpre("Значение для расчета не задано");
-		}else if(!array_key_exists("--calc" ,$GLOBALS["ARGV"])){ mpre("Данные не заданы");
+		}else if(!array_key_exists("--calc" ,$GLOBALS["ARGV"])){ //mpre("Данные не заданы");
 		}else if(!$file = fopen("php://stdin", "r")){ mpre("ОШИБКА открытия файла");
 		}else if(!is_array($LINE =call_user_func(function($LINE =[])use($file){ # Построчная выборка
 			while (false !== ($line = fgets($file))){ $LINE[] =$line;
 			}return $LINE; }))){ mpre("Данных в STDIN не найдено");
 		}else if(!$_data =implode("" ,$LINE)){ mpre("ОШИБКА получения строки данных");
 		}else{ //mpre("Строка пайп" ,$LINE);
-		}return $_data; })){ mpre("Данные консоли не заданы");
+		}return $_data; })){ //mpre("Данные консоли не заданы");
 	}else if(!$DATA =json_decode($_data ,true)){ mpre("ОШИБКА парсинга входящих данных");
 	}else if(!$VALUE =rb("value")){ mpre("ОШИБКА значения не найдены");
 	//}else if(array_diff_key($data[0] ,rb($VALUE ,"name"))){ mpre("ОШИБКА указаны не все значения" ,$data);
@@ -433,7 +450,7 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 		if(!get($GLOBALS ,"ARGV" ,"epoch")){ //mpre("Не выводим");
 		}else if(!$count =ql("SELECT COUNT(*) AS cnt FROM limb")){ mpre("ОШИБКА получения количества правил");
 		}else if(!$level =ql("SELECT MAX(lvl) AS lvl FROM limb")){ mpre("ОШИБКА получения количества правил");
-		}else{ mpre("Количество правил: " .get($count ,0 ,"cnt") ." максимальный уровень: " .get($level ,0 ,"lvl") ,);
+		}else{ mpre("Количество решений: " .get($count ,0 ,"cnt") ." максимальный уровень: " .get($level ,0 ,"lvl") ,);
 		}})){ mpre("ОШИБКА расчета количества правил");
 }else{ //mpre("Без консоли");
 }
