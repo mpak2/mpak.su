@@ -170,8 +170,28 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 			if(!is_numeric($pos =$value["len"] -$bit["nn"])){ mpre("ОШИБКА расчета ");
 			}else if(!is_numeric($val =substr($bin ,$pos ,1))){ mpre("ОШИБКА выборки значения бита");
 			}else if(!$value["learn"] &&!$val){ //mpre("Пропуск нулеого значения");
-			}else if(!qw("INSERT OR IGNORE INTO link (data_id ,bit_id ,val) VALUES ({$data["id"]} ,{$bit["id"]} ,{$val})")){ mpre("ОШИБКА добавления значения");
-			}else{ //mpre("Расчет значения ссылки data_id:{$data["id"]} bit_id:{$bit["id"]} bit:{$bin} nn:{$bit["nn"]} val:{$val}");
+			}else if(!qw("INSERT OR IGNORE INTO link(data_id ,bit_id ,val) VALUES ({$data["id"]} ,{$bit["id"]} ,{$val})")){ mpre("ОШИБКА добавления значения");
+			}else if(!$value["learn"]){ //mpre("Не расчитываем для исходного сигнала");
+			}else if(!$bit["limb_id"]){ //mpre("Нулевой результат не задан");
+			}else if(!$link =rb("link" ,"data_id" ,"bit_id" ,"val" ,$data["id"] ,$bit["id"] ,$val)){ mpre("ОШИБКА выборки ссылки");
+			}else if($link["limb_id"]){ //mpre("Результат уже задан");
+			}else if(!$limb =rb("limb" ,"id" ,$bit["limb_id"])){ mpre("ОШИБКА выборки нулевого результата");
+			}else if(!$limb =call_user_func(function($pass =1)use($limb ,$data){ while(!($pass =!$pass)){ # Актуальный результат
+				if(!$lvl =$limb ?$limb["lvl"] +1 :$_limb["lvl"] +1){ mpre("Уведомление");
+				}else if(!is_numeric($val =call_user_func(function($val ="")use($limb ,$data){ # Расчет значения
+					if(!$_bit_id =get($limb ,"_bit_id")){ mpre("ОШИБКА идентификатор бита не задан");
+					}else if(!is_array($_link =rb("link" ,"data_id" ,"bit_id" ,$data["id"] ,$_bit_id))){ mpre("ОШИБКА выборки значения");
+					}else if(!is_numeric($val =$_link ?1 :0)){ mpre("ОШИБКА расчета значения");
+					}else{ //mpre("Расчетное значение limb_id:{$limb["id"]} {$val}");
+					}return $val; }))){ mpre("ОШИБКА расчета значения");
+				}else if(!$_limb =rb("limb" ,"bit_id" ,"limb_id" ,"lvl" ,"val" ,$limb["bit_id"] ,$limb["id"] ,$lvl ,$val)){ //mpre("Значение не найдено");
+				}else if(!$limb =$_limb){ mpre("ОШИБКА установки текущего значения");
+				}else if(!get($limb ,"_bit_id")){ //mpre("Крайний результат");
+				}else if(!($pass =!$pass)){ mpre("ОШИБКА продолжения цикла");
+				}else{ //mpre("Расчет дерева решений lvl:{$lvl} val:{$val}" ,$limb);
+				}}return $limb; })){ mpre("ОШИБКА выборки актуального результата");
+			}else if(!$link =fk("link" ,["id"=>$link["id"]] ,[] ,["limb_id"=>$limb["id"]])){ mpre("ОШИБКА обновления результата");
+			}else{ //mpre("Расчет значения ссылки data_id:{$data["id"]} bit_id:{$bit["id"]} bit:{$bin} nn:{$bit["nn"]} val:{$val}" ,$link ,$limb);
 			}return $learn; } ,$BIT)){ mpre("ОШИБКА создания ссылок битов");
 		}else if(!qw("END TRANSACTION;")){ mpre("ОШИБКА запуска транзакции");
 		}else{ //mpre("Загрузка значений data_id:{$data["id"]}");
@@ -202,18 +222,6 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 		}else if(!$link =call_user_func(function($link =[])use($data ,$bit ,$value){ # Выборка и проверка ссылки
 			if(!$link =rb("link" ,"data_id" ,"bit_id" ,$data["id"] ,$bit["id"])){ exit(mpre("ОШИБКА получения ссылки"));
 			}else if(!is_array($_limb =($limb_id =$link["limb_id"]) ?rb("limb" ,"id" ,$limb_id) :[])){ mpre("ОШИБКА выборки нулевого результата");
-			/*}else if(!is_array($_limb =call_user_func(function()use($_limb ,$bit ,$data){ # Нахождение решения
-				if($_limb){ //mpre("Уже установлено");
-				}else if(!$bit["limb_id"]){ //mpre("Нулевое решение не задано");
-				}else if(!$limb =rb("limb" ,"id" ,$bit["limb_id"])){ mpre("ОШИБКА выборки нулевого решения");
-				}else if(!$_limb =call_user_func(function($pass =true)use($limb ,$data){ while(!($pass =!$pass)){ # Расчет текущего решения
-					if(!$link =rb("link" ,"data_id" ,"bit_id" ,$data["id"] ,$bit["id"])){ mpre("ОШИБКА выборки значения");
-					}else if($limb){ mpre("Уведомление");
-					}else if(!($pass =$pass)){ mpre("Инвертирование сигнала продолжения цикла");
-					}else{ mpre("Поиск значения" ,$_limb);
-					}}return $_limb; })){ mpre("ОШИБКА расчета текущего решения");
-				}else{ mpre("Нахождение значения" ,$_limb);
-				}return $_limb; }))){ mpre("ОШИБКА нахождения оторванного значения");*/
 			}else if(!$_limb &&$bit["limb_id"]){ exit(mpre("ОШИБКА значение не найдено" ,$link ,$_limb ,$bit));
 			}else if(!$_bit_id =get($_limb ,"_bit_id")){ //mpre("Крайний результат");
 			}else if(!is_array($_link =rb("link" ,"data_id" ,"bit_id" ,$data["id"] ,$_bit_id))){ mpre("ОШИБКА выборки значения бита");
