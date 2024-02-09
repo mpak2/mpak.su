@@ -169,6 +169,7 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 		}else if(!$LEARN =array_map(function($bit ,$learn =[] ,$val ="")use($data ,$value ,$bin){ # Создание ссылок битов
 			if(!is_numeric($pos =$value["len"] -$bit["nn"])){ mpre("ОШИБКА расчета ");
 			}else if(!is_numeric($val =substr($bin ,$pos ,1))){ mpre("ОШИБКА выборки значения бита");
+			}else if(!$value["learn"] &&!$val){ //mpre("Пропуск нулеого значения");
 			}else if(!qw("INSERT OR IGNORE INTO link (data_id ,bit_id ,val) VALUES ({$data["id"]} ,{$bit["id"]} ,{$val})")){ mpre("ОШИБКА добавления значения");
 			}else{ //mpre("Расчет значения ссылки data_id:{$data["id"]} bit_id:{$bit["id"]} bit:{$bin} nn:{$bit["nn"]} val:{$val}");
 			}return $learn; } ,$BIT)){ mpre("ОШИБКА создания ссылок битов");
@@ -215,11 +216,11 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 				}return $_limb; }))){ mpre("ОШИБКА нахождения оторванного значения");*/
 			}else if(!$_limb &&$bit["limb_id"]){ exit(mpre("ОШИБКА значение не найдено" ,$link ,$_limb ,$bit));
 			}else if(!$_bit_id =get($_limb ,"_bit_id")){ //mpre("Крайний результат");
-			}else if(!$_link =rb("link" ,"data_id" ,"bit_id" ,$data["id"] ,$_bit_id)){ mpre("ОШИБКА выборки значения бита");
-			}else if(!is_numeric($val =$_link["val"])){ mpre("ОШИБКА расчта значения бита результата");
+			}else if(!is_array($_link =rb("link" ,"data_id" ,"bit_id" ,$data["id"] ,$_bit_id))){ mpre("ОШИБКА выборки значения бита");
+			}else if(!is_numeric($val =$_link ?1 :0)){ mpre("ОШИБКА расчта значения бита результата");
 			}else if(!$lvl =$_limb["lvl"] +1){ mpre("ОШИБКА расчета следующего уровня");
 			}else if(!$_limb_ =rb("limb" ,"bit_id" ,"limb_id" ,"lvl" ,"val" ,$bit["id"] ,$_limb["id"] ,$lvl ,$val)){ //mpre("Уровень не найден bit_id:{$bit["id"]} limb_id:{$_limb["id"]} lvl:{$lvl} val:{$val}");
-			}else{ exit(mpre("ОШИБКА найден нижестоящий уровень ссылки data_id:{$data["id"]} name:{$value["name"]} {$bit["name"]} limk_id:{$link["id"]} val:{$val} lvl:$lvl" ,$link ,$_limb ,$_limb_));
+			}else{ exit(mpre("ОШИБКА найден нижестоящий уровень ссылки data_id:{$data["id"]} name:{$value["name"]} {$bit["name"]} limk_id:{$link["id"]} val:{$val} lvl:$lvl" ,$link ,$_link ,$_limb ,$_limb_));
 			}return $link; })){ mpre("ОШИБКА выборки ссылки");
 		}else if(!is_numeric($val =$link["val"])){ mpre("ОШИБКА значения не совпали {$val} !={$link["val"]} name:{$name} bin:{$bin}" ,$data ,$bit ,$link);
 		}else if(!is_array($limb =rb("limb" ,"id" ,$link["limb_id"]))){ mpre("Нулевой результат уже создан");
@@ -243,18 +244,19 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 			}else if(!$STAT =array_map(function($_bit ,$_stat =[])use(&$stat ,$_epoch ,$data ,$bit ,$limb ,$_bits ,$cnt ,$microtime){ # Расчет бит
 				if(is_numeric(array_search($_bit["id"] ,$_bits))){ //mpre("Пропускаем расчеты");
 				}else if(!$where =$limb ?"l1.limb_id={$limb["id"]}" :"TRUE"){ mpre("ОШИБКА установки условия выборки ссылок");
-				}else if(!$sql =preg_replace("#\n\t+#" ," " ,"SELECT l1.data_id ,l0.bit_id ,l1.val AS val1 , l0.val AS val0 ,SUM(l0.val =l1.val) AS sum ,
+				}else if(!$sql =preg_replace("#\n\t+#" ," " ,"SELECT l1.data_id ,l1.val AS val1 , l0.val AS val0 ,SUM(l0.val =l1.val) AS sum ,
 					SUM(IIF(1 =l0.val, 1, 0)) AS s1 ,
-					SUM(IIF(0 =l0.val, 1, 0)) AS s0 ,
+					SUM(IIF(l0.val IS NULL, 1, 0)) AS s0 ,
 					SUM(IIF((1 =l0.val) & (1 =l1.val) ,1 ,0)) AS m11 ,
 					SUM(IIF((1 =l0.val) & (0 =l1.val) ,1 ,0)) AS m10 ,
-					SUM(IIF((0 =l0.val) & (1 =l1.val) ,1 ,0)) AS m01 ,
-					SUM(IIF((0 =l0.val) & (0 =l1.val) ,1 ,0)) AS m00 ,
+					SUM(IIF((l0.val IS NULL) & (1 =l1.val) ,1 ,0)) AS m01 ,
+					SUM(IIF((l0.val IS NULL) & (0 =l1.val) ,1 ,0)) AS m00 ,
 					SUM(IIF(1 =l1.val, 1, 0)) AS z1 ,
 					SUM(IIF(0 =l1.val, 1, 0)) AS z0 ,
 					COUNT(l1.id) AS count
 					FROM link AS l1 LEFT JOIN link AS l0 ON (l1.data_id =l0.data_id) AND l0.bit_id=" .(int)$_bit["id"] ." WHERE {$where} AND l1.bit_id=" . (int)$bit["id"] ."")){ mpre("ОШИБКА составления запроса");
 				}else if(!$_stat =ql($sql ,0)){ mpre("ОШИБКА выборки статистики");
+				}else if(!$_stat["bit_id"] =$_bit["id"]){ mpre("ОШИБКА установки бита");
 				}else if(!is_array($_stat =call_user_func(function($alg ="масса")use($_stat){ # Расчет статистики статистики минимального сигнала ~19.38
 					if(array_key_exists("v" ,$_stat)){ //mpre("Значение уже расчитано");
 					}else if(($_alg =get($GLOBALS ,"ARGV" ,"alg")) &&($_alg !=$alg)){ //mpre("Выбран другой алгоритм");
@@ -322,8 +324,8 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 			}else if(!is_string($_v =call_user_func(function($_v ="")use($limb ,$data ,$_bit){ # Расчет значения
 				if(!$limb){ //mpre("Старший результат не задан");
 				}else if(!$_bit){ mpre("ОШИБКА не расчитан бит разделитель");
-				}else if(!$_link =rb("link" ,"data_id" ,"bit_id" ,$data["id"] ,$_bit["id"])){ mpre("ОШИБКА получения ссылку значения исходного результата" ,$data);
-				}else if(!is_string($_v =(string)$_link["val"])){ mpre("ОШИБКА расчета значения {$_v}" ,$_link);
+				}else if(!is_array($_link =rb("link" ,"data_id" ,"bit_id" ,$data["id"] ,$_bit["id"]))){ mpre("ОШИБКА получения ссылку значения исходного результата" ,$data);
+				}else if(!is_string($_v ="" .($_link ?1 :0))){ mpre("ОШИБКА расчета значения {$_v}" ,$_link);
 				}return $_v; }))){ mpre("ОШИБКА расчета значения");
 			}else if(!is_string($bits =($b =get($limb ,"bits")) .($b ?"," :"") .get($_bit ,"id"))){ mpre("ОШИБКА расчета списка битов");
 			}else if(!qw("BEGIN TRANSACTION;")){ mpre("ОШИБКА запуска транзакции");
@@ -344,7 +346,7 @@ if(!is_array($ARGV =call_user_func(function($ARGV =[]){ # Входящие па�
 					}else{ //mpre("Результат расчтета {$cnt}" ,$count);
 					}return $cnt; }))){ mpre("ОШИБКА расчета количества ссылок");
 				}else if(!is_string($sql =!$limb ?"UPDATE link SET limb_id=" .$_limb["id"] ." WHERE bit_id=" .$bit["id"] ." AND limb_id IS NULL" :"")){ mpre("Установка первоначального значения");
-				}else if(!is_string($_sql =$limb ?"SELECT l1.id FROM link as l1 INNER JOIN link AS l0 ON l1.data_id=l0.data_id AND l0.bit_id=" .$_bit["id"] ." AND l0.val='{$_v}' WHERE l1.limb_id=" .$limb["id"] ."" :"")){ mpre("ОШИБКА составления условия выборки");
+				}else if(!is_string($_sql =$limb ?"SELECT l1.id FROM link as l1 LEFT JOIN link AS l0 ON l1.data_id=l0.data_id AND l0.bit_id=" .$_bit["id"] ." WHERE l0.val IS" .($_v ?" NOT" :"") ." NULL AND l1.limb_id=" .$limb["id"] ."" :"")){ mpre("ОШИБКА составления условия выборки");
 				}else if(!is_string($sql =$limb ?"UPDATE link SET limb_id=" .$_limb["id"] ." WHERE id IN ({$_sql})" :$sql)){ mpre("ОШИБКА запроса");
 				}else if(!qw($sql)){ mpre("ОШИБКА обновления значений" ,$sql);
 				}else if(!is_numeric($cnt =call_user_func(function($cnt =0)use($_limb){ # Количество ссылок у результата
